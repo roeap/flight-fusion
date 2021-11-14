@@ -1,0 +1,61 @@
+# To use this, install the python package `pre-commit` and
+# run once `pre-commit install`. This will setup a git pre-commit-hook
+# that is executed on each commit and will report the linting problems.
+# To run all hooks on all files use `pre-commit run -a`
+
+repos:
+  - repo: https://github.com/doublify/pre-commit-rust
+    rev: master
+    hooks:
+      - id: fmt
+      - id: cargo-check
+      - id: clippy
+
+  # - repo: local
+  #   hooks:
+  #     - id: rustfmt
+  #       name: Rust Format
+  #       language: system
+  #       entry: bash -c "cargo +stable fmt --all -- --check"
+  #       files: ^.*\.rs$
+  #       types:
+  #         - file
+  #         - rust
+  #     - id: rustclippy
+  #       name: Rust Clippy
+  #       language: system
+  #       entry: bash -c "cargo +stable clippy --all-targets --all-features -- -D warnings"
+  #       files: ^.*\.rs$
+  #       types:
+  #         - file
+  #         - rust
+      # - id: cmake-format
+      #   name: CMake Format
+      #   language: python
+      #   entry: python run-cmake-format.py
+      #   types: [cmake]
+      #   additional_dependencies:
+      #     - cmake_format==0.5.2
+      # - id: hadolint
+      #   name: Docker Format
+      #   language: docker_image
+      #   types:
+      #    - dockerfile
+      #   entry: --entrypoint /bin/hadolint hadolint/hadolint:latest -
+      #   exclude: ^dev/.*$
+  # - repo: git://github.com/pre-commit/pre-commit-hooks
+  #   sha: v1.2.3
+  #   hooks:
+  #    - id: flake8
+  #      name: Python Format
+  #      files: ^(python|dev|integration)/
+  #      types:
+  #        - file
+  #        - python
+  #    - id: flake8
+  #      name: Cython Format
+  #      files: ^python/
+  #      types:
+  #        - file
+  #        - cython
+  #      args: [--config=python/.flake8.cython]

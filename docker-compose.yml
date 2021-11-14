@@ -1,0 +1,108 @@
+version: "3.9"
+
+services:
+  fusion:
+    build:
+      context: .
+      dockerfile: rust/flight-fusion/Dockerfile
+    ports:
+      - "50051:50051"
+    command:
+      - "./flight-fusion"
+    env_file:
+      - .env
+    volumes:
+      - "./config:/config"
+    networks:
+      - fusion
+
+  postgres:
+    restart: always
+    image: postgres:latest
+    container_name: postgres
+    hostname: postgres
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "root"]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    ports:
+      - 5432:5432
+    env_file:
+      - docker/pg.env
+    volumes:
+      - postgres-storage:/docker-entrypoint-initdb.d/
+    networks:
+      - fusion
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: blob
+    hostname: azurite
+    ports:
+      - 10000:10000
+      - 10001:10001
+    command:
+      - "azurite"
+      - "--blobHost"
+      - "0.0.0.0"
+      - "--loose"
+    volumes:
+      - azurite-storage:/data
+    networks:
+      - fusion
+
+  # pgadmin:
+  #   image: dpage/pgadmin4:latest
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: admin@pgadmin.com
+  #     PGADMIN_DEFAULT_PASSWORD: password
+  #     PGADMIN_LISTEN_PORT: 80
+  #   ports:
+  #     - 15432:80
+  #   volumes:
+  #     - pgadmin-storage:/var/lib/pgadmin
+  #   depends_on:
+  #     - postgres
+
+  mlflow:
+    restart: always
+    build:
+      # context: .
+      dockerfile: docker/Dockerfile.mlflow
+    image: mlflow_server
+    container_name: mlflow_server
+    env_file:
+      - docker/mlflow.env
+    ports:
+      - 5000:5000
+    expose:
+      - "5000"
+    networks:
+      - fusion
+    depends_on:
+      - postgres
+      - azurite
+    command:
+      - "mlflow"
+      - "server"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "5000"
+      - "--default-artifact-root"
+      - "wasbs://model-container@devstoreaccount1.blob.core.windows.net"
+      - "--backend-store-uri"
+      - "postgresql://postgres:postgres@postgres:5432/postgres"
+
+networks:
+  fusion:
+    driver: bridge
+
+volumes:
+  azurite-storage:
+    driver: local
+  postgres-storage:
+    driver: local
+  pgadmin-storage:
+    driver: local

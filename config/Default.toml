@@ -1,0 +1,6 @@
+[server]
+port = "50051"
+url = "http://localhost:50051"
+
+[log]
+level = "info"
