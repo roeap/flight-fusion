@@ -32,6 +32,7 @@ type_map = {
 
 class FlightActions:
     REGISTER_TABLE = b"register-table"
+    REGISTER_DELTA_TABLE = b"register-delta-table"
 
 
 def _validate_segment(segment: str):
