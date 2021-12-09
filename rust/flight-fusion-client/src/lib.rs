@@ -1,11 +1,11 @@
 use arrow_flight::{flight_service_client::FlightServiceClient, Action};
 use flight_fusion_rpc::{
-    flight_action_request::Action as FusionAction, DropDatasetRequest, FlightActionRequest,
-    RequestFor, DropDatasetResponse,
+    flight_action_request::Action as FusionAction, DropDatasetRequest, DropDatasetResponse,
+    FlightActionRequest, RegisterDatasetRequest, RegisterDatasetResponse, RequestFor,
 };
-use prost::{Message, DecodeError};
-use tonic::{metadata::MetadataValue, service::Interceptor, transport::Channel};
+use prost::{DecodeError, Message};
 use std::io::Cursor;
+use tonic::{metadata::MetadataValue, service::Interceptor, transport::Channel};
 
 const AUTH_TOKEN_KEY: &str = "auth-token-bin";
 
@@ -37,7 +37,9 @@ pub enum FusionClientError {
 }
 
 #[inline]
-fn response_message<T: prost::Message + Default>(msg: arrow_flight::Result) -> Result<T, FusionClientError> {
+fn response_message<T: prost::Message + Default>(
+    msg: arrow_flight::Result,
+) -> Result<T, FusionClientError> {
     let mut buf = Cursor::new(&msg.body);
     Ok(T::decode(&mut buf)?)
 }
@@ -58,7 +60,10 @@ impl FlightFusionClient {
     }
 
     // #[tracing::instrument(level = "debug", skip(self, v))]
-    pub async fn drop_table<T>(&self, table_name: T) -> Result<DropDatasetResponse, FusionClientError>
+    pub async fn drop_table<T>(
+        &self,
+        table_name: T,
+    ) -> Result<DropDatasetResponse, FusionClientError>
     where
         T: Into<String>,
     {
@@ -67,7 +72,29 @@ impl FlightFusionClient {
         let mut action_request = FlightActionRequest::default();
         action_request.action = Some(FusionAction::Drop(action));
 
-        let result = self.do_action::<DropDatasetRequest, DropDatasetResponse>(action_request).await?;
+        let result = self
+            .do_action::<DropDatasetRequest, DropDatasetResponse>(action_request)
+            .await?;
+        Ok(result)
+    }
+
+    pub async fn register_dataset<T>(
+        &self,
+        schema_name: T,
+        table_name: T,
+    ) -> Result<RegisterDatasetResponse, FusionClientError>
+    where
+        T: Into<String>,
+    {
+        let mut action = RegisterDatasetRequest::default();
+        action.name = table_name.into();
+        let action_request = FlightActionRequest {
+            action: Some(FusionAction::Register(action)),
+        };
+
+        let result = self
+            .do_action::<RegisterDatasetRequest, RegisterDatasetResponse>(action_request)
+            .await?;
         Ok(result)
     }
 
@@ -89,12 +116,7 @@ impl FlightFusionClient {
             body: buf,
         };
 
-        let mut stream = self
-            .client
-            .clone()
-            .do_action(action)
-            .await?
-            .into_inner();
+        let mut stream = self.client.clone().do_action(action).await?.into_inner();
 
         match stream.message().await.unwrap() {
             None => Err(FusionClientError::TableAlreadyExists("asd".to_string())),

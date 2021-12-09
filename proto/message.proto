@@ -3,26 +3,10 @@ package flight_fusion_rpc;
 
 import "actions.proto";
 
-enum DatasetFormat {
-  DATASET_FORMAT_FILE = 0;
-  DATASET_FORMAT_DATASET = 1;
-  DATASET_FORMAT_DELTA = 2;
-}
-
-message RegisterDatasetAction {
-  DatasetFormat format = 1;
-  string path = 2;
-  string name = 3;
-}
-
-message RegisterDatasetResponse {
-    string message = 1;
-}
-
 // Request for flight do_get and do_action.
 message FlightActionRequest {
   oneof action {
-    RegisterDatasetAction register = 1;
+    RegisterDatasetRequest register = 1;
     DropDatasetRequest drop = 2;
   }
 }

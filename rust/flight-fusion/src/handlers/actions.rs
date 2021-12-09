@@ -1,7 +1,7 @@
 use super::BoxedFlightStream;
 use flight_fusion_rpc::{
     flight_action_request::Action as FusionAction, DropDatasetRequest, DropDatasetResponse,
-    FlightActionRequest, FlightFusionError, RegisterDatasetAction, RegisterDatasetResponse,
+    FlightActionRequest, FlightFusionError, RegisterDatasetRequest, RegisterDatasetResponse,
     RequestFor, Result as FusionResult,
 };
 use prost::Message;
@@ -62,8 +62,8 @@ impl RequestHandler<DropDatasetRequest> for ActionHandler {
 }
 
 #[async_trait::async_trait]
-impl RequestHandler<RegisterDatasetAction> for ActionHandler {
-    async fn handle(&self, _act: RegisterDatasetAction) -> FusionResult<RegisterDatasetResponse> {
+impl RequestHandler<RegisterDatasetRequest> for ActionHandler {
+    async fn handle(&self, _act: RegisterDatasetRequest) -> FusionResult<RegisterDatasetResponse> {
         println!("RegisterDatasetAction");
         todo!()
     }

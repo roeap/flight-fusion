@@ -1,15 +1,5 @@
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DropDatasetRequest {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DropDatasetResponse {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RegisterDatasetAction {
+pub struct RegisterDatasetRequest {
     #[prost(enumeration="DatasetFormat", tag="1")]
     pub format: i32,
     #[prost(string, tag="2")]
@@ -22,6 +12,23 @@ pub struct RegisterDatasetResponse {
     #[prost(string, tag="1")]
     pub message: ::prost::alloc::string::String,
 }
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DropDatasetRequest {
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DropDatasetResponse {
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum DatasetFormat {
+    File = 0,
+    Dataset = 1,
+    Delta = 2,
+}
 /// Request for flight do_get and do_action.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightActionRequest {
@@ -33,7 +40,7 @@ pub mod flight_action_request {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Action {
         #[prost(message, tag="1")]
-        Register(super::RegisterDatasetAction),
+        Register(super::RegisterDatasetRequest),
         #[prost(message, tag="2")]
         Drop(super::DropDatasetRequest),
     }
@@ -98,13 +105,6 @@ pub struct DeviceInfo {
     pub actions: ::prost::alloc::vec::Vec<i32>,
     #[prost(enumeration="PassportAuthenticationLevel", tag="8")]
     pub authentication_level: i32,
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum DatasetFormat {
-    File = 0,
-    Dataset = 1,
-    Delta = 2,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]

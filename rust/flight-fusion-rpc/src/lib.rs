@@ -12,6 +12,6 @@ impl RequestFor for DropDatasetRequest {
     type Reply = DropDatasetResponse;
 }
 
-impl RequestFor for RegisterDatasetAction {
+impl RequestFor for RegisterDatasetRequest {
     type Reply = RegisterDatasetResponse;
 }
