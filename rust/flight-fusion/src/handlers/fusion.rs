@@ -1,4 +1,4 @@
-use super::{BoxedFlightStream, DoGetHandler, DoPutHandler};
+use super::{BoxedFlightStream, DoPutHandler};
 use arrow_azure_core::storage::AzureBlobFileSystem;
 use arrow_flight::{
     flight_descriptor::DescriptorType, Action, ActionType, FlightData, PutResult, SchemaAsIpc,
@@ -12,7 +12,7 @@ use datafusion::catalog::{
 };
 use datafusion::datasource::MemTable;
 use datafusion::parquet::{
-    arrow::{ArrowReader, ParquetFileArrowReader},
+    arrow::ParquetFileArrowReader,
     file::serialized_reader::{SerializedFileReader, SliceableCursor},
 };
 use datafusion::prelude::{ExecutionConfig, ExecutionContext};
@@ -55,59 +55,6 @@ impl FlightFusionHandler {
 impl fmt::Debug for FlightFusionHandler {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("FlightFusionHandler").finish()
-    }
-}
-
-#[async_trait]
-impl DoGetHandler for FlightFusionHandler {
-    fn can_handle_ticket(&self, _ticket: Ticket) -> Result<bool, Status> {
-        Ok(true)
-    }
-
-    async fn do_get(&self, ticket: Ticket) -> Result<BoxedFlightStream<FlightData>, Status> {
-        match std::str::from_utf8(&ticket.ticket) {
-            Ok(sql) => {
-                println!("do_get: {}", sql);
-
-                // create local execution context
-                let config = ExecutionConfig::new().with_information_schema(true);
-                let mut ctx = ExecutionContext::with_config(config);
-                ctx.register_catalog("catalog", self.catalog.clone());
-
-                // execute the query
-                let df = ctx.sql(sql).await.map_err(to_tonic_err)?;
-                let results = df.collect().await.map_err(to_tonic_err)?;
-                if results.is_empty() {
-                    return Err(Status::internal("There were no results from ticket"));
-                }
-
-                // add an initial FlightData message that sends schema
-                let options = datafusion::arrow::ipc::writer::IpcWriteOptions::default();
-                let schema_flight_data =
-                    SchemaAsIpc::new(&df.schema().clone().into(), &options).into();
-
-                let mut flights: Vec<Result<FlightData, Status>> = vec![Ok(schema_flight_data)];
-                let mut batches: Vec<Result<FlightData, Status>> = results
-                    .iter()
-                    .flat_map(|batch| {
-                        let (flight_dictionaries, flight_batch) =
-                            arrow_flight::utils::flight_data_from_arrow_batch(batch, &options);
-                        flight_dictionaries
-                            .into_iter()
-                            .chain(std::iter::once(flight_batch))
-                            .map(Ok)
-                    })
-                    .collect();
-
-                // append batch vector to schema vector, so that the first message sent is the schema
-                flights.append(&mut batches);
-
-                let output = futures::stream::iter(flights);
-
-                Ok(Box::pin(output) as BoxedFlightStream<FlightData>)
-            }
-            Err(e) => Err(Status::invalid_argument(format!("Invalid ticket: {:?}", e))),
-        }
     }
 }
 

@@ -2,8 +2,8 @@ syntax = "proto3";
 package flight_fusion_ipc;
 
 import "actions.proto";
+import "tickets.proto";
 
-// Request for flight do_get and do_action.
 message FlightActionRequest {
   oneof action {
     RegisterDatasetRequest register = 1;
@@ -11,63 +11,9 @@ message FlightActionRequest {
   }
 }
 
-// PASSPORT
-
-message Integrity {
-  int32 version = 1;
-  string key_name = 2;
-  bytes hmac = 3;
-}
-
-message Header {
-  string service = 1;
-}
-
-message Passport {
-  Header header = 1;
-  UserInfo user_info = 2;
-  DeviceInfo device_info = 3;
-  Integrity user_integrity = 4;
-  Integrity device_integrity = 5;
-}
-
-enum Source {
-  NONE = 0;
-  COOKIE = 1;
-  COOKIE_INSECURE = 2;
-  MSL = 3;
-  PARTNER_TOKEN = 4;
-}
-
-enum PassportAuthenticationLevel {
-  LOW = 0; // untrusted transport
-  HIGH = 1; // secure tokens over TLS
-  HIGHEST = 2; // MSL or user credentials
-}
-
-enum UserAction {
-  USER_ACTION_READ = 0;
-}
-
-enum DeviceAction {
-  DEVICE_ACTION_READ = 0;
-}
-
-message UserInfo {
-  Source source = 1;
-  int64 created = 2;
-  int64 expires = 3;
-  int64 customer_id = 4;
-  PassportAuthenticationLevel authentication_level = 11;
-  repeated UserAction actions = 12;
-}
-
-message DeviceInfo {
-  Source source = 1;
-  int64 created = 2;
-  int64 expires = 3;
-  string esn = 4;
-  int32 device_type = 5;
-  repeated DeviceAction actions = 7;
-  PassportAuthenticationLevel authentication_level = 8;
+message FlightDoGetRequest {
+  oneof operation {
+    SqlTicket sql = 1;
+    KqlTicket kql = 2;
+  }
 }

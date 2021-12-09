@@ -3,6 +3,8 @@ pub mod errors;
 mod flight_fusion_ipc;
 pub mod passport;
 pub use errors::*;
+pub mod utils;
+pub use utils::*;
 
 pub trait RequestFor {
     type Reply;

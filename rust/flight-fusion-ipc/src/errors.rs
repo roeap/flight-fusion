@@ -5,6 +5,14 @@ pub enum FlightFusionError {
     UnknownAction(String),
 
     /// Error returned when the table to be created already exists
+    #[error("Error in dependent crate {0}")]
+    ExternalError(String),
+
+    /// Error returned when the table to be created already exists
+    #[error("Empty dataset evaluation query {0}")]
+    NoReturnData(String),
+
+    /// Error returned when the table to be created already exists
     #[error("Table: '{0}' already exists")]
     TableAlreadyExists(String),
 

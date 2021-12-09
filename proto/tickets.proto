@@ -1,0 +1,10 @@
+syntax = "proto3";
+package flight_fusion_ipc;
+
+message SqlTicket {
+  string query = 1;
+}
+
+message KqlTicket {
+  string query = 1;
+}

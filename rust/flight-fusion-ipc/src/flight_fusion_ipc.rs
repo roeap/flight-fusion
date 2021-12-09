@@ -29,7 +29,16 @@ pub enum DatasetFormat {
     Dataset = 1,
     Delta = 2,
 }
-/// Request for flight do_get and do_action.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SqlTicket {
+    #[prost(string, tag = "1")]
+    pub query: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct KqlTicket {
+    #[prost(string, tag = "1")]
+    pub query: ::prost::alloc::string::String,
+}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightActionRequest {
     #[prost(oneof = "flight_action_request::Action", tags = "1, 2")]
@@ -45,8 +54,21 @@ pub mod flight_action_request {
         Drop(super::DropDatasetRequest),
     }
 }
-// PASSPORT
-
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FlightDoGetRequest {
+    #[prost(oneof = "flight_do_get_request::Operation", tags = "1, 2")]
+    pub operation: ::core::option::Option<flight_do_get_request::Operation>,
+}
+/// Nested message and enum types in `FlightDoGetRequest`.
+pub mod flight_do_get_request {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Operation {
+        #[prost(message, tag = "1")]
+        Sql(super::SqlTicket),
+        #[prost(message, tag = "2")]
+        Kql(super::KqlTicket),
+    }
+}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Integrity {
     #[prost(int32, tag = "1")]

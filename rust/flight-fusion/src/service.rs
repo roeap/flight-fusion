@@ -1,13 +1,11 @@
-use crate::handlers::{
-    actions::FusionActionHandler, fusion::FlightFusionHandler, FlightHandlerRegistry,
-};
+use crate::handlers::{fusion::FlightFusionHandler, FlightHandlerRegistry, FusionActionHandler};
 use arrow_flight::{
     flight_service_server::FlightService, Action, ActionType, Criteria, Empty, FlightData,
     FlightDescriptor, FlightInfo, HandshakeRequest, HandshakeResponse, PutResult, SchemaResult,
     Ticket,
 };
 
-use flight_fusion_ipc::FlightActionRequest;
+use flight_fusion_ipc::{FlightActionRequest, FlightDoGetRequest};
 use futures::Stream;
 use prost::Message;
 use std::io::Cursor;
@@ -26,7 +24,6 @@ impl FlightFusionService {
     pub fn new_default() -> Self {
         let handlers = FlightHandlerRegistry::new();
         let fusion_handler = Arc::new(FlightFusionHandler::new());
-        handlers.register_do_get_handler("fusion".to_string(), fusion_handler.clone());
         handlers.register_do_put_handler("fusion".to_string(), fusion_handler.clone());
 
         Self {
@@ -78,9 +75,17 @@ impl FlightService for FlightFusionService {
         &self,
         request: Request<Ticket>,
     ) -> Result<Response<Self::DoGetStream>, Status> {
-        let ticket = request.into_inner();
-        let handler = self.handlers.get_do_get("fusion").unwrap();
-        let result = handler.do_get(ticket).await?;
+        let flight_ticket = request.into_inner();
+        let mut buf = Cursor::new(&flight_ticket.ticket);
+        let request_data: FlightDoGetRequest = FlightDoGetRequest::decode(&mut buf)
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        let result = self
+            .action_handler
+            .execute_do_get(request_data)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
         Ok(Response::new(result))
     }
 
@@ -110,7 +115,7 @@ impl FlightService for FlightFusionService {
 
         let response = self
             .action_handler
-            .execute(request_data)
+            .execute_action(request_data)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
