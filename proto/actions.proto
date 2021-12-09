@@ -1,0 +1,10 @@
+syntax = "proto3";
+package flight_fusion_rpc;
+
+message DropDatasetRequest {
+  string name = 1;
+}
+
+message DropDatasetResponse {
+  string name = 1;
+}

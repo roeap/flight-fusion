@@ -1,10 +1,14 @@
-use crate::handlers::{fusion::FlightFusionHandler, FlightHandlerRegistry};
+use crate::handlers::{actions::ActionHandler, fusion::FlightFusionHandler, FlightHandlerRegistry};
 use arrow_flight::{
     flight_service_server::FlightService, Action, ActionType, Criteria, Empty, FlightData,
     FlightDescriptor, FlightInfo, HandshakeRequest, HandshakeResponse, PutResult, SchemaResult,
     Ticket,
 };
+
+use flight_fusion_rpc::FlightActionRequest;
 use futures::Stream;
+use prost::Message;
+use std::io::Cursor;
 use std::pin::Pin;
 use std::sync::Arc;
 use tonic::{Request, Response, Status, Streaming};
@@ -13,6 +17,7 @@ type BoxedFlightStream<T> = Pin<Box<dyn Stream<Item = Result<T, Status>> + Send 
 
 pub struct FlightFusionService {
     handlers: Arc<FlightHandlerRegistry>,
+    action_handler: Arc<ActionHandler>,
 }
 
 impl FlightFusionService {
@@ -21,10 +26,10 @@ impl FlightFusionService {
         let fusion_handler = Arc::new(FlightFusionHandler::new());
         handlers.register_do_get_handler("fusion".to_string(), fusion_handler.clone());
         handlers.register_do_put_handler("fusion".to_string(), fusion_handler.clone());
-        handlers.register_action_handler("fusion".to_string(), fusion_handler);
 
         Self {
             handlers: Arc::new(handlers),
+            action_handler: Arc::new(ActionHandler {}),
         }
     }
 }
@@ -95,10 +100,19 @@ impl FlightService for FlightFusionService {
         &self,
         request: Request<Action>,
     ) -> Result<Response<Self::DoActionStream>, Status> {
-        let action = request.into_inner();
-        let handler = self.handlers.get_action("fusion").unwrap();
-        let result = handler.do_action(action).await?;
-        Ok(Response::new(result))
+        // Decode FlightRequest from buffer.
+        let flight_action = request.into_inner();
+        let mut buf = Cursor::new(&flight_action.body);
+        let request_data: FlightActionRequest = FlightActionRequest::decode(&mut buf)
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        let response = self
+            .action_handler
+            .execute(request_data)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        Ok(Response::new(response))
     }
 
     async fn list_actions(

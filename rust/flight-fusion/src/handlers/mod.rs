@@ -1,4 +1,3 @@
-pub mod fusion;
 use arrow_flight::{Action, ActionType, FlightData, PutResult, Ticket};
 use futures::Stream;
 use std::collections::HashMap;
@@ -8,6 +7,9 @@ use std::sync::{Arc, RwLock};
 use tonic::{Status, Streaming};
 
 use async_trait::async_trait;
+
+pub mod fusion;
+pub mod actions;
 
 pub type BoxedFlightStream<T> =
     Pin<Box<dyn Stream<Item = Result<T, Status>> + Send + Sync + 'static>>;
