@@ -40,6 +40,26 @@ pub struct KqlTicket {
     pub query: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PutMemoryTableRequest {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PutMemoryTableResponse {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PutRemoteTableRequest {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PutRemoteTableResponse {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightActionRequest {
     #[prost(oneof = "flight_action_request::Action", tags = "1, 2")]
     pub action: ::core::option::Option<flight_action_request::Action>,
@@ -67,6 +87,21 @@ pub mod flight_do_get_request {
         Sql(super::SqlTicket),
         #[prost(message, tag = "2")]
         Kql(super::KqlTicket),
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FlightDoPutRequest {
+    #[prost(oneof = "flight_do_put_request::Operation", tags = "1, 2")]
+    pub operation: ::core::option::Option<flight_do_put_request::Operation>,
+}
+/// Nested message and enum types in `FlightDoPutRequest`.
+pub mod flight_do_put_request {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Operation {
+        #[prost(message, tag = "1")]
+        Memory(super::PutMemoryTableRequest),
+        #[prost(message, tag = "2")]
+        Remote(super::PutRemoteTableRequest),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]

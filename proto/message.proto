@@ -17,3 +17,10 @@ message FlightDoGetRequest {
     KqlTicket kql = 2;
   }
 }
+
+message FlightDoPutRequest {
+  oneof operation {
+    PutMemoryTableRequest memory = 1;
+    PutRemoteTableRequest remote = 2;
+  }
+}

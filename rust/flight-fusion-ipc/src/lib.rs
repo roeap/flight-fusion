@@ -17,3 +17,11 @@ impl RequestFor for DropDatasetRequest {
 impl RequestFor for RegisterDatasetRequest {
     type Reply = RegisterDatasetResponse;
 }
+
+impl RequestFor for PutMemoryTableRequest {
+    type Reply = PutMemoryTableResponse;
+}
+
+impl RequestFor for PutRemoteTableRequest {
+    type Reply = PutRemoteTableResponse;
+}

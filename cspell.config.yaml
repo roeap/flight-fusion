@@ -7,5 +7,6 @@ ignoreWords:
   - Introspector
   - datafusion
   - datasource
+  - dotenv
   - prost
 import: []
