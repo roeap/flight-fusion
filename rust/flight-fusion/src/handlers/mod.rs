@@ -32,23 +32,10 @@ pub trait DoPutHandler: Sync + Send + Debug {
     fn can_handle_descriptor(&self, ticket: Ticket) -> Result<bool, Status>;
 }
 
-#[async_trait]
-pub trait ActionHandler: Sync + Send + Debug {
-    async fn do_action(
-        &self,
-        action: Action,
-    ) -> Result<BoxedFlightStream<arrow_flight::Result>, Status>;
-
-    async fn list_actions(&self) -> Result<BoxedFlightStream<ActionType>, Status>;
-
-    fn can_do_action(&self, action: Action) -> Result<bool, Status>;
-}
-
 /// A Registry holds all the flight handlers at runtime.
 pub struct FlightHandlerRegistry {
     pub do_get_handlers: RwLock<HashMap<String, Arc<dyn DoGetHandler>>>,
     pub do_put_handlers: RwLock<HashMap<String, Arc<dyn DoPutHandler>>>,
-    pub action_handlers: RwLock<HashMap<String, Arc<dyn ActionHandler>>>,
 }
 
 impl fmt::Debug for FlightHandlerRegistry {
@@ -72,11 +59,10 @@ impl FlightHandlerRegistry {
     pub fn new() -> Self {
         let do_get_map: HashMap<String, Arc<dyn DoGetHandler>> = HashMap::new();
         let do_put_map: HashMap<String, Arc<dyn DoPutHandler>> = HashMap::new();
-        let action_map: HashMap<String, Arc<dyn ActionHandler>> = HashMap::new();
+
         Self {
             do_get_handlers: RwLock::new(do_get_map),
             do_put_handlers: RwLock::new(do_put_map),
-            action_handlers: RwLock::new(action_map),
         }
     }
 
@@ -100,15 +86,6 @@ impl FlightHandlerRegistry {
         stores.insert(scheme, handler)
     }
 
-    pub fn register_action_handler(
-        &self,
-        scheme: String,
-        handler: Arc<dyn ActionHandler>,
-    ) -> Option<Arc<dyn ActionHandler>> {
-        let mut stores = self.action_handlers.write().unwrap();
-        stores.insert(scheme, handler)
-    }
-
     /// Get the do_get handler registered for scheme
     pub fn get_do_get(&self, scheme: &str) -> Option<Arc<dyn DoGetHandler>> {
         let stores = self.do_get_handlers.read().unwrap();
@@ -120,9 +97,4 @@ impl FlightHandlerRegistry {
         stores.get(scheme).cloned()
     }
 
-    /// Get the action handler registered for scheme
-    pub fn get_action(&self, scheme: &str) -> Option<Arc<dyn ActionHandler>> {
-        let stores = self.action_handlers.read().unwrap();
-        stores.get(scheme).cloned()
-    }
 }

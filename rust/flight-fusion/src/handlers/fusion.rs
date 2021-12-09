@@ -1,4 +1,4 @@
-use super::{ActionHandler, BoxedFlightStream, DoGetHandler, DoPutHandler};
+use super::{BoxedFlightStream, DoGetHandler, DoPutHandler};
 use arrow_azure_core::storage::AzureBlobFileSystem;
 use arrow_flight::{
     flight_descriptor::DescriptorType, Action, ActionType, FlightData, PutResult, SchemaAsIpc,
@@ -170,68 +170,5 @@ impl DoPutHandler for FlightFusionHandler {
         });
         let output = futures::stream::iter(vec![result]);
         Ok(Box::pin(output) as BoxedFlightStream<PutResult>)
-    }
-}
-
-#[async_trait]
-impl ActionHandler for FlightFusionHandler {
-    async fn list_actions(&self) -> Result<BoxedFlightStream<ActionType>, Status> {
-        let actions = vec![
-            Ok(ActionType {
-                r#type: "register-table".to_string(),
-                description: "Register a new table such that it can be queried.".to_string(),
-            }),
-            Ok(ActionType {
-                r#type: "register-delta-table".to_string(),
-                description: "Register a new delta table such that it can be queried.".to_string(),
-            }),
-        ];
-        let output = futures::stream::iter(actions);
-        Ok(Box::pin(output) as BoxedFlightStream<ActionType>)
-    }
-
-    async fn do_action(
-        &self,
-        action: Action,
-    ) -> Result<BoxedFlightStream<arrow_flight::Result>, Status> {
-        let result = match action.r#type.as_str() {
-            "register-table" => {
-                let body = std::str::from_utf8(&action.body).unwrap();
-                let (table_name, path) = body.split_once("::").unwrap();
-
-                let mut reader = self.get_arrow_reader_from_path(path.into()).await;
-                let schema = Arc::new(reader.get_schema().unwrap());
-                let batch_reader = reader.get_record_reader(1024).unwrap();
-                let batches = batch_reader
-                    .into_iter()
-                    .map(|batch| batch.unwrap())
-                    .collect::<Vec<_>>();
-
-                // declare a table in memory. In spark API, this corresponds to createDataFrame(...).
-                let table_provider = MemTable::try_new(schema, vec![batches]).unwrap();
-                let schema_provider = self.catalog.schema("schema").unwrap();
-                schema_provider
-                    .register_table(table_name.to_string(), Arc::new(table_provider))
-                    .unwrap();
-
-                self.catalog
-                    .register_schema("schema".to_string(), schema_provider);
-
-                Ok(arrow_flight::Result {
-                    body: "created".as_bytes().to_vec(),
-                })
-            }
-            "register-delta-table" => {
-                Err(Status::unimplemented("Delta tables not yet implemented"))
-            }
-            _ => Err(Status::failed_precondition("Unknown action type")),
-        };
-
-        Ok(Box::pin(futures::stream::iter(vec![result]))
-            as BoxedFlightStream<arrow_flight::Result>)
-    }
-
-    fn can_do_action(&self, _action: Action) -> Result<bool, Status> {
-        Ok(true)
     }
 }

@@ -1,4 +1,6 @@
-use crate::handlers::{actions::ActionHandler, fusion::FlightFusionHandler, FlightHandlerRegistry};
+use crate::handlers::{
+    actions::FusionActionHandler, fusion::FlightFusionHandler, FlightHandlerRegistry,
+};
 use arrow_flight::{
     flight_service_server::FlightService, Action, ActionType, Criteria, Empty, FlightData,
     FlightDescriptor, FlightInfo, HandshakeRequest, HandshakeResponse, PutResult, SchemaResult,
@@ -17,7 +19,7 @@ type BoxedFlightStream<T> = Pin<Box<dyn Stream<Item = Result<T, Status>> + Send 
 
 pub struct FlightFusionService {
     handlers: Arc<FlightHandlerRegistry>,
-    action_handler: Arc<ActionHandler>,
+    action_handler: Arc<FusionActionHandler>,
 }
 
 impl FlightFusionService {
@@ -29,7 +31,7 @@ impl FlightFusionService {
 
         Self {
             handlers: Arc::new(handlers),
-            action_handler: Arc::new(ActionHandler {}),
+            action_handler: Arc::new(FusionActionHandler::new()),
         }
     }
 }
@@ -119,9 +121,7 @@ impl FlightService for FlightFusionService {
         &self,
         _request: Request<Empty>,
     ) -> Result<Response<Self::ListActionsStream>, Status> {
-        let handler = self.handlers.get_action("fusion").unwrap();
-        let result = handler.list_actions().await?;
-        Ok(Response::new(result))
+        Err(Status::unimplemented("Not yet implemented"))
     }
 
     async fn do_exchange(
