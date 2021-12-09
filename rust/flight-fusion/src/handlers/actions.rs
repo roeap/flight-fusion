@@ -19,7 +19,7 @@ use std::env;
 use std::sync::Arc;
 
 #[async_trait::async_trait]
-pub trait RequestHandler<T>: Sync + Send
+pub trait ActionHandler<T>: Sync + Send
 where
     T: RequestFor,
 {
@@ -83,7 +83,7 @@ impl FusionActionHandler {
 }
 
 #[async_trait::async_trait]
-impl RequestHandler<DropDatasetRequest> for FusionActionHandler {
+impl ActionHandler<DropDatasetRequest> for FusionActionHandler {
     async fn handle(&self, action: DropDatasetRequest) -> FusionResult<DropDatasetResponse> {
         let response = DropDatasetResponse { name: action.name };
         Ok(response)
@@ -91,7 +91,7 @@ impl RequestHandler<DropDatasetRequest> for FusionActionHandler {
 }
 
 #[async_trait::async_trait]
-impl RequestHandler<RegisterDatasetRequest> for FusionActionHandler {
+impl ActionHandler<RegisterDatasetRequest> for FusionActionHandler {
     async fn handle(
         &self,
         action: RegisterDatasetRequest,
