@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 # Workspace dependencies
-flight-fusion-rpc = { path = "../flight-fusion-rpc" }
+flight-fusion-ipc = { path = "../flight-fusion-ipc" }
 
 # Crates.io dependencies
 arrow-flight = "6.3"

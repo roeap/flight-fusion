@@ -1,7 +1,8 @@
 use arrow_flight::{flight_service_client::FlightServiceClient, Action};
-use flight_fusion_rpc::{
-    flight_action_request::Action as FusionAction, DropDatasetRequest, DropDatasetResponse,
-    FlightActionRequest, RegisterDatasetRequest, RegisterDatasetResponse, RequestFor,
+use flight_fusion_ipc::{
+    flight_action_request::Action as FusionAction, DatasetFormat, DropDatasetRequest,
+    DropDatasetResponse, FlightActionRequest, RegisterDatasetRequest, RegisterDatasetResponse,
+    RequestFor,
 };
 use prost::{DecodeError, Message};
 use std::io::Cursor;
@@ -80,14 +81,19 @@ impl FlightFusionClient {
 
     pub async fn register_dataset<T>(
         &self,
-        schema_name: T,
+        _schema_name: T,
         table_name: T,
+        path: T,
     ) -> Result<RegisterDatasetResponse, FusionClientError>
     where
         T: Into<String>,
     {
-        let mut action = RegisterDatasetRequest::default();
-        action.name = table_name.into();
+        let action = RegisterDatasetRequest {
+            name: table_name.into(),
+            format: DatasetFormat::File.into(),
+            path: path.into(),
+        };
+
         let action_request = FlightActionRequest {
             action: Some(FusionAction::Register(action)),
         };

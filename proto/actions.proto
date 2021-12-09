@@ -1,5 +1,5 @@
 syntax = "proto3";
-package flight_fusion_rpc;
+package flight_fusion_ipc;
 
 enum DatasetFormat {
   DATASET_FORMAT_FILE = 0;

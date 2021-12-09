@@ -1,5 +1,5 @@
 [package]
-name = "flight-fusion-rpc"
+name = "flight-fusion-ipc"
 version = "0.1.0"
 edition = "2021"
 

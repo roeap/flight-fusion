@@ -8,8 +8,8 @@ use tonic::{Status, Streaming};
 
 use async_trait::async_trait;
 
-pub mod fusion;
 pub mod actions;
+pub mod fusion;
 
 pub type BoxedFlightStream<T> =
     Pin<Box<dyn Stream<Item = Result<T, Status>> + Send + Sync + 'static>>;
@@ -96,5 +96,4 @@ impl FlightHandlerRegistry {
         let stores = self.do_put_handlers.read().unwrap();
         stores.get(scheme).cloned()
     }
-
 }

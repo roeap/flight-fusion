@@ -9,7 +9,7 @@ use datafusion::parquet::{
     arrow::{ArrowReader, ParquetFileArrowReader},
     file::serialized_reader::{SerializedFileReader, SliceableCursor},
 };
-use flight_fusion_rpc::{
+use flight_fusion_ipc::{
     flight_action_request::Action as FusionAction, DropDatasetRequest, DropDatasetResponse,
     FlightActionRequest, FlightFusionError, RegisterDatasetRequest, RegisterDatasetResponse,
     RequestFor, Result as FusionResult,

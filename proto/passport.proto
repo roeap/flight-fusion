@@ -1,18 +1,6 @@
 syntax = "proto3";
 package flight_fusion_ipc;
 
-import "actions.proto";
-
-// Request for flight do_get and do_action.
-message FlightActionRequest {
-  oneof action {
-    RegisterDatasetRequest register = 1;
-    DropDatasetRequest drop = 2;
-  }
-}
-
-// PASSPORT
-
 message Integrity {
   int32 version = 1;
   string key_name = 2;

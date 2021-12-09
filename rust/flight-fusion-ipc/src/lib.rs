@@ -1,7 +1,7 @@
-pub use flight_fusion_rpc::*;
-mod flight_fusion_rpc;
-pub mod passport;
+pub use flight_fusion_ipc::*;
 pub mod errors;
+mod flight_fusion_ipc;
+pub mod passport;
 pub use errors::*;
 
 pub trait RequestFor {

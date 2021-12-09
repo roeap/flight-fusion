@@ -7,7 +7,7 @@ use arrow_flight::{
     Ticket,
 };
 
-use flight_fusion_rpc::FlightActionRequest;
+use flight_fusion_ipc::FlightActionRequest;
 use futures::Stream;
 use prost::Message;
 use std::io::Cursor;

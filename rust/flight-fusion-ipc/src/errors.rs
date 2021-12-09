@@ -12,7 +12,7 @@ pub enum FlightFusionError {
     #[error("Table: already exists")]
     TransportError {
         #[from]
-        source: tonic::transport::Error
+        source: tonic::transport::Error,
     },
 }
 

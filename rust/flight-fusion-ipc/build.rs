@@ -5,7 +5,11 @@ use std::io::Result;
 fn main() -> Result<()> {
     env::set_var("OUT_DIR", "src");
     prost_build::compile_protos(
-        &["../../proto/message.proto", "../../proto/actions.proto"],
+        &[
+            "../../proto/message.proto",
+            "../../proto/actions.proto",
+            "../../proto/passport.proto",
+        ],
         &["../../proto/"],
     )
     .unwrap();
