@@ -16,6 +16,17 @@ from sqlalchemy.dialects.postgresql import (
     VARCHAR,
 )
 
+from flight_fusion.proto.actions_pb2 import (
+    RegisterDatasetRequest,
+    RegisterDatasetResponse,
+)
+from flight_fusion.proto.message_pb2 import (
+    FlightActionRequest,
+    FlightDoGetRequest,
+    FlightDoPutRequest,
+)
+from flight_fusion.proto.tickets_pb2 import PutMemoryTableRequest, SqlTicket
+
 type_map = {
     "Utf8": VARCHAR,
     "Float32": FLOAT,
@@ -70,23 +81,46 @@ class FlightFusionClient:
         if isinstance(data, pd.DataFrame):
             data = pa.Table.from_pandas(data)
 
-        # descriptor = flight.FlightDescriptor.for_path(f"{catalog}::{schema}::{table}")
-        descriptor = flight.FlightDescriptor.for_path(f"{table}")
-        writer, _response = self.flight_client.do_put(descriptor, data.schema)
+        command = PutMemoryTableRequest()
+        command.name = table
+
+        request = FlightDoPutRequest()
+        request.memory.CopyFrom(command)
+
+        descriptor = flight.FlightDescriptor.for_command(request.SerializeToString())
+        writer, _ = self.flight_client.do_put(descriptor, data.schema)
         writer.write_table(data)
         writer.close()
 
     def register_remote_dataset(
         self, catalog: str, schema: str, table: str, path: str
-    ) -> None:
-        # action_body = f"{catalog}::{schema}::{table}::{path}"
-        action_body = f"{table}::{path}"
-        action = flight.Action(FlightActions.REGISTER_TABLE, action_body.encode())
+    ) -> RegisterDatasetResponse:
+
+        register_table_action = RegisterDatasetRequest()
+        register_table_action.path = path
+        register_table_action.name = table
+
+        action_body = FlightActionRequest()
+        action_body.register.CopyFrom(register_table_action)
+
+        action = flight.Action(
+            FlightActions.REGISTER_TABLE, action_body.SerializeToString()
+        )
         res = list(self.flight_client.do_action(action))
-        res[0].body.to_pybytes().decode()
+
+        response = RegisterDatasetResponse()
+        response.ParseFromString(res[0].body.to_pybytes())
+
+        return response
 
     def execute_query(self, query: str) -> pa.Table:
-        ticket = flight.Ticket(ticket=query.encode())
+        sql_ticket = SqlTicket()
+        sql_ticket.query = query
+
+        request = FlightDoGetRequest()
+        request.sql.CopyFrom(sql_ticket)
+
+        ticket = flight.Ticket(ticket=request.SerializeToString())
         reader = self.flight_client.do_get(ticket)
         table = reader.read_all()
         return table

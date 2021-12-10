@@ -9,4 +9,6 @@ ignoreWords:
   - datasource
   - dotenv
   - prost
+  - proto
+  - protobuf
 import: []
