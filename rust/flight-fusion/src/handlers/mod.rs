@@ -1,39 +1,33 @@
 use arrow_azure_core::storage::AzureBlobFileSystem;
-use arrow_flight::{FlightData, PutResult, SchemaAsIpc};
+use arrow_flight::{FlightData, PutResult};
 use async_trait::async_trait;
 use datafusion::{
-    arrow::datatypes::Schema,
-    catalog::{
-        catalog::{CatalogProvider, MemoryCatalogProvider},
-        schema::MemorySchemaProvider,
-    },
-    datasource::MemTable,
+    catalog::{catalog::MemoryCatalogProvider, schema::MemorySchemaProvider},
     parquet::{
         arrow::ParquetFileArrowReader,
         file::serialized_reader::{SerializedFileReader, SliceableCursor},
     },
-    prelude::{ExecutionConfig, ExecutionContext},
 };
 use flight_fusion_ipc::{
     flight_action_request::Action as FusionAction,
     flight_do_get_request::Operation as DoGetOperation,
     flight_do_put_request::Operation as DoPutOperation, serialize_message, FlightActionRequest,
-    FlightDoGetRequest, FlightDoPutRequest, FlightFusionError, PutMemoryTableRequest,
-    PutMemoryTableResponse, RequestFor, Result as FusionResult, SqlTicket,
+    FlightDoGetRequest, FlightDoPutRequest, FlightFusionError, RequestFor, Result as FusionResult,
 };
 use futures::Stream;
-use std::convert::TryFrom;
 use std::env;
 use std::pin::Pin;
 use std::sync::Arc;
 use tonic::{Status, Streaming};
 
 pub mod actions;
+pub mod do_get;
+pub mod do_put;
 
 pub type BoxedFlightStream<T> =
     Pin<Box<dyn Stream<Item = Result<T, Status>> + Send + Sync + 'static>>;
 
-fn to_tonic_err(e: datafusion::error::DataFusionError) -> FlightFusionError {
+fn to_flight_fusion_err(e: datafusion::error::DataFusionError) -> FlightFusionError {
     FlightFusionError::ExternalError(format!("{:?}", e))
 }
 
@@ -160,100 +154,5 @@ impl FusionActionHandler {
         let cursor = SliceableCursor::new(file_contents);
         let file_reader = SerializedFileReader::new(cursor).unwrap();
         ParquetFileArrowReader::new(Arc::new(file_reader))
-    }
-}
-
-#[async_trait::async_trait]
-impl DoGetHandler<SqlTicket> for FusionActionHandler {
-    async fn handle_do_get(
-        &self,
-        ticket: SqlTicket,
-    ) -> FusionResult<BoxedFlightStream<FlightData>> {
-        let config = ExecutionConfig::new().with_information_schema(true);
-        let mut ctx = ExecutionContext::with_config(config);
-        ctx.register_catalog("catalog", self.catalog.clone());
-
-        // execute the query
-        let df = ctx.sql(ticket.query.as_str()).await.map_err(to_tonic_err)?;
-        let results = df.collect().await.map_err(to_tonic_err)?;
-        if results.is_empty() {
-            return Err(FlightFusionError::NoReturnData(
-                "There were no results from ticket".to_string(),
-            ));
-        }
-
-        // add an initial FlightData message that sends schema
-        let options = datafusion::arrow::ipc::writer::IpcWriteOptions::default();
-        let schema_flight_data = SchemaAsIpc::new(&df.schema().clone().into(), &options).into();
-
-        let mut flights: Vec<Result<FlightData, Status>> = vec![Ok(schema_flight_data)];
-        let mut batches: Vec<Result<FlightData, Status>> = results
-            .iter()
-            .flat_map(|batch| {
-                let (flight_dictionaries, flight_batch) =
-                    arrow_flight::utils::flight_data_from_arrow_batch(batch, &options);
-                flight_dictionaries
-                    .into_iter()
-                    .chain(std::iter::once(flight_batch))
-                    .map(Ok)
-            })
-            .collect();
-
-        // append batch vector to schema vector, so that the first message sent is the schema
-        flights.append(&mut batches);
-
-        let output = futures::stream::iter(flights);
-
-        Ok(Box::pin(output) as BoxedFlightStream<FlightData>)
-    }
-}
-
-#[async_trait::async_trait]
-impl DoPutHandler<PutMemoryTableRequest> for FusionActionHandler {
-    async fn handle_do_put(
-        &self,
-        ticket: PutMemoryTableRequest,
-        flight_data: FlightData,
-        mut stream: Streaming<FlightData>,
-    ) -> FusionResult<PutMemoryTableResponse> {
-        let schema = Schema::try_from(&flight_data)
-            .map_err(|e| FlightFusionError::ExternalError(format!("Invalid schema: {:?}", e)))?;
-        let schema_ref = Arc::new(schema.clone());
-
-        // TODO handle dictionary batches, also ... find out how dictionary batches work.
-        // once we can use arrow2, things might become clearer...
-        // https://github.com/jorgecarleitao/arrow2/blob/main/integration-testing/src/flight_server_scenarios/integration_test.rs
-        let dictionaries_by_field = vec![None; schema_ref.fields().len()];
-        let mut batches = vec![];
-        while let Some(flight_data) = stream
-            .message()
-            .await
-            .map_err(|e| FlightFusionError::ExternalError(format!("Invalid schema: {:?}", e)))?
-        {
-            let batch = arrow_flight::utils::flight_data_to_arrow_batch(
-                &flight_data,
-                schema_ref.clone(),
-                &dictionaries_by_field,
-            )
-            .unwrap();
-            batches.push(batch);
-        }
-
-        // register received schema
-        let table_provider = MemTable::try_new(schema_ref.clone(), vec![batches]).unwrap();
-        // TODO get schema name from path
-        let schema_provider = self.catalog.schema("schema").unwrap();
-        schema_provider
-            .register_table(ticket.name, Arc::new(table_provider))
-            .unwrap();
-
-        self.catalog
-            .register_schema("schema".to_string(), schema_provider);
-
-        // TODO generate messages in channel
-        // https://github.com/jorgecarleitao/arrow2/blob/main/integration-testing/src/flight_server_scenarios/integration_test.rs
-        Ok(PutMemoryTableResponse {
-            name: "created".to_string(),
-        })
     }
 }
