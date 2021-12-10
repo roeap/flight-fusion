@@ -1,0 +1,16 @@
+[package]
+name = "flight-fusion-ipc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+prost = "0.9"
+thiserror = "1"
+tonic = { version = "0.5.2", features = ["transport", "codegen", "prost", "tls-roots", "tls"] }
+
+[dev-dependencies]
+pretty_assertions = "1.0.0"
+
+[build-dependencies]
+prost-build = "0.9"
+tonic-build = "0.5.2"

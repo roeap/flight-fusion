@@ -1,10 +1,14 @@
-use crate::handlers::{fusion::FlightFusionHandler, FlightHandlerRegistry};
+use crate::handlers::FusionActionHandler;
 use arrow_flight::{
-    flight_service_server::FlightService, Action, ActionType, Criteria, Empty, FlightData,
-    FlightDescriptor, FlightInfo, HandshakeRequest, HandshakeResponse, PutResult, SchemaResult,
-    Ticket,
+    flight_descriptor::DescriptorType, flight_service_server::FlightService, Action, ActionType,
+    Criteria, Empty, FlightData, FlightDescriptor, FlightInfo, HandshakeRequest, HandshakeResponse,
+    PutResult, SchemaResult, Ticket,
 };
+
+use flight_fusion_ipc::{FlightActionRequest, FlightDoGetRequest, FlightDoPutRequest};
 use futures::Stream;
+use prost::Message;
+use std::io::Cursor;
 use std::pin::Pin;
 use std::sync::Arc;
 use tonic::{Request, Response, Status, Streaming};
@@ -12,19 +16,13 @@ use tonic::{Request, Response, Status, Streaming};
 type BoxedFlightStream<T> = Pin<Box<dyn Stream<Item = Result<T, Status>> + Send + Sync + 'static>>;
 
 pub struct FlightFusionService {
-    handlers: Arc<FlightHandlerRegistry>,
+    action_handler: Arc<FusionActionHandler>,
 }
 
 impl FlightFusionService {
     pub fn new_default() -> Self {
-        let handlers = FlightHandlerRegistry::new();
-        let fusion_handler = Arc::new(FlightFusionHandler::new());
-        handlers.register_do_get_handler("fusion".to_string(), fusion_handler.clone());
-        handlers.register_do_put_handler("fusion".to_string(), fusion_handler.clone());
-        handlers.register_action_handler("fusion".to_string(), fusion_handler);
-
         Self {
-            handlers: Arc::new(handlers),
+            action_handler: Arc::new(FusionActionHandler::new()),
         }
     }
 }
@@ -71,9 +69,17 @@ impl FlightService for FlightFusionService {
         &self,
         request: Request<Ticket>,
     ) -> Result<Response<Self::DoGetStream>, Status> {
-        let ticket = request.into_inner();
-        let handler = self.handlers.get_do_get("fusion").unwrap();
-        let result = handler.do_get(ticket).await?;
+        let flight_ticket = request.into_inner();
+        let mut buf = Cursor::new(&flight_ticket.ticket);
+        let request_data: FlightDoGetRequest = FlightDoGetRequest::decode(&mut buf)
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        let result = self
+            .action_handler
+            .execute_do_get(request_data)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
         Ok(Response::new(result))
     }
 
@@ -86,28 +92,60 @@ impl FlightService for FlightFusionService {
             .message()
             .await?
             .ok_or_else(|| Status::invalid_argument("Must send some FlightData"))?;
-        let handler = self.handlers.get_do_put("fusion").unwrap();
-        let result = handler.do_put(flight_data, input_stream).await?;
-        Ok(Response::new(result))
+
+        let descriptor = flight_data
+            .flight_descriptor
+            .clone()
+            .ok_or_else(|| Status::invalid_argument("Must have a descriptor"))?;
+
+        let request_data = match DescriptorType::from_i32(descriptor.r#type) {
+            Some(DescriptorType::Cmd) => {
+                let mut buf = Cursor::new(&descriptor.cmd);
+                let request_data: FlightDoPutRequest = FlightDoPutRequest::decode(&mut buf)
+                    .map_err(|e| tonic::Status::internal(e.to_string()))?;
+                Ok(request_data)
+            }
+            Some(DescriptorType::Path) => Err(tonic::Status::internal(
+                "Put operation not implemented for path",
+            )),
+            _ => Err(tonic::Status::internal(
+                "Proper descriptor must be provided",
+            )),
+        }?;
+
+        let response = self
+            .action_handler
+            .execute_do_put(request_data, flight_data, input_stream)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        Ok(Response::new(response))
     }
 
     async fn do_action(
         &self,
         request: Request<Action>,
     ) -> Result<Response<Self::DoActionStream>, Status> {
-        let action = request.into_inner();
-        let handler = self.handlers.get_action("fusion").unwrap();
-        let result = handler.do_action(action).await?;
-        Ok(Response::new(result))
+        // Decode FlightRequest from buffer.
+        let flight_action = request.into_inner();
+        let mut buf = Cursor::new(&flight_action.body);
+        let request_data: FlightActionRequest = FlightActionRequest::decode(&mut buf)
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        let response = self
+            .action_handler
+            .execute_action(request_data)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        Ok(Response::new(response))
     }
 
     async fn list_actions(
         &self,
         _request: Request<Empty>,
     ) -> Result<Response<Self::ListActionsStream>, Status> {
-        let handler = self.handlers.get_action("fusion").unwrap();
-        let result = handler.list_actions().await?;
-        Ok(Response::new(result))
+        Err(Status::unimplemented("Not yet implemented"))
     }
 
     async fn do_exchange(

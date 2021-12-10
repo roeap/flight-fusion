@@ -1,0 +1,26 @@
+syntax = "proto3";
+package flight_fusion_ipc;
+
+message SqlTicket {
+  string query = 1;
+}
+
+message KqlTicket {
+  string query = 1;
+}
+
+message PutMemoryTableRequest {
+  string name = 1;
+}
+
+message PutMemoryTableResponse {
+  string name = 1;
+}
+
+message PutRemoteTableRequest {
+  string name = 1;
+}
+
+message PutRemoteTableResponse {
+  string name = 1;
+}

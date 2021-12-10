@@ -1,0 +1,26 @@
+syntax = "proto3";
+package flight_fusion_ipc;
+
+enum DatasetFormat {
+  DATASET_FORMAT_FILE = 0;
+  DATASET_FORMAT_DATASET = 1;
+  DATASET_FORMAT_DELTA = 2;
+}
+
+message RegisterDatasetRequest {
+  DatasetFormat format = 1;
+  string path = 2;
+  string name = 3;
+}
+
+message RegisterDatasetResponse {
+    string message = 1;
+}
+
+message DropDatasetRequest {
+  string name = 1;
+}
+
+message DropDatasetResponse {
+  string name = 1;
+}

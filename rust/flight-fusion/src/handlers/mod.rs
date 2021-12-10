@@ -1,126 +1,158 @@
-pub mod fusion;
-use arrow_flight::{Action, ActionType, FlightData, PutResult, Ticket};
+use arrow_azure_core::storage::AzureBlobFileSystem;
+use arrow_flight::{FlightData, PutResult};
+use async_trait::async_trait;
+use datafusion::{
+    catalog::{catalog::MemoryCatalogProvider, schema::MemorySchemaProvider},
+    parquet::{
+        arrow::ParquetFileArrowReader,
+        file::serialized_reader::{SerializedFileReader, SliceableCursor},
+    },
+};
+use flight_fusion_ipc::{
+    flight_action_request::Action as FusionAction,
+    flight_do_get_request::Operation as DoGetOperation,
+    flight_do_put_request::Operation as DoPutOperation, serialize_message, FlightActionRequest,
+    FlightDoGetRequest, FlightDoPutRequest, FlightFusionError, RequestFor, Result as FusionResult,
+};
 use futures::Stream;
-use std::collections::HashMap;
-use std::fmt::{self, Debug};
+use std::env;
 use std::pin::Pin;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 use tonic::{Status, Streaming};
 
-use async_trait::async_trait;
+pub mod actions;
+pub mod do_get;
+pub mod do_put;
 
 pub type BoxedFlightStream<T> =
     Pin<Box<dyn Stream<Item = Result<T, Status>> + Send + Sync + 'static>>;
 
-#[async_trait]
-pub trait DoGetHandler: Sync + Send + Debug {
-    async fn do_get(&self, ticket: Ticket) -> Result<BoxedFlightStream<FlightData>, Status>;
-
-    fn can_handle_ticket(&self, ticket: Ticket) -> Result<bool, Status>;
+fn to_flight_fusion_err(e: datafusion::error::DataFusionError) -> FlightFusionError {
+    FlightFusionError::ExternalError(format!("{:?}", e))
 }
 
 #[async_trait]
-pub trait DoPutHandler: Sync + Send + Debug {
-    async fn do_put(
+pub trait ActionHandler<T>: Sync + Send
+where
+    T: RequestFor,
+{
+    async fn handle_do_action(&self, req: T) -> FusionResult<T::Reply>;
+}
+
+#[async_trait]
+pub trait DoGetHandler<T>: Sync + Send
+where
+    T: prost::Message,
+{
+    async fn handle_do_get(&self, req: T) -> FusionResult<BoxedFlightStream<FlightData>>;
+}
+
+#[async_trait]
+pub trait DoPutHandler<T>: Sync + Send
+where
+    T: RequestFor,
+{
+    async fn handle_do_put(
         &self,
+        req: T,
         flight_data: FlightData,
         mut stream: Streaming<FlightData>,
-    ) -> Result<BoxedFlightStream<PutResult>, Status>;
-
-    fn can_handle_descriptor(&self, ticket: Ticket) -> Result<bool, Status>;
+    ) -> FusionResult<T::Reply>;
 }
 
-#[async_trait]
-pub trait ActionHandler: Sync + Send + Debug {
-    async fn do_action(
-        &self,
-        action: Action,
-    ) -> Result<BoxedFlightStream<arrow_flight::Result>, Status>;
-
-    async fn list_actions(&self) -> Result<BoxedFlightStream<ActionType>, Status>;
-
-    fn can_do_action(&self, action: Action) -> Result<bool, Status>;
+pub struct FusionActionHandler {
+    fs: Arc<AzureBlobFileSystem>,
+    catalog: Arc<MemoryCatalogProvider>,
 }
 
-/// A Registry holds all the flight handlers at runtime.
-pub struct FlightHandlerRegistry {
-    pub do_get_handlers: RwLock<HashMap<String, Arc<dyn DoGetHandler>>>,
-    pub do_put_handlers: RwLock<HashMap<String, Arc<dyn DoPutHandler>>>,
-    pub action_handlers: RwLock<HashMap<String, Arc<dyn ActionHandler>>>,
-}
-
-impl fmt::Debug for FlightHandlerRegistry {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("FlightHandlerRegistry")
-            .field(
-                "do_get",
-                &self
-                    .do_get_handlers
-                    .read()
-                    .unwrap()
-                    .keys()
-                    .collect::<Vec<_>>(),
-            )
-            .finish()
-    }
-}
-
-impl FlightHandlerRegistry {
-    /// Create the registry that flight handlers can registered into.
+impl FusionActionHandler {
     pub fn new() -> Self {
-        let do_get_map: HashMap<String, Arc<dyn DoGetHandler>> = HashMap::new();
-        let do_put_map: HashMap<String, Arc<dyn DoPutHandler>> = HashMap::new();
-        let action_map: HashMap<String, Arc<dyn ActionHandler>> = HashMap::new();
-        Self {
-            do_get_handlers: RwLock::new(do_get_map),
-            do_put_handlers: RwLock::new(do_put_map),
-            action_handlers: RwLock::new(action_map),
+        let conn_str = env::var("AZURE_STORAGE_CONNECTION_STRING").unwrap();
+        let fs = Arc::new(AzureBlobFileSystem::new_with_connection_string(conn_str));
+        let schema_provider = MemorySchemaProvider::new();
+        let catalog = Arc::new(MemoryCatalogProvider::new());
+        catalog.register_schema("schema".to_string(), Arc::new(schema_provider));
+        Self { fs, catalog }
+    }
+
+    pub async fn execute_action(
+        &self,
+        request_data: FlightActionRequest,
+    ) -> FusionResult<BoxedFlightStream<arrow_flight::Result>> {
+        let body = match request_data.action {
+            Some(action) => {
+                let result_body = match action {
+                    FusionAction::Register(register) => {
+                        serialize_message(self.handle_do_action(register).await?)
+                    }
+                    FusionAction::Drop(drop) => {
+                        serialize_message(self.handle_do_action(drop).await?)
+                    }
+                };
+
+                Ok(result_body)
+            }
+            None => Err(FlightFusionError::UnknownAction(
+                "No action data passed".to_string(),
+            )),
+        }?;
+
+        let result = vec![Ok(arrow_flight::Result { body })];
+        Ok(Box::pin(futures::stream::iter(result)) as BoxedFlightStream<arrow_flight::Result>)
+    }
+
+    pub async fn execute_do_get(
+        &self,
+        request_data: FlightDoGetRequest,
+    ) -> FusionResult<BoxedFlightStream<FlightData>> {
+        match request_data.operation {
+            Some(op) => match op {
+                DoGetOperation::Sql(sql) => self.handle_do_get(sql).await,
+                DoGetOperation::Kql(_kql) => {
+                    todo!()
+                }
+            },
+            None => Err(FlightFusionError::UnknownAction(
+                "No operation data passed".to_string(),
+            )),
         }
     }
 
-    /// Adds a new flight handler to this registry.
-    /// If a store of the same prefix existed before, it is replaced in the registry and returned.
-    pub fn register_do_get_handler(
+    pub async fn execute_do_put(
         &self,
-        scheme: String,
-        handler: Arc<dyn DoGetHandler>,
-    ) -> Option<Arc<dyn DoGetHandler>> {
-        let mut stores = self.do_get_handlers.write().unwrap();
-        stores.insert(scheme, handler)
+        request_data: FlightDoPutRequest,
+        flight_data: FlightData,
+        stream: Streaming<FlightData>,
+    ) -> FusionResult<BoxedFlightStream<PutResult>> {
+        let body = match request_data.operation {
+            Some(action) => {
+                let result_body = match action {
+                    DoPutOperation::Memory(memory) => {
+                        serialize_message(self.handle_do_put(memory, flight_data, stream).await?)
+                    }
+                    DoPutOperation::Remote(_remote) => {
+                        todo!()
+                    }
+                };
+
+                Ok(result_body)
+            }
+            None => Err(FlightFusionError::UnknownAction(
+                "No action data passed".to_string(),
+            )),
+        }?;
+
+        let result = vec![Ok(PutResult { app_metadata: body })];
+        Ok(Box::pin(futures::stream::iter(result)) as BoxedFlightStream<PutResult>)
     }
 
-    pub fn register_do_put_handler(
-        &self,
-        scheme: String,
-        handler: Arc<dyn DoPutHandler>,
-    ) -> Option<Arc<dyn DoPutHandler>> {
-        let mut stores = self.do_put_handlers.write().unwrap();
-        stores.insert(scheme, handler)
-    }
-
-    pub fn register_action_handler(
-        &self,
-        scheme: String,
-        handler: Arc<dyn ActionHandler>,
-    ) -> Option<Arc<dyn ActionHandler>> {
-        let mut stores = self.action_handlers.write().unwrap();
-        stores.insert(scheme, handler)
-    }
-
-    /// Get the do_get handler registered for scheme
-    pub fn get_do_get(&self, scheme: &str) -> Option<Arc<dyn DoGetHandler>> {
-        let stores = self.do_get_handlers.read().unwrap();
-        stores.get(scheme).cloned()
-    }
-
-    pub fn get_do_put(&self, scheme: &str) -> Option<Arc<dyn DoPutHandler>> {
-        let stores = self.do_put_handlers.read().unwrap();
-        stores.get(scheme).cloned()
-    }
-
-    /// Get the action handler registered for scheme
-    pub fn get_action(&self, scheme: &str) -> Option<Arc<dyn ActionHandler>> {
-        let stores = self.action_handlers.read().unwrap();
-        stores.get(scheme).cloned()
+    async fn get_arrow_reader_from_path<T>(&self, path: T) -> ParquetFileArrowReader
+    where
+        T: Into<String> + Clone,
+    {
+        let file_contents = self.fs.get_file_bytes(path).await.unwrap();
+        let cursor = SliceableCursor::new(file_contents);
+        let file_reader = SerializedFileReader::new(cursor).unwrap();
+        ParquetFileArrowReader::new(Arc::new(file_reader))
     }
 }
