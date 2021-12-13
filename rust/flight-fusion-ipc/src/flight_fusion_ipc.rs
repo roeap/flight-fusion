@@ -1,3 +1,10 @@
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum DatasetFormat {
+    File = 0,
+    Dataset = 1,
+    Delta = 2,
+}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RegisterDatasetRequest {
     #[prost(enumeration = "DatasetFormat", tag = "1")]
@@ -21,13 +28,6 @@ pub struct DropDatasetRequest {
 pub struct DropDatasetResponse {
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum DatasetFormat {
-    File = 0,
-    Dataset = 1,
-    Delta = 2,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SqlTicket {
@@ -53,6 +53,8 @@ pub struct PutMemoryTableResponse {
 pub struct PutRemoteTableRequest {
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub path: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PutRemoteTableResponse {

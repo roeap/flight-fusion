@@ -1,6 +1,8 @@
 syntax = "proto3";
 package flight_fusion_ipc;
 
+import "common.proto";
+
 message SqlTicket {
   string query = 1;
 }
@@ -19,6 +21,7 @@ message PutMemoryTableResponse {
 
 message PutRemoteTableRequest {
   string name = 1;
+  string path = 2;
 }
 
 message PutRemoteTableResponse {
