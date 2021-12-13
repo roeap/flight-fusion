@@ -7,9 +7,10 @@ edition = "2021"
 # Workspace dependencies
 flight-fusion-ipc = { path = "../flight-fusion-ipc" }
 flight-fusion-client = { path = "../flight-fusion-client" }
+deltalake = { path = "../../../delta-rs/rust" }
 
 # Git dependencies
-datafusion = { git = "https://github.com/apache/arrow-datafusion", rev = "6955a8d9279bf06311fe0d9d7428854b0601059d" }
+datafusion = { git = "https://github.com/apache/arrow-datafusion", rev = "4b454d0363b034e3ebcdf88f6add2403cd77a23b" }
 arrow-azure-core = { git = "https://github.com/roeap/arrow-azure-rs" }
 
 # Crates.io dependencies
