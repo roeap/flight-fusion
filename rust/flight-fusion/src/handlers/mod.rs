@@ -1,12 +1,12 @@
-use arrow_azure_core::storage::AzureBlobFileSystem;
+use crate::object_store::{
+    local::sync_local_unpartitioned_file, ChunkObjectReader, LocalFileSystem,
+};
 use arrow_flight::{FlightData, PutResult};
 use async_trait::async_trait;
 use datafusion::{
     catalog::{catalog::MemoryCatalogProvider, schema::MemorySchemaProvider},
-    parquet::{
-        arrow::ParquetFileArrowReader,
-        file::serialized_reader::{SerializedFileReader, SliceableCursor},
-    },
+    datasource::object_store::ObjectStore,
+    parquet::{arrow::ParquetFileArrowReader, file::serialized_reader::SerializedFileReader},
 };
 use flight_fusion_ipc::{
     flight_action_request::Action as FusionAction,
@@ -15,7 +15,6 @@ use flight_fusion_ipc::{
     FlightDoGetRequest, FlightDoPutRequest, FlightFusionError, RequestFor, Result as FusionResult,
 };
 use futures::Stream;
-use std::env;
 use std::pin::Pin;
 use std::sync::Arc;
 use tonic::{Status, Streaming};
@@ -61,18 +60,21 @@ where
 }
 
 pub struct FusionActionHandler {
-    fs: Arc<AzureBlobFileSystem>,
+    // fs: Arc<AzureBlobFileSystem>,
     catalog: Arc<MemoryCatalogProvider>,
+    object_store: Arc<dyn ObjectStore>,
 }
 
 impl FusionActionHandler {
     pub fn new() -> Self {
-        let conn_str = env::var("AZURE_STORAGE_CONNECTION_STRING").unwrap();
-        let fs = Arc::new(AzureBlobFileSystem::new_with_connection_string(conn_str));
+        let object_store = Arc::new(LocalFileSystem);
         let schema_provider = MemorySchemaProvider::new();
         let catalog = Arc::new(MemoryCatalogProvider::new());
         catalog.register_schema("schema".to_string(), Arc::new(schema_provider));
-        Self { fs, catalog }
+        Self {
+            object_store,
+            catalog,
+        }
     }
 
     pub async fn execute_action(
@@ -146,14 +148,18 @@ impl FusionActionHandler {
         Ok(Box::pin(futures::stream::iter(result)) as BoxedFlightStream<PutResult>)
     }
 
-    async fn get_arrow_reader_from_path<T>(&self, path: T) -> ParquetFileArrowReader
+    async fn get_arrow_reader_from_path<T>(&self, path: T) -> FusionResult<ParquetFileArrowReader>
     where
-        T: Into<String> + Clone,
+        T: Into<String>,
     {
-        let file_contents = self.fs.get_file_bytes(path).await.unwrap();
-        let cursor = SliceableCursor::new(file_contents);
-        let file_reader = SerializedFileReader::new(cursor).unwrap();
-        ParquetFileArrowReader::new(Arc::new(file_reader))
+        let file = sync_local_unpartitioned_file(path.into());
+        let object_reader = self
+            .object_store
+            .file_reader(file.file_meta.sized_file)
+            .unwrap();
+        let obj_reader = ChunkObjectReader(object_reader);
+        let file_reader = Arc::new(SerializedFileReader::new(obj_reader).unwrap());
+        Ok(ParquetFileArrowReader::new(file_reader))
     }
 }
 
@@ -164,8 +170,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_drop_table_action() {
-        env::set_var("AZURE_STORAGE_ACCOUNT", "value");
-        env::set_var("AZURE_STORAGE_KEY", "value");
         let handler = FusionActionHandler::new();
 
         let req = DropDatasetRequest {
@@ -178,7 +182,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_register_table_action() {
-        env::set_var("AZURE_STORAGE_CONNECTION_STRING", "value");
         let handler = FusionActionHandler::new();
 
         let req = RegisterDatasetRequest {

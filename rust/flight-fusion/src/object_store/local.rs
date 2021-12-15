@@ -7,13 +7,15 @@ use tokio::{
 };
 
 use async_trait::async_trait;
-use futures::{stream, AsyncRead, AsyncReadExt, StreamExt};
+use futures::{stream, AsyncRead, StreamExt};
 
-use datafusion::datasource::object_store::{
-    FileMeta, FileMetaStream, ListEntryStream, ObjectReader, ObjectReaderStream, ObjectStore,
-    SizedFile,
+use datafusion::datasource::{
+    object_store::{
+        FileMeta, FileMetaStream, ListEntryStream, ObjectReader, ObjectReaderStream, ObjectStore,
+        SizedFile,
+    },
+    PartitionedFile,
 };
-use datafusion::datasource::PartitionedFile;
 use datafusion::error::DataFusionError;
 use datafusion::error::Result;
 use tokio_util::compat::TokioAsyncReadCompatExt;

@@ -27,7 +27,7 @@ impl ActionHandler<RegisterDatasetRequest> for FusionActionHandler {
     ) -> FusionResult<RegisterDatasetResponse> {
         match DatasetFormat::from_i32(action.format) {
             Some(DatasetFormat::File) => {
-                let mut reader = self.get_arrow_reader_from_path(action.path).await;
+                let mut reader = self.get_arrow_reader_from_path(action.path).await?;
                 let schema = Arc::new(reader.get_schema().unwrap());
                 let batch_reader = reader.get_record_reader(1024).unwrap();
                 let batches = batch_reader
