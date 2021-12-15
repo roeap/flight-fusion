@@ -5,10 +5,12 @@ dictionaries: []
 words: []
 ignoreWords:
   - Introspector
+  - chrono
   - datafusion
   - datasource
   - dotenv
   - prost
   - proto
   - protobuf
+  - unpartitioned
 import: []
