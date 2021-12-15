@@ -11,6 +11,8 @@ mod handlers;
 mod object_store;
 mod service;
 mod settings;
+#[cfg(test)]
+mod test_utils;
 
 lazy_static! {
     static ref CONFIG: settings::Settings =

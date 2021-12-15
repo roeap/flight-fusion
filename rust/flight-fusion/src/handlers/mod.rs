@@ -12,7 +12,8 @@ use flight_fusion_ipc::{
     flight_action_request::Action as FusionAction,
     flight_do_get_request::Operation as DoGetOperation,
     flight_do_put_request::Operation as DoPutOperation, serialize_message, FlightActionRequest,
-    FlightDoGetRequest, FlightDoPutRequest, FlightFusionError, RequestFor, Result as FusionResult,
+    FlightDoGetRequest, FlightDoPutRequest, FlightFusionError, RegisterDatasetRequest, RequestFor,
+    Result as FusionResult,
 };
 use futures::Stream;
 use std::pin::Pin;
@@ -166,6 +167,7 @@ impl FusionActionHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_utils::get_record_batch;
     use flight_fusion_ipc::{DatasetFormat, DropDatasetRequest, RegisterDatasetRequest};
 
     #[tokio::test]
@@ -191,5 +193,23 @@ mod tests {
         };
         let res = handler.handle_do_action(req).await.unwrap();
         assert_eq!(res.message, "valid")
+    }
+
+    #[tokio::test]
+    async fn test_put_table() {
+        // let batch = get_record_batch(None, false);
+        let handler = FusionActionHandler::new();
+        let register_table_action = RegisterDatasetRequest {
+            path: "/home/robstar/github/flight-fusion/.tmp/file/table.parquet".to_string(),
+            name: "table".to_string(),
+            format: DatasetFormat::File as i32,
+        };
+
+        let res = handler
+            .handle_do_action(register_table_action)
+            .await
+            .unwrap();
+
+        println!("{:?}", res)
     }
 }
