@@ -8,6 +8,7 @@ use dotenv::dotenv;
 use tonic::transport::Server;
 
 mod handlers;
+mod object_store;
 mod service;
 mod settings;
 

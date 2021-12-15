@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 # Workspace dependencies
+observability_deps = { path = "../observability-deps" }
 flight-fusion-ipc = { path = "../flight-fusion-ipc" }
 flight-fusion-client = { path = "../flight-fusion-client" }
 deltalake = { path = "../../../delta-rs/rust" }
@@ -31,7 +32,8 @@ url = "^2.2"
 uuid = "*"
 tonic = "0.5.2"
 # tonic-health = "0.5.0"
-tokio = { version = "1.0", features = ["macros", "rt", "rt-multi-thread"] }
+tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
+tokio-util = { version = "0.6.9", features=["compat"] }
 async-trait = "0.1"
 thiserror = "1"
 tracing = "0.1"
@@ -49,6 +51,7 @@ utime = "0.3"
 serial_test = "0"
 pretty_assertions = "1.0.0"
 tempdir = "0"
+tempfile = "3"
 tonic-build = "0.5.2"
 
 [[example]]
