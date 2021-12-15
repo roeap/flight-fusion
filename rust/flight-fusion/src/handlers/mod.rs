@@ -156,3 +156,37 @@ impl FusionActionHandler {
         ParquetFileArrowReader::new(Arc::new(file_reader))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use flight_fusion_ipc::{DatasetFormat, DropDatasetRequest, RegisterDatasetRequest};
+
+    #[tokio::test]
+    async fn test_drop_table_action() {
+        env::set_var("AZURE_STORAGE_ACCOUNT", "value");
+        env::set_var("AZURE_STORAGE_KEY", "value");
+        let handler = FusionActionHandler::new();
+
+        let req = DropDatasetRequest {
+            name: "some.table".to_string(),
+        };
+
+        let res = handler.handle_do_action(req).await.unwrap();
+        assert_eq!(res.name, "some.table")
+    }
+
+    #[tokio::test]
+    async fn test_register_table_action() {
+        env::set_var("AZURE_STORAGE_CONNECTION_STRING", "value");
+        let handler = FusionActionHandler::new();
+
+        let req = RegisterDatasetRequest {
+            name: "some.table".to_string(),
+            path: "/path/to/table".to_string(),
+            format: DatasetFormat::Delta as i32,
+        };
+        let res = handler.handle_do_action(req).await.unwrap();
+        assert_eq!(res.message, "valid")
+    }
+}

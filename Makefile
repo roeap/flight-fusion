@@ -22,3 +22,7 @@ help:
 .PHONY: proto
 proto:
 	python -m grpc_tools.protoc -I proto --mypy_out $(PROTO_DEST) --python_out $(PROTO_DEST) proto/message.proto proto/actions.proto proto/tickets.proto
+
+.PHONY: gen-test-data
+gen-test-data:
+	python scripts/generate_test_data.py
