@@ -5,6 +5,7 @@ dictionaries: []
 words: []
 ignoreWords:
   - Introspector
+  - Kusto
   - chrono
   - datafusion
   - datasource
