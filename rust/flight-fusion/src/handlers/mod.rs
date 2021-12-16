@@ -13,7 +13,7 @@ use flight_fusion_ipc::{
     flight_action_request::Action as FusionAction,
     flight_do_get_request::Operation as DoGetOperation,
     flight_do_put_request::Operation as DoPutOperation, serialize_message, FlightActionRequest,
-    FlightDoGetRequest, FlightDoPutRequest, FlightFusionError, RegisterDatasetRequest, RequestFor,
+    FlightDoGetRequest, FlightDoPutRequest, FlightFusionError, RequestFor,
     Result as FusionResult,
 };
 use futures::Stream;
@@ -167,7 +167,6 @@ impl FusionActionHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::get_record_batch;
     use flight_fusion_ipc::{DatasetFormat, DropDatasetRequest, RegisterDatasetRequest};
 
     #[tokio::test]
