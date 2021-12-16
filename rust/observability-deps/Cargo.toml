@@ -1,0 +1,8 @@
+[package]
+name = "observability_deps"
+version = "0.1.0"
+edition = "2021"
+description = "Observability ecosystem dependencies for Flight Fusion, to ensure consistent versions and unified updates"
+
+[dependencies] # In alphabetical order
+tracing = { version = "0.1", features = ["max_level_trace", "release_max_level_debug"] }

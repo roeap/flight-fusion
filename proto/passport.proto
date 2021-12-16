@@ -24,7 +24,6 @@ enum Source {
   COOKIE = 1;
   COOKIE_INSECURE = 2;
   MSL = 3;
-  PARTNER_TOKEN = 4;
 }
 
 enum PassportAuthenticationLevel {

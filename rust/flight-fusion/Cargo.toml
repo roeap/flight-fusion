@@ -5,11 +5,14 @@ edition = "2021"
 
 [dependencies]
 # Workspace dependencies
+observability_deps = { path = "../observability-deps" }
 flight-fusion-ipc = { path = "../flight-fusion-ipc" }
 flight-fusion-client = { path = "../flight-fusion-client" }
+deltalake = { path = "../../../delta-rs/rust" }
+datafusion = { path = "../../../arrow-datafusion/datafusion" }
 
 # Git dependencies
-datafusion = { git = "https://github.com/apache/arrow-datafusion", rev = "6955a8d9279bf06311fe0d9d7428854b0601059d" }
+# datafusion = { git = "https://github.com/apache/arrow-datafusion", rev = "4b454d0363b034e3ebcdf88f6add2403cd77a23b" }
 arrow-azure-core = { git = "https://github.com/roeap/arrow-azure-rs" }
 
 # Crates.io dependencies
@@ -30,12 +33,14 @@ url = "^2.2"
 uuid = "*"
 tonic = "0.5.2"
 # tonic-health = "0.5.0"
-tokio = { version = "1.0", features = ["macros", "rt", "rt-multi-thread"] }
+tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
+tokio-util = { version = "0.6.9", features=["compat"] }
 async-trait = "0.1"
 thiserror = "1"
 tracing = "0.1"
 tracing-futures = "0.2"
 tracing-subscriber = "0.3"
+log = "0.4"
 
 tract-onnx = { version = "*", optional = true }
 rand = { version = "*", optional = true }
@@ -48,6 +53,7 @@ utime = "0.3"
 serial_test = "0"
 pretty_assertions = "1.0.0"
 tempdir = "0"
+tempfile = "3"
 tonic-build = "0.5.2"
 
 [[example]]

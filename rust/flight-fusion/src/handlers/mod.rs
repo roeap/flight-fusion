@@ -1,21 +1,22 @@
-use arrow_azure_core::storage::AzureBlobFileSystem;
+use crate::object_store::ChunkObjectReader;
 use arrow_flight::{FlightData, PutResult};
 use async_trait::async_trait;
 use datafusion::{
     catalog::{catalog::MemoryCatalogProvider, schema::MemorySchemaProvider},
-    parquet::{
-        arrow::ParquetFileArrowReader,
-        file::serialized_reader::{SerializedFileReader, SliceableCursor},
+    datasource::object_store::{
+        local::{local_unpartitioned_file, LocalFileSystem},
+        ObjectStore,
     },
+    parquet::{arrow::ParquetFileArrowReader, file::serialized_reader::SerializedFileReader},
 };
 use flight_fusion_ipc::{
     flight_action_request::Action as FusionAction,
     flight_do_get_request::Operation as DoGetOperation,
     flight_do_put_request::Operation as DoPutOperation, serialize_message, FlightActionRequest,
-    FlightDoGetRequest, FlightDoPutRequest, FlightFusionError, RequestFor, Result as FusionResult,
+    FlightDoGetRequest, FlightDoPutRequest, FlightFusionError, RequestFor,
+    Result as FusionResult,
 };
 use futures::Stream;
-use std::env;
 use std::pin::Pin;
 use std::sync::Arc;
 use tonic::{Status, Streaming};
@@ -61,18 +62,20 @@ where
 }
 
 pub struct FusionActionHandler {
-    fs: Arc<AzureBlobFileSystem>,
     catalog: Arc<MemoryCatalogProvider>,
+    object_store: Arc<dyn ObjectStore>,
 }
 
 impl FusionActionHandler {
     pub fn new() -> Self {
-        let conn_str = env::var("AZURE_STORAGE_CONNECTION_STRING").unwrap();
-        let fs = Arc::new(AzureBlobFileSystem::new_with_connection_string(conn_str));
+        let object_store = Arc::new(LocalFileSystem);
         let schema_provider = MemorySchemaProvider::new();
         let catalog = Arc::new(MemoryCatalogProvider::new());
         catalog.register_schema("schema".to_string(), Arc::new(schema_provider));
-        Self { fs, catalog }
+        Self {
+            object_store,
+            catalog,
+        }
     }
 
     pub async fn execute_action(
@@ -146,13 +149,53 @@ impl FusionActionHandler {
         Ok(Box::pin(futures::stream::iter(result)) as BoxedFlightStream<PutResult>)
     }
 
-    async fn get_arrow_reader_from_path<T>(&self, path: T) -> ParquetFileArrowReader
+    async fn get_arrow_reader_from_path<T>(&self, path: T) -> FusionResult<ParquetFileArrowReader>
     where
-        T: Into<String> + Clone,
+        T: Into<String>,
     {
-        let file_contents = self.fs.get_file_bytes(path).await.unwrap();
-        let cursor = SliceableCursor::new(file_contents);
-        let file_reader = SerializedFileReader::new(cursor).unwrap();
-        ParquetFileArrowReader::new(Arc::new(file_reader))
+        let file = local_unpartitioned_file(path.into());
+        let object_reader = self
+            .object_store
+            .file_reader(file.file_meta.sized_file)
+            .unwrap();
+        let obj_reader = ChunkObjectReader(object_reader);
+        let file_reader = Arc::new(SerializedFileReader::new(obj_reader).unwrap());
+        Ok(ParquetFileArrowReader::new(file_reader))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use flight_fusion_ipc::{DatasetFormat, DropDatasetRequest, RegisterDatasetRequest};
+
+    #[tokio::test]
+    async fn test_drop_table_action() {
+        let handler = FusionActionHandler::new();
+
+        let req = DropDatasetRequest {
+            name: "some.table".to_string(),
+        };
+
+        let res = handler.handle_do_action(req).await.unwrap();
+        assert_eq!(res.name, "some.table")
+    }
+
+    #[tokio::test]
+    async fn test_put_table() {
+        // let batch = get_record_batch(None, false);
+        let handler = FusionActionHandler::new();
+        let register_table_action = RegisterDatasetRequest {
+            path: "./tests/data/file/table.parquet".to_string(),
+            name: "table".to_string(),
+            format: DatasetFormat::File as i32,
+        };
+
+        let res = handler
+            .handle_do_action(register_table_action)
+            .await
+            .unwrap();
+
+        println!("{:?}", res)
     }
 }

@@ -4,12 +4,22 @@
 # To run all hooks on all files use `pre-commit run -a`
 
 repos:
-  - repo: https://github.com/doublify/pre-commit-rust
-    rev: master
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
     hooks:
-      - id: fmt
-      - id: cargo-check
-      - id: clippy
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+
+  # - repo: https://github.com/doublify/pre-commit-rust
+  #   rev: v1.0
+  #   hooks:
+  #     - id: fmt
+  #     # - id: cargo-check
+  #     # - id: clippy
 
   # - repo: local
   #   hooks:
@@ -29,33 +39,17 @@ repos:
   #       types:
   #         - file
   #         - rust
-      # - id: cmake-format
-      #   name: CMake Format
-      #   language: python
-      #   entry: python run-cmake-format.py
-      #   types: [cmake]
-      #   additional_dependencies:
-      #     - cmake_format==0.5.2
-      # - id: hadolint
-      #   name: Docker Format
-      #   language: docker_image
-      #   types:
-      #    - dockerfile
-      #   entry: --entrypoint /bin/hadolint hadolint/hadolint:latest -
-      #   exclude: ^dev/.*$
-  # - repo: git://github.com/pre-commit/pre-commit-hooks
-  #   sha: v1.2.3
-  #   hooks:
-  #    - id: flake8
-  #      name: Python Format
-  #      files: ^(python|dev|integration)/
-  #      types:
-  #        - file
-  #        - python
-  #    - id: flake8
-  #      name: Cython Format
-  #      files: ^python/
-  #      types:
-  #        - file
-  #        - cython
-  #      args: [--config=python/.flake8.cython]
+  # - id: cmake-format
+  #   name: CMake Format
+  #   language: python
+  #   entry: python run-cmake-format.py
+  #   types: [cmake]
+  #   additional_dependencies:
+  #     - cmake_format==0.5.2
+  # - id: hadolint
+  #   name: Docker Format
+  #   language: docker_image
+  #   types:
+  #    - dockerfile
+  #   entry: --entrypoint /bin/hadolint hadolint/hadolint:latest -
+  #   exclude: ^dev/.*$

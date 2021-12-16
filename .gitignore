@@ -44,3 +44,4 @@ __pycache__/
 *.so
 
 notebooks/data/
+.tmp

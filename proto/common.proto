@@ -1,0 +1,8 @@
+syntax = "proto3";
+package flight_fusion_ipc;
+
+enum DatasetFormat {
+  DATASET_FORMAT_FILE = 0;
+  DATASET_FORMAT_DATASET = 1;
+  DATASET_FORMAT_DELTA = 2;
+}
