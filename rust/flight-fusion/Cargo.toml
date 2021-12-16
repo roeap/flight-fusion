@@ -9,9 +9,10 @@ observability_deps = { path = "../observability-deps" }
 flight-fusion-ipc = { path = "../flight-fusion-ipc" }
 flight-fusion-client = { path = "../flight-fusion-client" }
 deltalake = { path = "../../../delta-rs/rust" }
+datafusion = { path = "../../../arrow-datafusion/datafusion" }
 
 # Git dependencies
-datafusion = { git = "https://github.com/apache/arrow-datafusion", rev = "4b454d0363b034e3ebcdf88f6add2403cd77a23b" }
+# datafusion = { git = "https://github.com/apache/arrow-datafusion", rev = "4b454d0363b034e3ebcdf88f6add2403cd77a23b" }
 arrow-azure-core = { git = "https://github.com/roeap/arrow-azure-rs" }
 
 # Crates.io dependencies
@@ -39,6 +40,7 @@ thiserror = "1"
 tracing = "0.1"
 tracing-futures = "0.2"
 tracing-subscriber = "0.3"
+log = "0.4"
 
 tract-onnx = { version = "*", optional = true }
 rand = { version = "*", optional = true }

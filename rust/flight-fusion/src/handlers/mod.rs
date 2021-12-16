@@ -1,11 +1,12 @@
-use crate::object_store::{
-    local::sync_local_unpartitioned_file, ChunkObjectReader, LocalFileSystem,
-};
+use crate::object_store::ChunkObjectReader;
 use arrow_flight::{FlightData, PutResult};
 use async_trait::async_trait;
 use datafusion::{
     catalog::{catalog::MemoryCatalogProvider, schema::MemorySchemaProvider},
-    datasource::object_store::ObjectStore,
+    datasource::object_store::{
+        local::{local_unpartitioned_file, LocalFileSystem},
+        ObjectStore,
+    },
     parquet::{arrow::ParquetFileArrowReader, file::serialized_reader::SerializedFileReader},
 };
 use flight_fusion_ipc::{
@@ -61,7 +62,6 @@ where
 }
 
 pub struct FusionActionHandler {
-    // fs: Arc<AzureBlobFileSystem>,
     catalog: Arc<MemoryCatalogProvider>,
     object_store: Arc<dyn ObjectStore>,
 }
@@ -153,7 +153,7 @@ impl FusionActionHandler {
     where
         T: Into<String>,
     {
-        let file = sync_local_unpartitioned_file(path.into());
+        let file = local_unpartitioned_file(path.into());
         let object_reader = self
             .object_store
             .file_reader(file.file_meta.sized_file)
@@ -183,24 +183,11 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_register_table_action() {
-        let handler = FusionActionHandler::new();
-
-        let req = RegisterDatasetRequest {
-            name: "some.table".to_string(),
-            path: "/path/to/table".to_string(),
-            format: DatasetFormat::Delta as i32,
-        };
-        let res = handler.handle_do_action(req).await.unwrap();
-        assert_eq!(res.message, "valid")
-    }
-
-    #[tokio::test]
     async fn test_put_table() {
         // let batch = get_record_batch(None, false);
         let handler = FusionActionHandler::new();
         let register_table_action = RegisterDatasetRequest {
-            path: "/home/robstar/github/flight-fusion/.tmp/file/table.parquet".to_string(),
+            path: "./tests/data/file/table.parquet".to_string(),
             name: "table".to_string(),
             format: DatasetFormat::File as i32,
         };
