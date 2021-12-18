@@ -1,18 +1,8 @@
-use datafusion::datasource::{
-    object_store::{
-        FileMeta, FileMetaStream, ListEntryStream, ObjectReader, ObjectReaderStream, ObjectStore,
-        SizedFile,
-    },
-    PartitionedFile,
-};
-use datafusion::parquet::arrow::ArrowReader;
-use datafusion::parquet::arrow::ParquetFileArrowReader;
+use datafusion::datasource::object_store::ObjectReader;
 use datafusion::parquet::errors::ParquetError;
 use datafusion::parquet::errors::Result as ParquetResult;
 use datafusion::parquet::file::reader::ChunkReader;
 use datafusion::parquet::file::reader::Length;
-use datafusion::parquet::file::serialized_reader::SerializedFileReader;
-use datafusion::parquet::file::statistics::Statistics as ParquetStatistics;
 pub use local::LocalFileSystem;
 use std::io::Read;
 use std::sync::Arc;
