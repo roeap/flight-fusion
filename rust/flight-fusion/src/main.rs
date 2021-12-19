@@ -13,6 +13,7 @@ mod service;
 mod settings;
 #[cfg(test)]
 mod test_utils;
+mod stream;
 
 lazy_static! {
     static ref CONFIG: settings::Settings =

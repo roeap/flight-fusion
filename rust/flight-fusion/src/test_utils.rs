@@ -3,14 +3,41 @@
 // use crate::{
 //     action::Protocol, DeltaTable, DeltaTableConfig, DeltaTableMetaData, SchemaDataType, SchemaField,
 // };
+use crate::{handlers::FusionActionHandler, service::BoxedFlightStream};
+use arrow_flight::{FlightData, SchemaAsIpc};
 use datafusion::arrow::{
     array::{Int32Array, StringArray, UInt32Array},
     compute::take,
     datatypes::{DataType, Field, Schema as ArrowSchema},
+    ipc::writer::IpcWriteOptions,
     record_batch::RecordBatch,
 };
-// use std::collections::HashMap;
 use std::sync::Arc;
+use tonic::Status;
+
+pub fn get_record_batch_stream() -> BoxedFlightStream<FlightData> {
+    let batch = get_record_batch(None, false);
+    let results = vec![batch.clone()];
+    let options = IpcWriteOptions::default();
+    let schema_flight_data: FlightData = SchemaAsIpc::new(&batch.schema().clone(), &options).into();
+
+    let mut flights: Vec<Result<FlightData, Status>> = vec![Ok(schema_flight_data)];
+    let mut batches: Vec<Result<FlightData, Status>> = results
+        .iter()
+        .flat_map(|batch| {
+            let (flight_dictionaries, flight_batch) =
+                arrow_flight::utils::flight_data_from_arrow_batch(batch, &options);
+            flight_dictionaries
+                .into_iter()
+                .chain(std::iter::once(flight_batch))
+                .map(Ok)
+        })
+        .collect();
+
+    flights.append(&mut batches);
+
+    Box::pin(futures::stream::iter(flights)) as BoxedFlightStream<FlightData>
+}
 
 pub fn get_record_batch(part: Option<String>, with_null: bool) -> RecordBatch {
     let (base_int, base_str, base_mod) = if with_null {
@@ -124,6 +151,11 @@ fn data_without_null() -> (Int32Array, StringArray, StringArray) {
     ]);
 
     (base_int, base_str, base_mod)
+}
+
+pub fn get_fusion_handler() -> FusionActionHandler {
+    let handler = FusionActionHandler::new();
+    handler
 }
 
 // pub fn get_delta_schema() -> Schema {

@@ -1,11 +1,11 @@
-use crate::handlers::FusionActionHandler;
+use crate::{handlers::FusionActionHandler, stream::FlightReceiverPlan};
 use arrow_flight::{
-    flight_descriptor::DescriptorType, flight_service_server::FlightService, Action, ActionType,
+    flight_service_server::FlightService, Action, ActionType,
     Criteria, Empty, FlightData, FlightDescriptor, FlightInfo, HandshakeRequest, HandshakeResponse,
     PutResult, SchemaResult, Ticket,
 };
 
-use flight_fusion_ipc::{FlightActionRequest, FlightDoGetRequest, FlightDoPutRequest};
+use flight_fusion_ipc::{FlightActionRequest, FlightDoGetRequest};
 use futures::Stream;
 use prost::Message;
 use std::io::Cursor;
@@ -13,7 +13,8 @@ use std::pin::Pin;
 use std::sync::Arc;
 use tonic::{Request, Response, Status, Streaming};
 
-type BoxedFlightStream<T> = Pin<Box<dyn Stream<Item = Result<T, Status>> + Send + Sync + 'static>>;
+pub type BoxedFlightStream<T> =
+    Pin<Box<dyn Stream<Item = Result<T, Status>> + Send + Sync + 'static>>;
 
 pub struct FlightFusionService {
     action_handler: Arc<FusionActionHandler>,
@@ -87,35 +88,13 @@ impl FlightService for FlightFusionService {
         &self,
         request: Request<Streaming<FlightData>>,
     ) -> Result<Response<Self::DoPutStream>, Status> {
-        let mut input_stream = request.into_inner();
-        let flight_data = input_stream
-            .message()
-            .await?
-            .ok_or_else(|| Status::invalid_argument("Must send some FlightData"))?;
-
-        let descriptor = flight_data
-            .flight_descriptor
-            .clone()
-            .ok_or_else(|| Status::invalid_argument("Must have a descriptor"))?;
-
-        let request_data = match DescriptorType::from_i32(descriptor.r#type) {
-            Some(DescriptorType::Cmd) => {
-                let mut buf = Cursor::new(&descriptor.cmd);
-                let request_data: FlightDoPutRequest = FlightDoPutRequest::decode(&mut buf)
-                    .map_err(|e| tonic::Status::internal(e.to_string()))?;
-                Ok(request_data)
-            }
-            Some(DescriptorType::Path) => Err(tonic::Status::internal(
-                "Put operation not implemented for path",
-            )),
-            _ => Err(tonic::Status::internal(
-                "Proper descriptor must be provided",
-            )),
-        }?;
-
         let response = self
             .action_handler
-            .execute_do_put(request_data, flight_data, input_stream)
+            .execute_do_put(Arc::new(
+                FlightReceiverPlan::try_new(request.into_inner())
+                    .await
+                    .map_err(|e| tonic::Status::internal(e.to_string()))?,
+            ))
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
