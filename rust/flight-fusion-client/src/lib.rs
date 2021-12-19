@@ -68,10 +68,11 @@ impl FlightFusionClient {
     where
         T: Into<String>,
     {
-        let mut action = DropDatasetRequest::default();
-        action.name = table_name.into();
-        let mut action_request = FlightActionRequest::default();
-        action_request.action = Some(FusionAction::Drop(action));
+        let action_request = FlightActionRequest {
+            action: Some(FusionAction::Drop(DropDatasetRequest {
+                name: table_name.into(),
+            })),
+        };
 
         let result = self
             .do_action::<DropDatasetRequest, DropDatasetResponse>(action_request)
@@ -88,14 +89,12 @@ impl FlightFusionClient {
     where
         T: Into<String>,
     {
-        let action = RegisterDatasetRequest {
-            name: table_name.into(),
-            format: DatasetFormat::File.into(),
-            path: path.into(),
-        };
-
         let action_request = FlightActionRequest {
-            action: Some(FusionAction::Register(action)),
+            action: Some(FusionAction::Register(RegisterDatasetRequest {
+                name: table_name.into(),
+                format: DatasetFormat::File.into(),
+                path: path.into(),
+            })),
         };
 
         let result = self
