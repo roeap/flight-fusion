@@ -1,4 +1,4 @@
-pub use flight_fusion_ipc::*;
+pub use crate::flight_fusion_ipc::*;
 pub mod errors;
 mod flight_fusion_ipc;
 pub mod passport;
@@ -24,4 +24,8 @@ impl RequestFor for PutMemoryTableRequest {
 
 impl RequestFor for PutRemoteTableRequest {
     type Reply = PutRemoteTableResponse;
+}
+
+impl RequestFor for DeltaOperationRequest {
+    type Reply = DeltaOperationResponse;
 }

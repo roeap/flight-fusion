@@ -20,12 +20,18 @@ from flight_fusion.proto.actions_pb2 import (
     RegisterDatasetRequest,
     RegisterDatasetResponse,
 )
+from flight_fusion.proto.common_pb2 import DeltaReference, SaveMode
 from flight_fusion.proto.message_pb2 import (
     FlightActionRequest,
     FlightDoGetRequest,
     FlightDoPutRequest,
 )
-from flight_fusion.proto.tickets_pb2 import PutMemoryTableRequest, SqlTicket
+from flight_fusion.proto.tickets_pb2 import (
+    DeltaOperationRequest,
+    DeltaWriteOperation,
+    PutMemoryTableRequest,
+    SqlTicket,
+)
 
 type_map = {
     "Utf8": VARCHAR,
@@ -86,6 +92,33 @@ class FlightFusionClient:
 
         request = FlightDoPutRequest()
         request.memory.CopyFrom(command)
+
+        descriptor = flight.FlightDescriptor.for_command(request.SerializeToString())
+        writer, _ = self.flight_client.do_put(descriptor, data.schema)
+        writer.write_table(data)
+        writer.close()
+
+    def write_into_delta(
+        self,
+        catalog: str,
+        schema: str,
+        location: str,
+        save_mode: SaveMode,
+        data: Union[pd.DataFrame, pa.Table],
+    ) -> None:
+        if isinstance(data, pd.DataFrame):
+            # NOTE removing table meta data is required since we validate the
+            # schema against the delta table schema on the server side.
+            data = pa.Table.from_pandas(data).replace_schema_metadata()
+
+        op = DeltaWriteOperation(save_mode=save_mode)  # type: ignore
+
+        command = DeltaOperationRequest(
+            table=DeltaReference(location=location), write=op
+        )
+
+        request = FlightDoPutRequest()
+        request.delta.CopyFrom(command)
 
         descriptor = flight.FlightDescriptor.for_command(request.SerializeToString())
         writer, _ = self.flight_client.do_put(descriptor, data.schema)

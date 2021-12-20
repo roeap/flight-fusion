@@ -1,4 +1,5 @@
 use crate::object_store::ChunkObjectReader;
+use crate::stream::*;
 use arrow_flight::{FlightData, PutResult};
 use async_trait::async_trait;
 use datafusion::{
@@ -8,18 +9,18 @@ use datafusion::{
         ObjectStore,
     },
     parquet::{arrow::ParquetFileArrowReader, file::serialized_reader::SerializedFileReader},
+    physical_plan::ExecutionPlan,
 };
 use flight_fusion_ipc::{
     flight_action_request::Action as FusionAction,
     flight_do_get_request::Operation as DoGetOperation,
     flight_do_put_request::Operation as DoPutOperation, serialize_message, FlightActionRequest,
-    FlightDoGetRequest, FlightDoPutRequest, FlightFusionError, RequestFor,
-    Result as FusionResult,
+    FlightDoGetRequest, FlightFusionError, RequestFor, Result as FusionResult,
 };
 use futures::Stream;
 use std::pin::Pin;
 use std::sync::Arc;
-use tonic::{Status, Streaming};
+use tonic::Status;
 
 pub mod actions;
 pub mod do_get;
@@ -53,12 +54,7 @@ pub trait DoPutHandler<T>: Sync + Send
 where
     T: RequestFor,
 {
-    async fn handle_do_put(
-        &self,
-        req: T,
-        flight_data: FlightData,
-        mut stream: Streaming<FlightData>,
-    ) -> FusionResult<T::Reply>;
+    async fn handle_do_put(&self, req: T, input: Arc<dyn ExecutionPlan>) -> FusionResult<T::Reply>;
 }
 
 pub struct FusionActionHandler {
@@ -119,34 +115,6 @@ impl FusionActionHandler {
                 "No operation data passed".to_string(),
             )),
         }
-    }
-
-    pub async fn execute_do_put(
-        &self,
-        request_data: FlightDoPutRequest,
-        flight_data: FlightData,
-        stream: Streaming<FlightData>,
-    ) -> FusionResult<BoxedFlightStream<PutResult>> {
-        let body = match request_data.operation {
-            Some(action) => {
-                let result_body = match action {
-                    DoPutOperation::Memory(memory) => {
-                        serialize_message(self.handle_do_put(memory, flight_data, stream).await?)
-                    }
-                    DoPutOperation::Remote(_remote) => {
-                        todo!()
-                    }
-                };
-
-                Ok(result_body)
-            }
-            None => Err(FlightFusionError::UnknownAction(
-                "No action data passed".to_string(),
-            )),
-        }?;
-
-        let result = vec![Ok(PutResult { app_metadata: body })];
-        Ok(Box::pin(futures::stream::iter(result)) as BoxedFlightStream<PutResult>)
     }
 
     async fn get_arrow_reader_from_path<T>(&self, path: T) -> FusionResult<ParquetFileArrowReader>

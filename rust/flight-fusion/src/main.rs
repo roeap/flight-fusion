@@ -11,6 +11,7 @@ mod handlers;
 mod object_store;
 mod service;
 mod settings;
+mod stream;
 #[cfg(test)]
 mod test_utils;
 

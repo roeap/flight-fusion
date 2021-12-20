@@ -80,30 +80,48 @@ class FlightDoPutRequest(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor = ...
     MEMORY_FIELD_NUMBER: builtins.int
     REMOTE_FIELD_NUMBER: builtins.int
+    DELTA_FIELD_NUMBER: builtins.int
     @property
     def memory(self) -> tickets_pb2.PutMemoryTableRequest: ...
     @property
     def remote(self) -> tickets_pb2.PutRemoteTableRequest: ...
+    @property
+    def delta(self) -> tickets_pb2.DeltaOperationRequest: ...
     def __init__(
         self,
         *,
         memory: typing.Optional[tickets_pb2.PutMemoryTableRequest] = ...,
         remote: typing.Optional[tickets_pb2.PutRemoteTableRequest] = ...,
+        delta: typing.Optional[tickets_pb2.DeltaOperationRequest] = ...,
     ) -> None: ...
     def HasField(
         self,
         field_name: typing_extensions.Literal[
-            "memory", b"memory", "operation", b"operation", "remote", b"remote"
+            "delta",
+            b"delta",
+            "memory",
+            b"memory",
+            "operation",
+            b"operation",
+            "remote",
+            b"remote",
         ],
     ) -> builtins.bool: ...
     def ClearField(
         self,
         field_name: typing_extensions.Literal[
-            "memory", b"memory", "operation", b"operation", "remote", b"remote"
+            "delta",
+            b"delta",
+            "memory",
+            b"memory",
+            "operation",
+            b"operation",
+            "remote",
+            b"remote",
         ],
     ) -> None: ...
     def WhichOneof(
         self, oneof_group: typing_extensions.Literal["operation", b"operation"]
-    ) -> typing.Optional[typing_extensions.Literal["memory", "remote"]]: ...
+    ) -> typing.Optional[typing_extensions.Literal["memory", "remote", "delta"]]: ...
 
 global___FlightDoPutRequest = FlightDoPutRequest

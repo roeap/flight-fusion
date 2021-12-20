@@ -8,12 +8,15 @@ edition = "2021"
 observability_deps = { path = "../observability-deps" }
 flight-fusion-ipc = { path = "../flight-fusion-ipc" }
 flight-fusion-client = { path = "../flight-fusion-client" }
-deltalake = { path = "../../../delta-rs/rust" }
-datafusion = { path = "../../../arrow-datafusion/datafusion" }
+# deltalake = { path = "../../../delta-rs/rust" }
+# datafusion = { path = "../../../arrow-datafusion/datafusion" }
 
 # Git dependencies
-# datafusion = { git = "https://github.com/apache/arrow-datafusion", rev = "4b454d0363b034e3ebcdf88f6add2403cd77a23b" }
+datafusion = { git = "https://github.com/apache/arrow-datafusion", rev = "07b29856c7a1287459e6b8545a41142c466d82bd" }
 arrow-azure-core = { git = "https://github.com/roeap/arrow-azure-rs" }
+deltalake = { git = "https://github.com/roeap/delta-rs", branch = "high-level-writer", features = [
+  "datafusion-ext",
+] }
 
 # Crates.io dependencies
 arrow-flight = "6"
@@ -34,7 +37,7 @@ uuid = "*"
 tonic = "0.5.2"
 # tonic-health = "0.5.0"
 tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
-tokio-util = { version = "0.6.9", features=["compat"] }
+tokio-util = { version = "0.6.9", features = ["compat"] }
 async-trait = "0.1"
 thiserror = "1"
 tracing = "0.1"

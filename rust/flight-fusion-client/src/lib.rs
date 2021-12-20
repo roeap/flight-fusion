@@ -68,10 +68,11 @@ impl FlightFusionClient {
     where
         T: Into<String>,
     {
-        let mut action = DropDatasetRequest::default();
-        action.name = table_name.into();
-        let mut action_request = FlightActionRequest::default();
-        action_request.action = Some(FusionAction::Drop(action));
+        let action_request = FlightActionRequest {
+            action: Some(FusionAction::Drop(DropDatasetRequest {
+                name: table_name.into(),
+            })),
+        };
 
         let result = self
             .do_action::<DropDatasetRequest, DropDatasetResponse>(action_request)
@@ -88,14 +89,12 @@ impl FlightFusionClient {
     where
         T: Into<String>,
     {
-        let action = RegisterDatasetRequest {
-            name: table_name.into(),
-            format: DatasetFormat::File.into(),
-            path: path.into(),
-        };
-
         let action_request = FlightActionRequest {
-            action: Some(FusionAction::Register(action)),
+            action: Some(FusionAction::Register(RegisterDatasetRequest {
+                name: table_name.into(),
+                format: DatasetFormat::File.into(),
+                path: path.into(),
+            })),
         };
 
         let result = self
@@ -147,14 +146,15 @@ impl Interceptor for AuthInterceptor {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn it_works() {
-        let client = FlightFusionClient::try_new().await.unwrap();
-        let response = client.drop_table("table_name").await.unwrap();
-        println!("{:?}", response)
-    }
-}
+// TODO enable docker in unit tests
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//
+//     #[tokio::test]
+//     async fn it_works() {
+//         let client = FlightFusionClient::try_new().await.unwrap();
+//         let response = client.drop_table("table_name").await.unwrap();
+//         println!("{:?}", response)
+//     }
+// }

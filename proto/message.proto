@@ -22,5 +22,6 @@ message FlightDoPutRequest {
   oneof operation {
     PutMemoryTableRequest memory = 1;
     PutRemoteTableRequest remote = 2;
+    DeltaOperationRequest delta = 3;
   }
 }

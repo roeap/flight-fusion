@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\rmessage.proto\x12\x11\x66light_fusion_ipc\x1a\ractions.proto\x1a\rtickets.proto\"\x95\x01\n\x13\x46lightActionRequest\x12=\n\x08register\x18\x01 \x01(\x0b\x32).flight_fusion_ipc.RegisterDatasetRequestH\x00\x12\x35\n\x04\x64rop\x18\x02 \x01(\x0b\x32%.flight_fusion_ipc.DropDatasetRequestH\x00\x42\x08\n\x06\x61\x63tion\"{\n\x12\x46lightDoGetRequest\x12+\n\x03sql\x18\x01 \x01(\x0b\x32\x1c.flight_fusion_ipc.SqlTicketH\x00\x12+\n\x03kql\x18\x02 \x01(\x0b\x32\x1c.flight_fusion_ipc.KqlTicketH\x00\x42\x0b\n\toperation\"\x99\x01\n\x12\x46lightDoPutRequest\x12:\n\x06memory\x18\x01 \x01(\x0b\x32(.flight_fusion_ipc.PutMemoryTableRequestH\x00\x12:\n\x06remote\x18\x02 \x01(\x0b\x32(.flight_fusion_ipc.PutRemoteTableRequestH\x00\x42\x0b\n\toperationb\x06proto3'
+  serialized_pb=b'\n\rmessage.proto\x12\x11\x66light_fusion_ipc\x1a\ractions.proto\x1a\rtickets.proto\"\x95\x01\n\x13\x46lightActionRequest\x12=\n\x08register\x18\x01 \x01(\x0b\x32).flight_fusion_ipc.RegisterDatasetRequestH\x00\x12\x35\n\x04\x64rop\x18\x02 \x01(\x0b\x32%.flight_fusion_ipc.DropDatasetRequestH\x00\x42\x08\n\x06\x61\x63tion\"{\n\x12\x46lightDoGetRequest\x12+\n\x03sql\x18\x01 \x01(\x0b\x32\x1c.flight_fusion_ipc.SqlTicketH\x00\x12+\n\x03kql\x18\x02 \x01(\x0b\x32\x1c.flight_fusion_ipc.KqlTicketH\x00\x42\x0b\n\toperation\"\xd4\x01\n\x12\x46lightDoPutRequest\x12:\n\x06memory\x18\x01 \x01(\x0b\x32(.flight_fusion_ipc.PutMemoryTableRequestH\x00\x12:\n\x06remote\x18\x02 \x01(\x0b\x32(.flight_fusion_ipc.PutRemoteTableRequestH\x00\x12\x39\n\x05\x64\x65lta\x18\x03 \x01(\x0b\x32(.flight_fusion_ipc.DeltaOperationRequestH\x00\x42\x0b\n\toperationb\x06proto3'
   ,
   dependencies=[actions__pb2.DESCRIPTOR,tickets__pb2.DESCRIPTOR,])
 
@@ -138,6 +138,13 @@ _FLIGHTDOPUTREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='delta', full_name='flight_fusion_ipc.FlightDoPutRequest.delta', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -156,7 +163,7 @@ _FLIGHTDOPUTREQUEST = _descriptor.Descriptor(
     fields=[]),
   ],
   serialized_start=344,
-  serialized_end=497,
+  serialized_end=556,
 )
 
 _FLIGHTACTIONREQUEST.fields_by_name['register'].message_type = actions__pb2._REGISTERDATASETREQUEST
@@ -177,12 +184,16 @@ _FLIGHTDOGETREQUEST.oneofs_by_name['operation'].fields.append(
 _FLIGHTDOGETREQUEST.fields_by_name['kql'].containing_oneof = _FLIGHTDOGETREQUEST.oneofs_by_name['operation']
 _FLIGHTDOPUTREQUEST.fields_by_name['memory'].message_type = tickets__pb2._PUTMEMORYTABLEREQUEST
 _FLIGHTDOPUTREQUEST.fields_by_name['remote'].message_type = tickets__pb2._PUTREMOTETABLEREQUEST
+_FLIGHTDOPUTREQUEST.fields_by_name['delta'].message_type = tickets__pb2._DELTAOPERATIONREQUEST
 _FLIGHTDOPUTREQUEST.oneofs_by_name['operation'].fields.append(
   _FLIGHTDOPUTREQUEST.fields_by_name['memory'])
 _FLIGHTDOPUTREQUEST.fields_by_name['memory'].containing_oneof = _FLIGHTDOPUTREQUEST.oneofs_by_name['operation']
 _FLIGHTDOPUTREQUEST.oneofs_by_name['operation'].fields.append(
   _FLIGHTDOPUTREQUEST.fields_by_name['remote'])
 _FLIGHTDOPUTREQUEST.fields_by_name['remote'].containing_oneof = _FLIGHTDOPUTREQUEST.oneofs_by_name['operation']
+_FLIGHTDOPUTREQUEST.oneofs_by_name['operation'].fields.append(
+  _FLIGHTDOPUTREQUEST.fields_by_name['delta'])
+_FLIGHTDOPUTREQUEST.fields_by_name['delta'].containing_oneof = _FLIGHTDOPUTREQUEST.oneofs_by_name['operation']
 DESCRIPTOR.message_types_by_name['FlightActionRequest'] = _FLIGHTACTIONREQUEST
 DESCRIPTOR.message_types_by_name['FlightDoGetRequest'] = _FLIGHTDOGETREQUEST
 DESCRIPTOR.message_types_by_name['FlightDoPutRequest'] = _FLIGHTDOPUTREQUEST

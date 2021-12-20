@@ -16,12 +16,41 @@ pub enum FlightFusionError {
     #[error("Table: '{0}' already exists")]
     TableAlreadyExists(String),
 
+    /// Error returned when an input is in an unexpected format
+    #[error("Malformed input {0}")]
+    InputError(String),
+
     /// Errors during communication with flight server
     #[error("Table: already exists")]
     TransportError {
         #[from]
         source: tonic::transport::Error,
     },
+
+    /// Error returned when the table to be created already exists
+    #[error("Generic error: {0}")]
+    Generic(String),
+}
+
+impl FlightFusionError {
+    pub fn generic(message: impl Into<String>) -> FlightFusionError {
+        let msg: String = message.into();
+        FlightFusionError::Generic(msg)
+    }
+
+    pub fn external(message: impl Into<String>) -> FlightFusionError {
+        let msg: String = message.into();
+        FlightFusionError::ExternalError(msg)
+    }
+
+    pub fn input(message: impl Into<String>) -> FlightFusionError {
+        let msg: String = message.into();
+        FlightFusionError::InputError(msg)
+    }
 }
 
 pub type Result<T> = std::result::Result<T, FlightFusionError>;
+
+pub fn to_flight_fusion_err(e: impl std::error::Error) -> FlightFusionError {
+    FlightFusionError::ExternalError(e.to_string())
+}
