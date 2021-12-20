@@ -11,6 +11,28 @@ message KqlTicket {
   string query = 1;
 }
 
+message DeltaCreateOperation {
+  SaveMode save_mode = 1;
+}
+
+message DeltaWriteOperation {
+  SaveMode save_mode = 1;
+  repeated string partition_columns = 2;
+  string predicate = 3;
+}
+
+message DeltaOperationRequest {
+  DeltaReference table = 1;
+  oneof operation {
+    DeltaCreateOperation create = 10;
+    DeltaWriteOperation write = 11;
+  }
+}
+
+message DeltaOperationResponse {
+  string stats = 1;
+}
+
 message PutMemoryTableRequest {
   string name = 1;
 }

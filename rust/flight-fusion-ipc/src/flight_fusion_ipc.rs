@@ -1,12 +1,52 @@
 // This file was automatically generated through the build.rs script, and should not be edited.
 #[rustfmt::skip]
 
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeltaReference {
+    #[prost(string, tag="1")]
+    pub location: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListingReference {
+    #[prost(string, tag="1")]
+    pub path: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FileReference {
+    #[prost(string, tag="1")]
+    pub path: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TableReference {
+    #[prost(oneof="table_reference::Table", tags="1, 2, 3")]
+    pub table: ::core::option::Option<table_reference::Table>,
+}
+/// Nested message and enum types in `TableReference`.
+pub mod table_reference {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Table {
+        #[prost(message, tag="1")]
+        Delta(super::DeltaReference),
+        #[prost(message, tag="2")]
+        Listing(super::ListingReference),
+        #[prost(message, tag="3")]
+        Filse(super::FileReference),
+    }
+}
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum DatasetFormat {
     File = 0,
     Dataset = 1,
     Delta = 2,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum SaveMode {
+    Unspecified = 0,
+    Append = 1,
+    Overwrite = 2,
+    ErrorIfExists = 3,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RegisterDatasetRequest {
@@ -41,6 +81,42 @@ pub struct SqlTicket {
 pub struct KqlTicket {
     #[prost(string, tag="1")]
     pub query: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeltaCreateOperation {
+    #[prost(enumeration="SaveMode", tag="1")]
+    pub save_mode: i32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeltaWriteOperation {
+    #[prost(enumeration="SaveMode", tag="1")]
+    pub save_mode: i32,
+    #[prost(string, repeated, tag="2")]
+    pub partition_columns: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, tag="3")]
+    pub predicate: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeltaOperationRequest {
+    #[prost(message, optional, tag="1")]
+    pub table: ::core::option::Option<DeltaReference>,
+    #[prost(oneof="delta_operation_request::Operation", tags="10, 11")]
+    pub operation: ::core::option::Option<delta_operation_request::Operation>,
+}
+/// Nested message and enum types in `DeltaOperationRequest`.
+pub mod delta_operation_request {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Operation {
+        #[prost(message, tag="10")]
+        Create(super::DeltaCreateOperation),
+        #[prost(message, tag="11")]
+        Write(super::DeltaWriteOperation),
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeltaOperationResponse {
+    #[prost(string, tag="1")]
+    pub stats: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PutMemoryTableRequest {
@@ -96,7 +172,7 @@ pub mod flight_do_get_request {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightDoPutRequest {
-    #[prost(oneof="flight_do_put_request::Operation", tags="1, 2")]
+    #[prost(oneof="flight_do_put_request::Operation", tags="1, 2, 3")]
     pub operation: ::core::option::Option<flight_do_put_request::Operation>,
 }
 /// Nested message and enum types in `FlightDoPutRequest`.
@@ -107,6 +183,8 @@ pub mod flight_do_put_request {
         Memory(super::PutMemoryTableRequest),
         #[prost(message, tag="2")]
         Remote(super::PutRemoteTableRequest),
+        #[prost(message, tag="3")]
+        Delta(super::DeltaOperationRequest),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]

@@ -3,8 +3,10 @@ use async_trait::async_trait;
 use datafusion::physical_plan::collect;
 use datafusion::physical_plan::ExecutionPlan;
 use datafusion::{catalog::catalog::CatalogProvider, datasource::MemTable};
+use deltalake::commands::DeltaCommands;
 use flight_fusion_ipc::{
-    FlightFusionError, PutMemoryTableRequest, PutMemoryTableResponse, Result as FusionResult,
+    DeltaOperationRequest, DeltaOperationResponse, FlightFusionError, PutMemoryTableRequest,
+    PutMemoryTableResponse, Result as FusionResult,
 };
 use std::sync::Arc;
 
@@ -22,6 +24,9 @@ impl FusionActionHandler {
                     }
                     DoPutOperation::Remote(_remote) => {
                         todo!()
+                    }
+                    DoPutOperation::Delta(req) => {
+                        serialize_message(self.handle_do_put(req.clone(), stream).await?)
                     }
                 };
 
@@ -42,7 +47,7 @@ impl DoPutHandler<PutMemoryTableRequest> for FusionActionHandler {
     async fn handle_do_put(
         &self,
         ticket: PutMemoryTableRequest,
-        input: Arc<FlightReceiverPlan>,
+        input: Arc<dyn ExecutionPlan>,
     ) -> FusionResult<PutMemoryTableResponse> {
         let schema_ref = input.schema();
         let batches = collect(input).await.unwrap();
@@ -62,6 +67,26 @@ impl DoPutHandler<PutMemoryTableRequest> for FusionActionHandler {
         Ok(PutMemoryTableResponse {
             name: "created".to_string(),
         })
+    }
+}
+
+#[async_trait]
+impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
+    async fn handle_do_put(
+        &self,
+        ticket: DeltaOperationRequest,
+        input: Arc<dyn ExecutionPlan>,
+    ) -> FusionResult<DeltaOperationResponse> {
+        let table_uri = ticket.table.expect("Table reference must be defined");
+        let mut delta_cmd = DeltaCommands::try_from_uri(table_uri.location).await.unwrap();
+        let batches = collect(input).await.unwrap();
+
+        delta_cmd
+            .write(batches, None, Some(vec![]))
+            .await
+            .unwrap();
+
+        Ok(DeltaOperationResponse::default())
     }
 }
 

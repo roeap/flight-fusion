@@ -9,6 +9,7 @@ use datafusion::{
         ObjectStore,
     },
     parquet::{arrow::ParquetFileArrowReader, file::serialized_reader::SerializedFileReader},
+    physical_plan::ExecutionPlan,
 };
 use flight_fusion_ipc::{
     flight_action_request::Action as FusionAction,
@@ -53,11 +54,7 @@ pub trait DoPutHandler<T>: Sync + Send
 where
     T: RequestFor,
 {
-    async fn handle_do_put(
-        &self,
-        req: T,
-        input: Arc<FlightReceiverPlan>,
-    ) -> FusionResult<T::Reply>;
+    async fn handle_do_put(&self, req: T, input: Arc<dyn ExecutionPlan>) -> FusionResult<T::Reply>;
 }
 
 pub struct FusionActionHandler {

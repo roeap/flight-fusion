@@ -5,9 +5,7 @@ use datafusion::{
     arrow::datatypes::SchemaRef,
     error::Result as DataFusionResult,
     physical_plan::{
-        common::{
-            compute_record_batch_statistics, SizedRecordBatchStream,
-        },
+        common::{compute_record_batch_statistics, SizedRecordBatchStream},
         Distribution, ExecutionPlan, Partitioning, SendableRecordBatchStream, Statistics,
     },
 };

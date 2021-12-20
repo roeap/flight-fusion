@@ -1,8 +1,8 @@
 use crate::{handlers::FusionActionHandler, stream::FlightReceiverPlan};
 use arrow_flight::{
-    flight_service_server::FlightService, Action, ActionType,
-    Criteria, Empty, FlightData, FlightDescriptor, FlightInfo, HandshakeRequest, HandshakeResponse,
-    PutResult, SchemaResult, Ticket,
+    flight_service_server::FlightService, Action, ActionType, Criteria, Empty, FlightData,
+    FlightDescriptor, FlightInfo, HandshakeRequest, HandshakeResponse, PutResult, SchemaResult,
+    Ticket,
 };
 
 use flight_fusion_ipc::{FlightActionRequest, FlightDoGetRequest};
