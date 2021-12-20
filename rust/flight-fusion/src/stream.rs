@@ -201,12 +201,3 @@ impl Stream for FlightTonicRecordBatchStream {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-
-    #[tokio::test]
-    async fn create_table_without_partitions() {
-        todo!()
-    }
-}
