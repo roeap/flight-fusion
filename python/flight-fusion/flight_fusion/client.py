@@ -28,6 +28,7 @@ from flight_fusion.proto.message_pb2 import (
 )
 from flight_fusion.proto.tickets_pb2 import (
     DeltaOperationRequest,
+    DeltaWriteOperation,
     PutMemoryTableRequest,
     SqlTicket,
 )
@@ -106,9 +107,15 @@ class FlightFusionClient:
         data: Union[pd.DataFrame, pa.Table],
     ) -> None:
         if isinstance(data, pd.DataFrame):
-            data = pa.Table.from_pandas(data)
+            # NOTE removing table meta data is required since we validate the
+            # schema against the delta table schema on the server side.
+            data = pa.Table.from_pandas(data).replace_schema_metadata()
 
-        command = DeltaOperationRequest(table=DeltaReference(location=location))
+        op = DeltaWriteOperation(save_mode=save_mode)  # type: ignore
+
+        command = DeltaOperationRequest(
+            table=DeltaReference(location=location), write=op
+        )
 
         request = FlightDoPutRequest()
         request.delta.CopyFrom(command)

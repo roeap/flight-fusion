@@ -6,14 +6,58 @@
 use crate::{handlers::FusionActionHandler, service::BoxedFlightStream};
 use arrow_flight::{FlightData, SchemaAsIpc};
 use datafusion::arrow::{
-    array::{Int32Array, StringArray, UInt32Array},
+    array::{Array, Float32Array, Float64Array, Int32Array, Int64Array, StringArray, UInt32Array},
     compute::take,
-    datatypes::{DataType, Field, Schema as ArrowSchema},
+    datatypes::{DataType, Field, Schema as ArrowSchema, SchemaRef as ArrowSchemaRef},
     ipc::writer::IpcWriteOptions,
     record_batch::RecordBatch,
 };
+use rand::distributions::Standard;
+use rand::prelude::*;
 use std::sync::Arc;
 use tonic::Status;
+
+pub fn generate_random_batch(row_count: usize, schema: ArrowSchemaRef) -> RecordBatch {
+    let mut arrays: Vec<Arc<dyn Array>> = vec![];
+    for field in schema.fields() {
+        match field.data_type() {
+            DataType::Float64 => {
+                arrays.push(Arc::new(Float64Array::from(generate_values(&mut vec![
+                    1_f64;
+                    row_count
+                ]))))
+            }
+            DataType::Float32 => {
+                arrays.push(Arc::new(Float32Array::from(generate_values(&mut vec![
+                    1_f32;
+                    row_count
+                ]))))
+            }
+            DataType::Int64 => arrays.push(Arc::new(Int64Array::from(generate_values(&mut vec![
+                    1_i64;
+                    row_count
+                ])))),
+            DataType::Int32 => arrays.push(Arc::new(Int32Array::from(generate_values(&mut vec![
+                    1_i32;
+                    row_count
+                ])))),
+            _ => todo!(),
+        };
+    }
+
+    RecordBatch::try_new(schema, arrays).unwrap()
+}
+
+fn generate_values<T: Clone>(raw: &mut Vec<T>) -> Vec<T>
+where
+    Standard: rand::distributions::Distribution<T>,
+{
+    let mut rng = rand::thread_rng();
+    for x in raw.iter_mut() {
+        *x = rng.gen::<T>();
+    }
+    raw.to_vec()
+}
 
 pub fn get_record_batch_stream() -> BoxedFlightStream<FlightData> {
     let batch = get_record_batch(None, false);
