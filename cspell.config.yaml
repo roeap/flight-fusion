@@ -13,5 +13,10 @@ ignoreWords:
   - prost
   - proto
   - protobuf
+  - quicktype
+  - reqwest
+  - schemafy
+  - structopt
+  - tempfile
   - unpartitioned
 import: []
