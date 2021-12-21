@@ -5,8 +5,11 @@ extern crate serde;
 extern crate serde_json;
 extern crate url;
 
-pub mod apis;
+mod apis;
 pub mod clients;
+pub mod models;
+mod operations;
+mod request_options;
 
 use http::StatusCode;
 
@@ -31,7 +34,7 @@ pub enum OpenMetadataError {
     #[error("Error in transport: {source}")]
     TransportError {
         #[from]
-        source: reqwest::Error,
+        source: reqwest_pipeline::ReqwestPipelineError,
     },
 
     #[error("HTTP error status (status: {:?}, body: {:?})", status, body)]

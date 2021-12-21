@@ -19,7 +19,15 @@ http = "0.2"
 bytes = "1"
 async-trait = "0.1"
 rand = "*"
+reqwest-pipeline = { path = "../reqwest-pipeline" }
 
 [dependencies.reqwest]
 version = "^0.11"
 features = ["json", "multipart", "gzip"]
+
+[dev-dependencies]
+env_logger = "0.9"
+tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
+
+[features]
+mock_transport_framework = ["reqwest-pipeline/mock_transport_framework"]

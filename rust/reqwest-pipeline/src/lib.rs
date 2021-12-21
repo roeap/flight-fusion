@@ -6,6 +6,7 @@ extern crate url;
 
 #[macro_use]
 mod macros;
+pub mod bytes_stream;
 pub mod context;
 pub mod http_client;
 #[cfg(feature = "mock_transport_framework")]
@@ -20,6 +21,7 @@ pub mod response;
 pub mod seekable_stream;
 mod sleep;
 
+pub use bytes_stream::*;
 pub use context::*;
 pub use http_client::*;
 pub use options::*;
@@ -52,6 +54,34 @@ where
             i.append_to_url_query(url);
         }
     }
+}
+
+/// View a type as an HTTP header.
+///
+/// While not restricted by the type system, please add HTTP headers only. In particular, do not
+/// interact with the body of the request.
+pub trait AddAsHeader {
+    fn add_as_header(
+        &self,
+        request: &mut crate::Request,
+    ) -> std::result::Result<(), HTTPHeaderError>;
+}
+
+pub fn add_optional_header<T: AddAsHeader>(
+    item: &Option<T>,
+    request: &mut crate::Request,
+) -> std::result::Result<(), HTTPHeaderError> {
+    if let Some(item) = item {
+        item.add_as_header(request)?
+    }
+    Ok(())
+}
+
+pub fn add_mandatory_header<T: AddAsHeader>(
+    item: &T,
+    request: &mut crate::Request,
+) -> std::result::Result<(), HTTPHeaderError> {
+    item.add_as_header(request)
 }
 
 #[non_exhaustive]
@@ -88,8 +118,14 @@ pub enum ReqwestPipelineError {
     #[error("pipeline error: {0}")]
     PipelineError(#[from] PipelineError),
 
+    #[error("HTTP header error: {0}")]
+    HTTPHeaderError(#[from] HTTPHeaderError),
+
     #[error("policy error: {0}")]
     PolicyError(Box<dyn std::error::Error + Send + Sync>),
+
+    #[error("json error: {0}")]
+    JsonError(#[from] serde_json::Error),
 }
 
 /// An error originating from a streaming response.
@@ -107,4 +143,13 @@ pub enum StreamError {
 pub enum PipelineError {
     #[error("invalid pipeline: last policy is not a TransportPolicy: {0:?}")]
     InvalidTailPolicy(String),
+}
+
+/// An error caused by an HTTP header.
+#[derive(Debug, thiserror::Error)]
+pub enum HTTPHeaderError {
+    #[error("{0}")]
+    InvalidHeaderValue(#[from] http::header::InvalidHeaderValue),
+    #[error("{0}")]
+    InvalidHeaderName(#[from] http::header::InvalidHeaderName),
 }
