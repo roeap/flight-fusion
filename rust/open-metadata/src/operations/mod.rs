@@ -1,3 +1,3 @@
-mod list_collections;
+mod collections;
 
-pub use list_collections::*;
+pub use collections::*;
