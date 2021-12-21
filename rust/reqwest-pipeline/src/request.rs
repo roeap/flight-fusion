@@ -60,3 +60,15 @@ impl Request {
         self.body = body;
     }
 }
+
+impl From<http::Request<bytes::Bytes>> for Request {
+    fn from(request: http::Request<bytes::Bytes>) -> Self {
+        let (parts, body) = request.into_parts();
+        Self {
+            uri: parts.uri,
+            method: parts.method,
+            headers: parts.headers,
+            body: Body::Bytes(body),
+        }
+    }
+}

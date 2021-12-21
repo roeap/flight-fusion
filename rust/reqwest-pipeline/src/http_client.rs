@@ -23,42 +23,10 @@ pub trait HttpClient: Send + Sync + std::fmt::Debug {
     /// Implementors are expected to clone the necessary parts of the request and pass them to the
     /// underlying transport.
     async fn execute_request(&self, request: &Request) -> Result<Response, ReqwestPipelineError>;
-
-    async fn execute_request_raw(
-        &self,
-        request: http::Request<Bytes>,
-    ) -> Result<http::Response<Bytes>, ReqwestPipelineError>;
 }
 
 #[async_trait]
 impl HttpClient for reqwest::Client {
-    async fn execute_request_raw(
-        &self,
-        request: http::Request<Bytes>,
-    ) -> Result<http::Response<Bytes>, ReqwestPipelineError> {
-        let mut reqwest_request = self.request(
-            request.method().clone(),
-            url::Url::parse(&request.uri().to_string()).unwrap(),
-        );
-        for (header, value) in request.headers() {
-            reqwest_request = reqwest_request.header(header, value);
-        }
-
-        let reqwest_request = reqwest_request.body(request.into_body()).build()?;
-
-        let reqwest_response = self.execute(reqwest_request).await?;
-
-        let mut response = http::Response::builder().status(reqwest_response.status());
-
-        for (key, value) in reqwest_response.headers() {
-            response = response.header(key, value);
-        }
-
-        let response = response.body(reqwest_response.bytes().await?)?;
-
-        Ok(response)
-    }
-
     async fn execute_request(&self, request: &Request) -> Result<Response, ReqwestPipelineError> {
         let mut reqwest_request = self.request(
             request.method(),

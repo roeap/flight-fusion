@@ -1,7 +1,6 @@
-#[macro_use]
-extern crate serde_derive;
 extern crate reqwest;
 extern crate serde;
+extern crate serde_derive;
 extern crate serde_json;
 extern crate url;
 
@@ -12,8 +11,10 @@ pub mod http_client;
 #[cfg(feature = "mock_transport_framework")]
 pub mod mock;
 pub mod options;
+mod pageable;
 pub mod pipeline;
 pub mod policies;
+pub mod prelude;
 pub mod request;
 pub mod response;
 pub mod seekable_stream;
@@ -22,6 +23,7 @@ mod sleep;
 pub use context::*;
 pub use http_client::*;
 pub use options::*;
+pub use pageable::*;
 pub use pipeline::*;
 pub use policies::*;
 pub use request::*;
@@ -30,7 +32,27 @@ pub use seekable_stream::*;
 
 use http::StatusCode;
 
-type Result<T> = std::result::Result<T, ReqwestPipelineError>;
+pub type Result<T> = std::result::Result<T, ReqwestPipelineError>;
+
+/// An empty HTTP body.
+#[allow(clippy::declare_interior_mutable_const)]
+pub const EMPTY_BODY: bytes::Bytes = bytes::Bytes::from_static(&[]);
+
+/// Add a new query pair into the target URL's query string.
+pub trait AppendToUrlQuery {
+    fn append_to_url_query(&self, url: &mut url::Url);
+}
+
+impl<T> AppendToUrlQuery for Option<T>
+where
+    T: AppendToUrlQuery,
+{
+    fn append_to_url_query(&self, url: &mut url::Url) {
+        if let Some(i) = self {
+            i.append_to_url_query(url);
+        }
+    }
+}
 
 #[non_exhaustive]
 #[derive(thiserror::Error, Debug)]

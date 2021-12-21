@@ -24,7 +24,7 @@ pub struct ClientOptions {
     /// Retry options.
     pub(crate) retry: RetryOptions,
     /// Telemetry options.
-    pub(crate) telemetry: TelemetryOptions,
+    // pub(crate) telemetry: TelemetryOptions,
     /// Transport options.
     pub(crate) transport: TransportOptions,
 }
@@ -59,7 +59,7 @@ impl ClientOptions {
         per_call_policies: Vec<Arc<dyn Policy>> => per_call_policies,
         per_retry_policies: Vec<Arc<dyn Policy>> => per_retry_policies,
         retry: RetryOptions => retry,
-        telemetry: TelemetryOptions => telemetry,
+        // telemetry: TelemetryOptions => telemetry,
         transport: TransportOptions => transport,
     }
 }
@@ -147,19 +147,6 @@ impl RetryOptions {
             )),
             RetryMode::None => Arc::new(NoRetryPolicy::default()),
         }
-    }
-}
-
-/// Telemetry options.
-#[derive(Clone, Debug, Default)]
-pub struct TelemetryOptions {
-    /// Optional application ID to telemeter.
-    pub(crate) application_id: Option<String>,
-}
-
-impl TelemetryOptions {
-    setters! {
-        application_id: String => Some(application_id),
     }
 }
 

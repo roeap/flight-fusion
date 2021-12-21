@@ -6,6 +6,7 @@ words: []
 ignoreWords:
   - Introspector
   - Kusto
+  - Pageable
   - chrono
   - datafusion
   - datasource

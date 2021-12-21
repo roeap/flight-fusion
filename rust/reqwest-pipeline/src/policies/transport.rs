@@ -1,5 +1,5 @@
 use crate::policies::{Policy, PolicyResult};
-use crate::{Context, TransportOptions, Request, Response};
+use crate::{Context, Request, Response, TransportOptions};
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]

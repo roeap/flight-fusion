@@ -1,6 +1,6 @@
 use crate::policies::TransportPolicy;
 use crate::policies::{CustomHeadersPolicy, Policy};
-use crate::{ClientOptions, Context, ReqwestPipelineError, HttpClient, Request, Response};
+use crate::{ClientOptions, Context, HttpClient, Request, ReqwestPipelineError, Response};
 use std::sync::Arc;
 
 /// Execution pipeline.
@@ -72,16 +72,13 @@ impl Pipeline {
         pipeline.extend_from_slice(&options.per_retry_policies);
         let http_client = options.transport.http_client.clone();
 
-
         #[allow(unused_mut)]
-        let mut policy: Arc<dyn Policy> =
-            Arc::new(TransportPolicy::new(options.transport.clone()));
+        let mut policy: Arc<dyn Policy> = Arc::new(TransportPolicy::new(options.transport.clone()));
 
         #[cfg(feature = "mock_transport_framework")]
         crate::mock::set_mock_transport_policy(&mut policy, options.transport);
 
         pipeline.push(policy);
-
 
         Self {
             http_client,
@@ -103,7 +100,11 @@ impl Pipeline {
         &self.pipeline
     }
 
-    pub async fn send(&self, ctx: &mut Context, request: &mut Request) -> Result<Response, ReqwestPipelineError> {
+    pub async fn send(
+        &self,
+        ctx: &mut Context,
+        request: &mut Request,
+    ) -> Result<Response, ReqwestPipelineError> {
         self.pipeline[0]
             .send(ctx, request, &self.pipeline[1..])
             .await
