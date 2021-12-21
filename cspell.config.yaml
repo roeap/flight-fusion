@@ -16,6 +16,7 @@ ignoreWords:
   - quicktype
   - reqwest
   - schemafy
+  - seekable
   - structopt
   - tempfile
   - unpartitioned
