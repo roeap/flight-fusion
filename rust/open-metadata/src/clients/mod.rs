@@ -2,8 +2,9 @@ use crate::models::{CollectionList, CatalogVersion};
 use http::{method::Method, request::Builder as RequestBuilder};
 use reqwest_pipeline::{ClientOptions, Context, Pipeline, Request};
 use url::Url;
+use databases::DatabasesCollectionClient;
 
-// pub mod databases;
+pub mod databases;
 
 pub const ROUTE_DATABASES: &str = "api/v1/databases";
 
@@ -65,7 +66,7 @@ impl OpenMetadataClient {
         T: Into<String>,
     {
         let service_url = Url::parse(&url.into()).expect("A valid service url must ne provided");
-        let databases_url = service_url.join(ROUTE_DATABASES).unwrap();
+        let databases_url = service_url.join( "api/v1/databases").unwrap();
 
         let pipeline = new_pipeline_from_options(options);
 
@@ -91,6 +92,10 @@ impl OpenMetadataClient {
 
     pub fn databases_url(&self) -> &Url {
         &self.databases_url
+    }
+
+    pub fn into_databases_collection_client(&self) -> DatabasesCollectionClient {
+        DatabasesCollectionClient::new(self.clone())
     }
 
     pub async fn get_version(&self) -> crate::Result<CatalogVersion> {
