@@ -10,6 +10,7 @@ pub mod clients;
 pub mod models;
 mod operations;
 mod request_options;
+pub mod generated;
 
 use http::StatusCode;
 

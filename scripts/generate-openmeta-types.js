@@ -15,6 +15,16 @@ async function* walk(dir) {
   }
 }
 
+function updateLine(line) {
+  if (line.includes("#[derive(Serialize, Deserialize)]")) {
+    return "#[derive(Debug, Serialize, Deserialize)]"
+  }
+  if (line.includes("updated_at: Option<String>")) {
+    return line.replace("Option<String>", "Option<i64>")
+  }
+  return line
+}
+
 async function main() {
   const schemaInput = new JSONSchemaInput(new JSONSchemaStore());
   const targetLanguage = "rust";
@@ -29,11 +39,13 @@ async function main() {
   const inputData = new InputData();
   inputData.addInput(schemaInput);
 
-  const { lines: pythonPerson } = await quicktype({
+  const { lines: generatedLines } = await quicktype({
     inputData,
     lang: targetLanguage,
-    rendererOptions: { density: "dense" },
+    rendererOptions: { density: "normal", deriveDebug: true, visibility: "public" },
   });
+
+  const newLines = generatedLines.map(updateLine);
 
   const targetFilepath = path.join(
     __dirname,
@@ -43,7 +55,7 @@ async function main() {
     "src",
     "generated.rs"
   );
-  await fs.writeFile(targetFilepath, pythonPerson.join("\n"));
+  await fs.writeFile(targetFilepath, newLines.join("\n"));
 }
 
 main();
