@@ -1,7 +1,7 @@
 {
   "$id": "https://open-metadata.org/schema/api/operations/workflows/ingestion.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Create Ingestion Entity Request",
+  "title": "CreateIngestionRequest",
   "description": "Ingestion Config is used to setup a Airflow Ingestion pipeline.",
   "type": "object",
   "properties" : {

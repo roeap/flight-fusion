@@ -93,6 +93,7 @@
     "tableConstraint": {
       "type": "object",
       "javaType": "org.openmetadata.catalog.type.TableConstraint",
+      "title": "TableConstraint",
       "description": "This enum defines the type for table constraint.",
       "properties": {
         "constraintType": {
@@ -486,6 +487,7 @@
       "description": "Table constraints.",
       "type": "array",
       "items": {
+        "title": "TableConstraint",
         "$ref": "#/definitions/tableConstraint"
       },
       "default": null

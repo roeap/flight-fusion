@@ -1,6 +1,6 @@
 use crate::{
     clients::{OpenMetadataClient, PagedReturn},
-    models::Database,
+    generated::Database,
     operations::ListDatabases,
 };
 use reqwest_pipeline::{collect_pinned_stream, Context, Response, Result as RPResult};

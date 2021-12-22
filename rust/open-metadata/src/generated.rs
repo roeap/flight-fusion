@@ -1911,11 +1911,9 @@ pub struct TagClass {
     pub version: Option<f64>,
 }
 
-/// This schema defines the Thread entity. A Thread is a collection of posts made by the
-/// users. The first post that starts a thread is **about** a data asset **from** a user.
-/// Other users can respond to this post by creating new posts in the thread. Note that bot
-/// users can also interact with a thread. A post can contains links that mention Users or
-/// other Data Assets.
+/// A Thread is a collection of posts made by the users. The first post that starts a thread
+/// is **about** a data asset **from** a user. Other users can respond to this post by
+/// creating new posts in the thread.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Thread {
     /// Data asset about which this thread is created for with format
@@ -2977,7 +2975,7 @@ pub struct IngestionStatus {
 
 /// Create Chart entity request
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateChartEntityRequest {
+pub struct CreateChartRequest {
     #[serde(rename = "chartType")]
     pub chart_type: Option<ChartType>,
 
@@ -3017,7 +3015,7 @@ pub struct CreateChartEntityRequest {
 
 /// Create Dashboard entity request
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateDashboardEntityRequest {
+pub struct CreateDashboardRequest {
     /// All the charts included in this Dashboard.
     #[serde(rename = "charts")]
     pub charts: Option<Vec<ServiceElement>>,
@@ -3054,7 +3052,7 @@ pub struct CreateDashboardEntityRequest {
 
 /// Create Database entity request
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateDatabaseEntityRequest {
+pub struct CreateDatabaseRequest {
     /// Description of the database instance. What it has and how to use it.
     #[serde(rename = "description")]
     pub description: Option<String>,
@@ -3074,7 +3072,7 @@ pub struct CreateDatabaseEntityRequest {
 
 /// Create Ml Model entity request
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateMlModelEntityRequest {
+pub struct CreateMlModelRequest {
     /// Algorithm used to train the ML Model
     #[serde(rename = "algorithm")]
     pub algorithm: String,
@@ -3124,10 +3122,10 @@ pub struct CreateMlModelEntityRequest {
 
 /// Schema corresponding to a table that belongs to a database
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateTableEntityRequest {
+pub struct CreateTableRequest {
     /// Name of the tables in the database
     #[serde(rename = "columns")]
-    pub columns: Vec<CreateTableEntityRequestColumn>,
+    pub columns: Vec<CreateTableRequestColumn>,
 
     /// Database corresponding to this table
     #[serde(rename = "database")]
@@ -3147,7 +3145,7 @@ pub struct CreateTableEntityRequest {
     pub owner: Option<EntityReference>,
 
     #[serde(rename = "tableConstraints")]
-    pub table_constraints: Option<Vec<CreateTableEntityRequestTableConstraint>>,
+    pub table_constraints: Option<Vec<CreateTableRequestTableConstraint>>,
 
     #[serde(rename = "tableType")]
     pub table_type: Option<TableType>,
@@ -3163,7 +3161,7 @@ pub struct CreateTableEntityRequest {
 
 /// This schema defines the type for a column in a table.
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateTableEntityRequestColumn {
+pub struct CreateTableRequestColumn {
     /// Data type used array in dataType. For example, `array<int>` has dataType as `array` and
     /// arrayDataType as `int`.
     #[serde(rename = "arrayDataType")]
@@ -3171,7 +3169,7 @@ pub struct CreateTableEntityRequestColumn {
 
     /// Child columns if dataType or arrayDataType is `map`, `struct`, or `union` else `null`.
     #[serde(rename = "children")]
-    pub children: Option<Vec<CreateTableEntityRequestColumn>>,
+    pub children: Option<Vec<CreateTableRequestColumn>>,
 
     /// Column level constraint.
     #[serde(rename = "constraint")]
@@ -3216,7 +3214,7 @@ pub struct CreateTableEntityRequestColumn {
 
 /// This enum defines the type for table constraint.
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateTableEntityRequestTableConstraint {
+pub struct CreateTableRequestTableConstraint {
     /// List of column names corresponding to the constraint.
     #[serde(rename = "columns")]
     pub columns: Option<Vec<String>>,
@@ -3227,7 +3225,7 @@ pub struct CreateTableEntityRequestTableConstraint {
 
 /// Create Pipeline entity request
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreatePipelineEntityRequest {
+pub struct CreatePipelineRequest {
     /// Concurrency of the Pipeline
     #[serde(rename = "concurrency")]
     pub concurrency: Option<i64>,
@@ -3276,7 +3274,7 @@ pub struct CreatePipelineEntityRequest {
 
 /// Create a topic entity request
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateTopicEntityRequest {
+pub struct CreateTopicRequest {
     /// Topic clean up policy. For Kafka - `cleanup.policy` configuration.
     #[serde(rename = "cleanupPolicies")]
     pub cleanup_policies: Option<Vec<CleanupPolicy>>,
@@ -3339,7 +3337,7 @@ pub struct CreateTopicEntityRequest {
 
 /// Create Location entity request
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateLocationEntityRequest {
+pub struct CreateLocationRequest {
     /// Description of the location instance.
     #[serde(rename = "description")]
     pub description: Option<String>,
@@ -3366,7 +3364,7 @@ pub struct CreateLocationEntityRequest {
 
 /// Create Messaging service entity request
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateMessagingServiceEntityRequest {
+pub struct CreateMessagingServiceRequest {
     /// Multiple bootstrap addresses for Kafka. Single proxy address for Pulsar.
     #[serde(rename = "brokers")]
     pub brokers: Vec<String>,
@@ -3393,7 +3391,7 @@ pub struct CreateMessagingServiceEntityRequest {
 
 /// Create Storage service entity request
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateStorageServiceEntityRequest {
+pub struct CreateStorageServiceRequest {
     /// Description of Storage entity.
     #[serde(rename = "description")]
     pub description: Option<String>,
@@ -3408,7 +3406,7 @@ pub struct CreateStorageServiceEntityRequest {
 
 /// Create Dashboard service entity request
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateDashboardServiceEntityRequest {
+pub struct CreateDashboardServiceRequest {
     /// Dashboard Service URL
     #[serde(rename = "dashboardUrl")]
     pub dashboard_url: String,
@@ -3439,7 +3437,7 @@ pub struct CreateDashboardServiceEntityRequest {
 
 /// Create Pipeline service entity request
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreatePipelineServiceEntityRequest {
+pub struct CreatePipelineServiceRequest {
     /// Description of pipeline service entity.
     #[serde(rename = "description")]
     pub description: Option<String>,
@@ -3462,7 +3460,7 @@ pub struct CreatePipelineServiceEntityRequest {
 
 /// Create Database service entity request
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateDatabaseServiceEntityRequest {
+pub struct CreateDatabaseServiceRequest {
     /// Description of Database entity.
     #[serde(rename = "description")]
     pub description: Option<String>,
@@ -3484,7 +3482,7 @@ pub struct CreateDatabaseServiceEntityRequest {
 
 /// Team entity
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateTeamEntityRequest {
+pub struct CreateTeamRequest {
     /// Optional description of the team
     #[serde(rename = "description")]
     pub description: Option<String>,
@@ -3516,7 +3514,7 @@ pub struct Profile {
 
 /// Request to create User entity
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateUserEntityRequest {
+pub struct CreateUserRequest {
     /// Used for user biography.
     #[serde(rename = "description")]
     pub description: Option<String>,
@@ -3553,7 +3551,7 @@ pub struct CreateUserEntityRequest {
 
 /// Create tag API request
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateTagEntityRequest {
+pub struct CreateTagRequest {
     /// Fully qualified names of tags associated with this tag
     #[serde(rename = "associatedTags")]
     pub associated_tags: Option<Vec<String>>,
@@ -3568,7 +3566,7 @@ pub struct CreateTagEntityRequest {
 
 /// Create tag category request
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateTagCategoryEntityRequest {
+pub struct CreateTagCategoryRequest {
     #[serde(rename = "categoryType")]
     pub category_type: TagCategoryType,
 
@@ -3582,7 +3580,7 @@ pub struct CreateTagCategoryEntityRequest {
 
 /// Ingestion Config is used to setup a Airflow Ingestion pipeline.
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateIngestionEntityRequest {
+pub struct CreateIngestionRequest {
     /// Concurrency of the Pipeline.
     #[serde(rename = "concurrency")]
     pub concurrency: Option<i64>,
@@ -3660,7 +3658,7 @@ pub struct CreateIngestionEntityRequest {
 
 /// Catalog application software version
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CatalogApplicationSoftwareVersion {
+pub struct CatalogVersion {
     /// Software revision of the catalog
     #[serde(rename = "revision")]
     pub revision: Option<String>,
@@ -3676,19 +3674,19 @@ pub struct CatalogApplicationSoftwareVersion {
 
 /// Set ownership for a given entity
 #[derive(Debug, Serialize, Deserialize)]
-pub struct SetOwnershipForAGivenEntity {
+pub struct SetOwnershipRequest {
     /// Id of the owner of the entity
     #[serde(rename = "id")]
     pub id: Option<String>,
 
     /// Entity type of the owner typically either 'user' or 'team'
     #[serde(rename = "type")]
-    pub set_ownership_for_a_given_entity_type: Option<String>,
+    pub set_ownership_request_type: Option<String>,
 }
 
 /// Create thread request
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreateThreadEntityRequest {
+pub struct CreateThreadRequest {
     /// Data asset about which this thread is created for with format
     /// <#E/{entities}/{entityName}/{field}/{fieldValue}
     #[serde(rename = "about")]
@@ -3705,7 +3703,7 @@ pub struct CreateThreadEntityRequest {
 
 /// Add lineage details between two entities
 #[derive(Debug, Serialize, Deserialize)]
-pub struct AddLineage {
+pub struct AddLineageRequest {
     /// User provided description of the lineage details.
     #[serde(rename = "description")]
     pub description: Option<String>,
@@ -3734,7 +3732,7 @@ pub struct EntitiesEdge {
 
 /// Create Policy Entity Request
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreatePolicyEntityRequest {
+pub struct CreatePolicyRequest {
     /// A short description of the Policy, comprehensible to regular users.
     #[serde(rename = "description")]
     pub description: Option<String>,
@@ -3759,7 +3757,7 @@ pub struct CreatePolicyEntityRequest {
     pub policy_url: Option<String>,
 
     #[serde(rename = "rules")]
-    pub rules: Option<Vec<CreatePolicyEntityRequestRule>>,
+    pub rules: Option<Vec<CreatePolicyRequestRule>>,
 }
 
 /// A set of rules associated with the Policy.
@@ -3768,7 +3766,7 @@ pub struct CreatePolicyEntityRequest {
 ///
 /// Describes an entity Lifecycle Rule used within a Policy.
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CreatePolicyEntityRequestRule {
+pub struct CreatePolicyRequestRule {
     /// A set of access control enforcements to take on the entities.
     ///
     /// A set of actions to take on the entities.

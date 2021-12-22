@@ -1,6 +1,6 @@
 use crate::{
     clients::{OpenMetadataClient, PagedReturn},
-    models::Database,
+    generated::Database,
     request_options::{QueryFields, QueryAfter, QueryBefore, QueryLimit, QueryService},
 };
 use reqwest_pipeline::{setters, AppendToUrlQuery, Context, Pageable};
