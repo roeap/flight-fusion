@@ -19,7 +19,7 @@ async function main() {
   const schemaInput = new JSONSchemaInput(new JSONSchemaStore());
   const targetLanguage = "rust";
 
-  const schemaRoot = path.join(__dirname, "schema", "schema");
+  const schemaRoot = path.join(__dirname, "..", "rust", "open-metadata", "schema");
 
   for await (const p of walk(schemaRoot)) {
     const schema = await fs.readFile(p, "utf-8");
@@ -37,10 +37,10 @@ async function main() {
 
   const targetFilepath = path.join(
     __dirname,
+    "..",
     "rust",
     "open-metadata",
     "src",
-    "schema",
     "generated.rs"
   );
   await fs.writeFile(targetFilepath, pythonPerson.join("\n"));

@@ -78,6 +78,10 @@ pub struct Pipeline {
 ///
 /// Description of the change.
 ///
+/// For `eventType` `entityUpdated` this field captures details about what fields were
+/// added/updated/deleted. For `eventType` `entityCreated` or `entityDeleted` this field is
+/// null.
+///
 /// Change that led to this version of the entity.
 #[derive(Serialize, Deserialize)]
 pub struct PipelineChangeDescription {
