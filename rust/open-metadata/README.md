@@ -6,3 +6,5 @@ for the OpenMetadata service.
 client implementation is heavily inspired by the pipelines architecture from azure sdk for rust.
 
 ## Adjustments to generated code
+
+- change `updatedAt` to `Option<i64>`

@@ -28,7 +28,7 @@ pub struct Database {
     pub version: Option<f64>,
     /// Date and time in ISO 8601 format. Example - '2018-11-13T20:20:39+00:00'.
     #[serde(rename = "updatedAt", skip_serializing_if = "Option::is_none")]
-    pub updated_at: Option<String>,
+    pub updated_at: Option<i64>,
     /// User who made the update.
     #[serde(rename = "updatedBy", skip_serializing_if = "Option::is_none")]
     pub updated_by: Option<String>,
