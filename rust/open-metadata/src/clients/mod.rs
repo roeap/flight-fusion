@@ -1,12 +1,35 @@
-use crate::models::{CollectionList, CatalogVersion};
-use http::{method::Method, request::Builder as RequestBuilder};
-use reqwest_pipeline::{ClientOptions, Context, Pipeline, Request};
-use url::Url;
+use crate::models::{CatalogVersion, CollectionList};
 use databases::DatabasesCollectionClient;
+use http::{method::Method, request::Builder as RequestBuilder};
+use reqwest_pipeline::{ClientOptions, Context, Continuable, Pipeline, Request};
+use url::Url;
 
 pub mod databases;
 
 pub const ROUTE_DATABASES: &str = "api/v1/databases";
+
+#[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
+pub struct PagedReturn<T> {
+    data: Vec<T>,
+    paging: Option<Box<crate::models::Paging>>,
+}
+
+impl<T> Continuable for PagedReturn<T> {
+    fn continuation(&self) -> Option<String> {
+        // TODO actually get continuation token
+        None
+    }
+}
+
+impl<T> IntoIterator for PagedReturn<T> {
+    type Item = T;
+
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.into_iter()
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct OpenMetadataClient {
@@ -66,7 +89,7 @@ impl OpenMetadataClient {
         T: Into<String>,
     {
         let service_url = Url::parse(&url.into()).expect("A valid service url must ne provided");
-        let databases_url = service_url.join( "api/v1/databases").unwrap();
+        let databases_url = service_url.join("api/v1/databases").unwrap();
 
         let pipeline = new_pipeline_from_options(options);
 
@@ -102,16 +125,22 @@ impl OpenMetadataClient {
         let url = self.service_url.join("api/v1/version").unwrap();
         let mut request = self.prepare_request(url.as_str(), http::Method::GET);
         // options.decorate_request(&mut request)?;
-        let response = self.pipeline().send(&mut Context::new(), &mut request).await?;
+        let response = self
+            .pipeline()
+            .send(&mut Context::new(), &mut request)
+            .await?;
         Ok(CatalogVersion::try_from(response).await?)
     }
 
     /// Get the database
-    pub async fn list_collections(&self, ctx: Context) -> crate::Result<CollectionList> {
+    pub async fn list_collections(&self) -> crate::Result<CollectionList> {
         let url = self.service_url.join("api/v1").unwrap();
         let mut request = self.prepare_request(url.as_str(), http::Method::GET);
         // options.decorate_request(&mut request)?;
-        let response = self.pipeline().send(&mut ctx.clone(), &mut request).await?;
+        let response = self
+            .pipeline()
+            .send(&mut Context::new(), &mut request)
+            .await?;
         Ok(CollectionList::try_from(response).await?)
     }
 
@@ -138,8 +167,12 @@ mod tests {
         let client =
             OpenMetadataClient::new("http://localhost:8585", OpenMetadataOptions::default());
 
-        let collections = client.list_collections(Context::default()).await.unwrap();
+        let collections = client.list_collections().await.unwrap();
 
-        println!("{:?}", collections)
+        println!("{:?}", collections);
+
+        let version = client.get_version().await.unwrap();
+
+        println!("{:?}", version)
     }
 }
