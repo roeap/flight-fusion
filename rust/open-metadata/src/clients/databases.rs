@@ -3,7 +3,7 @@ use crate::{
     models::Database,
     operations::ListDatabases,
 };
-use reqwest_pipeline::{collect_pinned_stream, Response, Result as RPResult, Context};
+use reqwest_pipeline::{collect_pinned_stream, Context, Response, Result as RPResult};
 
 impl PagedReturn<Database> {
     pub(crate) async fn try_from(response: Response) -> RPResult<Self> {
@@ -60,7 +60,8 @@ impl DatabaseClient {
         // TODO add optional fields query parameter
         let url = self
             .open_meta_client
-            .databases_url()
+            .api_routes()
+            .databases()
             .join(&self.entity_id)?;
         let mut request = self
             .open_meta_client

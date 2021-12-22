@@ -44,7 +44,7 @@ impl ListDatabases {
             let ctx = self.context.clone().unwrap_or_default();
 
             async move {
-                let mut uri = this.open_meta_client.databases_url().clone();
+                let mut uri = this.open_meta_client.api_routes().databases().clone();
                 this.fields.append_to_url_query(&mut uri);
                 this.limit.append_to_url_query(&mut uri);
                 this.before.append_to_url_query(&mut uri);

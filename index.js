@@ -19,38 +19,7 @@ async function main() {
   const schemaInput = new JSONSchemaInput(new JSONSchemaStore());
   const targetLanguage = "rust";
 
-  const schemaRoot = path.join(
-    __dirname,
-    "rust",
-    "open-metadata",
-    "json",
-    "schema"
-  );
-
-  const typesPath = path.join(schemaRoot, "type");
-  // const typeSchemaFiles = await fs.readdir(typesPath);
-  //
-  // typeSchemaFiles.forEach(async (s) => {
-  //   const filepath = path.join(typesPath, s);
-  //   const schema = await fs.readFile(filepath, "utf-8");
-  //   schemaInput.addSourceSync({ name: s, schema: schema });
-  // });
-  //
-  // const filepath = path.join(
-  //   __dirname,
-  //   "rust",
-  //   "open-metadata",
-  //   "json",
-  //   "schema",
-  //   "entity",
-  //   "tags",
-  //   "tagCategory.json"
-  // );
-  // const schema = await fs.readFile(filepath, "utf-8");
-  // schemaInput.addSourceSync({ name: "tagCategory.json", schema: schema });
-
-  // const files = await fs.readdir(path.join(schemaRoot, "entity"));
-  // console.log(files.filter((s) => s.includes(".json")));
+  const schemaRoot = path.join(__dirname, "schema", "schema");
 
   for await (const p of walk(schemaRoot)) {
     const schema = await fs.readFile(p, "utf-8");

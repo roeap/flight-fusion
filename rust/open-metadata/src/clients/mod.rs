@@ -1,4 +1,4 @@
-use crate::models::{CatalogVersion, CollectionList};
+use crate::{models::{CatalogVersion, CollectionList}};
 use databases::DatabasesCollectionClient;
 use http::{method::Method, request::Builder as RequestBuilder};
 use reqwest_pipeline::{ClientOptions, Context, Continuable, Pipeline, Request};
@@ -33,10 +33,9 @@ impl<T> IntoIterator for PagedReturn<T> {
 
 #[derive(Debug, Clone)]
 pub struct OpenMetadataClient {
-    pub service_url: Url,
     pub user_agent: Option<String>,
     pipeline: Pipeline,
-    databases_url: Url,
+    routes: ApiRoutes,
 }
 
 /// Options for specifying how a OpenMetadata client will behave
@@ -89,15 +88,13 @@ impl OpenMetadataClient {
         T: Into<String>,
     {
         let service_url = Url::parse(&url.into()).expect("A valid service url must ne provided");
-        let databases_url = service_url.join("api/v1/databases").unwrap();
-
+        let routes = ApiRoutes::new(service_url);
         let pipeline = new_pipeline_from_options(options);
 
         Self {
-            service_url,
             user_agent: None,
             pipeline,
-            databases_url,
+            routes,
         }
     }
 
@@ -113,16 +110,16 @@ impl OpenMetadataClient {
         )
     }
 
-    pub fn databases_url(&self) -> &Url {
-        &self.databases_url
-    }
-
     pub fn into_databases_collection_client(&self) -> DatabasesCollectionClient {
         DatabasesCollectionClient::new(self.clone())
     }
 
+    pub fn api_routes(&self) -> &ApiRoutes {
+        &self.routes
+    }
+
     pub async fn get_version(&self) -> crate::Result<CatalogVersion> {
-        let url = self.service_url.join("api/v1/version").unwrap();
+        let url = self.api_routes().catalog().join("version").unwrap();
         let mut request = self.prepare_request(url.as_str(), http::Method::GET);
         // options.decorate_request(&mut request)?;
         let response = self
@@ -134,7 +131,7 @@ impl OpenMetadataClient {
 
     /// Get the database
     pub async fn list_collections(&self) -> crate::Result<CollectionList> {
-        let url = self.service_url.join("api/v1").unwrap();
+        let url = self.api_routes().catalog();
         let mut request = self.prepare_request(url.as_str(), http::Method::GET);
         // options.decorate_request(&mut request)?;
         let response = self
@@ -155,6 +152,82 @@ impl OpenMetadataClient {
 
     pub(crate) fn pipeline(&self) -> &Pipeline {
         &self.pipeline
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ApiRoutes {
+    catalog_url: Url,
+    bots_url: Url,
+    charts_url: Url,
+    dashboards_url: Url,
+    databases_url: Url,
+    tables_url: Url,
+    events_url: Url,
+    feeds_url: Url,
+    lineage_url: Url,
+}
+
+impl ApiRoutes {
+    /// Create new options
+    pub fn new(service_url: Url) -> Self {
+        let catalog_url = service_url.join("api/v1").unwrap();
+        let bots_url = service_url.join("api/v1/bots").unwrap();
+        let charts_url = service_url.join("api/v1/charts").unwrap();
+        let dashboards_url = service_url.join("api/v1/dashboards").unwrap();
+        let databases_url = service_url.join("api/v1/databases").unwrap();
+        let tables_url = service_url.join("api/v1/tables").unwrap();
+        let events_url = service_url.join("api/v1/events").unwrap();
+        let feeds_url = service_url.join("api/v1/feed").unwrap();
+        let lineage_url = service_url.join("api/v1/lineage").unwrap();
+
+        Self {
+            catalog_url,
+            bots_url,
+            charts_url,
+            dashboards_url,
+            databases_url,
+            tables_url,
+            events_url,
+            feeds_url,
+            lineage_url,
+        }
+    }
+
+    pub fn catalog(&self) -> &Url {
+        &self.catalog_url
+    }
+
+    pub fn bots(&self) -> &Url {
+        &self.bots_url
+    }
+
+    pub fn charts(&self) -> &Url {
+        &self.charts_url
+    }
+
+    pub fn dashboards(&self) -> &Url {
+        &self.dashboards_url
+    }
+
+    pub fn databases(&self) -> &Url {
+        &self.databases_url
+    }
+
+    pub fn tables(&self) -> &Url {
+        &self.tables_url
+    }
+
+    pub fn events(&self) -> &Url {
+        &self.events_url
+    }
+
+    pub fn feeds(&self) -> &Url {
+        &self.feeds_url
+    }
+
+    pub fn lineage(&self) -> &Url {
+        &self.lineage_url
     }
 }
 
