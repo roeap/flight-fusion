@@ -1,0 +1,14 @@
+{
+  "name": "flight-fusion",
+  "version": "1.0.0",
+  "description": "Build utilities for flight fusion",
+  "main": "index.js",
+  "repository": "https://github.com/roeap/flight-fusion.git",
+  "author": "Robert Pack <robstar.pack@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "quicktype-core": "^6.0.70"
+  }
+}

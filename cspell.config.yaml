@@ -6,6 +6,7 @@ words: []
 ignoreWords:
   - Introspector
   - Kusto
+  - Pageable
   - chrono
   - datafusion
   - datasource
@@ -13,5 +14,11 @@ ignoreWords:
   - prost
   - proto
   - protobuf
+  - quicktype
+  - reqwest
+  - schemafy
+  - seekable
+  - structopt
+  - tempfile
   - unpartitioned
 import: []

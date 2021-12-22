@@ -26,3 +26,19 @@ proto:
 .PHONY: gen-test-data
 gen-test-data:
 	python scripts/generate_test_data.py
+
+.PHONY: generate-openmeta
+generate-openmeta:
+	docker run --rm -v $(PWD):/local openapitools/openapi-generator-cli generate \
+		-i /local/rust/open-metadata/swagger.json \
+		-g rust -o /local/out/open-metadata \
+		--package-name openmetadata \
+		--additional-properties=useSingleRequestParameter=true \
+		--skip-validate-spec
+
+# .PHONY: generate-openmeta
+# generate-openmeta:
+# 	quicktype -s schema --src rust/open-metadata/json/schema/type/entityReference.json \
+# 		-l rs \
+# 		-o rust/open-metadata/src/entity.rs \
+# 		--density dense

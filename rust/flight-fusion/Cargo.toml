@@ -58,6 +58,7 @@ pretty_assertions = "1.0.0"
 tempdir = "0"
 tempfile = "3"
 tonic-build = "0.5.2"
+rand = "*"
 
 [[example]]
 name = "onnx"
