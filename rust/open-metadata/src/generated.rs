@@ -20,7 +20,7 @@ pub type Storage = Option<serde_json::Value>;
 /// This schema defines the Pipeline entity. A pipeline enables the flow of data from source
 /// to destination through a series of processing steps. ETL is a type of pipeline where the
 /// series of steps Extract, Transform and Load the data.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Pipeline {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
@@ -113,7 +113,7 @@ pub struct Pipeline {
 /// null.
 ///
 /// Change that led to this version of the entity.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PipelineChangeDescription {
     /// Names of fields added during the version changes.
     #[serde(rename = "fieldsAdded")]
@@ -132,7 +132,7 @@ pub struct PipelineChangeDescription {
     pub previous_version: Option<f64>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PurpleFieldChange {
     /// Name of the entity field that changed.
     #[serde(rename = "name")]
@@ -219,7 +219,7 @@ pub struct PurpleFieldChange {
 /// To entity that is downstream of lineage edge.
 ///
 /// Owner of this Policy.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ServiceElement {
     /// Optional description of entity.
     #[serde(rename = "description")]
@@ -249,7 +249,7 @@ pub struct ServiceElement {
 }
 
 /// This schema defines the type for labeling an entity with a Tag.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TagElement {
     /// Unique name of the tag category.
     #[serde(rename = "description")]
@@ -276,7 +276,7 @@ pub struct TagElement {
     pub tag_fqn: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Task {
     /// Description of this Task.
     #[serde(rename = "description")]
@@ -323,7 +323,7 @@ pub struct Task {
 /// This schema defines the Table entity. A Table organizes data in rows and columns and is
 /// defined by a Schema. OpenMetadata does not have a separate abstraction for Schema. Both
 /// Table and Schema are captured in this entity.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Table {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
@@ -436,7 +436,7 @@ pub struct Table {
 }
 
 /// This schema defines the type for a column in a table.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TableColumn {
     /// Data type used array in dataType. For example, `array<int>` has dataType as `array` and
     /// arrayDataType as `int`.
@@ -490,7 +490,7 @@ pub struct TableColumn {
 
 /// This captures information about how the table is modeled. Currently only DBT model is
 /// supported.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DataModel {
     /// Columns from the schema defined during modeling. In case of DBT, the metadata here comes
     /// from `schema.yaml`.
@@ -530,7 +530,7 @@ pub struct DataModel {
 ///
 /// This schema defines the type to capture information about how columns in this table are
 /// joined with columns in the other tables.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TableJoins {
     #[serde(rename = "columnJoins")]
     pub column_joins: Option<Vec<ColumnJoins>>,
@@ -545,7 +545,7 @@ pub struct TableJoins {
 
 /// This schema defines the type to capture how frequently a column is joined with columns in
 /// the other tables.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ColumnJoins {
     #[serde(rename = "columnName")]
     pub column_name: Option<String>,
@@ -555,7 +555,7 @@ pub struct ColumnJoins {
     pub joined_with: Option<Vec<JoinedWith>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct JoinedWith {
     #[serde(rename = "fullyQualifiedName")]
     pub fully_qualified_name: Option<String>,
@@ -567,7 +567,7 @@ pub struct JoinedWith {
 /// Sample data for a table.
 ///
 /// This schema defines the type to capture rows of sample data for a table.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TableData {
     /// List of local column names (not fully qualified column names) of the table.
     #[serde(rename = "columns")]
@@ -579,7 +579,7 @@ pub struct TableData {
 }
 
 /// This enum defines the type for table constraint.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TableTableConstraint {
     /// List of column names corresponding to the constraint.
     #[serde(rename = "columns")]
@@ -590,7 +590,7 @@ pub struct TableTableConstraint {
 }
 
 /// This schema defines the type to capture the table's data profile.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TableProfile {
     /// No.of columns in the table.
     #[serde(rename = "columnCount")]
@@ -610,7 +610,7 @@ pub struct TableProfile {
 }
 
 /// This schema defines the type to capture the table's column profile.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ColumnProfile {
     /// Maximum value in a column.
     #[serde(rename = "max")]
@@ -654,7 +654,7 @@ pub struct ColumnProfile {
 }
 
 /// This schema defines the type to capture the table's sql queries.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SqlQuery {
     /// Checksum to avoid registering duplicate queries.
     #[serde(rename = "checksum")]
@@ -689,7 +689,7 @@ pub struct SqlQuery {
 /// Latest usage information for this ML Model.
 ///
 /// Latest usage information for this database.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UsageSummaryElement {
     /// Daily usage stats of a data asset on the start date.
     #[serde(rename = "dailyStats")]
@@ -715,7 +715,7 @@ pub struct UsageSummaryElement {
 /// Monthly (last 30 days) rolling usage stats of a data asset on the start date.
 ///
 /// Weekly (last 7 days) rolling usage stats of a data asset on the start date.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UsageStats {
     /// Usage count of a data asset on the start date.
     #[serde(rename = "count")]
@@ -728,7 +728,7 @@ pub struct UsageStats {
 
 /// This schema defines the Model entity. Models are algorithms trained on data to find
 /// patterns or make predictions.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MlModel {
     /// Algorithm used to train the ML Model.
     #[serde(rename = "algorithm")]
@@ -813,7 +813,7 @@ pub struct MlModel {
 }
 
 /// This schema defines the type for an ML Feature used in an ML Model.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MlFeature {
     /// Data type of the column (numerical vs. categorical).
     #[serde(rename = "dataType")]
@@ -843,7 +843,7 @@ pub struct MlFeature {
 }
 
 /// This schema defines the sources of a ML Feature.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FeatureSource {
     /// Data type of the source (int, date etc.).
     #[serde(rename = "dataType")]
@@ -865,7 +865,7 @@ pub struct FeatureSource {
 }
 
 /// This schema defines the type for an ML HyperParameter used in an ML Model.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MlHyperParameter {
     /// Description of the Hyper Parameter.
     #[serde(rename = "description")]
@@ -881,7 +881,7 @@ pub struct MlHyperParameter {
 }
 
 /// Location containing the ML Model. It can be a storage layer and/or a container repository.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MlStore {
     /// Container Repository with the ML Model image.
     #[serde(rename = "imageRepository")]
@@ -894,7 +894,7 @@ pub struct MlStore {
 
 /// This schema defines the Database entity. A database also referred to as Database Catalog
 /// is a collection of tables.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Database {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
@@ -964,7 +964,7 @@ pub struct Database {
 /// This schema defines the Dashboard entity. Dashboards are computed from data and visually
 /// present data, metrics, and KPIs. They are updated in real-time and allow interactive data
 /// exploration.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Dashboard {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
@@ -1042,7 +1042,7 @@ pub struct Dashboard {
 
 /// This schema defines the Chart entity. Charts are built using tables or sql queries by
 /// analyzing the data. Charts can be part of Dashboard.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Chart {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
@@ -1125,7 +1125,7 @@ pub struct Chart {
 /// as `Monthly Active Users`. Some of the metrics that measures used to determine
 /// performance against an objective are called KPIs or Key Performance Indicators, such as
 /// `User Retention`.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Metrics {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
@@ -1186,7 +1186,7 @@ pub struct Metrics {
 
 /// This schema defines the Topic entity. A topic is a feed into which message are published
 /// to by publishers and read from by consumers in a messaging service.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Topic {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
@@ -1291,7 +1291,7 @@ pub struct Topic {
 
 /// This schema defines the Report entity. Reports are static information computed from data
 /// periodically that includes data in text, table, and visual form.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Report {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
@@ -1348,7 +1348,7 @@ pub struct Report {
 }
 
 /// This schema defines the Messaging Service entity, such as Kafka and Pulsar.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MessagingService {
     /// Multiple bootstrap addresses for Kafka. Single proxy address for Pulsar.
     #[serde(rename = "brokers")]
@@ -1412,7 +1412,7 @@ pub struct MessagingService {
 /// Schedule for running metadata ingestion jobs
 ///
 /// Schedule for running pipeline ingestion jobs
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct IngestionScheduleClass {
     /// Repeat frequency in ISO 8601 duration format. Example - 'P23DT23H'.
     #[serde(rename = "repeatFrequency")]
@@ -1426,7 +1426,7 @@ pub struct IngestionScheduleClass {
 /// This schema defines the Database Service entity, such as MySQL, BigQuery, Redshift,
 /// Postgres, or Snowflake. Alternative terms such as Database Cluster, Database Server
 /// instance are also used for database service.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DatabaseService {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
@@ -1480,7 +1480,7 @@ pub struct DatabaseService {
 /// JDBC connection information.
 ///
 /// Type for capturing JDBC connector information.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct JdbcInfo {
     #[serde(rename = "connectionUrl")]
     pub connection_url: String,
@@ -1490,7 +1490,7 @@ pub struct JdbcInfo {
 }
 
 /// This schema defines the Dashboard Service entity, such as Looker and Superset.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DashboardService {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
@@ -1550,7 +1550,7 @@ pub struct DashboardService {
 }
 
 /// This schema defines the Pipeline Service entity, such as Airflow and Prefect.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PipelineService {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
@@ -1605,7 +1605,7 @@ pub struct PipelineService {
 /// This schema defines the User entity. A user can be part of 0 or more teams. A special
 /// type of user called Bot is used for automation. A user can be an owner of zero or more
 /// data assets. A user can also follow zero or more data assets.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct User {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
@@ -1685,14 +1685,14 @@ pub struct User {
 /// This schema defines the type for a profile of a user, team, or organization.
 ///
 /// Team profile information.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ProfileClass {
     #[serde(rename = "images")]
     pub images: Option<ImageList>,
 }
 
 /// Links to a list of images of varying resolutions/sizes.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ImageList {
     #[serde(rename = "image")]
     pub image: Option<String>,
@@ -1718,7 +1718,7 @@ pub struct ImageList {
 
 /// This schema defines the Team entity. A Team is a group of zero or more users. Teams can
 /// own zero or more data assets.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Team {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
@@ -1773,7 +1773,7 @@ pub struct Team {
 
 /// This schema defines Bot entity. A bot automates tasks, such as adding description,
 /// identifying the importance of data. It runs as a special user in the system.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Bot {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
@@ -1815,7 +1815,7 @@ pub struct Bot {
 /// This schema defines the Tag Category entity. A Tag Category contains tags called Primary
 /// Tags. Primary Tags can further have children Tags called Secondary Tags. Only two levels
 /// of tags are supported currently.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TagCategory {
     #[serde(rename = "categoryType")]
     pub category_type: TagCategoryType,
@@ -1860,7 +1860,7 @@ pub struct TagCategory {
     pub version: Option<f64>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TagClass {
     /// Fully qualified names of tags associated with this tag. Associated tags captures
     /// relationship of one tag to another automatically. As an example a tag 'User.PhoneNumber'
@@ -1914,7 +1914,7 @@ pub struct TagClass {
 /// A Thread is a collection of posts made by the users. The first post that starts a thread
 /// is **about** a data asset **from** a user. Other users can respond to this post by
 /// creating new posts in the thread.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Thread {
     /// Data asset about which this thread is created for with format
     /// <#E/{entities}/{entityName}/{field}/{fieldValue}.
@@ -1943,7 +1943,7 @@ pub struct Thread {
 }
 
 /// Post within a feed.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Post {
     /// ID of User (regular user or a bot) posting the message.
     #[serde(rename = "from")]
@@ -1959,7 +1959,7 @@ pub struct Post {
 }
 
 /// Describes an entity Lifecycle Rule used within a Policy.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LifecycleRule {
     /// A set of actions to take on the entities.
     #[serde(rename = "actions")]
@@ -1981,7 +1981,7 @@ pub struct LifecycleRule {
 ///
 /// An action to move the entity to a different location. For eg: Move from Standard storage
 /// tier to Archive storage tier.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ActionElement {
     /// Number of days after creation of the entity that the deletion should be triggered.
     ///
@@ -2002,7 +2002,7 @@ pub struct ActionElement {
 }
 
 /// Location where this entity needs to be moved to.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ActionDestination {
     /// The location where to move this entity to.
     #[serde(rename = "location")]
@@ -2021,7 +2021,7 @@ pub struct ActionDestination {
 /// group other sublocation together.
 ///
 /// The location where to move this entity to.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Location {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
@@ -2091,7 +2091,7 @@ pub struct Location {
 /// This schema defines the Storage Service entity, such as S3, GCS, HDFS.
 ///
 /// The storage service to move this entity to.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct StorageService {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
@@ -2137,7 +2137,7 @@ pub struct StorageService {
 /// Entity tags to match on.
 ///
 /// This schema defines the type for labeling an entity with a Tag.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TagLabel {
     /// Unique name of the tag category.
     #[serde(rename = "description")]
@@ -2166,7 +2166,7 @@ pub struct TagLabel {
 
 /// An action to move the entity to a different location. For eg: Move from Standard storage
 /// tier to Archive storage tier.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LifecycleMoveAction {
     /// Number of days after creation of the entity that the move should be triggered.
     #[serde(rename = "daysAfterCreation")]
@@ -2182,7 +2182,7 @@ pub struct LifecycleMoveAction {
 }
 
 /// Location where this entity needs to be moved to.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LifecycleMoveActionDestination {
     /// The location where to move this entity to.
     #[serde(rename = "location")]
@@ -2198,7 +2198,7 @@ pub struct LifecycleMoveActionDestination {
 }
 
 /// An action to delete or expire the entity.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LifecycleDeleteAction {
     /// Number of days after creation of the entity that the deletion should be triggered.
     #[serde(rename = "daysAfterCreation")]
@@ -2211,7 +2211,7 @@ pub struct LifecycleDeleteAction {
 }
 
 /// Describes an entity Access Control Rule used within a Policy.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AccessControlRule {
     /// A set of access control enforcements to take on the entities.
     #[serde(rename = "actions")]
@@ -2231,7 +2231,7 @@ pub struct AccessControlRule {
 
 /// Describes an Access Control Rule to selectively grant access to Teams/Users to tagged
 /// entities.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AccessControlRuleAction {
     /// Teams and Users who are able to access the tagged entities.
     #[serde(rename = "allow")]
@@ -2248,7 +2248,7 @@ pub struct AccessControlRuleAction {
 /// This schema defines the User entity. A user can be part of 0 or more teams. A special
 /// type of user called Bot is used for automation. A user can be an owner of zero or more
 /// data assets. A user can also follow zero or more data assets.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AllowElement {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
@@ -2341,7 +2341,7 @@ pub struct AllowElement {
 
 /// Describes an Access Control Rule to selectively grant access to Teams/Users to tagged
 /// entities.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TagBased {
     /// Teams and Users who are able to access the tagged entities.
     #[serde(rename = "allow")]
@@ -2354,7 +2354,7 @@ pub struct TagBased {
 
 /// This schema defines the Policy entity. A Policy defines lifecycle or access control that
 /// needs to be applied across different Data Entities.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Policy {
     /// Change that led to this version of the Policy.
     #[serde(rename = "changeDescription")]
@@ -2418,7 +2418,7 @@ pub struct Policy {
 /// Change that led to this version of the Policy.
 ///
 /// Description of the change.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PolicyChangeDescription {
     /// Names of fields added during the version changes.
     #[serde(rename = "fieldsAdded")]
@@ -2437,7 +2437,7 @@ pub struct PolicyChangeDescription {
     pub previous_version: Option<f64>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FluffyFieldChange {
     /// Name of the entity field that changed.
     #[serde(rename = "name")]
@@ -2470,7 +2470,7 @@ pub struct FluffyFieldChange {
 /// Owner of this topic
 ///
 /// Link to the messaging service where this topic is hosted in
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntityReference {
     /// Optional description of entity.
     #[serde(rename = "description")]
@@ -2504,7 +2504,7 @@ pub struct EntityReference {
 /// Describes an entity Access Control Rule used within a Policy.
 ///
 /// Describes an entity Lifecycle Rule used within a Policy.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PolicyRule {
     /// A set of access control enforcements to take on the entities.
     ///
@@ -2531,7 +2531,7 @@ pub struct PolicyRule {
 ///
 /// An action to move the entity to a different location. For eg: Move from Standard storage
 /// tier to Archive storage tier.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RuleAction {
     /// Teams and Users who are able to access the tagged entities.
     #[serde(rename = "allow")]
@@ -2560,7 +2560,7 @@ pub struct RuleAction {
 }
 
 /// This schema defines the type used for lineage of an entity.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntityLineage {
     #[serde(rename = "downstreamEdges")]
     pub downstream_edges: Option<Vec<Edge>>,
@@ -2577,7 +2577,7 @@ pub struct EntityLineage {
 }
 
 /// Edge in the lineage graph from one entity to another by entity IDs.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Edge {
     #[serde(rename = "description")]
     pub description: Option<String>,
@@ -2593,7 +2593,7 @@ pub struct Edge {
 
 /// This schema defines the type for reporting the daily count of some measurement. For
 /// example, you might use this schema for the number of times a table is queried each day.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DailyCountOfSomeMeasurement {
     /// Daily count of a measurement on the given date.
     #[serde(rename = "count")]
@@ -2604,7 +2604,7 @@ pub struct DailyCountOfSomeMeasurement {
 }
 
 /// This schema defines the type used for capturing usage details of an entity.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UsageDetailsOfAnEntity {
     /// Entity for which usage is returned.
     #[serde(rename = "entity")]
@@ -2616,14 +2616,14 @@ pub struct UsageDetailsOfAnEntity {
 }
 
 /// Type used for capturing the details of a collection.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SchemaForCollectionDescriptor {
     #[serde(rename = "collection")]
     pub collection: Option<CollectionInfo>,
 }
 
 /// Collection Info.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CollectionInfo {
     /// Description of collection.
     #[serde(rename = "documentation")]
@@ -2643,7 +2643,7 @@ pub struct CollectionInfo {
 
 /// This schema defines the type for usage details. Daily, weekly, and monthly aggregation of
 /// usage is computed along with the percentile rank based on the usage for a given day.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TypeUsedToReturnUsageDetailsOfAnEntity {
     /// Daily usage stats of a data asset on the start date.
     #[serde(rename = "dailyStats")]
@@ -2663,7 +2663,7 @@ pub struct TypeUsedToReturnUsageDetailsOfAnEntity {
 }
 
 /// This schema defines the type used for JDBC connection information.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct JdbcConnection {
     /// JDBC connection URL.
     #[serde(rename = "connectionUrl")]
@@ -2683,7 +2683,7 @@ pub struct JdbcConnection {
 }
 
 /// This schema defines the type used for capturing version of history of entity.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntityVersionHistory {
     /// Entity type, such as `database`, `table`, `dashboard`, for which this version history is
     /// produced.
@@ -2700,7 +2700,7 @@ pub struct EntityVersionHistory {
 /// sources, such as a new dataset was created, a datasets was deleted, or schema of a
 /// dataset is modified. When state of entity changes, an event is produced. These events can
 /// be used to build apps and bots that respond to the change from activities.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ChangeEvent {
     /// For `eventType` `entityUpdated` this field captures details about what fields were
     /// added/updated/deleted. For `eventType` `entityCreated` or `entityDeleted` this field is
@@ -2746,7 +2746,7 @@ pub struct ChangeEvent {
 }
 
 /// Type used for cursor based pagination information in GET list responses.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Paging {
     /// After cursor used for getting the next page (see API pagination for details).
     #[serde(rename = "after")]
@@ -2763,7 +2763,7 @@ pub struct Paging {
 
 /// This schema defines the Audit Log type to capture the audit trail of POST, PUT, and PATCH
 /// API operations.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AuditLog {
     /// Date when the API call is made.
     #[serde(rename = "dateTime")]
@@ -2796,7 +2796,7 @@ pub struct AuditLog {
 
 /// This schema defines the type used for the schedule. The schedule has a start time and
 /// repeat frequency.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Schedule {
     /// Repeat frequency in ISO 8601 duration format. Example - 'P23DT23H'.
     #[serde(rename = "repeatFrequency")]
@@ -2808,7 +2808,7 @@ pub struct Schedule {
 }
 
 /// Ingestion Config is used to setup a Airflow Ingestion pipeline.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Ingestion {
     /// Change that led to this version of the entity.
     #[serde(rename = "changeDescription")]
@@ -2922,7 +2922,7 @@ pub struct Ingestion {
 }
 
 /// This defines the configuration for connector.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ConnectorConfig {
     /// Database of the data source.
     #[serde(rename = "database")]
@@ -2958,7 +2958,7 @@ pub struct ConnectorConfig {
 }
 
 /// This defines the runtime status of Ingestion.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct IngestionStatus {
     /// endDate of the Ingestion pipeline run for this particular execution.
     #[serde(rename = "endDate")]
@@ -2974,7 +2974,7 @@ pub struct IngestionStatus {
 }
 
 /// Create Chart entity request
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateChartRequest {
     #[serde(rename = "chartType")]
     pub chart_type: Option<ChartType>,
@@ -3014,7 +3014,7 @@ pub struct CreateChartRequest {
 }
 
 /// Create Dashboard entity request
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateDashboardRequest {
     /// All the charts included in this Dashboard.
     #[serde(rename = "charts")]
@@ -3051,7 +3051,7 @@ pub struct CreateDashboardRequest {
 }
 
 /// Create Database entity request
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateDatabaseRequest {
     /// Description of the database instance. What it has and how to use it.
     #[serde(rename = "description")]
@@ -3071,7 +3071,7 @@ pub struct CreateDatabaseRequest {
 }
 
 /// Create Ml Model entity request
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateMlModelRequest {
     /// Algorithm used to train the ML Model
     #[serde(rename = "algorithm")]
@@ -3121,7 +3121,7 @@ pub struct CreateMlModelRequest {
 }
 
 /// Schema corresponding to a table that belongs to a database
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateTableRequest {
     /// Name of the tables in the database
     #[serde(rename = "columns")]
@@ -3160,7 +3160,7 @@ pub struct CreateTableRequest {
 }
 
 /// This schema defines the type for a column in a table.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateTableRequestColumn {
     /// Data type used array in dataType. For example, `array<int>` has dataType as `array` and
     /// arrayDataType as `int`.
@@ -3213,7 +3213,7 @@ pub struct CreateTableRequestColumn {
 }
 
 /// This enum defines the type for table constraint.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateTableRequestTableConstraint {
     /// List of column names corresponding to the constraint.
     #[serde(rename = "columns")]
@@ -3224,7 +3224,7 @@ pub struct CreateTableRequestTableConstraint {
 }
 
 /// Create Pipeline entity request
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreatePipelineRequest {
     /// Concurrency of the Pipeline
     #[serde(rename = "concurrency")]
@@ -3273,7 +3273,7 @@ pub struct CreatePipelineRequest {
 }
 
 /// Create a topic entity request
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateTopicRequest {
     /// Topic clean up policy. For Kafka - `cleanup.policy` configuration.
     #[serde(rename = "cleanupPolicies")]
@@ -3336,7 +3336,7 @@ pub struct CreateTopicRequest {
 }
 
 /// Create Location entity request
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateLocationRequest {
     /// Description of the location instance.
     #[serde(rename = "description")]
@@ -3363,7 +3363,7 @@ pub struct CreateLocationRequest {
 }
 
 /// Create Messaging service entity request
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateMessagingServiceRequest {
     /// Multiple bootstrap addresses for Kafka. Single proxy address for Pulsar.
     #[serde(rename = "brokers")]
@@ -3390,7 +3390,7 @@ pub struct CreateMessagingServiceRequest {
 }
 
 /// Create Storage service entity request
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateStorageServiceRequest {
     /// Description of Storage entity.
     #[serde(rename = "description")]
@@ -3405,7 +3405,7 @@ pub struct CreateStorageServiceRequest {
 }
 
 /// Create Dashboard service entity request
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateDashboardServiceRequest {
     /// Dashboard Service URL
     #[serde(rename = "dashboardUrl")]
@@ -3436,7 +3436,7 @@ pub struct CreateDashboardServiceRequest {
 }
 
 /// Create Pipeline service entity request
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreatePipelineServiceRequest {
     /// Description of pipeline service entity.
     #[serde(rename = "description")]
@@ -3459,7 +3459,7 @@ pub struct CreatePipelineServiceRequest {
 }
 
 /// Create Database service entity request
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateDatabaseServiceRequest {
     /// Description of Database entity.
     #[serde(rename = "description")]
@@ -3481,7 +3481,7 @@ pub struct CreateDatabaseServiceRequest {
 }
 
 /// Team entity
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateTeamRequest {
     /// Optional description of the team
     #[serde(rename = "description")]
@@ -3506,14 +3506,14 @@ pub struct CreateTeamRequest {
 /// This schema defines the type for a profile of a user, team, or organization.
 ///
 /// Optional team profile information
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Profile {
     #[serde(rename = "images")]
     pub images: Option<ImageList>,
 }
 
 /// Request to create User entity
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateUserRequest {
     /// Used for user biography.
     #[serde(rename = "description")]
@@ -3550,7 +3550,7 @@ pub struct CreateUserRequest {
 }
 
 /// Create tag API request
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateTagRequest {
     /// Fully qualified names of tags associated with this tag
     #[serde(rename = "associatedTags")]
@@ -3565,7 +3565,7 @@ pub struct CreateTagRequest {
 }
 
 /// Create tag category request
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateTagCategoryRequest {
     #[serde(rename = "categoryType")]
     pub category_type: TagCategoryType,
@@ -3579,7 +3579,7 @@ pub struct CreateTagCategoryRequest {
 }
 
 /// Ingestion Config is used to setup a Airflow Ingestion pipeline.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateIngestionRequest {
     /// Concurrency of the Pipeline.
     #[serde(rename = "concurrency")]
@@ -3657,7 +3657,7 @@ pub struct CreateIngestionRequest {
 }
 
 /// Catalog application software version
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CatalogVersion {
     /// Software revision of the catalog
     #[serde(rename = "revision")]
@@ -3673,7 +3673,7 @@ pub struct CatalogVersion {
 }
 
 /// Set ownership for a given entity
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SetOwnershipRequest {
     /// Id of the owner of the entity
     #[serde(rename = "id")]
@@ -3685,7 +3685,7 @@ pub struct SetOwnershipRequest {
 }
 
 /// Create thread request
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateThreadRequest {
     /// Data asset about which this thread is created for with format
     /// <#E/{entities}/{entityName}/{field}/{fieldValue}
@@ -3702,7 +3702,7 @@ pub struct CreateThreadRequest {
 }
 
 /// Add lineage details between two entities
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AddLineageRequest {
     /// User provided description of the lineage details.
     #[serde(rename = "description")]
@@ -3716,7 +3716,7 @@ pub struct AddLineageRequest {
 /// Lineage edge details.
 ///
 /// Edge in the lineage graph from one entity to another using entity references.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EntitiesEdge {
     #[serde(rename = "description")]
     pub description: Option<String>,
@@ -3731,7 +3731,7 @@ pub struct EntitiesEdge {
 }
 
 /// Create Policy Entity Request
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreatePolicyRequest {
     /// A short description of the Policy, comprehensible to regular users.
     #[serde(rename = "description")]
@@ -3765,7 +3765,7 @@ pub struct CreatePolicyRequest {
 /// Describes an entity Access Control Rule used within a Policy.
 ///
 /// Describes an entity Lifecycle Rule used within a Policy.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreatePolicyRequestRule {
     /// A set of access control enforcements to take on the entities.
     ///
@@ -3785,7 +3785,7 @@ pub struct CreatePolicyRequestRule {
     pub name: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Tag {
     AnythingArray(Vec<Option<serde_json::Value>>),
@@ -3803,7 +3803,7 @@ pub enum Tag {
 
 /// The set of filters that are used to match on entities. A logical AND operation is applied
 /// across all filters.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Filter {
     String(String),
@@ -3816,7 +3816,7 @@ pub enum Filter {
 /// Type of pipeline service - Airflow or Prefect.
 ///
 /// Type of pipeline service such as Airflow or Prefect...
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum PipelineServiceType {
     #[serde(rename = "Airflow")]
     Airflow,
@@ -3833,7 +3833,7 @@ pub enum PipelineServiceType {
 /// relationship (see TagCategory.json for more details). 'Propagated` indicates a tag label
 /// was propagated from upstream based on lineage. 'Automated' is used when a tool was used
 /// to determine the tag label.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum LabelType {
     #[serde(rename = "Automated")]
     Automated,
@@ -3850,7 +3850,7 @@ pub enum LabelType {
 
 /// 'Suggested' state is used when a tag label is suggested by users or tools. Owner of the
 /// entity must confirm the suggested labels before it is marked as 'Confirmed'.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum State {
     #[serde(rename = "Confirmed")]
     Confirmed,
@@ -3865,7 +3865,7 @@ pub enum State {
 /// This enum defines the type of data stored in a column.
 ///
 /// Data type of the column (int, date etc.).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum DataType {
     #[serde(rename = "ARRAY")]
     Array,
@@ -3976,7 +3976,7 @@ pub enum DataType {
 /// Column level constraint.
 ///
 /// This enum defines the type for column constraint.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Constraint {
     #[serde(rename = "NOT_NULL")]
     NotNull,
@@ -3991,7 +3991,7 @@ pub enum Constraint {
     Unique,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ModelType {
     #[serde(rename = "DBT")]
     Dbt,
@@ -4002,7 +4002,7 @@ pub enum ModelType {
 /// Type of database service such as MySQL, BigQuery, Snowflake, Redshift, Postgres...
 ///
 /// Service type where this database is hosted in.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum DatabaseServiceType {
     #[serde(rename = "Athena")]
     Athena,
@@ -4050,7 +4050,7 @@ pub enum DatabaseServiceType {
     Vertica,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ConstraintType {
     #[serde(rename = "FOREIGN_KEY")]
     ForeignKey,
@@ -4063,7 +4063,7 @@ pub enum ConstraintType {
 }
 
 /// This schema defines the type used for describing different types of tables.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum TableType {
     #[serde(rename = "External")]
     External,
@@ -4084,7 +4084,7 @@ pub enum TableType {
 /// Data type of the column (numerical vs. categorical).
 ///
 /// This enum defines the type of data stored in a ML Feature.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum FeatureType {
     #[serde(rename = "categorical")]
     Categorical,
@@ -4096,7 +4096,7 @@ pub enum FeatureType {
 /// Data type of the source (int, date etc.).
 ///
 /// This enum defines the type of data of a ML Feature source.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum FeatureSourceDataType {
     #[serde(rename = "array")]
     Array,
@@ -4130,7 +4130,7 @@ pub enum FeatureSourceDataType {
 /// Service type where this chart is hosted in.
 ///
 /// Type of dashboard service such as Looker or Superset...
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum DashboardServiceType {
     #[serde(rename = "Looker")]
     Looker,
@@ -4149,7 +4149,7 @@ pub enum DashboardServiceType {
 }
 
 /// This schema defines the type used for describing different types of charts.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ChartType {
     #[serde(rename = "Area")]
     Area,
@@ -4183,7 +4183,7 @@ pub enum ChartType {
 }
 
 /// Topic clean up policy. For Kafka - `cleanup.policy` configuration.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum CleanupPolicy {
     #[serde(rename = "compact")]
     Compact,
@@ -4195,7 +4195,7 @@ pub enum CleanupPolicy {
 /// Schema used for message serialization.
 ///
 /// Schema type used for the message.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum SchemaType {
     #[serde(rename = "Avro")]
     Avro,
@@ -4215,7 +4215,7 @@ pub enum SchemaType {
 /// Type of messaging service - Kafka or Pulsar.
 ///
 /// Type of messaging service such as Kafka or Pulsar...
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum MessagingServiceType {
     #[serde(rename = "Kafka")]
     Kafka,
@@ -4225,7 +4225,7 @@ pub enum MessagingServiceType {
 }
 
 /// Type of tag category.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum TagCategoryType {
     #[serde(rename = "Classification")]
     Classification,
@@ -4235,7 +4235,7 @@ pub enum TagCategoryType {
 }
 
 /// This schema defines the type used for describing different types of Location.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum LocationType {
     #[serde(rename = "Bucket")]
     Bucket,
@@ -4253,7 +4253,7 @@ pub enum LocationType {
 /// Service type where this storage location is hosted in.
 ///
 /// Type of storage service such as S3, GCS, HDFS...
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum StorageServiceType {
     #[serde(rename = "ABFS")]
     Abfs,
@@ -4445,7 +4445,7 @@ pub enum StorageServiceType {
 /// Type of storage class offered by GCS
 ///
 /// Type of storage class offered by ABFS
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum StorageClassType {
     #[serde(rename = "ARCHIVE")]
     Archive,
@@ -4497,7 +4497,7 @@ pub enum StorageClassType {
 }
 
 /// This schema defines the type used for describing different types of policies.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum PolicyType {
     #[serde(rename = "AccessControl")]
     AccessControl,
@@ -4507,7 +4507,7 @@ pub enum PolicyType {
 }
 
 /// Type of event.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum EventType {
     #[serde(rename = "entityCreated")]
     EntityCreated,
@@ -4520,7 +4520,7 @@ pub enum EventType {
 }
 
 /// HTTP Method used in a call.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Method {
     #[serde(rename = "DELETE")]
     Delete,
@@ -4536,7 +4536,7 @@ pub enum Method {
 }
 
 /// Type of Ingestion - Bigquery, Redshift, Snowflake etc...
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum IngestionType {
     #[serde(rename = "bigquery")]
     Bigquery,

@@ -17,7 +17,7 @@ async function* walk(dir) {
 
 function updateLine(line) {
   if (line.includes("#[derive(Serialize, Deserialize)]")) {
-    return "#[derive(Debug, Serialize, Deserialize)]"
+    return "#[derive(Clone, Debug, Serialize, Deserialize)]"
   }
   if (line.includes("updated_at: Option<String>")) {
     return line.replace("Option<String>", "Option<i64>")
