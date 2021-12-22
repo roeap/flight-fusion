@@ -20,10 +20,11 @@ dyn-clone = "1"
 futures = "0.3"
 rand = "*"
 reqwest = { version = "0.11", features = ["stream"], default_features = false }
+base64 = { version = "*", optional = true }
 
 [dev-dependencies]
 env_logger = "0.9"
 tokio = { version = "1", features = ["default"] }
 
 [features]
-mock_transport_framework = []
+mock_transport_framework = ["base64"]

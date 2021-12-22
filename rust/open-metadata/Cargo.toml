@@ -29,6 +29,7 @@ features = ["json", "multipart", "gzip"]
 [dev-dependencies]
 env_logger = "0.9"
 tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
+reqwest-pipeline = { path = "../reqwest-pipeline", features = ["mock_transport_framework"] }
 
 [features]
 mock_transport_framework = ["reqwest-pipeline/mock_transport_framework"]
