@@ -1,19 +1,18 @@
 use crate::{
     clients::{OpenMetadataClient, PagedReturn},
     models::Database,
-    request_options::{FieldsQuery, MaxResults, PagingAfter, PagingBefore},
+    request_options::{QueryFields, QueryAfter, QueryBefore, QueryLimit, QueryService},
 };
 use reqwest_pipeline::{setters, AppendToUrlQuery, Context, Pageable};
 
 #[derive(Clone, Debug)]
 pub struct ListDatabases {
     open_meta_client: OpenMetadataClient,
-    fields: Option<FieldsQuery>,
-    // TODO make option
-    service: Option<String>,
-    limit: Option<MaxResults>,
-    before: Option<PagingBefore>,
-    after: Option<PagingAfter>,
+    fields: Option<QueryFields>,
+    service: Option<QueryService>,
+    limit: Option<QueryLimit>,
+    before: Option<QueryBefore>,
+    after: Option<QueryAfter>,
     context: Option<Context>,
 }
 
@@ -31,10 +30,11 @@ impl ListDatabases {
     }
 
     setters! {
-        fields: FieldsQuery => Some(fields),
-        limit: MaxResults => Some(limit),
-        before: PagingBefore => Some(before),
-        after: PagingAfter => Some(after),
+        fields: QueryFields => Some(fields),
+        service: QueryService => Some(service),
+        limit: QueryLimit => Some(limit),
+        before: QueryBefore => Some(before),
+        after: QueryAfter => Some(after),
         context: Context => Some(context),
     }
 
@@ -46,6 +46,7 @@ impl ListDatabases {
             async move {
                 let mut uri = this.open_meta_client.api_routes().databases().clone();
                 this.fields.append_to_url_query(&mut uri);
+                this.service.append_to_url_query(&mut uri);
                 this.limit.append_to_url_query(&mut uri);
                 this.before.append_to_url_query(&mut uri);
                 this.after.append_to_url_query(&mut uri);

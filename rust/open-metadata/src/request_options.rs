@@ -1,31 +1,38 @@
-use reqwest_pipeline::prelude::*;
+use reqwest_pipeline::{prelude::*, query_prop};
 use std::convert::TryFrom;
 use std::num::NonZeroU32;
 
+query_prop! {
+    service: String => QueryService,
+    fields: String => QueryFields,
+    after: String => QueryAfter,
+    before: String => QueryBefore,
+}
+
 // This type forbids zero as value.
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
-pub struct MaxResults(NonZeroU32);
+pub struct QueryLimit(NonZeroU32);
 
-impl MaxResults {
+impl QueryLimit {
     pub fn new(max_results: NonZeroU32) -> Self {
         Self(max_results)
     }
 }
 
-impl AppendToUrlQuery for MaxResults {
+impl AppendToUrlQuery for QueryLimit {
     fn append_to_url_query(&self, url: &mut url::Url) {
         url.query_pairs_mut()
             .append_pair("limit", &format!("{}", self.0));
     }
 }
 
-impl From<NonZeroU32> for MaxResults {
+impl From<NonZeroU32> for QueryLimit {
     fn from(max_results: NonZeroU32) -> Self {
         Self::new(max_results)
     }
 }
 
-impl TryFrom<u32> for MaxResults {
+impl TryFrom<u32> for QueryLimit {
     type Error = String;
 
     fn try_from(max_results: u32) -> Result<Self, Self::Error> {
@@ -36,71 +43,5 @@ impl TryFrom<u32> for MaxResults {
                 max_results
             )),
         }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct FieldsQuery(String);
-
-impl FieldsQuery {
-    pub fn new(fields: String) -> Self {
-        Self(fields)
-    }
-}
-
-impl AppendToUrlQuery for FieldsQuery {
-    fn append_to_url_query(&self, url: &mut url::Url) {
-        url.query_pairs_mut()
-            .append_pair("fields", &format!("{}", self.0));
-    }
-}
-
-impl From<String> for FieldsQuery {
-    fn from(fields: String) -> Self {
-        Self::new(fields)
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct PagingBefore(String);
-
-impl PagingBefore {
-    pub fn new(fields: String) -> Self {
-        Self(fields)
-    }
-}
-
-impl AppendToUrlQuery for PagingBefore {
-    fn append_to_url_query(&self, url: &mut url::Url) {
-        url.query_pairs_mut()
-            .append_pair("before", &format!("{}", self.0));
-    }
-}
-
-impl From<String> for PagingBefore {
-    fn from(fields: String) -> Self {
-        Self::new(fields)
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct PagingAfter(String);
-
-impl PagingAfter {
-    pub fn new(fields: String) -> Self {
-        Self(fields)
-    }
-}
-
-impl AppendToUrlQuery for PagingAfter {
-    fn append_to_url_query(&self, url: &mut url::Url) {
-        url.query_pairs_mut()
-            .append_pair("before", &format!("{}", self.0));
-    }
-}
-
-impl From<String> for PagingAfter {
-    fn from(fields: String) -> Self {
-        Self::new(fields)
     }
 }

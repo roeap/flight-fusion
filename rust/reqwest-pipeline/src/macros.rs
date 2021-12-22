@@ -27,3 +27,40 @@ macro_rules! setters {
         setters! { @recurse $($tokens)* }
     }
 }
+
+#[macro_export]
+macro_rules! query_prop {
+    (@single $name:ident : $typ:ty => $type_name:ident) => {
+        #[derive(Debug, Clone)]
+        pub struct $type_name($typ);
+
+        impl $type_name {
+            pub fn new(value: $typ) -> Self {
+                Self(value)
+            }
+        }
+
+        impl AppendToUrlQuery for $type_name {
+            fn append_to_url_query(&self, url: &mut url::Url) {
+                url.query_pairs_mut()
+                    .append_pair(stringify! {$name}, &format!("{}", self.0));
+            }
+        }
+
+        impl From<$typ> for $type_name {
+            fn from(value: $typ) -> Self {
+                Self::new(value)
+            }
+        }
+    };
+    // Terminal condition
+    (@recurse) => {};
+    // Recurse with transform
+    (@recurse $name:ident : $typ:ty => $type_name:ident, $($tokens:tt)*) => {
+        query_prop! { @single $name : $typ => $type_name }
+        query_prop! { @recurse $($tokens)* }
+    };
+    ($($tokens:tt)*) => {
+        query_prop! { @recurse $($tokens)* }
+    }
+}
