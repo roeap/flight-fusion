@@ -3,9 +3,17 @@ use crate::{
     models::Database,
     operations::ListDatabases,
 };
-use reqwest_pipeline::{collect_pinned_stream, Response, Result as RPResult};
+use reqwest_pipeline::{collect_pinned_stream, Response, Result as RPResult, Context};
 
 impl PagedReturn<Database> {
+    pub(crate) async fn try_from(response: Response) -> RPResult<Self> {
+        let (_status_code, _headers, pinned_stream) = response.deconstruct();
+        let body = collect_pinned_stream(pinned_stream).await?;
+        Ok(serde_json::from_slice(&body)?)
+    }
+}
+
+impl Database {
     pub(crate) async fn try_from(response: Response) -> RPResult<Self> {
         let (_status_code, _headers, pinned_stream) = response.deconstruct();
         let body = collect_pinned_stream(pinned_stream).await?;
@@ -16,26 +24,53 @@ impl PagedReturn<Database> {
 #[derive(Debug, Clone)]
 pub struct DatabasesCollectionClient {
     open_meta_client: OpenMetadataClient,
-    fully_qualified_name: Option<String>,
-    entity_id: Option<String>,
 }
 
 impl DatabasesCollectionClient {
     pub(crate) fn new(open_meta_client: OpenMetadataClient) -> Self {
-        Self {
-            open_meta_client,
-            fully_qualified_name: None,
-            entity_id: None,
-        }
-    }
-
-    #[allow(dead_code)]
-    pub fn open_meta_client(&self) -> &OpenMetadataClient {
-        &self.open_meta_client
+        Self { open_meta_client }
     }
 
     pub fn list_databases(&self) -> ListDatabases {
         ListDatabases::new(self.open_meta_client.clone())
+    }
+
+    pub fn into_database_client<S: Into<String>>(&self, database_id: S) -> DatabaseClient {
+        DatabaseClient::new(self.open_meta_client.clone(), database_id)
+    }
+}
+
+pub struct DatabaseClient {
+    open_meta_client: OpenMetadataClient,
+    entity_id: String,
+}
+
+impl DatabaseClient {
+    pub(crate) fn new<S: Into<String>>(
+        open_meta_client: OpenMetadataClient,
+        database_id: S,
+    ) -> Self {
+        Self {
+            open_meta_client,
+            entity_id: database_id.into(),
+        }
+    }
+
+    pub async fn get_database(&self) -> crate::Result<Database> {
+        // TODO add optional fields query parameter
+        let url = self
+            .open_meta_client
+            .databases_url()
+            .join(&self.entity_id)?;
+        let mut request = self
+            .open_meta_client
+            .prepare_request(url.as_str(), http::Method::GET);
+        let response = self
+            .open_meta_client
+            .pipeline()
+            .send(&mut Context::new(), &mut request)
+            .await?;
+        Ok(Database::try_from(response).await?)
     }
 }
 
