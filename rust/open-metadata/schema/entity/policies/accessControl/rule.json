@@ -1,0 +1,39 @@
+{
+  "$id": "https://open-metadata.org/schema/entity/data/policies/accessControl/rule.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AccessControlRule",
+  "description": "Describes an entity Access Control Rule used within a Policy.",
+  "type": "object",
+  "javaType": "org.openmetadata.catalog.entity.policies.accessControl.Rule",
+  "properties": {
+    "name": {
+      "description": "Name that identifies this Rule.",
+      "type": "string"
+    },
+    "filters": {
+      "$ref": "../filters.json#/definitions/filters"
+    },
+    "actions": {
+      "description": "A set of access control enforcements to take on the entities.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "tagBased.json"
+          }
+        ]
+      }
+    },
+    "enabled": {
+      "description": "Is the rule enabled.",
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "filters",
+    "actions"
+  ],
+  "additionalProperties": false
+}
