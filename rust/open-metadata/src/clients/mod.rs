@@ -1,4 +1,4 @@
-use crate::{models::{CatalogVersion, CollectionList}};
+use crate::models::{CatalogVersion, CollectionList};
 use databases::DatabasesCollectionClient;
 use http::{method::Method, request::Builder as RequestBuilder};
 use reqwest_pipeline::{ClientOptions, Context, Continuable, Pipeline, Request};

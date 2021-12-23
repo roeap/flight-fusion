@@ -7,14 +7,21 @@ extern crate url;
 
 mod apis;
 pub mod clients;
+pub mod generated;
 pub mod models;
 mod operations;
 mod request_options;
-pub mod generated;
 
 use http::StatusCode;
 
 type Result<T> = std::result::Result<T, OpenMetadataError>;
+
+pub enum EntityIdentifier {
+    /// The unique entity ID
+    ID(String),
+    /// The fully qualified name for the entity
+    FQN(String),
+}
 
 #[non_exhaustive]
 #[derive(thiserror::Error, Debug)]
@@ -40,4 +47,10 @@ pub enum OpenMetadataError {
 
     #[error("HTTP error status (status: {:?}, body: {:?})", status, body)]
     ErrorStatusCode { status: StatusCode, body: String },
+
+    #[error("Error processing json: {source}")]
+    JsonError {
+        #[from]
+        source: serde_json::Error,
+    },
 }

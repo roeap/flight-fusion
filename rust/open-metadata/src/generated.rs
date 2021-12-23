@@ -1377,7 +1377,7 @@ pub struct MessagingService {
 
     /// Schedule for running metadata ingestion jobs.
     #[serde(rename = "ingestionSchedule")]
-    pub ingestion_schedule: Option<IngestionScheduleClass>,
+    pub ingestion_schedule: Option<Schedule>,
 
     /// Name that identifies this messaging service.
     #[serde(rename = "name")]
@@ -1450,7 +1450,7 @@ pub struct DatabaseService {
 
     /// Schedule for running metadata ingestion jobs.
     #[serde(rename = "ingestionSchedule")]
-    pub ingestion_schedule: Option<IngestionScheduleClass>,
+    pub ingestion_schedule: Option<Schedule>,
 
     /// JDBC connection information.
     #[serde(rename = "jdbc")]
@@ -1518,7 +1518,7 @@ pub struct DashboardService {
 
     /// Schedule for running metadata ingestion jobs.
     #[serde(rename = "ingestionSchedule")]
-    pub ingestion_schedule: Option<IngestionScheduleClass>,
+    pub ingestion_schedule: Option<Schedule>,
 
     /// Name that identifies this dashboard service.
     #[serde(rename = "name")]
@@ -1575,7 +1575,7 @@ pub struct PipelineService {
 
     /// Schedule for running metadata ingestion jobs.
     #[serde(rename = "ingestionSchedule")]
-    pub ingestion_schedule: Option<IngestionScheduleClass>,
+    pub ingestion_schedule: Option<Schedule>,
 
     /// Name that identifies this pipeline service.
     #[serde(rename = "name")]
@@ -3375,7 +3375,7 @@ pub struct CreateMessagingServiceRequest {
 
     /// Schedule for running metadata ingestion jobs
     #[serde(rename = "ingestionSchedule")]
-    pub ingestion_schedule: Option<IngestionScheduleClass>,
+    pub ingestion_schedule: Option<Schedule>,
 
     /// Name that identifies the this entity instance uniquely
     #[serde(rename = "name")]
@@ -3417,7 +3417,7 @@ pub struct CreateDashboardServiceRequest {
 
     /// Schedule for running metadata ingestion jobs
     #[serde(rename = "ingestionSchedule")]
-    pub ingestion_schedule: Option<IngestionScheduleClass>,
+    pub ingestion_schedule: Option<Schedule>,
 
     /// Name that identifies the this entity instance uniquely
     #[serde(rename = "name")]
@@ -3444,7 +3444,7 @@ pub struct CreatePipelineServiceRequest {
 
     /// Schedule for running pipeline ingestion jobs
     #[serde(rename = "ingestionSchedule")]
-    pub ingestion_schedule: Option<IngestionScheduleClass>,
+    pub ingestion_schedule: Option<Schedule>,
 
     /// Name that identifies the this entity instance uniquely
     #[serde(rename = "name")]
@@ -3467,7 +3467,7 @@ pub struct CreateDatabaseServiceRequest {
 
     /// Schedule for running metadata ingestion jobs
     #[serde(rename = "ingestionSchedule")]
-    pub ingestion_schedule: Option<IngestionScheduleClass>,
+    pub ingestion_schedule: Option<Schedule>,
 
     #[serde(rename = "jdbc")]
     pub jdbc: JdbcInfo,

@@ -22,6 +22,9 @@ function updateLine(line) {
   if (line.includes("updated_at: Option<String>")) {
     return line.replace("Option<String>", "Option<i64>")
   }
+  if (line.includes("<IngestionScheduleClass>")) {
+    return line.replace("<IngestionScheduleClass>", "<Schedule>")
+  }
   return line
 }
 
