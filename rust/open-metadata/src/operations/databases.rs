@@ -9,10 +9,11 @@ use reqwest_pipeline::{
     collect_pinned_stream, setters, AppendToUrlQuery, Context, Pageable, Response,
     Result as RPResult,
 };
+use std::pin::Pin;
 
 /// A future of a create database response
 type CreateDatabase = futures::future::BoxFuture<'static, crate::Result<()>>;
-type ListDatabases = Pageable<PagedReturn<Database>>;
+type ListDatabases = Pin<Box<Pageable<PagedReturn<Database>>>>;
 
 impl PagedReturn<Database> {
     pub(crate) async fn try_from(response: Response) -> RPResult<Self> {
@@ -56,7 +57,8 @@ impl ListDatabasesBuilder {
     }
 
     pub fn into_stream<'a>(self) -> ListDatabases {
-        let make_request = move |continuation: Option<String>| {
+        // TODO actually do paging here...
+        let make_request = move |_continuation: Option<String>| {
             let this = self.clone();
             let ctx = self.context.clone().unwrap_or_default();
 
@@ -91,7 +93,7 @@ impl ListDatabasesBuilder {
             }
         };
 
-        Pageable::new(make_request)
+        Box::pin(Pageable::new(make_request))
     }
 }
 

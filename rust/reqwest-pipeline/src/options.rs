@@ -4,17 +4,6 @@ use std::sync::Arc;
 use std::time::Duration;
 
 /// Client options allow customization of policies, retry options, and more.
-///
-/// # Examples
-///
-/// You can override default options and even add your own per-call or per-retry policies:
-///
-/// ```
-/// use azure_core::{ClientOptions, RetryOptions, TelemetryOptions};
-/// let options: ClientOptions = ClientOptions::default()
-///     .retry(RetryOptions::default().max_retries(10u32))
-///     .telemetry(TelemetryOptions::default().application_id("my-application"));
-/// ```
 #[derive(Clone, Debug, Default)]
 pub struct ClientOptions {
     /// Policies called per call.

@@ -8,6 +8,7 @@ ignoreWords:
   - Kusto
   - Pageable
   - chrono
+  - clippy
   - datafusion
   - datasource
   - dotenv
@@ -16,6 +17,7 @@ ignoreWords:
   - protobuf
   - quicktype
   - reqwest
+  - rustfmt
   - schemafy
   - seekable
   - structopt

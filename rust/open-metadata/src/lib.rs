@@ -8,6 +8,7 @@ extern crate url;
 pub mod clients;
 pub mod generated;
 mod operations;
+pub mod prelude;
 mod request_options;
 
 use http::StatusCode;

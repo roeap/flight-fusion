@@ -4,9 +4,10 @@ use crate::{
     generated::{CatalogVersion, CollectionDescriptor},
 };
 use reqwest_pipeline::{collect_pinned_stream, Context, Pageable, Response, Result as RPResult};
+use std::pin::Pin;
 
 type CreateDatabase = futures::future::BoxFuture<'static, crate::Result<CatalogVersion>>;
-type ListCollections = Pageable<PagedReturn<CollectionDescriptor>>;
+type ListCollections = Pin<Box<Pageable<PagedReturn<CollectionDescriptor>>>>;
 
 impl PagedReturn<CollectionDescriptor> {
     pub(crate) async fn try_from(response: Response) -> RPResult<Self> {
@@ -37,9 +38,7 @@ impl GerVersionBuilder {
     pub fn into_future(self) -> CreateDatabase {
         let uri = self.client.api_routes().catalog().clone();
         Box::pin(async move {
-            let mut request = self
-                .client
-                .prepare_request(uri.as_str(), http::Method::GET);
+            let mut request = self.client.prepare_request(uri.as_str(), http::Method::GET);
 
             let response = self
                 .client
@@ -85,6 +84,6 @@ impl ListCollectionsBuilder {
             }
         };
 
-        Pageable::new(make_request)
+        Box::pin(Pageable::new(make_request))
     }
 }
