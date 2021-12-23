@@ -1,7 +1,7 @@
 use crate::generated::Paging;
 pub use collections::*;
 pub use databases::*;
-pub use futures_util::StreamExt;
+pub use futures::StreamExt;
 use reqwest_pipeline::Continuable;
 
 mod collections;
