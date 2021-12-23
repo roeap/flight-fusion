@@ -75,7 +75,7 @@ mod tests {
     async fn test_list_databases() {
         let client = initialize().into_databases_collection_client();
 
-        let databases = Box::pin(client.list_databases().into_stream())
+        let databases = client.list_databases().into_stream()
             .next()
             .await
             .unwrap()

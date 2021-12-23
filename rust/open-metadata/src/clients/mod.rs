@@ -212,10 +212,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_list_collections() {
-        let client =
-            OpenMetadataClient::new("http://localhost:8585", OpenMetadataOptions::default());
+        let client = OpenMetadataClient::new(
+            "http://localhost:8585",
+            OpenMetadataOptions::new_with_transaction_name("list_collections".to_string()),
+        );
 
-        let collections = Box::pin(client.list_collections().into_stream())
+        let collections = client.list_collections().into_stream()
             .next()
             .await
             .unwrap()
