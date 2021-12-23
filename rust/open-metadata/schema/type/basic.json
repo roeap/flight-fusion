@@ -1,0 +1,69 @@
+{
+  "$id": "https://open-metadata.org/schema/type/basic.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Basic",
+  "description": "This schema defines basic common types that are used by other schemas.",
+  "definitions": {
+    "uuid": {
+      "description": "Unique id used to identify an entity.",
+      "type": "string",
+      "format": "uuid"
+    },
+    "email": {
+      "description": "Email address of a user or other entities.",
+      "type": "string",
+      "format": "email",
+      "pattern": "^\\S+@\\S+\\.\\S+$",
+      "minLength": 6,
+      "maxLength": 127
+    },
+    "timestamp": {
+      "description": "Timestamp in unixTimeMillis.",
+      "type": "string",
+      "format": "utc-millisec"
+    },
+    "href": {
+      "description": "URI that points to a resource.",
+      "type": "string",
+      "format": "uri"
+    },
+    "timeInterval": {
+      "type": "object",
+      "description": "Time interval in unixTimeMillis.",
+      "javaType": "org.openmetadata.catalog.type.TimeInterval",
+      "properties": {
+        "start": {
+          "description": "Start time in unixTimeMillis.",
+          "type": "integer"
+        },
+        "end": {
+          "description": "End time in unixTimeMillis.",
+          "type": "integer"
+        }
+      }
+    },
+    "duration": {
+      "description": "Duration in ISO 8601 format in UTC. Example - 'P23DT23H'.",
+      "type": "string"
+    },
+    "date": {
+      "description": "Date in ISO 8601 format in UTC. Example - '2018-11-13'.",
+      "type": "string",
+      "format": "date"
+    },
+    "dateTime": {
+      "description": "Date and time in ISO 8601 format. Example - '2018-11-13T20:20:39+00:00'.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "entityLink": {
+      "description": "Link to an entity or field within an entity using this format `<#E/{entities}/{entityName}/{field}/{fieldValue}`.",
+      "type": "string",
+      "pattern": "^<#E/\\S+/\\S+>$"
+    },
+    "sqlQuery": {
+      "description": "SQL query statement. Example - 'select * from orders'.",
+      "type": "string"
+    }
+  }
+}

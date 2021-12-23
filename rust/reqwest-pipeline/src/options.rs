@@ -41,7 +41,6 @@ impl ClientOptions {
             per_call_policies: Vec::new(),
             per_retry_policies: Vec::new(),
             retry: RetryOptions::default(),
-            telemetry: TelemetryOptions::default(),
         }
     }
 

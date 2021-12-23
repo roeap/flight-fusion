@@ -1,0 +1,137 @@
+{
+  "$id": "https://open-metadata.org/schema/entity/services/databaseService.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Database Service",
+  "description": "This schema defines the Database Service entity, such as MySQL, BigQuery, Redshift, Postgres, or Snowflake. Alternative terms such as Database Cluster, Database Server instance are also used for database service.",
+  "type": "object",
+  "definitions": {
+    "databaseServiceType": {
+      "description": "Type of database service such as MySQL, BigQuery, Snowflake, Redshift, Postgres...",
+      "type": "string",
+      "enum": [
+        "BigQuery",
+        "MySQL",
+        "Redshift",
+        "Snowflake",
+        "Postgres",
+        "MSSQL",
+        "Hive",
+        "Oracle",
+        "Athena",
+        "Presto",
+        "Trino",
+        "Vertica",
+        "Glue",
+        "MariaDB",
+        "Druid"
+      ],
+      "javaEnums": [
+        {
+          "name": "BigQuery"
+        },
+        {
+          "name": "MySQL"
+        },
+        {
+          "name": "Redshift"
+        },
+        {
+          "name": "Snowflake"
+        },
+        {
+          "name": "Postgres"
+        },
+        {
+          "name": "MSSQL"
+        },
+        {
+          "name": "Oracle"
+        },
+        {
+          "name": "Athena"
+        },
+        {
+          "name": "Hive"
+        },
+        {
+          "name": "Presto"
+        },
+        {
+          "name": "Trino"
+        },
+        {
+          "name": "Vertica"
+        },
+        {
+          "name": "Glue"
+        },
+        {
+          "name": "MariaDB"
+        },
+        {
+          "name": "Druid"
+        }
+      ]
+    }
+  },
+  "properties": {
+    "id": {
+      "description": "Unique identifier of this database service instance.",
+      "$ref": "../../type/basic.json#/definitions/uuid"
+    },
+    "name": {
+      "description": "Name that identifies this database service.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "displayName": {
+      "description": "Display Name that identifies this database service.",
+      "type": "string"
+    },
+    "serviceType": {
+      "description": "Type of database service such as MySQL, BigQuery, Snowflake, Redshift, Postgres...",
+      "$ref": "#/definitions/databaseServiceType"
+    },
+    "description": {
+      "description": "Description of a database service instance.",
+      "type": "string"
+    },
+    "version" : {
+      "description": "Metadata version of the entity.",
+      "$ref": "../../type/entityHistory.json#/definitions/entityVersion"
+    },
+    "updatedAt" : {
+      "description": "Last update time corresponding to the new version of the entity.",
+      "$ref": "../../type/basic.json#/definitions/dateTime"
+    },
+    "updatedBy" : {
+      "description": "User who made the update.",
+      "type": "string"
+    },
+    "href": {
+      "description": "Link to the resource corresponding to this database service.",
+      "$ref": "../../type/basic.json#/definitions/href"
+    },
+    "jdbc": {
+      "description": "JDBC connection information.",
+      "$ref": "../../type/jdbcConnection.json#/definitions/jdbcInfo"
+    },
+    "ingestionSchedule": {
+      "description": "Schedule for running metadata ingestion jobs.",
+      "$ref": "../../type/schedule.json"
+    },
+    "changeDescription": {
+      "description" : "Change that lead to this version of the entity.",
+      "$ref": "../../type/entityHistory.json#/definitions/changeDescription"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "serviceType",
+    "href",
+    "jdbc"
+  ],
+  "additionalProperties": false
+}

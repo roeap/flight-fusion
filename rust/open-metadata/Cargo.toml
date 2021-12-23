@@ -21,6 +21,7 @@ async-trait = "0.1"
 rand = "*"
 reqwest-pipeline = { path = "../reqwest-pipeline" }
 futures-util = "0.3"
+futures = "0.3"
 
 [dependencies.reqwest]
 version = "^0.11"
@@ -29,6 +30,9 @@ features = ["json", "multipart", "gzip"]
 [dev-dependencies]
 env_logger = "0.9"
 tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
+reqwest-pipeline = { path = "../reqwest-pipeline", features = ["mock_transport_framework"] }
+# reqwest-pipeline = { path = "../reqwest-pipeline" }
 
 [features]
+default_featurest = ["mock_transport_framework"]
 mock_transport_framework = ["reqwest-pipeline/mock_transport_framework"]

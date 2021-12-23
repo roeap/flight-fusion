@@ -36,9 +36,6 @@ generate-openmeta:
 		--additional-properties=useSingleRequestParameter=true \
 		--skip-validate-spec
 
-# .PHONY: generate-openmeta
-# generate-openmeta:
-# 	quicktype -s schema --src rust/open-metadata/json/schema/type/entityReference.json \
-# 		-l rs \
-# 		-o rust/open-metadata/src/entity.rs \
-# 		--density dense
+.PHONY: generate-openmeta
+generate-types:
+	node scripts/generate-openmeta-types.js

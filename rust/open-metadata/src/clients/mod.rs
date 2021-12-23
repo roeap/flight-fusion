@@ -1,35 +1,12 @@
-use crate::{models::{CatalogVersion, CollectionList}};
+use crate::operations::{GerVersionBuilder, ListCollectionsBuilder};
 use databases::DatabasesCollectionClient;
 use http::{method::Method, request::Builder as RequestBuilder};
-use reqwest_pipeline::{ClientOptions, Context, Continuable, Pipeline, Request};
+use reqwest_pipeline::{ClientOptions, Pipeline, Request};
 use url::Url;
 
 pub mod databases;
 
 pub const ROUTE_DATABASES: &str = "api/v1/databases";
-
-#[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
-pub struct PagedReturn<T> {
-    data: Vec<T>,
-    paging: Option<Box<crate::models::Paging>>,
-}
-
-impl<T> Continuable for PagedReturn<T> {
-    fn continuation(&self) -> Option<String> {
-        // TODO actually get continuation token
-        None
-    }
-}
-
-impl<T> IntoIterator for PagedReturn<T> {
-    type Item = T;
-
-    type IntoIter = std::vec::IntoIter<Self::Item>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.data.into_iter()
-    }
-}
 
 #[derive(Debug, Clone)]
 pub struct OpenMetadataClient {
@@ -50,7 +27,7 @@ impl OpenMetadataOptions {
         Self::default()
     }
 
-    #[cfg(feature = "mock_transport_framework")]
+    // #[cfg(feature = "mock_transport_framework")]
     /// Create new options with a given transaction name
     pub fn new_with_transaction_name(name: String) -> Self {
         Self {
@@ -118,27 +95,14 @@ impl OpenMetadataClient {
         &self.routes
     }
 
-    pub async fn get_version(&self) -> crate::Result<CatalogVersion> {
-        let url = self.api_routes().catalog().join("version").unwrap();
-        let mut request = self.prepare_request(url.as_str(), http::Method::GET);
-        // options.decorate_request(&mut request)?;
-        let response = self
-            .pipeline()
-            .send(&mut Context::new(), &mut request)
-            .await?;
-        Ok(CatalogVersion::try_from(response).await?)
+    /// Get the version for the service
+    pub fn get_version(&self) -> GerVersionBuilder {
+        GerVersionBuilder::new(self.clone())
     }
 
-    /// Get the database
-    pub async fn list_collections(&self) -> crate::Result<CollectionList> {
-        let url = self.api_routes().catalog();
-        let mut request = self.prepare_request(url.as_str(), http::Method::GET);
-        // options.decorate_request(&mut request)?;
-        let response = self
-            .pipeline()
-            .send(&mut Context::new(), &mut request)
-            .await?;
-        Ok(CollectionList::try_from(response).await?)
+    /// List all collections available in the service
+    pub fn list_collections(&self) -> ListCollectionsBuilder {
+        ListCollectionsBuilder::new(self.clone())
     }
 
     pub(crate) fn prepare_request(&self, url: &str, http_method: Method) -> Request {
@@ -234,18 +198,29 @@ impl ApiRoutes {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use futures_util::StreamExt;
+
+    #[tokio::test]
+    async fn test_get_version() {
+        let client = OpenMetadataClient::new(
+            "http://localhost:8585",
+            OpenMetadataOptions::new_with_transaction_name("get_version".to_string()),
+        );
+        let version = client.get_version().into_future().await.unwrap();
+        println!("{:?}", version)
+    }
 
     #[tokio::test]
     async fn test_list_collections() {
         let client =
             OpenMetadataClient::new("http://localhost:8585", OpenMetadataOptions::default());
 
-        let collections = client.list_collections().await.unwrap();
+        let collections = Box::pin(client.list_collections().into_stream())
+            .next()
+            .await
+            .unwrap()
+            .unwrap();
 
         println!("{:?}", collections);
-
-        let version = client.get_version().await.unwrap();
-
-        println!("{:?}", version)
     }
 }
