@@ -15,8 +15,10 @@ pub struct PagedReturn<T> {
 
 impl<T> Continuable for PagedReturn<T> {
     fn continuation(&self) -> Option<String> {
-        // TODO actually get continuation token
-        None
+        match &self.paging {
+            Some(page) => page.after.clone(),
+            _ => None,
+        }
     }
 }
 

@@ -43,8 +43,8 @@ impl Pipeline {
     /// Crates can simply pass `option_env!("CARGO_PKG_NAME")` and `option_env!("CARGO_PKG_VERSION")` for the
     /// `crate_name` and `crate_version` arguments respectively.
     pub fn new(
-        _crate_name: Option<&'static str>,
-        _crate_version: Option<&'static str>,
+        #[allow(unused_variables)] crate_name: Option<&'static str>,
+        #[allow(unused_variables)] crate_version: Option<&'static str>,
         options: ClientOptions,
         per_call_policies: Vec<Arc<dyn Policy>>,
         per_retry_policies: Vec<Arc<dyn Policy>>,

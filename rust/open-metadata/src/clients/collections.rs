@@ -1,5 +1,5 @@
-use crate::operations::{GerVersionBuilder, ListCollectionsBuilder};
 use super::databases::DatabasesCollectionClient;
+use crate::operations::{GerVersionBuilder, ListCollectionsBuilder};
 use http::{method::Method, request::Builder as RequestBuilder};
 use reqwest_pipeline::{ClientOptions, Pipeline, Request};
 use url::Url;
@@ -25,9 +25,9 @@ impl OpenMetadataOptions {
         Self::default()
     }
 
-    // #[cfg(feature = "mock_transport_framework")]
+    #[cfg(feature = "mock_transport_framework")]
     /// Create new options with a given transaction name
-    pub fn new_with_transaction_name(name: String) -> Self {
+    pub fn new_with_transaction_name<T: Into<String>>(name: T) -> Self {
         Self {
             options: ClientOptions::new_with_transaction_name(name.into()),
         }
@@ -35,10 +35,7 @@ impl OpenMetadataOptions {
 }
 
 /// Create a Pipeline from OpenMetadataOptions
-fn new_pipeline_from_options(
-    options: OpenMetadataOptions,
-    // authorization_token: AuthorizationToken,
-) -> Pipeline {
+fn new_pipeline_from_options(options: OpenMetadataOptions) -> Pipeline {
     // let auth_policy: Arc<dyn azure_core::Policy> =
     //    Arc::new(crate::AuthorizationPolicy::new(authorization_token));
 

@@ -38,9 +38,7 @@ impl GerVersionBuilder {
     pub fn into_future(self) -> CreateDatabase {
         let uri = self.client.api_routes().catalog().clone();
         Box::pin(async move {
-            let mut request = self
-                .client
-                .prepare_request(uri.as_str(), http::Method::GET);
+            let mut request = self.client.prepare_request(uri.as_str(), http::Method::GET);
 
             let response = self
                 .client

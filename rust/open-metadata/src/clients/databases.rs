@@ -65,30 +65,3 @@ impl DatabaseClient {
         Ok(Database::try_from(response).await?)
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::clients::{OpenMetadataClient, OpenMetadataOptions};
-    use futures_util::StreamExt;
-
-    #[tokio::test]
-    async fn test_list_databases() {
-        let client = initialize().into_databases_collection_client();
-
-        let databases = client.list_databases().into_stream()
-            .next()
-            .await
-            .unwrap()
-            .unwrap();
-
-        assert!(databases.data.len() >= 2)
-    }
-
-    #[cfg(not(feature = "mock_transport_framework"))]
-    pub fn initialize() -> OpenMetadataClient {
-        let client =
-            OpenMetadataClient::new("http://localhost:8585", OpenMetadataOptions::default());
-
-        client
-    }
-}
