@@ -1,6 +1,6 @@
 #![cfg(feature = "mock_transport_framework")]
 use futures_util::StreamExt;
-use std::error::Error;
+use std::{error::Error, assert};
 use test_utils::initialize;
 
 mod test_utils;
@@ -19,6 +19,7 @@ async fn test_list_collections() -> Result<(), BoxedError> {
         .unwrap()
         .unwrap();
 
-    println!("{:?}", collections);
+    assert!(collections.data.len() > 0);
+
     Ok(())
 }
