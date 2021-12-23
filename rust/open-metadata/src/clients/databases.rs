@@ -1,17 +1,9 @@
 use crate::{
-    clients::{OpenMetadataClient, PagedReturn},
+    clients::OpenMetadataClient,
     generated::{Database, EntityReference},
     operations::{CreateDatabaseBuilder, ListDatabasesBuilder},
 };
 use reqwest_pipeline::{collect_pinned_stream, Context, Response, Result as RPResult};
-
-impl PagedReturn<Database> {
-    pub(crate) async fn try_from(response: Response) -> RPResult<Self> {
-        let (_status_code, _headers, pinned_stream) = response.deconstruct();
-        let body = collect_pinned_stream(pinned_stream).await?;
-        Ok(serde_json::from_slice(&body)?)
-    }
-}
 
 impl Database {
     pub(crate) async fn try_from(response: Response) -> RPResult<Self> {

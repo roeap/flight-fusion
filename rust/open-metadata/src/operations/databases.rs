@@ -1,14 +1,26 @@
+use super::PagedReturn;
 use crate::{
-    clients::{OpenMetadataClient, PagedReturn},
+    clients::OpenMetadataClient,
     generated::{CreateDatabaseRequest, Database, EntityReference},
     request_options::{QueryAfter, QueryBefore, QueryFields, QueryLimit, QueryService},
 };
 use bytes::Bytes;
-use reqwest_pipeline::{setters, AppendToUrlQuery, Context, Pageable};
+use reqwest_pipeline::{
+    collect_pinned_stream, setters, AppendToUrlQuery, Context, Pageable, Response,
+    Result as RPResult,
+};
 
 /// A future of a create database response
 type CreateDatabase = futures::future::BoxFuture<'static, crate::Result<()>>;
 type ListDatabases = Pageable<PagedReturn<Database>>;
+
+impl PagedReturn<Database> {
+    pub(crate) async fn try_from(response: Response) -> RPResult<Self> {
+        let (_status_code, _headers, pinned_stream) = response.deconstruct();
+        let body = collect_pinned_stream(pinned_stream).await?;
+        Ok(serde_json::from_slice(&body)?)
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct ListDatabasesBuilder {
@@ -121,8 +133,11 @@ impl CreateDatabaseBuilder {
     }
 
     pub fn into_future(mut self) -> CreateDatabase {
+        let uri = self.client.api_routes().databases().clone();
         Box::pin(async move {
-            let mut request = self.client.prepare_request("dbs", http::Method::POST);
+            let mut request = self
+                .client
+                .prepare_request(uri.as_str(), http::Method::POST);
 
             let body = CreateDatabaseRequest {
                 name: self.database_name.clone(),
@@ -132,7 +147,7 @@ impl CreateDatabaseBuilder {
             };
 
             request.set_body(Bytes::from(serde_json::to_string(&body)?).into());
-            let response = self
+            let _response = self
                 .client
                 .pipeline()
                 .send(&mut self.context, &mut request)

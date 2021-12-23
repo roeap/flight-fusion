@@ -5,10 +5,8 @@ extern crate serde;
 extern crate serde_json;
 extern crate url;
 
-mod apis;
 pub mod clients;
 pub mod generated;
-pub mod models;
 mod operations;
 mod request_options;
 

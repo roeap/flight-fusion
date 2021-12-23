@@ -2617,7 +2617,7 @@ pub struct UsageDetailsOfAnEntity {
 
 /// Type used for capturing the details of a collection.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SchemaForCollectionDescriptor {
+pub struct CollectionDescriptor {
     #[serde(rename = "collection")]
     pub collection: Option<CollectionInfo>,
 }
