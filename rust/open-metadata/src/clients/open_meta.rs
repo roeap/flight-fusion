@@ -1,4 +1,4 @@
-use super::databases::DatabasesCollectionClient;
+use super::{databases::DatabasesCollectionClient, services::ServicesClient};
 use crate::operations::{GerVersionBuilder, ListCollectionsBuilder};
 use http::{method::Method, request::Builder as RequestBuilder};
 use reqwest_pipeline::{ClientOptions, Pipeline, Request};
@@ -86,6 +86,10 @@ impl OpenMetadataClient {
         DatabasesCollectionClient::new(self.clone())
     }
 
+    pub fn into_services_client(&self) -> ServicesClient {
+        ServicesClient::new(self.clone())
+    }
+
     pub fn api_routes(&self) -> &ApiRoutes {
         &self.routes
     }
@@ -125,6 +129,7 @@ pub struct ApiRoutes {
     events_url: Url,
     feeds_url: Url,
     lineage_url: Url,
+    services_url: Url,
 }
 
 impl ApiRoutes {
@@ -139,6 +144,7 @@ impl ApiRoutes {
         let events_url = service_url.join("api/v1/events").unwrap();
         let feeds_url = service_url.join("api/v1/feed").unwrap();
         let lineage_url = service_url.join("api/v1/lineage").unwrap();
+        let services_url = service_url.join("api/v1/services").unwrap();
 
         Self {
             catalog_url,
@@ -150,6 +156,7 @@ impl ApiRoutes {
             events_url,
             feeds_url,
             lineage_url,
+            services_url,
         }
     }
 
@@ -187,5 +194,9 @@ impl ApiRoutes {
 
     pub fn lineage(&self) -> &Url {
         &self.lineage_url
+    }
+
+    pub fn services(&self) -> &Url {
+        &self.services_url
     }
 }

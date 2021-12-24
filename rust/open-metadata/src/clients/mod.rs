@@ -1,7 +1,7 @@
-pub mod collections;
+pub mod open_meta;
 pub mod databases;
 pub mod services;
 
-pub use collections::*;
+pub use open_meta::*;
 pub use databases::*;
 pub use services::*;
