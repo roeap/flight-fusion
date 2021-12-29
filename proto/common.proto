@@ -1,6 +1,13 @@
 syntax = "proto3";
 package flight_fusion_ipc;
 
+enum FileFormt {
+  FILE_FORMAT_UNSPECIFIED = 0;
+  FILE_FORMAT_PARQUET = 1;
+  FILE_FORMAT_AVRO = 2;
+  FILE_FORMAT_CSV = 3;
+}
+
 enum DatasetFormat {
   DATASET_FORMAT_FILE = 0;
   DATASET_FORMAT_DATASET = 1;
@@ -14,6 +21,15 @@ enum SaveMode {
   SAVE_MODE_ERROR_IF_EXISTS = 3;
 }
 
+enum StorageType {
+  STORAGE_TYPE_UNSPECIFIED = 0;
+  STORAGE_TYPE_LOCAL = 1;
+  STORAGE_TYPE_HDFS = 2;
+  STORAGE_TYPE_AZURE_ADLS_V2 = 3;
+  STORAGE_TYPE_AZURE_BLOB = 4;
+  STORAGE_TYPE_S3 = 5;
+}
+
 message DeltaReference {
   string location = 1;
 }
@@ -24,12 +40,13 @@ message ListingReference {
 
 message FileReference {
   string path = 1;
+  FileFormt format = 2;
 }
 
 message TableReference {
   oneof table {
     DeltaReference delta = 1;
     ListingReference listing = 2;
-    FileReference filse = 3;
+    FileReference file = 3;
   }
 }

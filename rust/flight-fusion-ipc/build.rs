@@ -12,6 +12,7 @@ fn main() -> Result<()> {
             "../../proto/message.proto",
             "../../proto/actions.proto",
             "../../proto/passport.proto",
+            "../../proto/signals.proto",
         ],
         &["../../proto/"],
     )

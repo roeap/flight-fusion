@@ -15,6 +15,8 @@ pub struct ListingReference {
 pub struct FileReference {
     #[prost(string, tag="1")]
     pub path: ::prost::alloc::string::String,
+    #[prost(enumeration="FileFormt", tag="2")]
+    pub format: i32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TableReference {
@@ -30,8 +32,16 @@ pub mod table_reference {
         #[prost(message, tag="2")]
         Listing(super::ListingReference),
         #[prost(message, tag="3")]
-        Filse(super::FileReference),
+        File(super::FileReference),
     }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum FileFormt {
+    FileFormatUnspecified = 0,
+    FileFormatParquet = 1,
+    FileFormatAvro = 2,
+    FileFormatCsv = 3,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
@@ -47,6 +57,16 @@ pub enum SaveMode {
     Append = 1,
     Overwrite = 2,
     ErrorIfExists = 3,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum StorageType {
+    Unspecified = 0,
+    Local = 1,
+    Hdfs = 2,
+    AzureAdlsV2 = 3,
+    AzureBlob = 4,
+    S3 = 5,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RegisterDatasetRequest {
@@ -273,4 +293,72 @@ pub enum UserAction {
 #[repr(i32)]
 pub enum DeviceAction {
     Read = 0,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExpressionReference {
+    #[prost(string, tag="1")]
+    pub uid: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub expression: ::prost::alloc::string::String,
+    #[prost(message, optional, tag="3")]
+    pub input_frame: ::core::option::Option<SignalFrame>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ModelReference {
+    #[prost(string, tag="1")]
+    pub uri: ::prost::alloc::string::String,
+    #[prost(message, optional, tag="2")]
+    pub input_frame: ::core::option::Option<SignalFrame>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Signal {
+    #[prost(string, tag="1")]
+    pub uid: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub description: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SignalProvider {
+    #[prost(string, tag="1")]
+    pub uid: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub description: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag="4")]
+    pub signals: ::prost::alloc::vec::Vec<Signal>,
+    #[prost(oneof="signal_provider::Source", tags="100, 101")]
+    pub source: ::core::option::Option<signal_provider::Source>,
+}
+/// Nested message and enum types in `SignalProvider`.
+pub mod signal_provider {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Source {
+        #[prost(message, tag="100")]
+        Table(super::TableReference),
+        #[prost(message, tag="101")]
+        Model(super::ModelReference),
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SignalFrame {
+    #[prost(string, tag="1")]
+    pub uid: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub description: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag="4")]
+    pub providers: ::prost::alloc::vec::Vec<SignalProvider>,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum SignalType {
+    Unspecified = 0,
+    Observation = 1,
+    Constant = 2,
+    Expression = 3,
+    Model = 4,
 }
