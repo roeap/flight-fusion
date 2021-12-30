@@ -1,13 +1,16 @@
 use arrow_deps::datafusion::{
-    catalog::schema::SchemaProvider,
+    catalog::{
+        catalog::MemoryCatalogProvider,
+        schema::{MemorySchemaProvider, SchemaProvider},
+    },
     datasource::{
         file_format::parquet::ParquetFormat,
         listing::{ListingOptions, ListingTable},
         object_store::local::LocalFileSystem,
         TableProvider,
     },
-    error::Result as DataFusionResult,
     physical_plan::{ExecutionPlan, PhysicalExpr},
+    prelude::{ExecutionConfig, ExecutionContext},
 };
 use async_trait::async_trait;
 use flight_fusion_ipc::{
@@ -15,9 +18,7 @@ use flight_fusion_ipc::{
     signal_provider::Source as ProviderSource, table_reference::Table as TableRef, SignalFrame,
     SignalProvider,
 };
-use std::any::Any;
-use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 pub mod error;
 
@@ -71,67 +72,48 @@ impl ToProviderNode for SignalProvider {
 
 pub struct SignalFrameContext {
     frame: SignalFrame,
-    tables: RwLock<HashMap<String, Arc<dyn TableProvider>>>,
 }
 
 impl SignalFrameContext {
-    pub async fn try_new(frame: SignalFrame) -> FusionResult<Self> {
-        let mut tables = HashMap::new();
+    pub fn new(frame: SignalFrame) -> Self {
+        Self { frame }
+    }
 
-        for provider in frame.clone().providers {
+    pub async fn into_query_context(&self) -> FusionResult<ExecutionContext> {
+        let schema_provider = MemorySchemaProvider::new();
+
+        for provider in self.frame.clone().providers {
             match provider.try_into_provider_node().await? {
                 ProviderNode::Table(tbl) => {
-                    tables.insert(provider.name.clone(), tbl.clone());
+                    // TODO remove panic
+                    schema_provider
+                        .register_table(provider.name.clone(), tbl.clone())
+                        .unwrap();
                 }
                 _ => (),
             }
         }
 
-        Ok(Self {
-            frame,
-            tables: RwLock::new(tables),
-        })
-    }
-}
+        let catalog = Arc::new(MemoryCatalogProvider::new());
+        catalog.register_schema(self.frame.name.clone(), Arc::new(schema_provider));
 
-impl SchemaProvider for SignalFrameContext {
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
+        let config = ExecutionConfig::new().with_information_schema(true);
+        let ctx = ExecutionContext::with_config(config);
+        ctx.register_catalog("catalog", catalog);
 
-    /// Retrieves the list of available table names in this schema.
-    fn table_names(&self) -> Vec<String> {
-        let tables = self.tables.read().unwrap();
-        tables.keys().cloned().collect()
-    }
-
-    /// Retrieves a specific table from the schema by name, provided it exists.
-    fn table(&self, name: &str) -> Option<Arc<dyn TableProvider>> {
-        let tables = self.tables.read().unwrap();
-        tables.get(name).cloned()
-    }
-
-    fn deregister_table(&self, name: &str) -> DataFusionResult<Option<Arc<dyn TableProvider>>> {
-        let mut tables = self.tables.write().unwrap();
-        Ok(tables.remove(name))
-    }
-
-    fn table_exist(&self, name: &str) -> bool {
-        let tables = self.tables.read().unwrap();
-        tables.contains_key(name)
+        Ok(ctx)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ToProviderNode;
     use arrow_deps::datafusion::sql::parser::DFParser;
     use flight_fusion_ipc::{
         signal_provider::Source as ProviderSource, table_reference::Table as TableRef, FileFormat,
         FileReference, Signal, SignalProvider, TableReference,
     };
-
-    use crate::ToProviderNode;
 
     #[tokio::test]
     async fn provider_node_conversion() {
@@ -147,10 +129,15 @@ mod tests {
             uid: "frame-id".to_string(),
             name: "frame".to_string(),
             description: "description".to_string(),
-            providers: vec![provider]
+            providers: vec![provider],
         };
-        let context = SignalFrameContext::try_new(frame).await.unwrap();
-        assert!(context.table_exist("provider"))
+        let context = SignalFrameContext::new(frame.clone());
+        let mut ctx = context.into_query_context().await.unwrap();
+
+        let sql = "select * from information_schema.columns";
+        let df = ctx.sql(sql).await.unwrap();
+
+        df.show().await.unwrap();
     }
 
     #[test]
