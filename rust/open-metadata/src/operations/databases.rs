@@ -5,23 +5,12 @@ use crate::{
     request_options::{QueryAfter, QueryBefore, QueryFields, QueryLimit, QueryService},
 };
 use bytes::Bytes;
-use reqwest_pipeline::{
-    collect_pinned_stream, setters, AppendToUrlQuery, Context, Pageable, Response,
-    Result as RPResult,
-};
+use reqwest_pipeline::{setters, AppendToUrlQuery, Context, Pageable};
 use std::pin::Pin;
 
 /// A future of a create database response
 type CreateDatabase = futures::future::BoxFuture<'static, crate::Result<()>>;
 type ListDatabases = Pin<Box<Pageable<PagedReturn<Database>>>>;
-
-impl PagedReturn<Database> {
-    pub(crate) async fn try_from(response: Response) -> RPResult<Self> {
-        let (_status_code, _headers, pinned_stream) = response.deconstruct();
-        let body = collect_pinned_stream(pinned_stream).await?;
-        Ok(serde_json::from_slice(&body)?)
-    }
-}
 
 #[derive(Clone, Debug)]
 pub struct ListDatabasesBuilder {

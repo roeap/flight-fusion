@@ -2,24 +2,12 @@ use super::PagedReturn;
 use crate::{
     clients::OpenMetadataClient,
     generated::Table,
-    request_options::{QueryAfter, QueryBefore, QueryFields, QueryLimit, QueryDatabase},
+    request_options::{QueryAfter, QueryBefore, QueryDatabase, QueryFields, QueryLimit},
 };
-use reqwest_pipeline::{
-    collect_pinned_stream, setters, AppendToUrlQuery, Context, Pageable, Response,
-    Result as RPResult,
-};
+use reqwest_pipeline::{setters, AppendToUrlQuery, Context, Pageable};
 use std::pin::Pin;
 
 type ListTables = Pin<Box<Pageable<PagedReturn<Table>>>>;
-
-// TODO create via macro
-impl PagedReturn<Table> {
-    pub(crate) async fn try_from(response: Response) -> RPResult<Self> {
-        let (_status_code, _headers, pinned_stream) = response.deconstruct();
-        let body = collect_pinned_stream(pinned_stream).await?;
-        Ok(serde_json::from_slice(&body)?)
-    }
-}
 
 #[derive(Clone, Debug)]
 pub struct ListTablesBuilder {

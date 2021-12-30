@@ -3,19 +3,11 @@ use crate::{
     clients::OpenMetadataClient,
     generated::{CatalogVersion, CollectionDescriptor},
 };
-use reqwest_pipeline::{collect_pinned_stream, Context, Pageable, Response, Result as RPResult};
+use reqwest_pipeline::{collect_pinned_stream, Context, Pageable, Response};
 use std::pin::Pin;
 
 type CreateDatabase = futures::future::BoxFuture<'static, crate::Result<CatalogVersion>>;
 type ListCollections = Pin<Box<Pageable<PagedReturn<CollectionDescriptor>>>>;
-
-impl PagedReturn<CollectionDescriptor> {
-    pub(crate) async fn try_from(response: Response) -> RPResult<Self> {
-        let (_status_code, _headers, pinned_stream) = response.deconstruct();
-        let body = collect_pinned_stream(pinned_stream).await?;
-        Ok(serde_json::from_slice(&body)?)
-    }
-}
 
 impl CatalogVersion {
     pub(crate) async fn try_from(response: Response) -> reqwest_pipeline::Result<Self> {

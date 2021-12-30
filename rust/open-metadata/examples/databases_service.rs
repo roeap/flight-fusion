@@ -19,6 +19,7 @@ async fn main() -> Result<(), std::io::Error> {
     let mut tables = client
         .into_tables_collection_client()
         .list_tables()
+        .database("glue.default".to_string())
         .into_stream();
 
     while let Some(Ok(chunk)) = tables.next().await {
