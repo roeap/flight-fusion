@@ -19,6 +19,7 @@ grpcio-tools = "^1.42.0"
 mypy-protobuf = "^3.0.0"
 mkdocs = "^1.2.3"
 openmetadata-ingestion = { version = ">=0.5", extras = ["docker"]}
+acryl-datahub = "^0.8.20"
 
 [tool.poetry.dev-dependencies]
 black = "^21.9b0"

@@ -85,7 +85,6 @@ impl SignalFrameContext {
                 }
                 _ => (),
             }
-            todo!()
         }
 
         Ok(Self {
@@ -141,6 +140,19 @@ mod tests {
         assert!(matches!(node, ProviderNode::Table(_)))
     }
 
+    #[tokio::test]
+    async fn create_catalog() {
+        let provider = get_provider();
+        let frame = SignalFrame {
+            uid: "frame-id".to_string(),
+            name: "frame".to_string(),
+            description: "description".to_string(),
+            providers: vec![provider]
+        };
+        let context = SignalFrameContext::try_new(frame).await.unwrap();
+        assert!(context.table_exist("provider"))
+    }
+
     #[test]
     fn test_sql_parser() {
         let sql = "SELECT c = a + b FROM tblref";
@@ -151,11 +163,11 @@ mod tests {
     fn get_provider() -> SignalProvider {
         SignalProvider {
             uid: "provider-id".to_string(),
-            name: "name".to_string(),
+            name: "provider".to_string(),
             description: "description".to_string(),
             signals: vec![Signal {
                 uid: "signal-id".to_string(),
-                name: "name".to_string(),
+                name: "signal".to_string(),
                 description: "description".to_string(),
             }],
             source: Some(ProviderSource::Table(TableReference {
