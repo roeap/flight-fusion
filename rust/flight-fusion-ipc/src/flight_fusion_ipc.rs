@@ -15,7 +15,7 @@ pub struct ListingReference {
 pub struct FileReference {
     #[prost(string, tag="1")]
     pub path: ::prost::alloc::string::String,
-    #[prost(enumeration="FileFormt", tag="2")]
+    #[prost(enumeration="FileFormat", tag="2")]
     pub format: i32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -37,11 +37,11 @@ pub mod table_reference {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
-pub enum FileFormt {
-    FileFormatUnspecified = 0,
-    FileFormatParquet = 1,
-    FileFormatAvro = 2,
-    FileFormatCsv = 3,
+pub enum FileFormat {
+    Unspecified = 0,
+    Parquet = 1,
+    Avro = 2,
+    Csv = 3,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]

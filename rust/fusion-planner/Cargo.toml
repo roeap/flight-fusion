@@ -1,0 +1,19 @@
+[package]
+name = "fusion-planner"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Workspace dependencies
+arrow-deps = { path = "../arrow-deps/", features = ["delta"] }
+observability_deps = { path = "../observability-deps" }
+flight-fusion-ipc = { path = "../flight-fusion-ipc" }
+
+# Creates.io dependencies
+async-trait = "0.1"
+prost = "0.9"
+thiserror = "1"
+
+[dev-dependencies]
+env_logger = "0.9"
+tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
