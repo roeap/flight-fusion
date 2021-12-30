@@ -21,6 +21,8 @@ use flight_fusion_ipc::{
 use std::sync::Arc;
 
 pub mod error;
+pub mod frames;
+pub mod test_utils;
 
 pub enum ProviderNode {
     Table(Arc<dyn TableProvider>),
@@ -108,12 +110,8 @@ impl SignalFrameContext {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ToProviderNode;
+    use crate::{ToProviderNode, test_utils::get_provider};
     use arrow_deps::datafusion::sql::parser::DFParser;
-    use flight_fusion_ipc::{
-        signal_provider::Source as ProviderSource, table_reference::Table as TableRef, FileFormat,
-        FileReference, Signal, SignalProvider, TableReference,
-    };
 
     #[tokio::test]
     async fn provider_node_conversion() {
@@ -145,24 +143,5 @@ mod tests {
         let sql = "SELECT c = a + b FROM tblref";
         let statements = DFParser::parse_sql(sql).unwrap();
         println!("{:#?}", statements[0])
-    }
-
-    fn get_provider() -> SignalProvider {
-        SignalProvider {
-            uid: "provider-id".to_string(),
-            name: "provider".to_string(),
-            description: "description".to_string(),
-            signals: vec![Signal {
-                uid: "signal-id".to_string(),
-                name: "signal".to_string(),
-                description: "description".to_string(),
-            }],
-            source: Some(ProviderSource::Table(TableReference {
-                table: Some(TableRef::File(FileReference {
-                    path: "/home/robstar/github/flight-fusion/.tmp/file/table.parquet".to_string(),
-                    format: FileFormat::Parquet as i32,
-                })),
-            })),
-        }
     }
 }
