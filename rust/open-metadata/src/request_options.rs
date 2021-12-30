@@ -4,6 +4,7 @@ use std::num::NonZeroU32;
 
 query_prop! {
     service: String => QueryService,
+    database: String => QueryDatabase,
     fields: String => QueryFields,
     after: String => QueryAfter,
     before: String => QueryBefore,

@@ -1,4 +1,6 @@
-use super::{databases::DatabasesCollectionClient, services::ServicesClient};
+use super::{
+    databases::DatabasesCollectionClient, services::ServicesClient, tables::TablesCollectionClient,
+};
 use crate::operations::{GerVersionBuilder, ListCollectionsBuilder};
 use http::{method::Method, request::Builder as RequestBuilder};
 use reqwest_pipeline::{ClientOptions, Pipeline, Request};
@@ -84,6 +86,10 @@ impl OpenMetadataClient {
 
     pub fn into_databases_collection_client(&self) -> DatabasesCollectionClient {
         DatabasesCollectionClient::new(self.clone())
+    }
+
+    pub fn into_tables_collection_client(&self) -> TablesCollectionClient {
+        TablesCollectionClient::new(self.clone())
     }
 
     pub fn into_services_client(&self) -> ServicesClient {

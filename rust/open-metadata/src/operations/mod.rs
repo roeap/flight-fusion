@@ -4,10 +4,12 @@ pub use databases::*;
 pub use futures::StreamExt;
 use reqwest_pipeline::Continuable;
 pub use services::*;
+pub use tables::*;
 
 pub mod collections;
 pub mod databases;
 pub mod services;
+pub mod tables;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PagedReturn<T> {
