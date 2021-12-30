@@ -1,13 +1,17 @@
 use super::PagedReturn;
 use crate::{
     clients::OpenMetadataClient,
-    generated::{CollectionDescriptor, CreateStorageServiceRequest, StorageServiceType},
+    generated::{
+        CollectionDescriptor, CreateDatabaseServiceRequest, CreateStorageServiceRequest,
+        DatabaseService, DatabaseServiceType, JdbcInfo, Schedule, StorageServiceType,
+    },
 };
 use bytes::Bytes;
 use reqwest_pipeline::{setters, Context, Pageable};
 use std::pin::Pin;
 
 type CreateStorageService = futures::future::BoxFuture<'static, crate::Result<()>>;
+type CreateDatabaseService = futures::future::BoxFuture<'static, crate::Result<DatabaseService>>;
 type ListServices = Pin<Box<Pageable<PagedReturn<CollectionDescriptor>>>>;
 
 #[derive(Clone, Debug)]
@@ -73,11 +77,6 @@ impl CreateStorageServiceBuilder {
         service_type: StorageServiceType => Some(service_type),
     }
 
-    pub fn insert<E: Send + Sync + 'static>(&mut self, entity: E) -> &mut Self {
-        self.context.insert(entity);
-        self
-    }
-
     pub fn into_future(self) -> CreateStorageService {
         let uri = self
             .client
@@ -109,6 +108,81 @@ impl CreateStorageServiceBuilder {
             println!("{:?}", _response);
 
             Ok(())
+        })
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct CreateDatabaseServiceBuilder {
+    client: OpenMetadataClient,
+    context: Context,
+    name: String,
+    service_type: DatabaseServiceType,
+    jdbc: JdbcInfo,
+    description: Option<String>,
+    ingestion_schedule: Option<Schedule>,
+}
+
+// TODO add context type and context encoding headers...
+impl CreateDatabaseServiceBuilder {
+    pub(crate) fn new(
+        client: OpenMetadataClient,
+        name: String,
+        service_type: DatabaseServiceType,
+        jdbc: JdbcInfo,
+    ) -> Self {
+        Self {
+            client,
+            context: Context::new(),
+            name,
+            service_type,
+            jdbc,
+            description: None,
+            ingestion_schedule: None,
+        }
+    }
+
+    setters! {
+        description: String => Some(description),
+        ingestion_schedule: Schedule => Some(ingestion_schedule),
+    }
+
+    pub fn into_future(self) -> CreateDatabaseService {
+        let uri = self
+            .client
+            .api_routes()
+            .services()
+            .join("services/databaseServices")
+            .unwrap();
+
+        Box::pin(async move {
+            let mut request = self
+                .client
+                .prepare_request(uri.as_str(), http::Method::POST);
+
+            request.headers_mut().append(
+                "Content-Type",
+                "application/json;charset=utf-8".parse().unwrap(),
+            );
+
+            let body = CreateDatabaseServiceRequest {
+                name: self.name.clone(),
+                description: self.description.clone(),
+                service_type: self.service_type.clone(),
+                jdbc: self.jdbc.clone(),
+                ingestion_schedule: self.ingestion_schedule.clone(),
+            };
+            request.set_body(Bytes::from(serde_json::to_string(&body)?).into());
+
+            let response = self
+                .client
+                .pipeline()
+                .send(&mut self.context.clone(), &mut request)
+                .await?
+                .into_body_string()
+                .await;
+
+            Ok(serde_json::from_str(&response)?)
         })
     }
 }
