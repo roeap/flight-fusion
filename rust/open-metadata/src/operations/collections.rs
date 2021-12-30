@@ -62,7 +62,7 @@ impl ListCollectionsBuilder {
     }
 
     pub fn into_stream<'a>(self) -> ListCollections {
-        let make_request = move |_continuation: Option<String>| {
+        let make_request = move |_: Option<String>| {
             let this = self.clone();
             let ctx = Context::new();
 

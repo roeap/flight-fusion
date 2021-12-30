@@ -57,8 +57,7 @@ impl ListDatabasesBuilder {
     }
 
     pub fn into_stream<'a>(self) -> ListDatabases {
-        // TODO actually do paging here...
-        let make_request = move |_continuation: Option<String>| {
+        let make_request = move |continuation: Option<String>| {
             let this = self.clone();
             let ctx = self.context.clone().unwrap_or_default();
 
@@ -68,16 +67,15 @@ impl ListDatabasesBuilder {
                 this.service.append_to_url_query(&mut uri);
                 this.limit.append_to_url_query(&mut uri);
                 this.before.append_to_url_query(&mut uri);
-                this.after.append_to_url_query(&mut uri);
+
+                if let Some(c) = continuation {
+                    let param = QueryAfter::new(c);
+                    param.append_to_url_query(&mut uri);
+                } else {
+                    this.after.append_to_url_query(&mut uri);
+                }
 
                 let mut request = this.client.prepare_request(uri.as_str(), http::Method::GET);
-
-                // if let Some(c) = continuation {
-                //     match http::HeaderValue::from_str(c.as_str()) {
-                //         Ok(h) => request.headers_mut().append(headers::CONTINUATION, h),
-                //         Err(e) => return Err(azure_core::Error::Other(Box::new(e))),
-                //     };
-                // }
 
                 let response = match this
                     .client
