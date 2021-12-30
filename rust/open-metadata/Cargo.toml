@@ -34,5 +34,5 @@ tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
 reqwest-pipeline = { path = "../reqwest-pipeline" }
 
 [features]
-default_featurest = ["mock_transport_framework"]
+# default_featurest = ["mock_transport_framework"]
 mock_transport_framework = ["reqwest-pipeline/mock_transport_framework"]
