@@ -28,7 +28,7 @@ async fn main() -> Result<()> {
         ],
     )?;
 
-    // declare a table in memory. In spark API, this corresponds to createDataFrame(...).
+    // declare a table in memory.
     let table_provider = MemTable::try_new(schema, vec![vec![batch]])?;
 
     let schema_provider = MemorySchemaProvider::new();

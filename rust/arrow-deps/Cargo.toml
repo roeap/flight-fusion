@@ -1,0 +1,18 @@
+[package]
+name = "arrow-deps"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Crates.io dependencies
+arrow-flight = "6"
+
+# Git dependencies
+arrow-azure-core = { git = "https://github.com/roeap/arrow-azure-rs" }
+datafusion = { git = "https://github.com/apache/arrow-datafusion", rev = "07b29856c7a1287459e6b8545a41142c466d82bd" }
+deltalake = { git = "https://github.com/roeap/delta-rs", branch = "high-level-writer", features = [
+  "datafusion-ext",
+], optional = true }
+
+[features]
+delta = ["deltalake"]

@@ -3,18 +3,6 @@ from typing import Optional, Union
 import pandas as pd
 import pyarrow as pa
 import pyarrow.flight as flight
-from sqlalchemy.dialects.postgresql import (
-    BIGINT,
-    BOOLEAN,
-    DATE,
-    FLOAT,
-    INTEGER,
-    REAL,
-    SMALLINT,
-    TIME,
-    TIMESTAMP,
-    VARCHAR,
-)
 
 from flight_fusion.proto.actions_pb2 import (
     RegisterDatasetRequest,
@@ -32,19 +20,6 @@ from flight_fusion.proto.tickets_pb2 import (
     PutMemoryTableRequest,
     SqlTicket,
 )
-
-type_map = {
-    "Utf8": VARCHAR,
-    "Float32": FLOAT,
-    "Int16": SMALLINT,
-    "Int32": INTEGER,
-    "Int64": BIGINT,
-    "Float64": REAL,
-    "Boolean": BOOLEAN,
-    "Date32": DATE,
-    "Time64": TIME,
-    "Timestamp": TIMESTAMP,
-}
 
 
 class FlightActions:
