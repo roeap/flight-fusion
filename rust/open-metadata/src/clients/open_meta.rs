@@ -84,16 +84,16 @@ impl OpenMetadataClient {
         )
     }
 
+    pub fn into_services_client(&self) -> ServicesClient {
+        ServicesClient::new(self.clone())
+    }
+
     pub fn into_databases_collection_client(&self) -> DatabasesCollectionClient {
         DatabasesCollectionClient::new(self.clone())
     }
 
     pub fn into_tables_collection_client(&self) -> TablesCollectionClient {
         TablesCollectionClient::new(self.clone())
-    }
-
-    pub fn into_services_client(&self) -> ServicesClient {
-        ServicesClient::new(self.clone())
     }
 
     pub fn api_routes(&self) -> &ApiRoutes {

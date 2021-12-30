@@ -11,7 +11,7 @@ impl ServicesClient {
     }
 
     pub fn list_services(&self) -> ListServicesBuilder {
-        todo!()
+        ListServicesBuilder::new(self.client.clone())
     }
 
     pub fn create_storage_service<T>(&self, name: T) -> CreateStorageServiceBuilder

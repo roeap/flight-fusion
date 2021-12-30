@@ -1,9 +1,8 @@
 use crate::{
     clients::OpenMetadataClient,
     generated::{Database, EntityReference},
-    operations::{CreateDatabaseBuilder, ListTablesBuilder},
+    operations::ListTablesBuilder,
 };
-use reqwest_pipeline::{collect_pinned_stream, Context, Response, Result as RPResult};
 
 #[derive(Debug, Clone)]
 pub struct TablesCollectionClient {

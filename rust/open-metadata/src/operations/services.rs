@@ -1,15 +1,50 @@
+use super::PagedReturn;
 use crate::{
-    clients::{OpenMetadataClient, OpenMetadataOptions},
-    generated::{CreateStorageServiceRequest, StorageServiceType},
+    clients::OpenMetadataClient,
+    generated::{CollectionDescriptor, CreateStorageServiceRequest, StorageServiceType},
 };
 use bytes::Bytes;
-use reqwest_pipeline::{setters, Context};
+use reqwest_pipeline::{setters, Context, Pageable};
+use std::pin::Pin;
 
 type CreateStorageService = futures::future::BoxFuture<'static, crate::Result<()>>;
+type ListServices = Pin<Box<Pageable<PagedReturn<CollectionDescriptor>>>>;
 
 #[derive(Clone, Debug)]
 pub struct ListServicesBuilder {
     client: OpenMetadataClient,
+}
+
+impl ListServicesBuilder {
+    pub fn new(client: OpenMetadataClient) -> Self {
+        Self { client }
+    }
+
+    pub fn into_stream<'a>(self) -> ListServices {
+        let make_request = move |_: Option<String>| {
+            let this = self.clone();
+            let ctx = Context::new();
+
+            async move {
+                let uri = this.client.api_routes().services();
+                let mut request = this.client.prepare_request(uri.as_str(), http::Method::GET);
+
+                let response = match this
+                    .client
+                    .pipeline()
+                    .send(&mut ctx.clone(), &mut request)
+                    .await
+                {
+                    Ok(r) => r,
+                    Err(e) => return Err(e),
+                };
+
+                PagedReturn::<CollectionDescriptor>::try_from(response).await
+            }
+        };
+
+        Box::pin(Pageable::new(make_request))
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -44,7 +79,12 @@ impl CreateStorageServiceBuilder {
     }
 
     pub fn into_future(self) -> CreateStorageService {
-        let uri = self.client.api_routes().services().join("services/storageServices").unwrap();
+        let uri = self
+            .client
+            .api_routes()
+            .services()
+            .join("services/storageServices")
+            .unwrap();
         println!("{:?}", self.client.api_routes().services());
         println!("{:?}", self.client.api_routes().databases());
         Box::pin(async move {
@@ -70,21 +110,5 @@ impl CreateStorageServiceBuilder {
 
             Ok(())
         })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_create_storage_service() {
-        let client =
-            OpenMetadataClient::new("http://localhost:8585", OpenMetadataOptions::default())
-                .into_services_client();
-
-        let result = client.create_storage_service("new_service2").into_future().await.unwrap();
-
-        println!("{:?}", result)
     }
 }
