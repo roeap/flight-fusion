@@ -329,7 +329,7 @@ pub struct SignalProvider {
     pub description: ::prost::alloc::string::String,
     #[prost(message, repeated, tag="4")]
     pub signals: ::prost::alloc::vec::Vec<Signal>,
-    #[prost(oneof="signal_provider::Source", tags="100, 101")]
+    #[prost(oneof="signal_provider::Source", tags="100, 101, 102")]
     pub source: ::core::option::Option<signal_provider::Source>,
 }
 /// Nested message and enum types in `SignalProvider`.
@@ -339,6 +339,8 @@ pub mod signal_provider {
         #[prost(message, tag="100")]
         Table(super::TableReference),
         #[prost(message, tag="101")]
+        Expression(super::ExpressionReference),
+        #[prost(message, tag="102")]
         Model(super::ModelReference),
     }
 }

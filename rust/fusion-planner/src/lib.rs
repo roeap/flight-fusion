@@ -13,6 +13,7 @@ use arrow_deps::datafusion::{
     prelude::{ExecutionConfig, ExecutionContext},
 };
 use async_trait::async_trait;
+use error::{FusionPlannerError, Result};
 use flight_fusion_ipc::{
     errors::FlightFusionError, errors::Result as FusionResult,
     signal_provider::Source as ProviderSource, table_reference::Table as TableRef, SignalFrame,
@@ -26,18 +27,18 @@ pub mod test_utils;
 
 pub enum ProviderNode {
     Table(Arc<dyn TableProvider>),
-    Expression(Arc<dyn PhysicalExpr>),
+    Expression(String),
     Model(Arc<dyn ExecutionPlan>),
 }
 
 #[async_trait]
 pub trait ToProviderNode {
-    async fn try_into_provider_node(&self) -> FusionResult<ProviderNode>;
+    async fn try_into_provider_node(&self) -> Result<ProviderNode>;
 }
 
 #[async_trait]
 impl ToProviderNode for SignalProvider {
-    async fn try_into_provider_node(&self) -> FusionResult<ProviderNode> {
+    async fn try_into_provider_node(&self) -> Result<ProviderNode> {
         match &self.source {
             Some(ProviderSource::Table(tbl_ref)) => match &tbl_ref.table {
                 Some(TableRef::File(file)) => {
@@ -64,7 +65,11 @@ impl ToProviderNode for SignalProvider {
                 Some(TableRef::Delta(_delta)) => todo!(),
                 _ => todo!(),
             },
-            _ => Err(FlightFusionError::InputError(
+            Some(ProviderSource::Expression(expr)) => {
+                let eqn = format!("{} as {}", expr.expression, self.name);
+                Ok(ProviderNode::Expression(eqn))
+            }
+            _ => Err(FusionPlannerError::PlanningError(
                 "Only signal provider with table source can be converted to TableProvider"
                     .to_string(),
             )),
@@ -81,16 +86,13 @@ impl SignalFrameContext {
         Self { frame }
     }
 
-    pub async fn into_query_context(&self) -> FusionResult<ExecutionContext> {
+    pub async fn into_query_context(&self) -> Result<ExecutionContext> {
         let schema_provider = MemorySchemaProvider::new();
 
         for provider in self.frame.clone().providers {
             match provider.try_into_provider_node().await? {
                 ProviderNode::Table(tbl) => {
-                    // TODO remove panic
-                    schema_provider
-                        .register_table(provider.name.clone(), tbl.clone())
-                        .unwrap();
+                    schema_provider.register_table(provider.name.clone(), tbl.clone())?;
                 }
                 _ => (),
             }
@@ -110,7 +112,7 @@ impl SignalFrameContext {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{ToProviderNode, test_utils::get_provider};
+    use crate::{test_utils::get_provider, ToProviderNode};
     use arrow_deps::datafusion::sql::parser::DFParser;
 
     #[tokio::test]

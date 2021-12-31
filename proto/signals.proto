@@ -35,7 +35,8 @@ message SignalProvider {
   repeated Signal signals = 4;
   oneof source {
     TableReference table = 100;
-    ModelReference model = 101;
+    ExpressionReference expression = 101;
+    ModelReference model = 102;
   }
 }
 

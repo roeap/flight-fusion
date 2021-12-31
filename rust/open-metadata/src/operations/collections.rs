@@ -3,19 +3,11 @@ use crate::{
     clients::OpenMetadataClient,
     generated::{CatalogVersion, CollectionDescriptor},
 };
-use reqwest_pipeline::{collect_pinned_stream, Context, Pageable, Response};
+use reqwest_pipeline::{Context, Pageable};
 use std::pin::Pin;
 
 type CreateDatabase = futures::future::BoxFuture<'static, crate::Result<CatalogVersion>>;
 type ListCollections = Pin<Box<Pageable<PagedReturn<CollectionDescriptor>>>>;
-
-impl CatalogVersion {
-    pub(crate) async fn try_from(response: Response) -> reqwest_pipeline::Result<Self> {
-        let (_status_code, _headers, pinned_stream) = response.deconstruct();
-        let body = collect_pinned_stream(pinned_stream).await?;
-        Ok(serde_json::from_slice::<CatalogVersion>(&body)?)
-    }
-}
 
 #[derive(Clone, Debug)]
 pub struct GerVersionBuilder {
@@ -36,9 +28,11 @@ impl GerVersionBuilder {
                 .client
                 .pipeline()
                 .send(&mut Context::new(), &mut request)
-                .await?;
+                .await?
+                .into_body_string()
+                .await;
 
-            Ok(CatalogVersion::try_from(response).await?)
+            Ok(serde_json::from_str(&response)?)
         })
     }
 }
