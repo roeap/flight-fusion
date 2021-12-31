@@ -12,6 +12,7 @@ ignoreWords:
   - datafusion
   - datasource
   - dotenv
+  - jdbc
   - prost
   - proto
   - protobuf
