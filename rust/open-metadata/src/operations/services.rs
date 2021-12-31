@@ -1,16 +1,17 @@
-use super::PagedReturn;
+use super::{get_headers, PagedReturn};
 use crate::{
     clients::OpenMetadataClient,
     generated::{
         CollectionDescriptor, CreateDatabaseServiceRequest, CreateStorageServiceRequest,
-        DatabaseService, DatabaseServiceType, JdbcInfo, Schedule, StorageServiceType,
+        DatabaseService, DatabaseServiceType, JdbcInfo, Schedule, StorageService,
+        StorageServiceType,
     },
 };
 use bytes::Bytes;
 use reqwest_pipeline::{setters, Context, Pageable};
 use std::pin::Pin;
 
-type CreateStorageService = futures::future::BoxFuture<'static, crate::Result<()>>;
+type CreateStorageService = futures::future::BoxFuture<'static, crate::Result<StorageService>>;
 type CreateDatabaseService = futures::future::BoxFuture<'static, crate::Result<DatabaseService>>;
 type ListServices = Pin<Box<Pageable<PagedReturn<CollectionDescriptor>>>>;
 
@@ -60,15 +61,17 @@ pub struct CreateStorageServiceBuilder {
     service_type: Option<StorageServiceType>,
 }
 
-// TODO add context type and context encoding headers...
 impl CreateStorageServiceBuilder {
     pub(crate) fn new(client: OpenMetadataClient, name: String) -> Self {
+        let mut context = Context::new();
+        context.insert(get_headers());
+
         Self {
             client,
-            context: Context::new(),
+            context,
             name,
-            description: None,
             service_type: None,
+            description: None,
         }
     }
 
@@ -84,10 +87,8 @@ impl CreateStorageServiceBuilder {
             .services()
             .join("services/storageServices")
             .unwrap();
-        println!("{:?}", self.client.api_routes().services());
-        println!("{:?}", self.client.api_routes().databases());
+
         Box::pin(async move {
-            println!("{:?}", uri);
             let mut request = self
                 .client
                 .prepare_request(uri.as_str(), http::Method::POST);
@@ -99,15 +100,15 @@ impl CreateStorageServiceBuilder {
             };
 
             request.set_body(Bytes::from(serde_json::to_string(&body)?).into());
-            let _response = self
+            let response = self
                 .client
                 .pipeline()
                 .send(&mut self.context.clone(), &mut request)
-                .await?;
+                .await?
+                .into_body_string()
+                .await;
 
-            println!("{:?}", _response);
-
-            Ok(())
+            Ok(serde_json::from_str(&response)?)
         })
     }
 }
@@ -123,7 +124,6 @@ pub struct CreateDatabaseServiceBuilder {
     ingestion_schedule: Option<Schedule>,
 }
 
-// TODO add context type and context encoding headers...
 impl CreateDatabaseServiceBuilder {
     pub(crate) fn new(
         client: OpenMetadataClient,
@@ -131,9 +131,12 @@ impl CreateDatabaseServiceBuilder {
         service_type: DatabaseServiceType,
         jdbc: JdbcInfo,
     ) -> Self {
+        let mut context = Context::new();
+        context.insert(get_headers());
+
         Self {
             client,
-            context: Context::new(),
+            context,
             name,
             service_type,
             jdbc,
@@ -159,11 +162,6 @@ impl CreateDatabaseServiceBuilder {
             let mut request = self
                 .client
                 .prepare_request(uri.as_str(), http::Method::POST);
-
-            request.headers_mut().append(
-                "Content-Type",
-                "application/json;charset=utf-8".parse().unwrap(),
-            );
 
             let body = CreateDatabaseServiceRequest {
                 name: self.name.clone(),

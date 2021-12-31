@@ -1,8 +1,4 @@
-use crate::{
-    clients::OpenMetadataClient,
-    generated::{Database, EntityReference},
-    operations::ListTablesBuilder,
-};
+use crate::{clients::OpenMetadataClient, operations::ListTablesBuilder};
 
 #[derive(Debug, Clone)]
 pub struct TablesCollectionClient {
