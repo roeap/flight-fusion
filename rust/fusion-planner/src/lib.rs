@@ -9,13 +9,12 @@ use arrow_deps::datafusion::{
         object_store::local::LocalFileSystem,
         TableProvider,
     },
-    physical_plan::{ExecutionPlan, PhysicalExpr},
+    physical_plan::ExecutionPlan,
     prelude::{ExecutionConfig, ExecutionContext},
 };
 use async_trait::async_trait;
 use error::{FusionPlannerError, Result};
 use flight_fusion_ipc::{
-    errors::FlightFusionError, errors::Result as FusionResult,
     signal_provider::Source as ProviderSource, table_reference::Table as TableRef, SignalFrame,
     SignalProvider,
 };
@@ -66,7 +65,11 @@ impl ToProviderNode for SignalProvider {
                 _ => todo!(),
             },
             Some(ProviderSource::Expression(expr)) => {
-                let eqn = format!("{} as {}", expr.expression, self.name);
+                assert!(
+                    self.signals.len() == 1,
+                    "Expressions need exactly one output signal"
+                );
+                let eqn = format!("{} as {}", expr.expression, self.signals[0].name);
                 Ok(ProviderNode::Expression(eqn))
             }
             _ => Err(FusionPlannerError::PlanningError(
@@ -86,14 +89,16 @@ impl SignalFrameContext {
         Self { frame }
     }
 
-    pub async fn into_query_context(&self) -> Result<ExecutionContext> {
+    pub async fn into_query_context(&self) -> Result<(ExecutionContext, String)> {
         let schema_provider = MemorySchemaProvider::new();
+        let mut query = String::new();
 
         for provider in self.frame.clone().providers {
             match provider.try_into_provider_node().await? {
                 ProviderNode::Table(tbl) => {
                     schema_provider.register_table(provider.name.clone(), tbl.clone())?;
                 }
+                ProviderNode::Expression(expr) => query.push_str(&expr),
                 _ => (),
             }
         }
@@ -105,7 +110,7 @@ impl SignalFrameContext {
         let ctx = ExecutionContext::with_config(config);
         ctx.register_catalog("catalog", catalog);
 
-        Ok(ctx)
+        Ok((ctx, query))
     }
 }
 
@@ -132,7 +137,7 @@ mod tests {
             providers: vec![provider],
         };
         let context = SignalFrameContext::new(frame.clone());
-        let mut ctx = context.into_query_context().await.unwrap();
+        let (mut ctx, _) = context.into_query_context().await.unwrap();
 
         let sql = "select * from information_schema.columns";
         let df = ctx.sql(sql).await.unwrap();
