@@ -91,7 +91,7 @@ pub fn get_signal_frame() -> SignalFrame {
 
     let expression_provider = SignalProvider {
         uid: "expression-provider-id".to_string(),
-        name: "expression".to_string(),
+        name: "S4".to_string(),
         description: "description".to_string(),
         signals: vec![Signal {
             uid: "expr-id".to_string(),

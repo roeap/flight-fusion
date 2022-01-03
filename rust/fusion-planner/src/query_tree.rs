@@ -89,7 +89,9 @@ impl FrameQueryPlanner {
             }
             ProviderNode::Expression(expr) => {
                 if let Some(plan) = &self.plan {
-                    let builder = LogicalPlanBuilder::from(plan.clone()).project(vec![expr])?;
+                    let signal_name = provider.signals[0].name.clone();
+                    let builder = LogicalPlanBuilder::from(plan.clone())
+                        .project_with_alias(vec![expr], Some(signal_name))?;
                     self.plan = Some(builder.build()?);
                     return Ok(());
                 }
@@ -180,18 +182,21 @@ impl FrameQueryPlanner {
             ));
         };
 
+        let state = self.ctx.state.lock().unwrap().clone();
+        let query_planner = SqlToRel::new(&state);
+
         let expression = match &select_items[0] {
-            SelectItem::UnnamedExpr(expr) => Ok(expr.clone()),
-            SelectItem::ExprWithAlias { expr, .. } => Ok(expr.clone()),
+            SelectItem::UnnamedExpr(expr) => Ok(query_planner.sql_to_rex(expr, schema)?),
+            SelectItem::ExprWithAlias { expr, alias } => Ok(Expr::Alias(
+                Box::new(query_planner.sql_to_rex(expr, schema)?),
+                alias.value.clone(),
+            )),
             _ => Err(FusionPlannerError::PlanningError(
                 "unexpected parsing result.".to_string(),
             )),
         }?;
-        let state = self.ctx.state.lock().unwrap().clone();
-        let query_planner = SqlToRel::new(&state);
-        let log_expr = query_planner.sql_to_rex(&expression, schema)?;
 
-        Ok(log_expr)
+        Ok(expression)
     }
 
     pub async fn create_physical_plan(&self) -> Result<Arc<dyn ExecutionPlan>> {
@@ -286,13 +291,5 @@ mod tests {
 
         let results = collect(plan.clone()).await.unwrap();
         pretty::print_batches(&results).unwrap();
-    }
-
-    #[tokio::test]
-    async fn test() {
-        let planner = FrameQueryPlanner::new();
-        let expr = "SELECT P1.S2 + P2.S6";
-        let schema = planner.schema().unwrap();
-        planner.convert_expression(expr, &schema).unwrap();
     }
 }
