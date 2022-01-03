@@ -1,12 +1,7 @@
 use error::{FusionPlannerError, Result};
-use flight_fusion_ipc::{
-    signal_provider::Source as ProviderSource, table_reference::Table as TableRef, Signal,
-    SignalFrame, SignalProvider,
-};
-use petgraph::{
-    graph::NodeIndex,
-    prelude::{DiGraph, Direction},
-};
+use flight_fusion_ipc::{Signal, SignalProvider};
+use petgraph::{algo::toposort, graph::NodeIndex, prelude::DiGraph};
+use query_tree::FrameQueryPlanner;
 use std::collections::HashMap;
 
 pub mod error;
@@ -14,16 +9,7 @@ pub mod frames;
 pub mod query_tree;
 pub mod test_utils;
 
-impl TryInto<query_tree::FrameQueryPlanner> for SignalFrame {
-    type Error = FusionPlannerError;
-
-    fn try_into(self) -> std::result::Result<query_tree::FrameQueryPlanner, Self::Error> {
-        // - write signal frame into graph
-        // - generate context
-        todo!()
-    }
-}
-
+#[derive(Debug)]
 pub enum FrameGraphNode {
     Provider(SignalProvider),
     Signal(Signal),
@@ -79,16 +65,40 @@ impl FrameGraph {
                 self.node_map.insert(s.uid.clone(), idx);
                 idx
             };
-            self.graph.add_edge(node_idx, signal_idx, 0);
+            self.graph.add_edge(signal_idx, node_idx, 0);
         });
 
         Ok(())
+    }
+
+    pub async fn into_frame_query_planner(self) -> Result<FrameQueryPlanner> {
+        let mut planner = FrameQueryPlanner::new();
+
+        match toposort(&self.graph, None) {
+            Ok(order) => {
+                // TODO figure out how to do this in a for_each iterator
+                for idx in order {
+                    if let Some(FrameGraphNode::Provider(provider)) = self.graph.node_weight(idx) {
+                        planner.register_signal_provider(provider).await?;
+                    }
+                }
+            }
+            Err(err) => {
+                self.graph
+                    .node_weight(err.node_id())
+                    .map(|weight| println!("Error graph has cycle at node {:?}", weight));
+            }
+        };
+
+        Ok(planner)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use arrow_deps::arrow::util::pretty;
+    use arrow_deps::datafusion::physical_plan::collect;
 
     #[tokio::test]
     async fn create_catalog() {
@@ -99,5 +109,11 @@ mod tests {
             .providers
             .iter()
             .for_each(|p| fg.register_signal_provider(p).unwrap());
+
+        let planner = fg.into_frame_query_planner().await.unwrap();
+        let plan = planner.create_physical_plan().await.unwrap();
+        let results = collect(plan.clone()).await.unwrap();
+
+        pretty::print_batches(&results).unwrap();
     }
 }

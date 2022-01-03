@@ -6,7 +6,7 @@ use arrow_deps::datafusion::{
         object_store::local::LocalFileSystem,
         TableProvider,
     },
-    logical_plan::{col, DFSchema, DFSchemaRef, Expr, JoinType, LogicalPlan, LogicalPlanBuilder},
+    logical_plan::{DFSchema, DFSchemaRef, Expr, JoinType, LogicalPlan, LogicalPlanBuilder},
     physical_plan::ExecutionPlan,
     prelude::ExecutionContext,
     sql::{
@@ -17,7 +17,6 @@ use arrow_deps::datafusion::{
 use flight_fusion_ipc::{
     signal_provider::Source as ProviderSource, table_reference::Table as TableRef, SignalProvider,
 };
-use petgraph::prelude::{DiGraph, Direction};
 use sqlparser::ast::{Query, Select, SelectItem, SetExpr, Statement as SQLStatement};
 use std::sync::{Arc, Mutex};
 
@@ -204,141 +203,6 @@ impl FrameQueryPlanner {
     }
 }
 
-pub async fn explore() -> Result<()> {
-    let source_1 = SourceTableInfo {
-        catalog: String::from("catalog"),
-        schema: String::from("frame"),
-        table: String::from("P1"),
-        alias: String::from("tbl1"),
-    };
-    let source_2 = SourceTableInfo {
-        catalog: String::from("catalog"),
-        schema: String::from("frame"),
-        table: String::from("P2"),
-        alias: String::from("tbl2"),
-    };
-
-    let mut graph = DiGraph::<QueryTreeNode, u32>::new();
-
-    let p0 = graph.add_node(QueryTreeNode::SourceTable(source_1));
-    let p1 = graph.add_node(QueryTreeNode::SourceTable(source_2));
-
-    let s0 = graph.add_node(QueryTreeNode::Signal("S0".to_string()));
-    let s1 = graph.add_node(QueryTreeNode::Signal("S1".to_string()));
-    let s2 = graph.add_node(QueryTreeNode::Signal("S2".to_string()));
-    let s3 = graph.add_node(QueryTreeNode::Signal("S3".to_string()));
-    let s4 = graph.add_node(QueryTreeNode::Signal("S4".to_string()));
-    let s5 = graph.add_node(QueryTreeNode::Signal("S5".to_string()));
-    let s6 = graph.add_node(QueryTreeNode::Signal("S6".to_string()));
-
-    let e0 = graph.add_node(QueryTreeNode::Expression("E0".to_string()));
-    let e1 = graph.add_node(QueryTreeNode::Expression("E1".to_string()));
-
-    let m0 = graph.add_node(QueryTreeNode::Model("M0".to_string()));
-
-    graph.add_edge(e0, s0, 0);
-    graph.add_edge(m0, s1, 0);
-
-    graph.add_edge(s2, e0, 0);
-    graph.add_edge(s3, e0, 0);
-    graph.add_edge(s3, m0, 0);
-    graph.add_edge(s4, m0, 0);
-
-    graph.add_edge(e1, s4, 0);
-
-    graph.add_edge(s5, e1, 0);
-    graph.add_edge(s6, e1, 0);
-
-    graph.add_edge(p0, s2, 0);
-    graph.add_edge(p0, s3, 0);
-    graph.add_edge(p0, s5, 0);
-    graph.add_edge(p1, s6, 0);
-
-    let mut signals = Vec::new();
-    let mut tables = Vec::new();
-
-    for source in graph.externals(Direction::Incoming) {
-        if let Some(QueryTreeNode::SourceTable(tbl)) = graph.node_weight(source) {
-            let table_signals = graph
-                .neighbors_directed(source, Direction::Outgoing)
-                .into_iter()
-                .map(|s| match graph.node_weight(s) {
-                    Some(QueryTreeNode::Signal(name)) => Ok(name.clone()),
-                    _ => Err(FusionPlannerError::PlanningError(
-                        "Expected signal node".to_string(),
-                    )),
-                })
-                .collect::<Result<Vec<_>>>()?;
-
-            if !table_signals.is_empty() {
-                signals.extend(table_signals);
-                tables.push((tbl.table_ref(), tbl.alias.clone()))
-            }
-        }
-    }
-
-    // match toposort(&graph, None) {
-    //     Ok(order) => {
-    //         print!("Sorted: ");
-    //         for i in order {
-    //             graph.node_weight(i).map(|weight| {
-    //                 print!("{:?}, ", weight);
-    //                 weight
-    //             });
-    //         }
-    //     }
-    //     Err(err) => {
-    //         graph
-    //             .node_weight(err.node_id())
-    //             .map(|weight| println!("Error graph has cycle at node {:?}", weight));
-    //     }
-    // };
-
-    let local_store = Arc::new(LocalFileSystem {});
-
-    // TODO use scan with filters to utilize externally created table providers
-    let builder = LogicalPlanBuilder::scan_parquet_with_name(
-        local_store.clone(),
-        "/home/robstar/github/flight-fusion/test/data/P1.parquet",
-        None,
-        1,
-        "P1",
-    )
-    .await
-    .unwrap();
-
-    let scan_2 = LogicalPlanBuilder::scan_parquet_with_name(
-        local_store,
-        "/home/robstar/github/flight-fusion/test/data/P2.parquet",
-        None,
-        1,
-        "P2",
-    )
-    .await
-    .unwrap()
-    .build()
-    .unwrap();
-
-    let builder = builder
-        .join(
-            &scan_2,
-            JoinType::Inner,
-            (vec!["timestamp"], vec!["timestamp"]),
-        )
-        .unwrap();
-
-    let expr = vec![col("S2"), col("S3"), col("S6")];
-    let builder = builder.project(expr).unwrap();
-
-    let builder = builder.limit(10).unwrap();
-
-    let plan = builder.build().unwrap();
-
-    println!("{:?}", plan);
-
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -422,7 +286,6 @@ mod tests {
 
         let results = collect(plan.clone()).await.unwrap();
         pretty::print_batches(&results).unwrap();
-        // println!("{:#?}", results[0])
     }
 
     #[tokio::test]

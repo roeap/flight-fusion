@@ -25,5 +25,6 @@ ignoreWords:
   - sqlparser
   - structopt
   - tempfile
+  - toposort
   - unpartitioned
 import: []
