@@ -7,12 +7,13 @@ use arrow_deps::datafusion::{
         TableProvider,
     },
     logical_plan::{col, DFSchema, DFSchemaRef, Expr, JoinType, LogicalPlan, LogicalPlanBuilder},
+    optimizer::optimizer::OptimizerRule,
     physical_plan::ExecutionPlan,
     prelude::ExecutionContext,
     sql::{
         parser::{DFParser, Statement},
         planner::SqlToRel,
-    }, optimizer::optimizer::OptimizerRule,
+    },
 };
 use flight_fusion_ipc::{
     signal_provider::Source as ProviderSource, table_reference::Table as TableRef, SignalFrame,
@@ -340,8 +341,9 @@ pub async fn explore() -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use flight_fusion_ipc::{ExpressionReference, Signal};
+    use arrow_deps::arrow::util::pretty;
     use arrow_deps::datafusion::physical_plan::collect;
+    use flight_fusion_ipc::{ExpressionReference, Signal};
 
     #[tokio::test]
     async fn test_register_provider() {
@@ -376,6 +378,48 @@ mod tests {
 
         let results = collect(plan.clone()).await.unwrap();
         println!("{:?}", results[0])
+    }
+
+    #[tokio::test]
+    async fn test_register_provider_multiple() {
+        let source_provider = crate::test_utils::get_provider_1();
+        let source_provider2 = crate::test_utils::get_provider_2();
+
+        let mut planner = FrameQueryPlanner::try_new().await.unwrap();
+        planner
+            .register_signal_provider(&source_provider)
+            .await
+            .unwrap();
+        planner
+            .register_signal_provider(&source_provider2)
+            .await
+            .unwrap();
+
+        let expression_provider = SignalProvider {
+            uid: "expression-provider-id".to_string(),
+            name: "expression".to_string(),
+            description: "description".to_string(),
+            signals: vec![Signal {
+                uid: "expr-id".to_string(),
+                name: "S4".to_string(),
+                description: "description".to_string(),
+            }],
+            source: Some(ProviderSource::Expression(ExpressionReference {
+                expression: "S2 * 2 + S5 + S6".to_string(),
+                ..ExpressionReference::default()
+            })),
+        };
+
+        planner
+            .register_signal_provider(&expression_provider)
+            .await
+            .unwrap();
+
+        let plan = planner.create_physical_plan().await.unwrap();
+
+        let results = collect(plan.clone()).await.unwrap();
+        pretty::print_batches(&results).unwrap();
+        // println!("{:#?}", results[0])
     }
 
     #[tokio::test]
