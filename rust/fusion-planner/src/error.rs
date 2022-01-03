@@ -1,4 +1,4 @@
-use arrow_deps::{datafusion::error::DataFusionError, arrow::error::ArrowError};
+use arrow_deps::{arrow::error::ArrowError, datafusion::error::DataFusionError};
 
 #[derive(thiserror::Error, Debug)]
 pub enum FusionPlannerError {
@@ -6,9 +6,13 @@ pub enum FusionPlannerError {
     #[error("Error in dependent crate {0}")]
     ExternalError(String),
 
-    /// Error returned when the table to be created already exists
+    /// An error encountered when generating a logical execution plan
     #[error("Error generating query plan {0}")]
     PlanningError(String),
+
+    /// An error encountered when trying to process missing or malformed inputs.
+    #[error("Missing or malformed input data {0}")]
+    InputError(String),
 
     /// An error involving a Datafusion operation occurred.
     #[error(transparent)]

@@ -3,25 +3,6 @@ use flight_fusion_ipc::{
     FileReference, Signal, SignalProvider, TableReference,
 };
 
-pub fn get_provider() -> SignalProvider {
-    SignalProvider {
-        uid: "provider-id".to_string(),
-        name: "provider".to_string(),
-        description: "description".to_string(),
-        signals: vec![Signal {
-            uid: "signal-id".to_string(),
-            name: "signal".to_string(),
-            description: "description".to_string(),
-        }],
-        source: Some(ProviderSource::Table(TableReference {
-            table: Some(TableRef::File(FileReference {
-                path: "/home/robstar/github/flight-fusion/.tmp/file/table.parquet".to_string(),
-                format: FileFormat::Parquet as i32,
-            })),
-        })),
-    }
-}
-
 /// Run cargo to get the root of the workspace
 pub fn workspace_root() -> Result<String, Box<dyn std::error::Error>> {
     let output = std::process::Command::new("cargo")
@@ -43,7 +24,6 @@ pub fn workspace_root() -> Result<String, Box<dyn std::error::Error>> {
 pub fn get_provider_1() -> SignalProvider {
     let mut path = workspace_root().unwrap();
     path.push_str("/test/data/P1.parquet");
-    println!("path --> {}", path);
     SignalProvider {
         uid: "provider-1".to_string(),
         name: "P1".to_string(),
@@ -77,7 +57,6 @@ pub fn get_provider_1() -> SignalProvider {
 pub fn get_provider_2() -> SignalProvider {
     let mut path = workspace_root().unwrap();
     path.push_str("/test/data/P2.parquet");
-    println!("path --> {}", path);
     SignalProvider {
         uid: "provider-2".to_string(),
         name: "P2".to_string(),

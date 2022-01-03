@@ -22,6 +22,7 @@ use std::sync::Arc;
 
 pub mod error;
 pub mod frames;
+pub mod query_tree;
 pub mod test_utils;
 
 pub enum ProviderNode {
@@ -117,19 +118,18 @@ impl SignalFrameContext {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{test_utils::get_provider, ToProviderNode};
-    use arrow_deps::datafusion::sql::parser::DFParser;
+    use crate::{test_utils::get_provider_1, ToProviderNode};
 
     #[tokio::test]
     async fn provider_node_conversion() {
-        let provider = get_provider();
+        let provider = get_provider_1();
         let node = provider.try_into_provider_node().await.unwrap();
         assert!(matches!(node, ProviderNode::Table(_)))
     }
 
     #[tokio::test]
     async fn create_catalog() {
-        let provider = get_provider();
+        let provider = get_provider_1();
         let frame = SignalFrame {
             uid: "frame-id".to_string(),
             name: "frame".to_string(),
@@ -143,12 +143,5 @@ mod tests {
         let df = ctx.sql(sql).await.unwrap();
 
         df.show().await.unwrap();
-    }
-
-    #[test]
-    fn test_sql_parser() {
-        let sql = "SELECT c = a + b FROM tblref";
-        let statements = DFParser::parse_sql(sql).unwrap();
-        println!("{:#?}", statements[0])
     }
 }

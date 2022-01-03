@@ -45,8 +45,11 @@ pq.write_to_dataset(
 fs.create_dir(f"{path}/file")
 pq.write_table(table=table, where=f"{path}/file/table.parquet")
 
-
-ts = pd.date_range(start="2020", end="2021", freq="D")
+ts = pd.date_range(
+    start=pd.to_datetime("2020-01-01 00:00:00"),
+    end=pd.to_datetime("2020-01-02 00:00:00"),
+    freq="h",
+)
 data1 = {
     "timestamp": ts,
     "S2": np.random.randn(len(ts)),

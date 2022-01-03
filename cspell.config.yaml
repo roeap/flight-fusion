@@ -13,6 +13,7 @@ ignoreWords:
   - datasource
   - dotenv
   - jdbc
+  - petgraph
   - prost
   - proto
   - protobuf
@@ -21,6 +22,7 @@ ignoreWords:
   - rustfmt
   - schemafy
   - seekable
+  - sqlparser
   - structopt
   - tempfile
   - unpartitioned
