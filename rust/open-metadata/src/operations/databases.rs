@@ -26,7 +26,7 @@ pub struct ListDatabasesBuilder {
 impl ListDatabasesBuilder {
     pub fn new(client: OpenMetadataClient) -> Self {
         Self {
-            client: client,
+            client,
             fields: None,
             service: None,
             limit: None,

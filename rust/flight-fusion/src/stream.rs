@@ -181,13 +181,13 @@ impl Stream for FlightTonicRecordBatchStream {
     type Item = ArrowResult<RecordBatch>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        let schema = self.schema().clone();
+        let schema = self.schema();
         match self.get_mut().inner.poll_next_unpin(cx) {
             Poll::Ready(Some(Ok(flight_data))) => {
                 let dictionaries_by_field = vec![None; schema.fields().len()];
                 let batch = arrow_flight::utils::flight_data_to_arrow_batch(
                     &flight_data,
-                    schema.clone(),
+                    schema,
                     &dictionaries_by_field,
                 )
                 .unwrap();

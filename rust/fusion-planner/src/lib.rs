@@ -1,147 +1,119 @@
-use arrow_deps::datafusion::{
-    catalog::{
-        catalog::MemoryCatalogProvider,
-        schema::{MemorySchemaProvider, SchemaProvider},
-    },
-    datasource::{
-        file_format::parquet::ParquetFormat,
-        listing::{ListingOptions, ListingTable},
-        object_store::local::LocalFileSystem,
-        TableProvider,
-    },
-    physical_plan::{ExecutionPlan, PhysicalExpr},
-    prelude::{ExecutionConfig, ExecutionContext},
-};
-use async_trait::async_trait;
-use flight_fusion_ipc::{
-    errors::FlightFusionError, errors::Result as FusionResult,
-    signal_provider::Source as ProviderSource, table_reference::Table as TableRef, SignalFrame,
-    SignalProvider,
-};
-use std::sync::Arc;
+use error::{FusionPlannerError, Result};
+use flight_fusion_ipc::{Signal, SignalProvider};
+use petgraph::{algo::toposort, graph::NodeIndex, prelude::DiGraph};
+use query_tree::FrameQueryPlanner;
+use std::collections::HashMap;
 
 pub mod error;
 pub mod frames;
+pub mod query_tree;
 pub mod test_utils;
 
-pub enum ProviderNode {
-    Table(Arc<dyn TableProvider>),
-    Expression(Arc<dyn PhysicalExpr>),
-    Model(Arc<dyn ExecutionPlan>),
+#[derive(Debug)]
+pub enum FrameGraphNode {
+    Provider(SignalProvider),
+    Signal(Signal),
 }
 
-#[async_trait]
-pub trait ToProviderNode {
-    async fn try_into_provider_node(&self) -> FusionResult<ProviderNode>;
+pub struct FrameGraph {
+    graph: DiGraph<FrameGraphNode, u32>,
+    node_map: HashMap<String, NodeIndex>,
 }
 
-#[async_trait]
-impl ToProviderNode for SignalProvider {
-    async fn try_into_provider_node(&self) -> FusionResult<ProviderNode> {
-        match &self.source {
-            Some(ProviderSource::Table(tbl_ref)) => match &tbl_ref.table {
-                Some(TableRef::File(file)) => {
-                    let opt = ListingOptions {
-                        file_extension: "parquet".to_owned(),
-                        format: Arc::new(ParquetFormat::default()),
-                        table_partition_cols: vec![],
-                        target_partitions: 1,
-                        collect_stat: true,
-                    };
-                    // here we resolve the schema locally
-                    let schema = opt
-                        .infer_schema(Arc::new(LocalFileSystem {}), &file.path)
-                        .await
-                        .expect("Infer schema");
-                    let table = ListingTable::new(
-                        Arc::new(LocalFileSystem {}),
-                        file.path.clone(),
-                        schema,
-                        opt,
-                    );
-                    Ok(ProviderNode::Table(Arc::new(table)))
-                }
-                Some(TableRef::Delta(_delta)) => todo!(),
-                _ => todo!(),
-            },
-            _ => Err(FlightFusionError::InputError(
-                "Only signal provider with table source can be converted to TableProvider"
-                    .to_string(),
-            )),
+impl Default for FrameGraph {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl FrameGraph {
+    pub fn new() -> Self {
+        Self {
+            graph: DiGraph::new(),
+            node_map: HashMap::new(),
         }
     }
-}
 
-pub struct SignalFrameContext {
-    frame: SignalFrame,
-}
+    pub fn register_signal_provider(&mut self, provider: &SignalProvider) -> Result<()> {
+        if self.node_map.get(&provider.uid).is_some() {
+            return Err(FusionPlannerError::PlanningError(
+                "Provider has already been registered".to_string(),
+            ));
+        }
 
-impl SignalFrameContext {
-    pub fn new(frame: SignalFrame) -> Self {
-        Self { frame }
+        let node_idx = self
+            .graph
+            .add_node(FrameGraphNode::Provider(provider.clone()));
+        self.node_map.insert(provider.uid.clone(), node_idx);
+
+        provider.signals.iter().for_each(|s| {
+            let signal_idx = if let Some(idx) = self.node_map.get(&s.uid) {
+                *idx
+            } else {
+                let idx = self.graph.add_node(FrameGraphNode::Signal(s.clone()));
+                self.node_map.insert(s.uid.clone(), idx);
+                idx
+            };
+            self.graph.add_edge(node_idx, signal_idx, 0);
+        });
+
+        provider.inputs.iter().for_each(|s| {
+            let signal_idx = if let Some(idx) = self.node_map.get(&s.uid) {
+                *idx
+            } else {
+                let idx = self.graph.add_node(FrameGraphNode::Signal(s.clone()));
+                self.node_map.insert(s.uid.clone(), idx);
+                idx
+            };
+            self.graph.add_edge(signal_idx, node_idx, 0);
+        });
+
+        Ok(())
     }
 
-    pub async fn into_query_context(&self) -> FusionResult<ExecutionContext> {
-        let schema_provider = MemorySchemaProvider::new();
+    pub async fn into_frame_query_planner(self) -> Result<FrameQueryPlanner> {
+        let mut planner = FrameQueryPlanner::new();
 
-        for provider in self.frame.clone().providers {
-            match provider.try_into_provider_node().await? {
-                ProviderNode::Table(tbl) => {
-                    // TODO remove panic
-                    schema_provider
-                        .register_table(provider.name.clone(), tbl.clone())
-                        .unwrap();
+        match toposort(&self.graph, None) {
+            Ok(order) => {
+                // TODO figure out how to do this in a for_each iterator
+                for idx in order {
+                    if let Some(FrameGraphNode::Provider(provider)) = self.graph.node_weight(idx) {
+                        planner.register_signal_provider(provider).await?;
+                    }
                 }
-                _ => (),
             }
-        }
+            Err(err) => {
+                self.graph
+                    .node_weight(err.node_id())
+                    .map(|weight| println!("Error graph has cycle at node {:?}", weight));
+            }
+        };
 
-        let catalog = Arc::new(MemoryCatalogProvider::new());
-        catalog.register_schema(self.frame.name.clone(), Arc::new(schema_provider));
-
-        let config = ExecutionConfig::new().with_information_schema(true);
-        let ctx = ExecutionContext::with_config(config);
-        ctx.register_catalog("catalog", catalog);
-
-        Ok(ctx)
+        Ok(planner)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{ToProviderNode, test_utils::get_provider};
-    use arrow_deps::datafusion::sql::parser::DFParser;
-
-    #[tokio::test]
-    async fn provider_node_conversion() {
-        let provider = get_provider();
-        let node = provider.try_into_provider_node().await.unwrap();
-        assert!(matches!(node, ProviderNode::Table(_)))
-    }
+    use arrow_deps::arrow::util::pretty;
+    use arrow_deps::datafusion::physical_plan::collect;
 
     #[tokio::test]
     async fn create_catalog() {
-        let provider = get_provider();
-        let frame = SignalFrame {
-            uid: "frame-id".to_string(),
-            name: "frame".to_string(),
-            description: "description".to_string(),
-            providers: vec![provider],
-        };
-        let context = SignalFrameContext::new(frame.clone());
-        let mut ctx = context.into_query_context().await.unwrap();
+        let frame = crate::test_utils::get_signal_frame();
+        let mut fg = FrameGraph::new();
 
-        let sql = "select * from information_schema.columns";
-        let df = ctx.sql(sql).await.unwrap();
+        frame
+            .providers
+            .iter()
+            .for_each(|p| fg.register_signal_provider(p).unwrap());
 
-        df.show().await.unwrap();
-    }
+        let planner = fg.into_frame_query_planner().await.unwrap();
+        let plan = planner.create_physical_plan().await.unwrap();
+        let results = collect(plan.clone()).await.unwrap();
 
-    #[test]
-    fn test_sql_parser() {
-        let sql = "SELECT c = a + b FROM tblref";
-        let statements = DFParser::parse_sql(sql).unwrap();
-        println!("{:#?}", statements[0])
+        pretty::print_batches(&results).unwrap();
     }
 }

@@ -1,6 +1,6 @@
 #![cfg(feature = "mock_transport_framework")]
 use futures::StreamExt;
-use std::{error::Error, assert};
+use std::{assert, error::Error};
 use test_utils::initialize;
 
 mod test_utils;

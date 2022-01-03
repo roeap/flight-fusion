@@ -10,7 +10,6 @@ use datafusion::datasource::MemTable;
 use datafusion::error::Result;
 use datafusion::prelude::*;
 
-/// This example demonstrates how to use the DataFrame API against in-memory data.
 #[tokio::main]
 async fn main() -> Result<()> {
     // define a schema.

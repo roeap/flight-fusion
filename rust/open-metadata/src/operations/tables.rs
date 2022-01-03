@@ -23,7 +23,7 @@ pub struct ListTablesBuilder {
 impl ListTablesBuilder {
     pub fn new(client: OpenMetadataClient) -> Self {
         Self {
-            client: client,
+            client,
             fields: None,
             database: None,
             limit: None,
