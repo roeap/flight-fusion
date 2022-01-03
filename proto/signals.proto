@@ -33,6 +33,7 @@ message SignalProvider {
   string name = 2;
   string description = 3;
   repeated Signal signals = 4;
+  repeated Signal inputs = 5;
   oneof source {
     TableReference table = 100;
     ExpressionReference expression = 101;

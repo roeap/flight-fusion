@@ -1,147 +1,103 @@
-use arrow_deps::datafusion::{
-    catalog::{
-        catalog::MemoryCatalogProvider,
-        schema::{MemorySchemaProvider, SchemaProvider},
-    },
-    datasource::{
-        file_format::parquet::ParquetFormat,
-        listing::{ListingOptions, ListingTable},
-        object_store::local::LocalFileSystem,
-        TableProvider,
-    },
-    physical_plan::ExecutionPlan,
-    prelude::{ExecutionConfig, ExecutionContext},
-};
-use async_trait::async_trait;
 use error::{FusionPlannerError, Result};
 use flight_fusion_ipc::{
-    signal_provider::Source as ProviderSource, table_reference::Table as TableRef, SignalFrame,
-    SignalProvider,
+    signal_provider::Source as ProviderSource, table_reference::Table as TableRef, Signal,
+    SignalFrame, SignalProvider,
 };
-use std::sync::Arc;
+use petgraph::{
+    graph::NodeIndex,
+    prelude::{DiGraph, Direction},
+};
+use std::collections::HashMap;
 
 pub mod error;
 pub mod frames;
 pub mod query_tree;
 pub mod test_utils;
 
-pub enum ProviderNode {
-    Table(Arc<dyn TableProvider>),
-    Expression(String),
-    Model(Arc<dyn ExecutionPlan>),
-}
+impl TryInto<query_tree::FrameQueryPlanner> for SignalFrame {
+    type Error = FusionPlannerError;
 
-#[async_trait]
-pub trait ToProviderNode {
-    async fn try_into_provider_node(&self) -> Result<ProviderNode>;
-}
-
-#[async_trait]
-impl ToProviderNode for SignalProvider {
-    async fn try_into_provider_node(&self) -> Result<ProviderNode> {
-        match &self.source {
-            Some(ProviderSource::Table(tbl_ref)) => match &tbl_ref.table {
-                Some(TableRef::File(file)) => {
-                    let opt = ListingOptions {
-                        file_extension: "parquet".to_owned(),
-                        format: Arc::new(ParquetFormat::default()),
-                        table_partition_cols: vec![],
-                        target_partitions: 1,
-                        collect_stat: true,
-                    };
-                    // here we resolve the schema locally
-                    let schema = opt
-                        .infer_schema(Arc::new(LocalFileSystem {}), &file.path)
-                        .await
-                        .expect("Infer schema");
-                    let table = ListingTable::new(
-                        Arc::new(LocalFileSystem {}),
-                        file.path.clone(),
-                        schema,
-                        opt,
-                    );
-                    Ok(ProviderNode::Table(Arc::new(table)))
-                }
-                Some(TableRef::Delta(_delta)) => todo!(),
-                _ => todo!(),
-            },
-            Some(ProviderSource::Expression(expr)) => {
-                assert!(
-                    self.signals.len() == 1,
-                    "Expressions need exactly one output signal"
-                );
-                let eqn = format!("{} as {}", expr.expression, self.signals[0].name);
-                Ok(ProviderNode::Expression(eqn))
-            }
-            _ => Err(FusionPlannerError::PlanningError(
-                "Only signal provider with table source can be converted to TableProvider"
-                    .to_string(),
-            )),
-        }
+    fn try_into(self) -> std::result::Result<query_tree::FrameQueryPlanner, Self::Error> {
+        // - write signal frame into graph
+        // - generate context
+        todo!()
     }
 }
 
-pub struct SignalFrameContext {
-    frame: SignalFrame,
+pub enum FrameGraphNode {
+    Provider(SignalProvider),
+    Signal(Signal),
 }
 
-impl SignalFrameContext {
-    pub fn new(frame: SignalFrame) -> Self {
-        Self { frame }
+pub struct FrameGraph {
+    graph: DiGraph<FrameGraphNode, u32>,
+    node_map: HashMap<String, NodeIndex>,
+}
+
+impl Default for FrameGraph {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl FrameGraph {
+    pub fn new() -> Self {
+        Self {
+            graph: DiGraph::new(),
+            node_map: HashMap::new(),
+        }
     }
 
-    pub async fn into_query_context(&self) -> Result<(ExecutionContext, String)> {
-        let schema_provider = MemorySchemaProvider::new();
-        let mut query = String::new();
-
-        for provider in self.frame.clone().providers {
-            match provider.try_into_provider_node().await? {
-                ProviderNode::Table(tbl) => {
-                    schema_provider.register_table(provider.name.clone(), tbl.clone())?;
-                }
-                ProviderNode::Expression(expr) => query.push_str(&expr),
-                _ => (),
-            }
+    pub fn register_signal_provider(&mut self, provider: &SignalProvider) -> Result<()> {
+        if self.node_map.get(&provider.uid).is_some() {
+            return Err(FusionPlannerError::PlanningError(
+                "Provider has already been registered".to_string(),
+            ));
         }
 
-        let catalog = Arc::new(MemoryCatalogProvider::new());
-        catalog.register_schema(self.frame.name.clone(), Arc::new(schema_provider));
+        let node_idx = self
+            .graph
+            .add_node(FrameGraphNode::Provider(provider.clone()));
+        self.node_map.insert(provider.uid.clone(), node_idx);
 
-        let config = ExecutionConfig::new().with_information_schema(true);
-        let ctx = ExecutionContext::with_config(config);
-        ctx.register_catalog("catalog", catalog);
+        provider.signals.iter().for_each(|s| {
+            let signal_idx = if let Some(idx) = self.node_map.get(&s.uid) {
+                *idx
+            } else {
+                let idx = self.graph.add_node(FrameGraphNode::Signal(s.clone()));
+                self.node_map.insert(s.uid.clone(), idx);
+                idx
+            };
+            self.graph.add_edge(node_idx, signal_idx, 0);
+        });
 
-        Ok((ctx, query))
+        provider.inputs.iter().for_each(|s| {
+            let signal_idx = if let Some(idx) = self.node_map.get(&s.uid) {
+                *idx
+            } else {
+                let idx = self.graph.add_node(FrameGraphNode::Signal(s.clone()));
+                self.node_map.insert(s.uid.clone(), idx);
+                idx
+            };
+            self.graph.add_edge(node_idx, signal_idx, 0);
+        });
+
+        Ok(())
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{test_utils::get_provider_1, ToProviderNode};
-
-    #[tokio::test]
-    async fn provider_node_conversion() {
-        let provider = get_provider_1();
-        let node = provider.try_into_provider_node().await.unwrap();
-        assert!(matches!(node, ProviderNode::Table(_)))
-    }
 
     #[tokio::test]
     async fn create_catalog() {
-        let provider = get_provider_1();
-        let frame = SignalFrame {
-            uid: "frame-id".to_string(),
-            name: "frame".to_string(),
-            description: "description".to_string(),
-            providers: vec![provider],
-        };
-        let context = SignalFrameContext::new(frame.clone());
-        let (mut ctx, _) = context.into_query_context().await.unwrap();
+        let frame = crate::test_utils::get_signal_frame();
+        let mut fg = FrameGraph::new();
 
-        let sql = "select * from information_schema.columns";
-        let df = ctx.sql(sql).await.unwrap();
-
-        df.show().await.unwrap();
+        frame
+            .providers
+            .iter()
+            .for_each(|p| fg.register_signal_provider(p).unwrap());
     }
 }

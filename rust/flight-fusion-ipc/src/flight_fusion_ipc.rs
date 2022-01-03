@@ -329,6 +329,8 @@ pub struct SignalProvider {
     pub description: ::prost::alloc::string::String,
     #[prost(message, repeated, tag="4")]
     pub signals: ::prost::alloc::vec::Vec<Signal>,
+    #[prost(message, repeated, tag="5")]
+    pub inputs: ::prost::alloc::vec::Vec<Signal>,
     #[prost(oneof="signal_provider::Source", tags="100, 101, 102")]
     pub source: ::core::option::Option<signal_provider::Source>,
 }

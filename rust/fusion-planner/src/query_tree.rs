@@ -7,7 +7,6 @@ use arrow_deps::datafusion::{
         TableProvider,
     },
     logical_plan::{col, DFSchema, DFSchemaRef, Expr, JoinType, LogicalPlan, LogicalPlanBuilder},
-    optimizer::optimizer::OptimizerRule,
     physical_plan::ExecutionPlan,
     prelude::ExecutionContext,
     sql::{
@@ -16,11 +15,8 @@ use arrow_deps::datafusion::{
     },
 };
 use flight_fusion_ipc::{
-    signal_provider::Source as ProviderSource, table_reference::Table as TableRef, SignalFrame,
-    SignalProvider,
+    signal_provider::Source as ProviderSource, table_reference::Table as TableRef, SignalProvider,
 };
-use petgraph::algo::toposort;
-use petgraph::dot::Dot;
 use petgraph::prelude::{DiGraph, Direction};
 use sqlparser::ast::{Query, Select, SelectItem, SetExpr, Statement as SQLStatement};
 use std::sync::{Arc, Mutex};
@@ -58,12 +54,18 @@ pub struct FrameQueryPlanner {
     plan: Option<LogicalPlan>,
 }
 
+impl Default for FrameQueryPlanner {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FrameQueryPlanner {
-    pub async fn try_new() -> Result<Self> {
-        Ok(Self {
+    pub fn new() -> Self {
+        Self {
             ctx: ExecutionContext::new(),
             plan: None,
-        })
+        }
     }
 
     pub async fn register_signal_provider(&mut self, provider: &SignalProvider) -> Result<()> {
@@ -125,7 +127,6 @@ impl FrameQueryPlanner {
                     );
                     Ok(ProviderNode::Table(Arc::new(table)))
                 }
-                Some(TableRef::Delta(_delta)) => todo!(),
                 _ => todo!(),
             },
             Some(ProviderSource::Expression(expr)) => {
@@ -152,7 +153,7 @@ impl FrameQueryPlanner {
     }
 
     pub fn schema(&self) -> Option<DFSchemaRef> {
-        self.plan.clone().and_then(|p| Some(p.schema().clone()))
+        self.plan.clone().map(|p| p.schema().clone())
     }
 
     pub fn convert_expression(&self, expr: &str, schema: &DFSchema) -> Result<Expr> {
@@ -189,7 +190,7 @@ impl FrameQueryPlanner {
         }?;
         let state = self.ctx.state.lock().unwrap().clone();
         let query_planner = SqlToRel::new(&state);
-        let log_expr = query_planner.sql_to_rex(&expression, &schema)?;
+        let log_expr = query_planner.sql_to_rex(&expression, schema)?;
 
         Ok(log_expr)
     }
@@ -348,7 +349,7 @@ mod tests {
     #[tokio::test]
     async fn test_register_provider() {
         let source_provider = crate::test_utils::get_provider_1();
-        let mut planner = FrameQueryPlanner::try_new().await.unwrap();
+        let mut planner = FrameQueryPlanner::new();
         planner
             .register_signal_provider(&source_provider)
             .await
@@ -363,6 +364,7 @@ mod tests {
                 name: "S4".to_string(),
                 description: "description".to_string(),
             }],
+            inputs: vec![],
             source: Some(ProviderSource::Expression(ExpressionReference {
                 expression: "S2 * 2 + S5".to_string(),
                 ..ExpressionReference::default()
@@ -385,7 +387,7 @@ mod tests {
         let source_provider = crate::test_utils::get_provider_1();
         let source_provider2 = crate::test_utils::get_provider_2();
 
-        let mut planner = FrameQueryPlanner::try_new().await.unwrap();
+        let mut planner = FrameQueryPlanner::new();
         planner
             .register_signal_provider(&source_provider)
             .await
@@ -404,6 +406,7 @@ mod tests {
                 name: "S4".to_string(),
                 description: "description".to_string(),
             }],
+            inputs: vec![],
             source: Some(ProviderSource::Expression(ExpressionReference {
                 expression: "S2 * 2 + S5 + S6".to_string(),
                 ..ExpressionReference::default()
@@ -424,7 +427,7 @@ mod tests {
 
     #[tokio::test]
     async fn test() {
-        let planner = FrameQueryPlanner::try_new().await.unwrap();
+        let planner = FrameQueryPlanner::new();
         let expr = "SELECT P1.S2 + P2.S6";
         let schema = planner.schema().unwrap();
         planner.convert_expression(expr, &schema).unwrap();
