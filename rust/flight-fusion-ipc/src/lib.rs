@@ -1,9 +1,11 @@
-pub use crate::flight_fusion_ipc::*;
 pub mod errors;
 mod flight_fusion_ipc;
+mod macros;
 pub mod passport;
-pub use errors::*;
 pub mod utils;
+
+pub use crate::flight_fusion_ipc::*;
+pub use errors::*;
 pub use utils::*;
 
 pub trait RequestFor {
