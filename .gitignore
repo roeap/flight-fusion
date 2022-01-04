@@ -48,4 +48,5 @@ notebooks/data/
 
 node_modules/
 
-rfc
+rfc/
+site/

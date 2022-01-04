@@ -36,6 +36,10 @@ generate-openmeta:
 		--additional-properties=useSingleRequestParameter=true \
 		--skip-validate-spec
 
-.PHONY: generate-openmeta
+.PHONY: generate-types
 generate-types:
 	node scripts/generate-openmeta-types.js
+
+.PHONY: build-docker-fusion
+build-docker-fusion:
+	docker build -f rust/flight-fusion/Dockerfile -t flight-fusion .
