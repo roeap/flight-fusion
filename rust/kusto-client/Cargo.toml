@@ -25,6 +25,9 @@ url = "2.2"
 # workspace dependencies
 arrow-deps = { path = "../arrow-deps", optional = true }
 
+[dev-dependencies]
+dotenv = "0.15"
+
 [features]
 default = ["arrow"]
 arrow = ["arrow-deps"]
