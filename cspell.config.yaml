@@ -4,9 +4,11 @@ dictionaryDefinitions: []
 dictionaries: []
 words: []
 ignoreWords:
+  - Datetime
   - Introspector
   - Kusto
   - Pageable
+  - Timespan
   - chrono
   - clippy
   - datafusion

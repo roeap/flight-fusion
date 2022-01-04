@@ -300,15 +300,11 @@ pub struct ExpressionReference {
     pub uid: ::prost::alloc::string::String,
     #[prost(string, tag="2")]
     pub expression: ::prost::alloc::string::String,
-    #[prost(message, optional, tag="3")]
-    pub input_frame: ::core::option::Option<SignalFrame>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ModelReference {
     #[prost(string, tag="1")]
     pub uri: ::prost::alloc::string::String,
-    #[prost(message, optional, tag="2")]
-    pub input_frame: ::core::option::Option<SignalFrame>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Signal {

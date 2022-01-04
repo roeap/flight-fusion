@@ -14,12 +14,10 @@ enum SignalType {
 message ExpressionReference {
   string uid = 1;
   string expression = 2;
-  SignalFrame input_frame = 3;
 }
 
 message ModelReference {
   string uri = 1;
-  SignalFrame input_frame = 2;
 }
 
 message Signal {
