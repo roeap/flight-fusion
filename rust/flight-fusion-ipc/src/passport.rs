@@ -4,6 +4,7 @@ use crate::{
     setters,
 };
 use ring::{hmac, rand};
+use std::sync::Arc;
 
 pub enum ValidationResult {
     Valid,
@@ -12,44 +13,57 @@ pub enum ValidationResult {
 
 #[async_trait::async_trait]
 pub trait KeyStore {
-    async fn get_key<T: Into<String>>(&self, key_name: T) -> Result<hmac::Key>;
+    async fn get_key(&self, key_name: String) -> Result<hmac::Key>;
 }
 
-pub trait PassportIntrospector {
-    fn get_customer_id() -> String;
-    fn get_account_owner_id() -> String;
-    fn get_esn() -> String;
-    fn get_device_type_id() -> String;
-    fn get_passport_as_string() -> String;
-}
-
-pub struct PassportHandler {
+pub struct StaticKeyStore {
     key: hmac::Key,
 }
 
-impl PassportHandler {
+impl StaticKeyStore {
     pub fn new() -> Self {
         let rng = rand::SystemRandom::new();
         let key = hmac::Key::generate(hmac::HMAC_SHA256, &rng).unwrap();
         Self { key }
     }
+}
 
-    pub fn builder(&self) -> PassportBuilder {
-        PassportBuilder::new(self.key.clone())
+#[async_trait::async_trait]
+impl KeyStore for StaticKeyStore {
+    async fn get_key(&self, _key_name: String) -> Result<hmac::Key> {
+        Ok(self.key.clone())
+    }
+}
+
+pub struct PassportHandler {
+    store: Arc<dyn KeyStore>,
+}
+
+impl PassportHandler {
+    pub fn new() -> Self {
+        let store = Arc::new(StaticKeyStore::new());
+        Self { store }
     }
 
-    pub fn verify(&self, passport: Passport) -> Result<()> {
+    pub async fn builder(&self) -> Result<PassportBuilder> {
+        let key = self.store.get_key("default".to_string()).await?;
+        Ok(PassportBuilder::new(key))
+    }
+
+    pub async fn verify(&self, passport: Passport) -> Result<()> {
         if let Some(user_info) = passport.user_info {
             let buf = serialize_message(user_info)?;
             let integrity = passport.user_integrity.unwrap();
-            hmac::verify(&self.key, &buf, &integrity.hmac)
+            let key = self.store.get_key(integrity.key_name).await?;
+            hmac::verify(&key, &buf, &integrity.hmac)
                 .map_err(|_| FlightFusionError::Generic("Validation failed".to_string()))?;
         };
 
         if let Some(device_info) = passport.device_info {
             let buf = serialize_message(device_info)?;
             let integrity = passport.device_integrity.unwrap();
-            hmac::verify(&self.key, &buf, &integrity.hmac)
+            let key = self.store.get_key(integrity.key_name).await?;
+            hmac::verify(&key, &buf, &integrity.hmac)
                 .map_err(|_| FlightFusionError::Generic("Validation failed".to_string()))?;
         };
 
@@ -142,10 +156,10 @@ fn message_integrity<T: prost::Message>(msg: T, hmac_key: &hmac::Key) -> Integri
 mod tests {
     use super::*;
 
-    #[test]
-    fn passport_roundtrip() {
+    #[tokio::test]
+    async fn passport_roundtrip() {
         let handler = PassportHandler::new();
-        let builder = handler.builder();
+        let builder = handler.builder().await.unwrap();
 
         let builder = builder.user_info(UserInfo {
             customer_id: 1,
@@ -155,7 +169,7 @@ mod tests {
 
         let mut passport = builder.build();
 
-        let result = handler.verify(passport.clone());
+        let result = handler.verify(passport.clone()).await;
         assert!(!result.is_err());
 
         passport.user_info = Some(UserInfo {
@@ -164,7 +178,7 @@ mod tests {
             ..UserInfo::default()
         });
 
-        let result = handler.verify(passport.clone());
+        let result = handler.verify(passport.clone()).await;
         assert!(result.is_err());
     }
 }
