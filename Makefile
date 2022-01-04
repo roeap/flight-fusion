@@ -43,3 +43,10 @@ generate-types:
 .PHONY: build-docker-fusion
 build-docker-fusion:
 	docker build -f rust/flight-fusion/Dockerfile -t flight-fusion .
+
+.PHONY: check-python
+check-python: ## Run check on Python
+	$(info Check Python isort)
+	isort --diff --check-only .
+	$(info Check Python black)
+	black --check
