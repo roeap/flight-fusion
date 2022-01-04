@@ -112,7 +112,6 @@ impl PassportBuilder {
             device_info: self.device_info.clone(),
             user_integrity,
             device_integrity,
-            ..Passport::default()
         }
     }
 }

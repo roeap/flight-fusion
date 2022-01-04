@@ -29,13 +29,8 @@ pub enum ConnectionStringError {
     ParsingError { msg: String },
 }
 
+#[derive(Default)]
 pub struct ConnectionStringBuilder<'a>(ConnectionString<'a>);
-
-impl<'a> Default for ConnectionStringBuilder<'a> {
-    fn default() -> Self {
-        Self(ConnectionString::default())
-    }
-}
 
 impl<'a> ConnectionStringBuilder<'a> {
     pub fn new() -> Self {
@@ -121,7 +116,7 @@ impl<'a> ConnectionStringBuilder<'a> {
 ///
 /// The key are a subset of what is defined in the
 /// https://docs.microsoft.com/en-us/azure/kusto/api/connection-strings/kusto
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct ConnectionString<'a> {
     /// The URI specifying the Kusto service endpoint.
     /// For example, https://mycluster.kusto.windows.net or net.tcp://localhost
@@ -150,27 +145,6 @@ pub struct ConnectionString<'a> {
     pub msi_auth: Option<bool>,
     pub msi_params: Option<&'a str>,
     pub az_cli: Option<bool>,
-}
-
-impl<'a> Default for ConnectionString<'a> {
-    fn default() -> Self {
-        Self {
-            data_source: None,
-            federated_security: None,
-            user_id: None,
-            user_token: None,
-            password: None,
-            application_client_id: None,
-            application_key: None,
-            application_token: None,
-            application_certificate: None,
-            application_certificate_thumbprint: None,
-            authority_id: None,
-            msi_auth: None,
-            msi_params: None,
-            az_cli: None,
-        }
-    }
 }
 
 impl<'a> PartialEq for ConnectionString<'a> {

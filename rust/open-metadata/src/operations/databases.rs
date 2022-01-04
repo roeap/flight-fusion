@@ -45,7 +45,7 @@ impl ListDatabasesBuilder {
         context: Context => Some(context),
     }
 
-    pub fn into_stream<'a>(self) -> ListDatabases {
+    pub fn into_stream(self) -> ListDatabases {
         let make_request = move |continuation: Option<String>| {
             let this = self.clone();
             let ctx = self.context.clone().unwrap_or_default();

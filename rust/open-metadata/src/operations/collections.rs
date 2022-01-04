@@ -47,7 +47,7 @@ impl ListCollectionsBuilder {
         Self { client }
     }
 
-    pub fn into_stream<'a>(self) -> ListCollections {
+    pub fn into_stream(self) -> ListCollections {
         let make_request = move |_: Option<String>| {
             let this = self.clone();
             let ctx = Context::new();
