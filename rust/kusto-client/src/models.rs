@@ -52,5 +52,5 @@ pub struct ResultTable {
     pub table_name: String,
     pub table_kind: TableKind,
     pub columns: Vec<Column>,
-    pub rows: Vec<Vec<serde_json::Value>>
+    pub rows: Vec<Vec<serde_json::Value>>,
 }
