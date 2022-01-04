@@ -1,4 +1,4 @@
-FROM rust:1.56.1 as build-env
+FROM rust:1.57.0 as build-env
 WORKDIR /app
 COPY . /app
 RUN cargo build --package flight-fusion --release

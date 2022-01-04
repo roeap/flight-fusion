@@ -1,1 +1,6 @@
-site_name: My Docs
+site_name: Flight Fusion
+repo_url: https://github.com/roeap/flight-fusion
+
+nav:
+  - Home: index.md
+  - Service: service.md
