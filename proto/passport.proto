@@ -33,11 +33,13 @@ enum PassportAuthenticationLevel {
 }
 
 enum UserAction {
-  USER_ACTION_READ = 0;
+  USER_ACTION_UNSPECIFIED = 0;
+  USER_ACTION_READ = 1;
 }
 
 enum DeviceAction {
-  DEVICE_ACTION_READ = 0;
+  DEVICE_ACTION_UNSPECIFIED = 0;
+  DEVICE_ACTION_READ = 1;
 }
 
 message UserInfo {

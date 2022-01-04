@@ -4,9 +4,18 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+async-trait = "0.1"
+base64 = "0.13"
 prost = "0.9"
+ring = "0.16"
 thiserror = "1"
-tonic = { version = "0.5.2", features = ["transport", "codegen", "prost", "tls-roots", "tls"] }
+tonic = { version = "0.5.2", features = [
+  "transport",
+  "codegen",
+  "prost",
+  "tls-roots",
+  "tls",
+] }
 
 [dev-dependencies]
 pretty_assertions = "1.0.0"

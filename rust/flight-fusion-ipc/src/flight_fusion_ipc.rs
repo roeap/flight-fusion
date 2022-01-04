@@ -287,12 +287,14 @@ pub enum PassportAuthenticationLevel {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum UserAction {
-    Read = 0,
+    Unspecified = 0,
+    Read = 1,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum DeviceAction {
-    Read = 0,
+    Unspecified = 0,
+    Read = 1,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ExpressionReference {
