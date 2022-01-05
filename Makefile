@@ -56,3 +56,8 @@ python-check: ## Run check on Python
 	isort --diff --check-only .
 	$(info Check Python black)
 	black --check
+
+.PHONY: python-build
+python-build: ## Build Python binding of flight fusion
+	$(info --- Build Python binding ---)
+	maturin build $(MATURIN_EXTRA_ARGS)

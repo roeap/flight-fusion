@@ -77,7 +77,6 @@ impl FlightFusionClient {
                 name: table_name.into(),
             })),
         };
-
         let result = self
             .do_action::<DropDatasetRequest, DropDatasetResponse>(action_request)
             .await?;
