@@ -1,8 +1,10 @@
-use datafusion::datasource::object_store::ObjectReader;
-use datafusion::parquet::errors::ParquetError;
-use datafusion::parquet::errors::Result as ParquetResult;
-use datafusion::parquet::file::reader::ChunkReader;
-use datafusion::parquet::file::reader::Length;
+use arrow_deps::datafusion::{
+    datasource::object_store::ObjectReader,
+    parquet::{
+        errors::{ParquetError, Result as ParquetResult},
+        file::reader::{ChunkReader, Length},
+    },
+};
 pub use local::LocalFileSystem;
 use std::io::Read;
 use std::sync::Arc;

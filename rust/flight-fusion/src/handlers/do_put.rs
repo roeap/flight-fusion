@@ -1,9 +1,11 @@
 use super::*;
+use arrow_deps::datafusion::{
+    catalog::catalog::CatalogProvider,
+    datasource::MemTable,
+    physical_plan::{collect, ExecutionPlan},
+};
+use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, commands::DeltaCommands};
 use async_trait::async_trait;
-use datafusion::physical_plan::collect;
-use datafusion::physical_plan::ExecutionPlan;
-use datafusion::{catalog::catalog::CatalogProvider, datasource::MemTable};
-use deltalake::{action::SaveMode as DeltaSaveMode, commands::DeltaCommands};
 use flight_fusion_ipc::{
     delta_operation_request, DeltaOperationRequest, DeltaOperationResponse, FlightFusionError,
     PutMemoryTableRequest, PutMemoryTableResponse, Result as FusionResult,
@@ -108,11 +110,11 @@ impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
 mod tests {
     use super::*;
     use crate::test_utils::{generate_random_batch, get_fusion_handler, get_record_batch};
-    use datafusion::{
+    use arrow_deps::datafusion::{
         arrow::datatypes::{DataType, Field, Schema as ArrowSchema},
         physical_plan::memory::MemoryExec,
     };
-    use deltalake::open_table;
+    use arrow_deps::deltalake::open_table;
     use flight_fusion_ipc::{
         delta_operation_request::Operation, DeltaOperationRequest, DeltaReference,
         DeltaWriteOperation, SaveMode,

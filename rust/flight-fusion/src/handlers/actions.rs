@@ -1,7 +1,7 @@
 use super::{ActionHandler, FusionActionHandler};
-use datafusion::catalog::catalog::CatalogProvider;
-use datafusion::datasource::MemTable;
-use datafusion::parquet::arrow::ArrowReader;
+use arrow_deps::datafusion::{
+    catalog::catalog::CatalogProvider, datasource::MemTable, parquet::arrow::ArrowReader,
+};
 use flight_fusion_ipc::{
     DatasetFormat, DropDatasetRequest, DropDatasetResponse, RegisterDatasetRequest,
     RegisterDatasetResponse, Result as FusionResult,

@@ -4,14 +4,14 @@
 //     action::Protocol, DeltaTable, DeltaTableConfig, DeltaTableMetaData, SchemaDataType, SchemaField,
 // };
 use crate::{handlers::FusionActionHandler, service::BoxedFlightStream};
-use arrow_flight::{FlightData, SchemaAsIpc};
-use datafusion::arrow::{
+use arrow_deps::datafusion::arrow::{
     array::{Array, Float32Array, Float64Array, Int32Array, Int64Array, StringArray, UInt32Array},
     compute::take,
     datatypes::{DataType, Field, Schema as ArrowSchema, SchemaRef as ArrowSchemaRef},
     ipc::writer::IpcWriteOptions,
     record_batch::RecordBatch,
 };
+use arrow_flight::{FlightData, SchemaAsIpc};
 use rand::distributions::Standard;
 use rand::prelude::*;
 use std::sync::Arc;

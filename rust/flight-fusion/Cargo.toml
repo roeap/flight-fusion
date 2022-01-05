@@ -5,18 +5,19 @@ edition = "2021"
 
 [dependencies]
 # Workspace dependencies
-observability_deps = { path = "../observability-deps" }
+arrow-deps = { path = "../arrow-deps/", features = ["delta"] }
 flight-fusion-ipc = { path = "../flight-fusion-ipc" }
 flight-fusion-client = { path = "../flight-fusion-client" }
+observability_deps = { path = "../observability-deps" }
 # deltalake = { path = "../../../delta-rs/rust" }
 # datafusion = { path = "../../../arrow-datafusion/datafusion" }
 
 # Git dependencies
-datafusion = { git = "https://github.com/apache/arrow-datafusion", rev = "07b29856c7a1287459e6b8545a41142c466d82bd" }
-arrow-azure-core = { git = "https://github.com/roeap/arrow-azure-rs" }
-deltalake = { git = "https://github.com/roeap/delta-rs", branch = "high-level-writer", features = [
-  "datafusion-ext",
-] }
+# datafusion = { git = "https://github.com/apache/arrow-datafusion", rev = "07b29856c7a1287459e6b8545a41142c466d82bd" }
+# arrow-azure-core = { git = "https://github.com/roeap/arrow-azure-rs" }
+# deltalake = { git = "https://github.com/roeap/delta-rs", branch = "high-level-writer", features = [
+#   "datafusion-ext",
+# ] }
 
 # Crates.io dependencies
 arrow-flight = "6"

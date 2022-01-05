@@ -1,7 +1,4 @@
-use arrow_flight::{flight_descriptor::DescriptorType, FlightData};
-use async_trait::async_trait;
-use core::any::Any;
-use datafusion::{
+use arrow_deps::datafusion::{
     arrow::datatypes::SchemaRef,
     error::Result as DataFusionResult,
     physical_plan::{
@@ -9,7 +6,7 @@ use datafusion::{
         Distribution, ExecutionPlan, Partitioning, SendableRecordBatchStream, Statistics,
     },
 };
-use datafusion::{
+use arrow_deps::datafusion::{
     arrow::{
         datatypes::{Schema as ArrowSchema, SchemaRef as ArrowSchemaRef},
         error::{ArrowError, Result as ArrowResult},
@@ -17,6 +14,9 @@ use datafusion::{
     },
     physical_plan::RecordBatchStream,
 };
+use arrow_flight::{flight_descriptor::DescriptorType, FlightData};
+use async_trait::async_trait;
+use core::any::Any;
 use flight_fusion_ipc::{
     to_flight_fusion_err, FlightDoPutRequest, FlightFusionError, Result as FusionResult,
 };
