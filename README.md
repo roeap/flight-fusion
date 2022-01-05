@@ -1,5 +1,23 @@
 # flight-fusion
 
+## Documentation
+
+Currently the documentation is not published, but can be viewed in this repository.
+
+```sh
+mkdocs serve
+```
+
+## Development
+
+To build and install the python bindings
+
+```sh
+make python-develop
+```
+
+## Build Docker
+
 ```sh
 docker build -f docker/Dockerfile
 ```

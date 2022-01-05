@@ -31,23 +31,21 @@ fn rt() -> PyResult<tokio::runtime::Runtime> {
 }
 
 #[pyclass]
-struct FusionClient {
-    client: FlightFusionClient,
-}
+struct FusionClient {}
 
 #[pymethods]
 impl FusionClient {
     #[new]
     fn new() -> PyResult<Self> {
-        let client = rt()?
-            .block_on(FlightFusionClient::try_new())
-            .map_err(FlightClientError::from_raw)?;
-        Ok(Self { client })
+        Ok(Self {})
     }
 
     pub fn drop_table<'py>(&self, py: Python<'py>, table_name: &str) -> PyResult<&'py PyBytes> {
         let response = rt()?
-            .block_on(self.client.drop_table(table_name))
+            .block_on(async {
+                let client = FlightFusionClient::try_new().await.unwrap();
+                client.drop_table(table_name).await
+            })
             .map_err(FlightClientError::from_raw)?;
         let obj = serialize_message(response).map_err(FlightClientError::from_prost)?;
         Ok(PyBytes::new(py, &obj))
@@ -64,7 +62,6 @@ fn serialize_message<T: prost::Message>(
 }
 
 #[pymodule]
-// module name need to match project name
 fn flight_fusion(py: Python, m: &PyModule) -> PyResult<()> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("warn")).init();
 

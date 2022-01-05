@@ -42,10 +42,16 @@ generate-types:
 
 .PHONY: build-docker-fusion
 build-docker-fusion:
+	$(info Build flight fusion container)
 	docker build -f rust/flight-fusion/Dockerfile -t flight-fusion .
 
-.PHONY: check-python
-check-python: ## Run check on Python
+.PHONY: python-develop
+python-develop: ## Run check on Python
+	$(info Dev build for python bindings)
+	cd python/flight-fusion && maturin develop $(MATURIN_EXTRA_ARGS)
+
+.PHONY: python-check
+python-check: ## Run check on Python
 	$(info Check Python isort)
 	isort --diff --check-only .
 	$(info Check Python black)
