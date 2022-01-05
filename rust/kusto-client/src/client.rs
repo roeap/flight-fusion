@@ -164,23 +164,23 @@ impl TryFrom<String> for KustoClient {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use dotenv::dotenv;
-
-    #[tokio::test]
-    async fn test_query() {
-        dotenv().ok();
-        let options = KustoClientOptions::new();
-        let client =
-            KustoClient::new_with_options("https://chronos.kusto.windows.net", options).unwrap();
-        let query = "signals | sample 10";
-        let result = client
-            .execute_query("argus-stage", query)
-            .into_future()
-            .await
-            .unwrap();
-        println!("{:#?}", result)
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     use dotenv::dotenv;
+//
+//     #[tokio::test]
+//     async fn test_query() {
+//         dotenv().ok();
+//         let options = KustoClientOptions::new();
+//         let client =
+//             KustoClient::new_with_options("https://chronos.kusto.windows.net", options).unwrap();
+//         let query = "signals | sample 10";
+//         let result = client
+//             .execute_query("argus-stage", query)
+//             .into_future()
+//             .await
+//             .unwrap();
+//         println!("{:#?}", result)
+//     }
+// }
