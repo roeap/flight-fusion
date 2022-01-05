@@ -2,7 +2,7 @@ use flight_fusion_client::error::FusionClientError as InnerFusionClientError;
 use pyo3::{exceptions::PyException, PyErr};
 
 #[derive(thiserror::Error, Debug)]
-pub enum FusionClientError {
+pub enum FlightFusionClientError {
     /// Error returned
     #[error(transparent)]
     ExecutionError(#[from] InnerFusionClientError),
@@ -33,8 +33,8 @@ pub enum FusionClientError {
     },
 }
 
-impl From<FusionClientError> for PyErr {
-    fn from(err: FusionClientError) -> PyErr {
+impl From<FlightFusionClientError> for PyErr {
+    fn from(err: FlightFusionClientError) -> PyErr {
         PyException::new_err(err.to_string())
     }
 }

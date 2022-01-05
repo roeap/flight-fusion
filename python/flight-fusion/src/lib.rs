@@ -1,4 +1,4 @@
-use error::FusionClientError;
+use error::FlightFusionClientError;
 use flight_fusion_client::{crate_version, FlightFusionClient};
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
@@ -27,8 +27,8 @@ impl FusionClient {
             let client = FlightFusionClient::try_new().await.unwrap();
             client.drop_table(table_name).await
         };
-        let response = wait_for_future(py, op).map_err(FusionClientError::from)?;
-        let obj = serialize_message(response).map_err(FusionClientError::from)?;
+        let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
+        let obj = serialize_message(response).map_err(FlightFusionClientError::from)?;
         Ok(PyBytes::new(py, &obj))
     }
 }
@@ -52,6 +52,9 @@ fn _internal(py: Python, m: &PyModule) -> PyResult<()> {
 
     m.add_function(pyo3::wrap_pyfunction!(rust_core_version, m)?)?;
     m.add_class::<FusionClient>()?;
-    m.add("FlightClientError", py.get_type::<FlightClientError>())?;
+    // m.add(
+    //     "FlightFusionClientError",
+    //     py.get_type::<FlightFusionClientError>(),
+    // )?;
     Ok(())
 }
