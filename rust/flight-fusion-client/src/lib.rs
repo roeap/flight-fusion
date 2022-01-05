@@ -1,15 +1,20 @@
-use arrow_flight::{flight_service_client::FlightServiceClient, Action};
+use arrow::{ipc::writer::IpcWriteOptions, record_batch::RecordBatch};
+use arrow_flight::{
+    flight_descriptor, flight_service_client::FlightServiceClient, Action, FlightData,
+    FlightDescriptor, PutResult, SchemaAsIpc,
+};
 use error::FusionClientError;
 use flight_fusion_ipc::{
-    flight_action_request::Action as FusionAction, DatasetFormat, DropDatasetRequest,
-    DropDatasetResponse, FlightActionRequest, RegisterDatasetRequest, RegisterDatasetResponse,
-    RequestFor,
+    flight_action_request::Action as FusionAction, utils::serialize_message, DatasetFormat,
+    DropDatasetRequest, DropDatasetResponse, FlightActionRequest, FlightDoPutRequest,
+    RegisterDatasetRequest, RegisterDatasetResponse, RequestFor,
 };
 use prost::Message;
 use std::io::Cursor;
 use tonic::{metadata::MetadataValue, service::Interceptor, transport::Channel};
 
 pub mod error;
+pub use arrow;
 
 pub fn crate_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
@@ -59,6 +64,42 @@ impl FlightFusionClient {
         Ok(result)
     }
 
+    pub async fn register_batches(
+        &self,
+        batches: Vec<RecordBatch>,
+        ticket: FlightDoPutRequest,
+    ) -> Result<Option<PutResult>, FusionClientError> {
+        let options = IpcWriteOptions::default();
+
+        // Create initial message with schema and flight descriptor
+        let schema = batches[0].schema();
+        let descriptor = FlightDescriptor {
+            r#type: flight_descriptor::DescriptorType::Cmd as i32,
+            cmd: serialize_message(ticket),
+            ..FlightDescriptor::default()
+        };
+        let mut schema_flight_data: FlightData = SchemaAsIpc::new(&schema, &options).into();
+        schema_flight_data.flight_descriptor = Some(descriptor);
+        let mut flights: Vec<FlightData> = vec![schema_flight_data];
+
+        // Write data to subsequent messages
+        let mut flight_batches = batches
+            .iter()
+            .flat_map(|batch| {
+                let (flight_dictionaries, flight_batch) =
+                    arrow_flight::utils::flight_data_from_arrow_batch(batch, &options);
+                flight_dictionaries
+                    .into_iter()
+                    .chain(std::iter::once(flight_batch))
+            })
+            .collect::<Vec<_>>();
+        flights.append(&mut flight_batches);
+
+        let request = futures::stream::iter(flights);
+        let mut result = self.client.clone().do_put(request).await?.into_inner();
+        Ok(result.message().await?)
+    }
+
     pub async fn register_dataset<S, T, P>(
         &self,
         _schema_name: S,
@@ -102,10 +143,10 @@ impl FlightFusionClient {
         };
 
         let mut stream = self.client.clone().do_action(action).await?.into_inner();
-
-        match stream.message().await.unwrap() {
+        match stream.message().await? {
+            // TODO do something more meaningful here. Should we communicate detailed results in message?
             None => Err(FusionClientError::TableAlreadyExists("asd".to_string())),
-            Some(result) => Ok(response_message::<T::Reply>(result).unwrap()),
+            Some(result) => Ok(response_message::<T::Reply>(result)?),
         }
     }
 }
@@ -125,16 +166,3 @@ impl Interceptor for AuthInterceptor {
         Ok(req)
     }
 }
-
-// TODO enable docker in unit tests
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//
-//     #[tokio::test]
-//     async fn it_works() {
-//         let client = FlightFusionClient::try_new().await.unwrap();
-//         let response = client.drop_table("table_name").await.unwrap();
-//         println!("{:?}", response)
-//     }
-// }

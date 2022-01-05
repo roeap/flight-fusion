@@ -29,7 +29,7 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 use tonic::Streaming;
 
-/// Command for creating ne delta table
+/// Execution plan for processing request streams
 pub struct FlightReceiverPlan {
     /// The original Tonic stream
     inner: Vec<Arc<RecordBatch>>,
@@ -55,7 +55,7 @@ impl FlightReceiverPlan {
         let ticket = match DescriptorType::from_i32(descriptor.r#type) {
             Some(DescriptorType::Cmd) => {
                 let mut buf = Cursor::new(&descriptor.cmd);
-                let request_data: FlightDoPutRequest = FlightDoPutRequest::decode(&mut buf)
+                let request_data = FlightDoPutRequest::decode(&mut buf)
                     .map_err(|e| FlightFusionError::external(e.to_string()))?;
                 Ok(request_data)
             }

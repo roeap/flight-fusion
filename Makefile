@@ -61,3 +61,7 @@ python-check: ## Run check on Python
 python-build: ## Build Python binding of flight fusion
 	$(info --- Build Python binding ---)
 	maturin build $(MATURIN_EXTRA_ARGS)
+
+.PHONY: rust-test-integration
+rust-test-integration:
+	cargo test --package flight-fusion-client --tests --features integration
