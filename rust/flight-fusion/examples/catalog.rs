@@ -1,14 +1,13 @@
 use std::sync::Arc;
 
-use datafusion::arrow::array::{Int32Array, StringArray};
-use datafusion::arrow::datatypes::{DataType, Field, Schema};
-use datafusion::arrow::record_batch::RecordBatch;
-
-use datafusion::catalog::catalog::MemoryCatalogProvider;
-use datafusion::catalog::schema::{MemorySchemaProvider, SchemaProvider};
-use datafusion::datasource::MemTable;
-use datafusion::error::Result;
-use datafusion::prelude::*;
+use arrow_deps::datafusion::arrow::array::{Int32Array, StringArray};
+use arrow_deps::datafusion::arrow::datatypes::{DataType, Field, Schema};
+use arrow_deps::datafusion::arrow::record_batch::RecordBatch;
+use arrow_deps::datafusion::catalog::catalog::MemoryCatalogProvider;
+use arrow_deps::datafusion::catalog::schema::{MemorySchemaProvider, SchemaProvider};
+use arrow_deps::datafusion::datasource::MemTable;
+use arrow_deps::datafusion::error::Result;
+use arrow_deps::datafusion::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<()> {

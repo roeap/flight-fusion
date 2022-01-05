@@ -9,15 +9,16 @@ use tokio::{
 use async_trait::async_trait;
 use futures::{stream, AsyncRead, StreamExt};
 
-use datafusion::datasource::{
-    object_store::{
-        FileMeta, FileMetaStream, ListEntryStream, ObjectReader, ObjectReaderStream, ObjectStore,
-        SizedFile,
+use arrow_deps::datafusion::{
+    datasource::{
+        object_store::{
+            FileMeta, FileMetaStream, ListEntryStream, ObjectReader, ObjectReaderStream,
+            ObjectStore, SizedFile,
+        },
+        PartitionedFile,
     },
-    PartitionedFile,
+    error::{DataFusionError, Result},
 };
-use datafusion::error::DataFusionError;
-use datafusion::error::Result;
 use tokio_util::compat::TokioAsyncReadCompatExt;
 
 #[derive(Debug)]

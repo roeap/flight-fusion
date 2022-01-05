@@ -1,8 +1,6 @@
 use crate::object_store::ChunkObjectReader;
 use crate::stream::*;
-use arrow_flight::{FlightData, PutResult};
-use async_trait::async_trait;
-use datafusion::{
+use arrow_deps::datafusion::{
     catalog::{catalog::MemoryCatalogProvider, schema::MemorySchemaProvider},
     datasource::object_store::{
         local::{local_unpartitioned_file, LocalFileSystem},
@@ -11,6 +9,8 @@ use datafusion::{
     parquet::{arrow::ParquetFileArrowReader, file::serialized_reader::SerializedFileReader},
     physical_plan::ExecutionPlan,
 };
+use arrow_flight::{FlightData, PutResult};
+use async_trait::async_trait;
 use flight_fusion_ipc::{
     flight_action_request::Action as FusionAction,
     flight_do_get_request::Operation as DoGetOperation,
@@ -29,7 +29,7 @@ pub mod do_put;
 pub type BoxedFlightStream<T> =
     Pin<Box<dyn Stream<Item = Result<T, Status>> + Send + Sync + 'static>>;
 
-fn to_flight_fusion_err(e: datafusion::error::DataFusionError) -> FlightFusionError {
+fn to_flight_fusion_err(e: arrow_deps::datafusion::error::DataFusionError) -> FlightFusionError {
     FlightFusionError::ExternalError(format!("{:?}", e))
 }
 

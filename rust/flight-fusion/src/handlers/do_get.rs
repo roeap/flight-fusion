@@ -1,7 +1,10 @@
 use super::*;
+use arrow_deps::{
+    arrow::ipc::writer::IpcWriteOptions,
+    datafusion::prelude::{ExecutionConfig, ExecutionContext},
+};
 use arrow_flight::{FlightData, SchemaAsIpc};
 use async_trait::async_trait;
-use datafusion::prelude::{ExecutionConfig, ExecutionContext};
 use flight_fusion_ipc::{FlightFusionError, Result as FusionResult, SqlTicket};
 use tonic::Status;
 
@@ -28,7 +31,7 @@ impl DoGetHandler<SqlTicket> for FusionActionHandler {
         }
 
         // add an initial FlightData message that sends schema
-        let options = datafusion::arrow::ipc::writer::IpcWriteOptions::default();
+        let options = IpcWriteOptions::default();
         let schema_flight_data = SchemaAsIpc::new(&df.schema().clone().into(), &options).into();
 
         let mut flights: Vec<Result<FlightData, Status>> = vec![Ok(schema_flight_data)];

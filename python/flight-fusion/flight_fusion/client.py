@@ -19,7 +19,7 @@ from flight_fusion.proto.message_pb2 import (
 from flight_fusion.proto.tickets_pb2 import (
     DeltaOperationRequest,
     DeltaWriteOperation,
-    PutMemoryTableRequest,
+    PutMemoryTableResponse,
     SqlTicket,
 )
 
@@ -65,22 +65,17 @@ class FlightFusionClient:
         response.ParseFromString(raw_response)
         return response
 
-    def register_dataset(
-        self, catalog: str, schema: str, table: str, data: Union[pd.DataFrame, pa.Table]
-    ) -> None:
+    def register_memory_table(
+        self, table_name: str, data: Union[pd.DataFrame, pa.Table]
+    ) -> PutMemoryTableResponse:
         if isinstance(data, pd.DataFrame):
             data = pa.Table.from_pandas(data)
+        batches = data.to_batches()
 
-        command = PutMemoryTableRequest()
-        command.name = table
-
-        request = FlightDoPutRequest()
-        request.memory.CopyFrom(command)
-
-        descriptor = flight.FlightDescriptor.for_command(request.SerializeToString())
-        writer, _ = self.flight_client.do_put(descriptor, data.schema)
-        writer.write_table(data)
-        writer.close()
+        raw_response = self._raw.register_memory_table(table_name, batches)
+        response = PutMemoryTableResponse()
+        response.ParseFromString(raw_response)
+        return response
 
     def write_into_delta(
         self,

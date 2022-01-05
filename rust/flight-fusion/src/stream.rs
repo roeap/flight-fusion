@@ -1,7 +1,4 @@
-use arrow_flight::{flight_descriptor::DescriptorType, FlightData};
-use async_trait::async_trait;
-use core::any::Any;
-use datafusion::{
+use arrow_deps::datafusion::{
     arrow::datatypes::SchemaRef,
     error::Result as DataFusionResult,
     physical_plan::{
@@ -9,7 +6,7 @@ use datafusion::{
         Distribution, ExecutionPlan, Partitioning, SendableRecordBatchStream, Statistics,
     },
 };
-use datafusion::{
+use arrow_deps::datafusion::{
     arrow::{
         datatypes::{Schema as ArrowSchema, SchemaRef as ArrowSchemaRef},
         error::{ArrowError, Result as ArrowResult},
@@ -17,6 +14,9 @@ use datafusion::{
     },
     physical_plan::RecordBatchStream,
 };
+use arrow_flight::{flight_descriptor::DescriptorType, FlightData};
+use async_trait::async_trait;
+use core::any::Any;
 use flight_fusion_ipc::{
     to_flight_fusion_err, FlightDoPutRequest, FlightFusionError, Result as FusionResult,
 };
@@ -29,7 +29,7 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 use tonic::Streaming;
 
-/// Command for creating ne delta table
+/// Execution plan for processing request streams
 pub struct FlightReceiverPlan {
     /// The original Tonic stream
     inner: Vec<Arc<RecordBatch>>,
@@ -55,7 +55,7 @@ impl FlightReceiverPlan {
         let ticket = match DescriptorType::from_i32(descriptor.r#type) {
             Some(DescriptorType::Cmd) => {
                 let mut buf = Cursor::new(&descriptor.cmd);
-                let request_data: FlightDoPutRequest = FlightDoPutRequest::decode(&mut buf)
+                let request_data = FlightDoPutRequest::decode(&mut buf)
                     .map_err(|e| FlightFusionError::external(e.to_string()))?;
                 Ok(request_data)
             }
