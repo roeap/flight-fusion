@@ -1,3 +1,36 @@
+[project]
+name = "flight-fusion"
+description = "Client to filight fusion serice"
+readme = "README.md"
+license = { file = "LICENSE.txt" }
+requires-python = ">=3.6"
+keywords = ["deltalake", "delta", "datalake", "pandas", "arrow"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3 :: Only",
+]
+dependencies = [
+  "pyarrow>=4",
+  'numpy<1.20.0;python_version<="3.6"',
+  'dataclasses;python_version<="3.6"',
+]
+
+[project.optional-dependencies]
+devel = [
+  "black",
+  "isort",
+  "pytest",
+  "pytest-mock",
+  "pytest-cov",
+  "pytest-timeout",
+  "toml",
+  "pandas",
+]
+
+[project.urls]
+repository = "https://github.com/roeap/flight-fusion"
+
 [tool.poetry]
 name = "flight-fusion"
 version = "0.1.0"
@@ -22,7 +55,16 @@ pytest = "^6.2.5"
 
 [tool.isort]
 profile = "black"
+src_paths = ["flight_fusion", "tests"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=flight_fusion -v -m 'not integration'"
+testpaths = ["tests"]
+markers = [
+  "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+  "azure: marks tests as integration tests with S3 (deselect with '-m \"not azure\"')",
+]
 
 [build-system]
-requires = ["poetry_core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["maturin==0.11.5"]
+build-backend = "maturin"

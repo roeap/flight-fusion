@@ -20,6 +20,8 @@ ignoreWords:
   - prost
   - proto
   - protobuf
+  - pyfunction
+  - pymodule
   - quicktype
   - reqwest
   - rustfmt

@@ -8,6 +8,10 @@ use prost::{DecodeError, Message};
 use std::io::Cursor;
 use tonic::{metadata::MetadataValue, service::Interceptor, transport::Channel};
 
+pub fn crate_version() -> &'static str {
+    env!("CARGO_PKG_VERSION")
+}
+
 const AUTH_TOKEN_KEY: &str = "auth-token-bin";
 
 #[derive(thiserror::Error, Debug)]
@@ -147,14 +151,14 @@ impl Interceptor for AuthInterceptor {
 }
 
 // TODO enable docker in unit tests
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//
-//     #[tokio::test]
-//     async fn it_works() {
-//         let client = FlightFusionClient::try_new().await.unwrap();
-//         let response = client.drop_table("table_name").await.unwrap();
-//         println!("{:?}", response)
-//     }
-// }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn it_works() {
+        let client = FlightFusionClient::try_new().await.unwrap();
+        let response = client.drop_table("table_name").await.unwrap();
+        println!("{:?}", response)
+    }
+}
