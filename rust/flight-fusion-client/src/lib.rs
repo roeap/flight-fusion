@@ -151,14 +151,14 @@ impl Interceptor for AuthInterceptor {
 }
 
 // TODO enable docker in unit tests
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn it_works() {
-        let client = FlightFusionClient::try_new().await.unwrap();
-        let response = client.drop_table("table_name").await.unwrap();
-        println!("{:?}", response)
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//
+//     #[tokio::test]
+//     async fn it_works() {
+//         let client = FlightFusionClient::try_new().await.unwrap();
+//         let response = client.drop_table("table_name").await.unwrap();
+//         println!("{:?}", response)
+//     }
+// }

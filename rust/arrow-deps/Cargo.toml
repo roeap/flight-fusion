@@ -13,7 +13,6 @@ datafusion = { git = "https://github.com/apache/arrow-datafusion", rev = "07b298
 deltalake = { git = "https://github.com/roeap/delta-rs", branch = "high-level-writer", features = [
   "datafusion-ext",
 ], optional = true }
-# quote = "1.0.10"
 
 [features]
 delta = ["deltalake"]
