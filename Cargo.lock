@@ -1013,6 +1013,7 @@ dependencies = [
  "pyo3",
  "reqwest",
  "serde_json",
+ "thiserror",
  "tokio",
 ]
 

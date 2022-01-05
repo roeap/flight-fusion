@@ -1,33 +1,15 @@
-use flight_fusion_client::{crate_version, FlightFusionClient, FusionClientError};
-use pyo3::create_exception;
-use pyo3::exceptions::PyException;
+use error::FusionClientError;
+use flight_fusion_client::{crate_version, FlightFusionClient};
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
+use utils::wait_for_future;
 
-create_exception!(flight_fusion, FlightClientError, PyException);
-
-impl FlightClientError {
-    fn from_tokio(err: tokio::io::Error) -> pyo3::PyErr {
-        FlightClientError::new_err(err.to_string())
-    }
-
-    fn from_raw(err: FusionClientError) -> pyo3::PyErr {
-        FlightClientError::new_err(err.to_string())
-    }
-
-    fn from_prost(err: prost::EncodeError) -> pyo3::PyErr {
-        FlightClientError::new_err(err.to_string())
-    }
-}
+mod error;
+mod utils;
 
 #[pyfunction]
 fn rust_core_version() -> &'static str {
     crate_version()
-}
-
-#[inline]
-fn rt() -> PyResult<tokio::runtime::Runtime> {
-    tokio::runtime::Runtime::new().map_err(FlightClientError::from_tokio)
 }
 
 #[pyclass]
@@ -41,13 +23,12 @@ impl FusionClient {
     }
 
     pub fn drop_table<'py>(&self, py: Python<'py>, table_name: &str) -> PyResult<&'py PyBytes> {
-        let response = rt()?
-            .block_on(async {
-                let client = FlightFusionClient::try_new().await.unwrap();
-                client.drop_table(table_name).await
-            })
-            .map_err(FlightClientError::from_raw)?;
-        let obj = serialize_message(response).map_err(FlightClientError::from_prost)?;
+        let op = async {
+            let client = FlightFusionClient::try_new().await.unwrap();
+            client.drop_table(table_name).await
+        };
+        let response = wait_for_future(py, op).map_err(FusionClientError::from)?;
+        let obj = serialize_message(response).map_err(FusionClientError::from)?;
         Ok(PyBytes::new(py, &obj))
     }
 }
@@ -61,8 +42,12 @@ fn serialize_message<T: prost::Message>(
     Ok(buf)
 }
 
+/// Low-level flight fusion internal package.
+///
+/// The higher-level public API is defined in pure python files under the
+/// flight_fusion directory.
 #[pymodule]
-fn flight_fusion(py: Python, m: &PyModule) -> PyResult<()> {
+fn _internal(py: Python, m: &PyModule) -> PyResult<()> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("warn")).init();
 
     m.add_function(pyo3::wrap_pyfunction!(rust_core_version, m)?)?;

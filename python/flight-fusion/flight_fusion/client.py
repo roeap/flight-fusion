@@ -4,7 +4,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.flight as flight
 
-from flight_fusion.flight_fusion import FusionClient as RawFusionClient
+from flight_fusion._internal import FusionClient as RawFusionClient
 from flight_fusion.proto.actions_pb2 import (
     DropDatasetResponse,
     RegisterDatasetRequest,
