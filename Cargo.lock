@@ -137,7 +137,6 @@ dependencies = [
  "arrow-flight",
  "datafusion 6.0.0 (git+https://github.com/apache/arrow-datafusion?rev=07b29856c7a1287459e6b8545a41142c466d82bd)",
  "deltalake",
- "quote",
 ]
 
 [[package]]
@@ -996,7 +995,6 @@ dependencies = [
  "pretty_assertions",
  "prost 0.9.0",
  "prost-build 0.9.0",
- "quote",
  "ring",
  "thiserror",
  "tokio",

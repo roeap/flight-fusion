@@ -51,7 +51,7 @@ jobs:
         with:
           profile: default
           toolchain: stable
-          default: true
+          override: true
       - name: Run tests
         run: cargo test --verbose
 
@@ -83,6 +83,6 @@ jobs:
         with:
           profile: default
           toolchain: stable
-          default: true
+          override: true
       - name: build and lint with clippy
         run: cargo clippy

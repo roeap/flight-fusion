@@ -35,6 +35,12 @@ impl KeyStore for StaticKeyStore {
     }
 }
 
+impl Default for StaticKeyStore {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub struct PassportHandler {
     store: Arc<dyn KeyStore>,
 }
@@ -68,6 +74,12 @@ impl PassportHandler {
         };
 
         Ok(())
+    }
+}
+
+impl Default for PassportHandler {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
