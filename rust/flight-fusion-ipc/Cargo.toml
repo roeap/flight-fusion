@@ -16,7 +16,6 @@ tonic = { version = "0.5.2", features = [
   "tls-roots",
   "tls",
 ] }
-proc-macro2 = "1"
 
 [dev-dependencies]
 pretty_assertions = "1.0.0"

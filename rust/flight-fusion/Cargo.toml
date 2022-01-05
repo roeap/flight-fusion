@@ -47,7 +47,6 @@ log = "0.4"
 
 tract-onnx = { version = "*", optional = true }
 rand = { version = "*", optional = true }
-proc-macro2 = "1"
 
 [features]
 onnx = ["tract-onnx", "rand"]
