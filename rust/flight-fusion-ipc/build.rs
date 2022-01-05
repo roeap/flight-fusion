@@ -29,7 +29,7 @@ fn main() -> Result<()> {
         .write(true)
         .truncate(true)
         .open("src/flight_fusion_ipc.rs")?;
-    file.write_all("// This file was automatically generated through the build.rs script, and should not be edited.\n#[rustfmt::skip]\n\n".as_bytes())?;
+    file.write_all("// This file was automatically generated through the build.rs script, and should not be edited.\n\n".as_bytes())?;
     file.write_all(buffer.as_bytes())?;
 
     Ok(())
