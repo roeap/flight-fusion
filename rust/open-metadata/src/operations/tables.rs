@@ -42,7 +42,7 @@ impl ListTablesBuilder {
         context: Context => Some(context),
     }
 
-    pub fn into_stream<'a>(self) -> ListTables {
+    pub fn into_stream(self) -> ListTables {
         let make_request = move |continuation: Option<String>| {
             let this = self.clone();
             let ctx = self.context.clone().unwrap_or_default();

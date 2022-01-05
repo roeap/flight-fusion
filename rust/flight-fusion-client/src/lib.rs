@@ -1,41 +1,21 @@
 use arrow_flight::{flight_service_client::FlightServiceClient, Action};
+use error::FusionClientError;
 use flight_fusion_ipc::{
     flight_action_request::Action as FusionAction, DatasetFormat, DropDatasetRequest,
     DropDatasetResponse, FlightActionRequest, RegisterDatasetRequest, RegisterDatasetResponse,
     RequestFor,
 };
-use prost::{DecodeError, Message};
+use prost::Message;
 use std::io::Cursor;
 use tonic::{metadata::MetadataValue, service::Interceptor, transport::Channel};
 
-const AUTH_TOKEN_KEY: &str = "auth-token-bin";
+pub mod error;
 
-#[derive(thiserror::Error, Debug)]
-pub enum FusionClientError {
-    /// Error returned when the table to be created already exists
-    #[error("Table: '{0}' already exists")]
-    TableAlreadyExists(String),
-
-    /// Errors during communication with flight server
-    #[error("Table: already exists")]
-    TransportError {
-        #[from]
-        source: tonic::transport::Error,
-    },
-
-    /// Errors during communication with flight server
-    #[error("Unexpected return status: {source}")]
-    ReturnCodeError {
-        #[from]
-        source: tonic::Status,
-    },
-
-    #[error("Unexpected return status: {source}")]
-    CorruptReturnMessage {
-        #[from]
-        source: DecodeError,
-    },
+pub fn crate_version() -> &'static str {
+    env!("CARGO_PKG_VERSION")
 }
+
+const AUTH_TOKEN_KEY: &str = "auth-token-bin";
 
 #[inline]
 fn response_message<T: prost::Message + Default>(
@@ -73,21 +53,22 @@ impl FlightFusionClient {
                 name: table_name.into(),
             })),
         };
-
         let result = self
             .do_action::<DropDatasetRequest, DropDatasetResponse>(action_request)
             .await?;
         Ok(result)
     }
 
-    pub async fn register_dataset<T>(
+    pub async fn register_dataset<S, T, P>(
         &self,
-        _schema_name: T,
+        _schema_name: S,
         table_name: T,
-        path: T,
+        path: P,
     ) -> Result<RegisterDatasetResponse, FusionClientError>
     where
+        S: Into<String>,
         T: Into<String>,
+        P: Into<String>,
     {
         let action_request = FlightActionRequest {
             action: Some(FusionAction::Register(RegisterDatasetRequest {
@@ -96,7 +77,6 @@ impl FlightFusionClient {
                 path: path.into(),
             })),
         };
-
         let result = self
             .do_action::<RegisterDatasetRequest, RegisterDatasetResponse>(action_request)
             .await?;

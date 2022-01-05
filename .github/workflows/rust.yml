@@ -2,9 +2,9 @@ name: Rust
 
 on:
   push:
-    branches: [main]
+    branches: [main, "rust-v*"]
   pull_request:
-    branches: [main]
+    branches: [main, "rust-v*"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -85,6 +85,4 @@ jobs:
           toolchain: stable
           override: true
       - name: build and lint with clippy
-        run: cargo clippy --features azure,datafusion-ext,s3
-      - name: Spot-check build for rustls features
-        run: cargo clippy --features s3-rustls
+        run: cargo clippy

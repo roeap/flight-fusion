@@ -1,5 +1,4 @@
 // This file was automatically generated through the build.rs script, and should not be edited.
-#[rustfmt::skip]
 
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeltaReference {

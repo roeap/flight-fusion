@@ -35,6 +35,12 @@ impl KeyStore for StaticKeyStore {
     }
 }
 
+impl Default for StaticKeyStore {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub struct PassportHandler {
     store: Arc<dyn KeyStore>,
 }
@@ -68,6 +74,12 @@ impl PassportHandler {
         };
 
         Ok(())
+    }
+}
+
+impl Default for PassportHandler {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -112,7 +124,6 @@ impl PassportBuilder {
             device_info: self.device_info.clone(),
             user_integrity,
             device_integrity,
-            ..Passport::default()
         }
     }
 }

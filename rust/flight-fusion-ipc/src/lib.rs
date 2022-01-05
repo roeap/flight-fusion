@@ -1,4 +1,5 @@
 pub mod errors;
+#[rustfmt::skip]
 mod flight_fusion_ipc;
 mod macros;
 pub mod passport;

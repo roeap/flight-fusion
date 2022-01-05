@@ -84,9 +84,9 @@ impl FrameGraph {
                 }
             }
             Err(err) => {
-                self.graph
-                    .node_weight(err.node_id())
-                    .map(|weight| println!("Error graph has cycle at node {:?}", weight));
+                if let Some(weight) = self.graph.node_weight(err.node_id()) {
+                    println!("Error graph has cycle at node {:?}", weight);
+                }
             }
         };
 

@@ -25,7 +25,7 @@ impl ListServicesBuilder {
         Self { client }
     }
 
-    pub fn into_stream<'a>(self) -> ListServices {
+    pub fn into_stream(self) -> ListServices {
         let make_request = move |_: Option<String>| {
             let this = self.clone();
             let ctx = Context::new();

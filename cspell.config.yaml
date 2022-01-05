@@ -16,10 +16,15 @@ ignoreWords:
   - dotenv
   - hmac
   - jdbc
+  - mkdocs
   - petgraph
   - prost
   - proto
   - protobuf
+  - pyclass
+  - pyfunction
+  - pymethods
+  - pymodule
   - quicktype
   - reqwest
   - rustfmt

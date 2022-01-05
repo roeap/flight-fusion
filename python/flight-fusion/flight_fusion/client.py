@@ -4,7 +4,9 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.flight as flight
 
+from flight_fusion._internal import FusionClient as RawFusionClient
 from flight_fusion.proto.actions_pb2 import (
+    DropDatasetResponse,
     RegisterDatasetRequest,
     RegisterDatasetResponse,
 )
@@ -45,6 +47,7 @@ class FlightFusionClient:
             self._client = flight.FlightClient((host, int(port)))
 
         self._meta = None
+        self._raw = RawFusionClient()
 
     def _get_schema(self):
         pass
@@ -55,6 +58,12 @@ class FlightFusionClient:
     @property
     def flight_client(self) -> flight.FlightClient:
         return self._client
+
+    def drop_table(self, table_name: str) -> DropDatasetResponse:
+        raw_response = self._raw.drop_table(table_name)
+        response = DropDatasetResponse()
+        response.ParseFromString(raw_response)
+        return response
 
     def register_dataset(
         self, catalog: str, schema: str, table: str, data: Union[pd.DataFrame, pa.Table]
