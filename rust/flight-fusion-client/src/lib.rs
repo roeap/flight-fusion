@@ -7,9 +7,9 @@ use error::FusionClientError;
 use flight_fusion_ipc::{
     flight_action_request::Action as FusionAction, flight_do_put_request, utils::serialize_message,
     DatasetFormat, DropDatasetRequest, DropDatasetResponse, FlightActionRequest,
-    FlightDoPutRequest, RegisterDatasetRequest, RegisterDatasetResponse, RequestFor,
+    FlightDoPutRequest, PutMemoryTableRequest, PutMemoryTableResponse, RegisterDatasetRequest,
+    RegisterDatasetResponse, RequestFor,
 };
-use prost::Message;
 use std::io::Cursor;
 use tonic::{metadata::MetadataValue, service::Interceptor, transport::Channel};
 
@@ -42,6 +42,24 @@ impl FlightFusionClient {
             .unwrap();
 
         Ok(Self { client })
+    }
+
+    pub async fn register_memory_table<T>(
+        &self,
+        table_name: T,
+        batches: Vec<RecordBatch>,
+    ) -> Result<PutMemoryTableResponse, FusionClientError>
+    where
+        T: Into<String>,
+    {
+        let operation = flight_do_put_request::Operation::Memory(PutMemoryTableRequest {
+            name: table_name.into(),
+        });
+        Ok(self
+            .do_put::<PutMemoryTableResponse>(batches, operation)
+            .await
+            .unwrap()
+            .unwrap())
     }
 
     // #[tracing::instrument(level = "debug", skip(self, v))]

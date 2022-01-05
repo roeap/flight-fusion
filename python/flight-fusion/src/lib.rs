@@ -1,5 +1,5 @@
 use error::FlightFusionClientError;
-use flight_fusion_client::{crate_version, FlightFusionClient};
+use flight_fusion_client::{arrow::record_batch::RecordBatch, FlightFusionClient};
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use utils::wait_for_future;
@@ -7,12 +7,7 @@ use utils::wait_for_future;
 mod error;
 mod utils;
 
-#[pyfunction]
-fn rust_core_version() -> &'static str {
-    crate_version()
-}
-
-#[pyclass]
+#[pyclass(module = "flight_fusion")]
 struct FusionClient {}
 
 #[pymethods]
@@ -22,7 +17,22 @@ impl FusionClient {
         Ok(Self {})
     }
 
-    pub fn drop_table<'py>(&self, py: Python<'py>, table_name: &str) -> PyResult<&'py PyBytes> {
+    fn register_memory_table<'py>(
+        &self,
+        py: Python<'py>,
+        table_name: &str,
+        batches: Vec<RecordBatch>,
+    ) -> PyResult<&'py PyBytes> {
+        let op = async {
+            let client = FlightFusionClient::try_new().await.unwrap();
+            client.register_memory_table(table_name, batches).await
+        };
+        let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
+        let obj = serialize_message(response).map_err(FlightFusionClientError::from)?;
+        Ok(PyBytes::new(py, &obj))
+    }
+
+    fn drop_table<'py>(&self, py: Python<'py>, table_name: &str) -> PyResult<&'py PyBytes> {
         let op = async {
             let client = FlightFusionClient::try_new().await.unwrap();
             client.drop_table(table_name).await
@@ -50,7 +60,6 @@ fn serialize_message<T: prost::Message>(
 fn _internal(py: Python, m: &PyModule) -> PyResult<()> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("warn")).init();
 
-    // m.add_function(pyo3::wrap_pyfunction!(rust_core_version, m)?)?;
     m.add_class::<FusionClient>()?;
     // m.add(
     //     "FlightFusionClientError",
