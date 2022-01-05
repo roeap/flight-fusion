@@ -1,13 +1,13 @@
 use arrow::{ipc::writer::IpcWriteOptions, record_batch::RecordBatch};
 use arrow_flight::{
     flight_descriptor, flight_service_client::FlightServiceClient, Action, FlightData,
-    FlightDescriptor, PutResult, SchemaAsIpc,
+    FlightDescriptor, SchemaAsIpc,
 };
 use error::FusionClientError;
 use flight_fusion_ipc::{
-    flight_action_request::Action as FusionAction, utils::serialize_message, DatasetFormat,
-    DropDatasetRequest, DropDatasetResponse, FlightActionRequest, FlightDoPutRequest,
-    RegisterDatasetRequest, RegisterDatasetResponse, RequestFor,
+    flight_action_request::Action as FusionAction, flight_do_put_request, utils::serialize_message,
+    DatasetFormat, DropDatasetRequest, DropDatasetResponse, FlightActionRequest,
+    FlightDoPutRequest, RegisterDatasetRequest, RegisterDatasetResponse, RequestFor,
 };
 use prost::Message;
 use std::io::Cursor;
@@ -32,7 +32,6 @@ fn response_message<T: prost::Message + Default>(
 
 #[derive(Clone, Debug)]
 pub struct FlightFusionClient {
-    //     token: Vec<u8>,
     client: FlightServiceClient<Channel>,
 }
 
@@ -64,42 +63,6 @@ impl FlightFusionClient {
         Ok(result)
     }
 
-    pub async fn register_batches(
-        &self,
-        batches: Vec<RecordBatch>,
-        ticket: FlightDoPutRequest,
-    ) -> Result<Option<PutResult>, FusionClientError> {
-        let options = IpcWriteOptions::default();
-
-        // Create initial message with schema and flight descriptor
-        let schema = batches[0].schema();
-        let descriptor = FlightDescriptor {
-            r#type: flight_descriptor::DescriptorType::Cmd as i32,
-            cmd: serialize_message(ticket),
-            ..FlightDescriptor::default()
-        };
-        let mut schema_flight_data: FlightData = SchemaAsIpc::new(&schema, &options).into();
-        schema_flight_data.flight_descriptor = Some(descriptor);
-        let mut flights: Vec<FlightData> = vec![schema_flight_data];
-
-        // Write data to subsequent messages
-        let mut flight_batches = batches
-            .iter()
-            .flat_map(|batch| {
-                let (flight_dictionaries, flight_batch) =
-                    arrow_flight::utils::flight_data_from_arrow_batch(batch, &options);
-                flight_dictionaries
-                    .into_iter()
-                    .chain(std::iter::once(flight_batch))
-            })
-            .collect::<Vec<_>>();
-        flights.append(&mut flight_batches);
-
-        let request = futures::stream::iter(flights);
-        let mut result = self.client.clone().do_put(request).await?.into_inner();
-        Ok(result.message().await?)
-    }
-
     pub async fn register_dataset<S, T, P>(
         &self,
         _schema_name: S,
@@ -124,6 +87,50 @@ impl FlightFusionClient {
         Ok(result)
     }
 
+    pub async fn do_put<R>(
+        &self,
+        batches: Vec<RecordBatch>,
+        operation: flight_do_put_request::Operation,
+    ) -> Result<Option<R>, FusionClientError>
+    where
+        R: prost::Message + Default,
+    {
+        let options = IpcWriteOptions::default();
+
+        // Create initial message with schema and flight descriptor
+        let schema = batches[0].schema();
+        let descriptor = FlightDescriptor {
+            r#type: flight_descriptor::DescriptorType::Cmd as i32,
+            cmd: serialize_message(FlightDoPutRequest {
+                operation: Some(operation),
+            }),
+            ..FlightDescriptor::default()
+        };
+        let mut schema_flight_data: FlightData = SchemaAsIpc::new(&schema, &options).into();
+        schema_flight_data.flight_descriptor = Some(descriptor);
+        let mut flights: Vec<FlightData> = vec![schema_flight_data];
+
+        // Write data to subsequent messages
+        let mut flight_batches = batches
+            .iter()
+            .flat_map(|batch| {
+                let (flight_dictionaries, flight_batch) =
+                    arrow_flight::utils::flight_data_from_arrow_batch(batch, &options);
+                flight_dictionaries
+                    .into_iter()
+                    .chain(std::iter::once(flight_batch))
+            })
+            .collect::<Vec<_>>();
+        flights.append(&mut flight_batches);
+
+        let request = futures::stream::iter(flights);
+        let mut result = self.client.clone().do_put(request).await?.into_inner();
+        match result.message().await? {
+            Some(msg) => Ok(Some(R::decode(msg.app_metadata.as_ref())?)),
+            _ => Ok(None),
+        }
+    }
+
     // #[tracing::instrument(level = "debug", skip(self, v))]
     pub(crate) async fn do_action<T, R>(
         &self,
@@ -133,15 +140,10 @@ impl FlightFusionClient {
         T: RequestFor<Reply = R>,
         R: prost::Message + Default,
     {
-        let mut buf = Vec::new();
-        buf.reserve(request.encoded_len());
-        request.encode(&mut buf).unwrap();
-
         let action = Action {
             r#type: String::from(""),
-            body: buf,
+            body: serialize_message(request),
         };
-
         let mut stream = self.client.clone().do_action(action).await?.into_inner();
         match stream.message().await? {
             // TODO do something more meaningful here. Should we communicate detailed results in message?
