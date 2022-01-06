@@ -57,7 +57,7 @@ fn serialize_message<T: prost::Message>(
 /// The higher-level public API is defined in pure python files under the
 /// flight_fusion directory.
 #[pymodule]
-fn _internal(py: Python, m: &PyModule) -> PyResult<()> {
+fn _internal(_py: Python, m: &PyModule) -> PyResult<()> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("warn")).init();
 
     m.add_class::<FusionClient>()?;

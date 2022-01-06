@@ -213,7 +213,7 @@ mod tests {
             .handle_do_put(request.clone(), plan.clone())
             .await
             .unwrap();
-        let mut dt = open_table(&table_uri).await.unwrap();
+        let dt = open_table(&table_uri).await.unwrap();
         assert_eq!(dt.version, 0);
     }
 }
