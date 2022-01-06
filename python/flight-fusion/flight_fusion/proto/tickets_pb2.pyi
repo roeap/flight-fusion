@@ -21,9 +21,7 @@ class SqlTicket(google.protobuf.message.Message):
         *,
         query: typing.Text = ...,
     ) -> None: ...
-    def ClearField(
-        self, field_name: typing_extensions.Literal["query", b"query"]
-    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["query", b"query"]) -> None: ...
 
 global___SqlTicket = SqlTicket
 
@@ -36,9 +34,7 @@ class KqlTicket(google.protobuf.message.Message):
         *,
         query: typing.Text = ...,
     ) -> None: ...
-    def ClearField(
-        self, field_name: typing_extensions.Literal["query", b"query"]
-    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["query", b"query"]) -> None: ...
 
 global___KqlTicket = KqlTicket
 
@@ -51,9 +47,7 @@ class DeltaCreateOperation(google.protobuf.message.Message):
         *,
         save_mode: common_pb2.SaveMode.V = ...,
     ) -> None: ...
-    def ClearField(
-        self, field_name: typing_extensions.Literal["save_mode", b"save_mode"]
-    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["save_mode", b"save_mode"]) -> None: ...
 
 global___DeltaCreateOperation = DeltaCreateOperation
 
@@ -66,9 +60,7 @@ class DeltaWriteOperation(google.protobuf.message.Message):
     @property
     def partition_columns(
         self,
-    ) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[
-        typing.Text
-    ]: ...
+    ) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[typing.Text]: ...
     predicate: typing.Text = ...
     def __init__(
         self,
@@ -150,9 +142,7 @@ class DeltaOperationResponse(google.protobuf.message.Message):
         *,
         stats: typing.Text = ...,
     ) -> None: ...
-    def ClearField(
-        self, field_name: typing_extensions.Literal["stats", b"stats"]
-    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["stats", b"stats"]) -> None: ...
 
 global___DeltaOperationResponse = DeltaOperationResponse
 
@@ -165,9 +155,7 @@ class PutMemoryTableRequest(google.protobuf.message.Message):
         *,
         name: typing.Text = ...,
     ) -> None: ...
-    def ClearField(
-        self, field_name: typing_extensions.Literal["name", b"name"]
-    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["name", b"name"]) -> None: ...
 
 global___PutMemoryTableRequest = PutMemoryTableRequest
 
@@ -180,9 +168,7 @@ class PutMemoryTableResponse(google.protobuf.message.Message):
         *,
         name: typing.Text = ...,
     ) -> None: ...
-    def ClearField(
-        self, field_name: typing_extensions.Literal["name", b"name"]
-    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["name", b"name"]) -> None: ...
 
 global___PutMemoryTableResponse = PutMemoryTableResponse
 
@@ -198,9 +184,7 @@ class PutRemoteTableRequest(google.protobuf.message.Message):
         name: typing.Text = ...,
         path: typing.Text = ...,
     ) -> None: ...
-    def ClearField(
-        self, field_name: typing_extensions.Literal["name", b"name", "path", b"path"]
-    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["name", b"name", "path", b"path"]) -> None: ...
 
 global___PutRemoteTableRequest = PutRemoteTableRequest
 
@@ -213,8 +197,6 @@ class PutRemoteTableResponse(google.protobuf.message.Message):
         *,
         name: typing.Text = ...,
     ) -> None: ...
-    def ClearField(
-        self, field_name: typing_extensions.Literal["name", b"name"]
-    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["name", b"name"]) -> None: ...
 
 global___PutRemoteTableResponse = PutRemoteTableResponse

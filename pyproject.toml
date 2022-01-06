@@ -30,6 +30,11 @@ ipykernel = "^6.4.2"
 pre-commit = "^2.15.0"
 pytest = "^6.2.5"
 
+[tool.black]
+line-length = 120
+target-version = ['py37']
+include = '\.pyi?$'
+
 [tool.isort]
 profile = "black"
 src_paths = ["python/flight-fusion"]

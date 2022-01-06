@@ -28,15 +28,11 @@ class FlightActionRequest(google.protobuf.message.Message):
     ) -> None: ...
     def HasField(
         self,
-        field_name: typing_extensions.Literal[
-            "action", b"action", "drop", b"drop", "register", b"register"
-        ],
+        field_name: typing_extensions.Literal["action", b"action", "drop", b"drop", "register", b"register"],
     ) -> builtins.bool: ...
     def ClearField(
         self,
-        field_name: typing_extensions.Literal[
-            "action", b"action", "drop", b"drop", "register", b"register"
-        ],
+        field_name: typing_extensions.Literal["action", b"action", "drop", b"drop", "register", b"register"],
     ) -> None: ...
     def WhichOneof(
         self, oneof_group: typing_extensions.Literal["action", b"action"]
@@ -60,15 +56,11 @@ class FlightDoGetRequest(google.protobuf.message.Message):
     ) -> None: ...
     def HasField(
         self,
-        field_name: typing_extensions.Literal[
-            "kql", b"kql", "operation", b"operation", "sql", b"sql"
-        ],
+        field_name: typing_extensions.Literal["kql", b"kql", "operation", b"operation", "sql", b"sql"],
     ) -> builtins.bool: ...
     def ClearField(
         self,
-        field_name: typing_extensions.Literal[
-            "kql", b"kql", "operation", b"operation", "sql", b"sql"
-        ],
+        field_name: typing_extensions.Literal["kql", b"kql", "operation", b"operation", "sql", b"sql"],
     ) -> None: ...
     def WhichOneof(
         self, oneof_group: typing_extensions.Literal["operation", b"operation"]

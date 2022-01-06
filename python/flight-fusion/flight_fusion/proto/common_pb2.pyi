@@ -13,9 +13,13 @@ DESCRIPTOR: google.protobuf.descriptor.FileDescriptor = ...
 
 class DatasetFormat(_DatasetFormat, metaclass=_DatasetFormatEnumTypeWrapper):
     pass
+
 class _DatasetFormat:
-    V = typing.NewType('V', builtins.int)
-class _DatasetFormatEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_DatasetFormat.V], builtins.type):
+    V = typing.NewType("V", builtins.int)
+
+class _DatasetFormatEnumTypeWrapper(
+    google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_DatasetFormat.V], builtins.type
+):
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor = ...
     DATASET_FORMAT_FILE = DatasetFormat.V(0)
     DATASET_FORMAT_DATASET = DatasetFormat.V(1)
@@ -26,11 +30,12 @@ DATASET_FORMAT_DATASET = DatasetFormat.V(1)
 DATASET_FORMAT_DELTA = DatasetFormat.V(2)
 global___DatasetFormat = DatasetFormat
 
-
 class SaveMode(_SaveMode, metaclass=_SaveModeEnumTypeWrapper):
     pass
+
 class _SaveMode:
-    V = typing.NewType('V', builtins.int)
+    V = typing.NewType("V", builtins.int)
+
 class _SaveModeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_SaveMode.V], builtins.type):
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor = ...
     SAVE_MODE_UNSPECIFIED = SaveMode.V(0)
@@ -42,38 +47,43 @@ SAVE_MODE_APPEND = SaveMode.V(1)
 SAVE_MODE_OVERWRITE = SaveMode.V(2)
 global___SaveMode = SaveMode
 
-
 class DeltaReference(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor = ...
     LOCATION_FIELD_NUMBER: builtins.int
     location: typing.Text = ...
-    def __init__(self,
+    def __init__(
+        self,
         *,
-        location : typing.Text = ...,
-        ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["location",b"location"]) -> None: ...
+        location: typing.Text = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["location", b"location"]) -> None: ...
+
 global___DeltaReference = DeltaReference
 
 class ListingReference(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor = ...
     PATH_FIELD_NUMBER: builtins.int
     path: typing.Text = ...
-    def __init__(self,
+    def __init__(
+        self,
         *,
-        path : typing.Text = ...,
-        ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["path",b"path"]) -> None: ...
+        path: typing.Text = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["path", b"path"]) -> None: ...
+
 global___ListingReference = ListingReference
 
 class FileReference(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor = ...
     PATH_FIELD_NUMBER: builtins.int
     path: typing.Text = ...
-    def __init__(self,
+    def __init__(
+        self,
         *,
-        path : typing.Text = ...,
-        ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["path",b"path"]) -> None: ...
+        path: typing.Text = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["path", b"path"]) -> None: ...
+
 global___FileReference = FileReference
 
 class TableReference(google.protobuf.message.Message):
@@ -87,13 +97,27 @@ class TableReference(google.protobuf.message.Message):
     def listing(self) -> global___ListingReference: ...
     @property
     def filse(self) -> global___FileReference: ...
-    def __init__(self,
+    def __init__(
+        self,
         *,
-        delta : typing.Optional[global___DeltaReference] = ...,
-        listing : typing.Optional[global___ListingReference] = ...,
-        filse : typing.Optional[global___FileReference] = ...,
-        ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["delta",b"delta","filse",b"filse","listing",b"listing","table",b"table"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["delta",b"delta","filse",b"filse","listing",b"listing","table",b"table"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing_extensions.Literal["table",b"table"]) -> typing.Optional[typing_extensions.Literal["delta","listing","filse"]]: ...
+        delta: typing.Optional[global___DeltaReference] = ...,
+        listing: typing.Optional[global___ListingReference] = ...,
+        filse: typing.Optional[global___FileReference] = ...,
+    ) -> None: ...
+    def HasField(
+        self,
+        field_name: typing_extensions.Literal[
+            "delta", b"delta", "filse", b"filse", "listing", b"listing", "table", b"table"
+        ],
+    ) -> builtins.bool: ...
+    def ClearField(
+        self,
+        field_name: typing_extensions.Literal[
+            "delta", b"delta", "filse", b"filse", "listing", b"listing", "table", b"table"
+        ],
+    ) -> None: ...
+    def WhichOneof(
+        self, oneof_group: typing_extensions.Literal["table", b"table"]
+    ) -> typing.Optional[typing_extensions.Literal["delta", "listing", "filse"]]: ...
+
 global___TableReference = TableReference

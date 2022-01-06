@@ -28,9 +28,7 @@ class RegisterDatasetRequest(google.protobuf.message.Message):
     ) -> None: ...
     def ClearField(
         self,
-        field_name: typing_extensions.Literal[
-            "format", b"format", "name", b"name", "path", b"path"
-        ],
+        field_name: typing_extensions.Literal["format", b"format", "name", b"name", "path", b"path"],
     ) -> None: ...
 
 global___RegisterDatasetRequest = RegisterDatasetRequest
@@ -44,9 +42,7 @@ class RegisterDatasetResponse(google.protobuf.message.Message):
         *,
         message: typing.Text = ...,
     ) -> None: ...
-    def ClearField(
-        self, field_name: typing_extensions.Literal["message", b"message"]
-    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["message", b"message"]) -> None: ...
 
 global___RegisterDatasetResponse = RegisterDatasetResponse
 
@@ -59,9 +55,7 @@ class DropDatasetRequest(google.protobuf.message.Message):
         *,
         name: typing.Text = ...,
     ) -> None: ...
-    def ClearField(
-        self, field_name: typing_extensions.Literal["name", b"name"]
-    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["name", b"name"]) -> None: ...
 
 global___DropDatasetRequest = DropDatasetRequest
 
@@ -74,8 +68,6 @@ class DropDatasetResponse(google.protobuf.message.Message):
         *,
         name: typing.Text = ...,
     ) -> None: ...
-    def ClearField(
-        self, field_name: typing_extensions.Literal["name", b"name"]
-    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["name", b"name"]) -> None: ...
 
 global___DropDatasetResponse = DropDatasetResponse
