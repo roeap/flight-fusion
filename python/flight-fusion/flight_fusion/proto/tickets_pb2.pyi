@@ -47,7 +47,9 @@ class DeltaCreateOperation(google.protobuf.message.Message):
         *,
         save_mode: common_pb2.SaveMode.V = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["save_mode", b"save_mode"]) -> None: ...
+    def ClearField(
+        self, field_name: typing_extensions.Literal["save_mode", b"save_mode"]
+    ) -> None: ...
 
 global___DeltaCreateOperation = DeltaCreateOperation
 
@@ -184,7 +186,9 @@ class PutRemoteTableRequest(google.protobuf.message.Message):
         name: typing.Text = ...,
         path: typing.Text = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["name", b"name", "path", b"path"]) -> None: ...
+    def ClearField(
+        self, field_name: typing_extensions.Literal["name", b"name", "path", b"path"]
+    ) -> None: ...
 
 global___PutRemoteTableRequest = PutRemoteTableRequest
 

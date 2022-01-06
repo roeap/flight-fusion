@@ -36,7 +36,9 @@ class SaveMode(_SaveMode, metaclass=_SaveModeEnumTypeWrapper):
 class _SaveMode:
     V = typing.NewType("V", builtins.int)
 
-class _SaveModeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_SaveMode.V], builtins.type):
+class _SaveModeEnumTypeWrapper(
+    google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_SaveMode.V], builtins.type
+):
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor = ...
     SAVE_MODE_UNSPECIFIED = SaveMode.V(0)
     SAVE_MODE_APPEND = SaveMode.V(1)
@@ -56,7 +58,9 @@ class DeltaReference(google.protobuf.message.Message):
         *,
         location: typing.Text = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["location", b"location"]) -> None: ...
+    def ClearField(
+        self, field_name: typing_extensions.Literal["location", b"location"]
+    ) -> None: ...
 
 global___DeltaReference = DeltaReference
 

@@ -29,10 +29,6 @@ class FlightActions:
     REGISTER_DELTA_TABLE = b"register-delta-table"
 
 
-def _validate_segment(segment: str):
-    return "." not in segment
-
-
 class FlightFusionClient:
     def __init__(
         self,
@@ -65,7 +61,9 @@ class FlightFusionClient:
         response.ParseFromString(raw_response)
         return response
 
-    def register_memory_table(self, table_name: str, data: Union[pd.DataFrame, pa.Table]) -> PutMemoryTableResponse:
+    def register_memory_table(
+        self, table_name: str, data: Union[pd.DataFrame, pa.Table]
+    ) -> PutMemoryTableResponse:
         if isinstance(data, pd.DataFrame):
             data = pa.Table.from_pandas(data)
         batches = data.to_batches()
@@ -90,7 +88,9 @@ class FlightFusionClient:
 
         op = DeltaWriteOperation(save_mode=save_mode)  # type: ignore
 
-        command = DeltaOperationRequest(table=DeltaReference(location=location), write=op)
+        command = DeltaOperationRequest(
+            table=DeltaReference(location=location), write=op
+        )
 
         request = FlightDoPutRequest()
         request.delta.CopyFrom(command)
@@ -100,7 +100,9 @@ class FlightFusionClient:
         writer.write_table(data)
         writer.close()
 
-    def register_remote_dataset(self, catalog: str, schema: str, table: str, path: str) -> RegisterDatasetResponse:
+    def register_remote_dataset(
+        self, catalog: str, schema: str, table: str, path: str
+    ) -> RegisterDatasetResponse:
 
         register_table_action = RegisterDatasetRequest()
         register_table_action.path = path
@@ -109,7 +111,9 @@ class FlightFusionClient:
         action_body = FlightActionRequest()
         action_body.register.CopyFrom(register_table_action)
 
-        action = flight.Action(FlightActions.REGISTER_TABLE, action_body.SerializeToString())
+        action = flight.Action(
+            FlightActions.REGISTER_TABLE, action_body.SerializeToString()
+        )
         res = list(self.flight_client.do_action(action))
 
         response = RegisterDatasetResponse()

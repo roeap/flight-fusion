@@ -28,7 +28,9 @@ class RegisterDatasetRequest(google.protobuf.message.Message):
     ) -> None: ...
     def ClearField(
         self,
-        field_name: typing_extensions.Literal["format", b"format", "name", b"name", "path", b"path"],
+        field_name: typing_extensions.Literal[
+            "format", b"format", "name", b"name", "path", b"path"
+        ],
     ) -> None: ...
 
 global___RegisterDatasetRequest = RegisterDatasetRequest

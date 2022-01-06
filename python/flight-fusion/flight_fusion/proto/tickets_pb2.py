@@ -545,10 +545,18 @@ _DELTAWRITEOPERATION.fields_by_name["save_mode"].enum_type = common__pb2._SAVEMO
 _DELTAOPERATIONREQUEST.fields_by_name["table"].message_type = common__pb2._DELTAREFERENCE
 _DELTAOPERATIONREQUEST.fields_by_name["create"].message_type = _DELTACREATEOPERATION
 _DELTAOPERATIONREQUEST.fields_by_name["write"].message_type = _DELTAWRITEOPERATION
-_DELTAOPERATIONREQUEST.oneofs_by_name["operation"].fields.append(_DELTAOPERATIONREQUEST.fields_by_name["create"])
-_DELTAOPERATIONREQUEST.fields_by_name["create"].containing_oneof = _DELTAOPERATIONREQUEST.oneofs_by_name["operation"]
-_DELTAOPERATIONREQUEST.oneofs_by_name["operation"].fields.append(_DELTAOPERATIONREQUEST.fields_by_name["write"])
-_DELTAOPERATIONREQUEST.fields_by_name["write"].containing_oneof = _DELTAOPERATIONREQUEST.oneofs_by_name["operation"]
+_DELTAOPERATIONREQUEST.oneofs_by_name["operation"].fields.append(
+    _DELTAOPERATIONREQUEST.fields_by_name["create"]
+)
+_DELTAOPERATIONREQUEST.fields_by_name[
+    "create"
+].containing_oneof = _DELTAOPERATIONREQUEST.oneofs_by_name["operation"]
+_DELTAOPERATIONREQUEST.oneofs_by_name["operation"].fields.append(
+    _DELTAOPERATIONREQUEST.fields_by_name["write"]
+)
+_DELTAOPERATIONREQUEST.fields_by_name[
+    "write"
+].containing_oneof = _DELTAOPERATIONREQUEST.oneofs_by_name["operation"]
 DESCRIPTOR.message_types_by_name["SqlTicket"] = _SQLTICKET
 DESCRIPTOR.message_types_by_name["KqlTicket"] = _KQLTICKET
 DESCRIPTOR.message_types_by_name["DeltaCreateOperation"] = _DELTACREATEOPERATION

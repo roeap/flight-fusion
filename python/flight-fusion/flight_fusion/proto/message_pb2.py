@@ -256,25 +256,53 @@ _FLIGHTDOPUTREQUEST = _descriptor.Descriptor(
 
 _FLIGHTACTIONREQUEST.fields_by_name["register"].message_type = actions__pb2._REGISTERDATASETREQUEST
 _FLIGHTACTIONREQUEST.fields_by_name["drop"].message_type = actions__pb2._DROPDATASETREQUEST
-_FLIGHTACTIONREQUEST.oneofs_by_name["action"].fields.append(_FLIGHTACTIONREQUEST.fields_by_name["register"])
-_FLIGHTACTIONREQUEST.fields_by_name["register"].containing_oneof = _FLIGHTACTIONREQUEST.oneofs_by_name["action"]
-_FLIGHTACTIONREQUEST.oneofs_by_name["action"].fields.append(_FLIGHTACTIONREQUEST.fields_by_name["drop"])
-_FLIGHTACTIONREQUEST.fields_by_name["drop"].containing_oneof = _FLIGHTACTIONREQUEST.oneofs_by_name["action"]
+_FLIGHTACTIONREQUEST.oneofs_by_name["action"].fields.append(
+    _FLIGHTACTIONREQUEST.fields_by_name["register"]
+)
+_FLIGHTACTIONREQUEST.fields_by_name[
+    "register"
+].containing_oneof = _FLIGHTACTIONREQUEST.oneofs_by_name["action"]
+_FLIGHTACTIONREQUEST.oneofs_by_name["action"].fields.append(
+    _FLIGHTACTIONREQUEST.fields_by_name["drop"]
+)
+_FLIGHTACTIONREQUEST.fields_by_name["drop"].containing_oneof = _FLIGHTACTIONREQUEST.oneofs_by_name[
+    "action"
+]
 _FLIGHTDOGETREQUEST.fields_by_name["sql"].message_type = tickets__pb2._SQLTICKET
 _FLIGHTDOGETREQUEST.fields_by_name["kql"].message_type = tickets__pb2._KQLTICKET
-_FLIGHTDOGETREQUEST.oneofs_by_name["operation"].fields.append(_FLIGHTDOGETREQUEST.fields_by_name["sql"])
-_FLIGHTDOGETREQUEST.fields_by_name["sql"].containing_oneof = _FLIGHTDOGETREQUEST.oneofs_by_name["operation"]
-_FLIGHTDOGETREQUEST.oneofs_by_name["operation"].fields.append(_FLIGHTDOGETREQUEST.fields_by_name["kql"])
-_FLIGHTDOGETREQUEST.fields_by_name["kql"].containing_oneof = _FLIGHTDOGETREQUEST.oneofs_by_name["operation"]
+_FLIGHTDOGETREQUEST.oneofs_by_name["operation"].fields.append(
+    _FLIGHTDOGETREQUEST.fields_by_name["sql"]
+)
+_FLIGHTDOGETREQUEST.fields_by_name["sql"].containing_oneof = _FLIGHTDOGETREQUEST.oneofs_by_name[
+    "operation"
+]
+_FLIGHTDOGETREQUEST.oneofs_by_name["operation"].fields.append(
+    _FLIGHTDOGETREQUEST.fields_by_name["kql"]
+)
+_FLIGHTDOGETREQUEST.fields_by_name["kql"].containing_oneof = _FLIGHTDOGETREQUEST.oneofs_by_name[
+    "operation"
+]
 _FLIGHTDOPUTREQUEST.fields_by_name["memory"].message_type = tickets__pb2._PUTMEMORYTABLEREQUEST
 _FLIGHTDOPUTREQUEST.fields_by_name["remote"].message_type = tickets__pb2._PUTREMOTETABLEREQUEST
 _FLIGHTDOPUTREQUEST.fields_by_name["delta"].message_type = tickets__pb2._DELTAOPERATIONREQUEST
-_FLIGHTDOPUTREQUEST.oneofs_by_name["operation"].fields.append(_FLIGHTDOPUTREQUEST.fields_by_name["memory"])
-_FLIGHTDOPUTREQUEST.fields_by_name["memory"].containing_oneof = _FLIGHTDOPUTREQUEST.oneofs_by_name["operation"]
-_FLIGHTDOPUTREQUEST.oneofs_by_name["operation"].fields.append(_FLIGHTDOPUTREQUEST.fields_by_name["remote"])
-_FLIGHTDOPUTREQUEST.fields_by_name["remote"].containing_oneof = _FLIGHTDOPUTREQUEST.oneofs_by_name["operation"]
-_FLIGHTDOPUTREQUEST.oneofs_by_name["operation"].fields.append(_FLIGHTDOPUTREQUEST.fields_by_name["delta"])
-_FLIGHTDOPUTREQUEST.fields_by_name["delta"].containing_oneof = _FLIGHTDOPUTREQUEST.oneofs_by_name["operation"]
+_FLIGHTDOPUTREQUEST.oneofs_by_name["operation"].fields.append(
+    _FLIGHTDOPUTREQUEST.fields_by_name["memory"]
+)
+_FLIGHTDOPUTREQUEST.fields_by_name["memory"].containing_oneof = _FLIGHTDOPUTREQUEST.oneofs_by_name[
+    "operation"
+]
+_FLIGHTDOPUTREQUEST.oneofs_by_name["operation"].fields.append(
+    _FLIGHTDOPUTREQUEST.fields_by_name["remote"]
+)
+_FLIGHTDOPUTREQUEST.fields_by_name["remote"].containing_oneof = _FLIGHTDOPUTREQUEST.oneofs_by_name[
+    "operation"
+]
+_FLIGHTDOPUTREQUEST.oneofs_by_name["operation"].fields.append(
+    _FLIGHTDOPUTREQUEST.fields_by_name["delta"]
+)
+_FLIGHTDOPUTREQUEST.fields_by_name["delta"].containing_oneof = _FLIGHTDOPUTREQUEST.oneofs_by_name[
+    "operation"
+]
 DESCRIPTOR.message_types_by_name["FlightActionRequest"] = _FLIGHTACTIONREQUEST
 DESCRIPTOR.message_types_by_name["FlightDoGetRequest"] = _FLIGHTDOGETREQUEST
 DESCRIPTOR.message_types_by_name["FlightDoPutRequest"] = _FLIGHTDOPUTREQUEST
