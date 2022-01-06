@@ -1,8 +1,6 @@
 pub mod errors;
 mod macros;
 #[rustfmt::skip]
-mod flight_fusion_ipc;
-#[rustfmt::skip]
 mod gen {
     include!("flight_fusion.ipc.v1alpha1.rs");
 }

@@ -68,30 +68,6 @@ pub enum StorageType {
     S3 = 5,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RegisterDatasetRequest {
-    #[prost(enumeration="DatasetFormat", tag="1")]
-    pub format: i32,
-    #[prost(string, tag="2")]
-    pub path: ::prost::alloc::string::String,
-    #[prost(string, tag="3")]
-    pub name: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RegisterDatasetResponse {
-    #[prost(string, tag="1")]
-    pub message: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DropDatasetRequest {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DropDatasetResponse {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ExpressionReference {
     #[prost(string, tag="1")]
     pub uid: ::prost::alloc::string::String,
@@ -160,6 +136,30 @@ pub enum SignalType {
     Constant = 2,
     Expression = 3,
     Model = 4,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RegisterDatasetRequest {
+    #[prost(enumeration="DatasetFormat", tag="1")]
+    pub format: i32,
+    #[prost(string, tag="2")]
+    pub path: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub name: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RegisterDatasetResponse {
+    #[prost(string, tag="1")]
+    pub message: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DropDatasetRequest {
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DropDatasetResponse {
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
 }
 /// Requests submitted against the `do_action` endpoint
 #[derive(Clone, PartialEq, ::prost::Message)]

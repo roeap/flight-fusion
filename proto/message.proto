@@ -1,9 +1,26 @@
 syntax = "proto3";
 package flight_fusion.ipc.v1alpha1;
 
-import "actions.proto";
 import "common.proto";
 import "signals.proto";
+
+message RegisterDatasetRequest {
+  DatasetFormat format = 1;
+  string path = 2;
+  string name = 3;
+}
+
+message RegisterDatasetResponse {
+    string message = 1;
+}
+
+message DropDatasetRequest {
+  string name = 1;
+}
+
+message DropDatasetResponse {
+  string name = 1;
+}
 
 // Requests submitted against the `do_action` endpoint
 message FlightActionRequest {
