@@ -60,7 +60,7 @@ python-check: ## Run check on Python
 .PHONY: python-build
 python-build: ## Build Python binding of flight fusion
 	$(info --- Build Python binding ---)
-	maturin build $(MATURIN_EXTRA_ARGS)
+	cd python/flight-fusion && maturin build --release --no-sdist --strip
 
 .PHONY: rust-test-integration
 rust-test-integration:
