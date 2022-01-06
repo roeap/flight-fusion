@@ -1,5 +1,5 @@
 syntax = "proto3";
-package flight_fusion_ipc;
+package flight_fusion.ipc.v1alpha1;
 
 import "common.proto";
 
@@ -39,6 +39,8 @@ message SignalProvider {
   }
 }
 
+// A SignalFrame defines the context for a specialized query across
+// multiple data sources
 message SignalFrame {
   string uid = 1;
   string name = 2;

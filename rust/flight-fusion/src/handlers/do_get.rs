@@ -5,14 +5,14 @@ use arrow_deps::{
 };
 use arrow_flight::{FlightData, SchemaAsIpc};
 use async_trait::async_trait;
-use flight_fusion_ipc::{FlightFusionError, Result as FusionResult, SqlTicket};
+use flight_fusion_ipc::{CommandSqlOperation, FlightFusionError, Result as FusionResult};
 use tonic::Status;
 
 #[async_trait]
-impl DoGetHandler<SqlTicket> for FusionActionHandler {
+impl DoGetHandler<CommandSqlOperation> for FusionActionHandler {
     async fn handle_do_get(
         &self,
-        ticket: SqlTicket,
+        ticket: CommandSqlOperation,
     ) -> FusionResult<BoxedFlightStream<FlightData>> {
         let config = ExecutionConfig::new().with_information_schema(true);
         let mut ctx = ExecutionContext::with_config(config);

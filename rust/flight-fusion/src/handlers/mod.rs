@@ -107,7 +107,10 @@ impl FusionActionHandler {
         match request_data.operation {
             Some(op) => match op {
                 DoGetOperation::Sql(sql) => self.handle_do_get(sql).await,
-                DoGetOperation::Kql(_kql) => {
+                DoGetOperation::Kql(_) => {
+                    todo!()
+                }
+                DoGetOperation::Frame(_) => {
                     todo!()
                 }
             },

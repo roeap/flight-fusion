@@ -5,23 +5,19 @@ import pyarrow as pa
 import pyarrow.flight as flight
 
 from flight_fusion._internal import FusionClient as RawFusionClient
-from flight_fusion.proto.actions_pb2 import (
+from flight_fusion.ipc.v1alpha1 import (
+    CommandSqlOperation,
     DropDatasetResponse,
+    FlightDoGetRequest,
+    PutMemoryTableResponse,
+)
+from flight_fusion.proto.actions_pb2 import (
     RegisterDatasetRequest,
     RegisterDatasetResponse,
 )
 from flight_fusion.proto.common_pb2 import DeltaReference, SaveMode
-from flight_fusion.proto.message_pb2 import (
-    FlightActionRequest,
-    FlightDoGetRequest,
-    FlightDoPutRequest,
-)
-from flight_fusion.proto.tickets_pb2 import (
-    DeltaOperationRequest,
-    DeltaWriteOperation,
-    PutMemoryTableResponse,
-    SqlTicket,
-)
+from flight_fusion.proto.message_pb2 import FlightActionRequest, FlightDoPutRequest
+from flight_fusion.proto.tickets_pb2 import DeltaOperationRequest, DeltaWriteOperation
 
 
 class FlightActions:
@@ -57,9 +53,7 @@ class FlightFusionClient:
 
     def drop_table(self, table_name: str) -> DropDatasetResponse:
         raw_response = self._raw.drop_table(table_name)
-        response = DropDatasetResponse()
-        response.ParseFromString(raw_response)
-        return response
+        return DropDatasetResponse().parse(raw_response)
 
     def register_memory_table(
         self, table_name: str, data: Union[pd.DataFrame, pa.Table]
@@ -67,11 +61,8 @@ class FlightFusionClient:
         if isinstance(data, pd.DataFrame):
             data = pa.Table.from_pandas(data)
         batches = data.to_batches()
-
         raw_response = self._raw.register_memory_table(table_name, batches)
-        response = PutMemoryTableResponse()
-        response.ParseFromString(raw_response)
-        return response
+        return PutMemoryTableResponse().parse(raw_response)
 
     def write_into_delta(
         self,
@@ -122,12 +113,7 @@ class FlightFusionClient:
         return response
 
     def execute_query(self, query: str) -> pa.Table:
-        sql_ticket = SqlTicket()
-        sql_ticket.query = query
-
-        request = FlightDoGetRequest()
-        request.sql.CopyFrom(sql_ticket)
-
+        request = FlightDoGetRequest(sql=CommandSqlOperation(query=query))
         ticket = flight.Ticket(ticket=request.SerializeToString())
         reader = self.flight_client.do_get(ticket)
         table = reader.read_all()

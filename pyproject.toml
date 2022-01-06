@@ -13,7 +13,6 @@ pyarrow = ">=5"
 dash = "^2.0.0"
 SQLAlchemy = "^1.4.26"
 scikit-learn = "^1.0.1"
-flight-fusion = { path = "python/flight-fusion", develop = true }
 mlflow = "^1.21.0"
 grpcio-tools = "^1.42.0"
 mypy-protobuf = "^3.0.0"

@@ -1,5 +1,5 @@
 syntax = "proto3";
-package flight_fusion_ipc;
+package flight_fusion.ipc.v1alpha1;
 
 message Integrity {
   int32 version = 1;
