@@ -18,7 +18,7 @@ mlflow = "^1.21.0"
 grpcio-tools = "^1.42.0"
 mypy-protobuf = "^3.0.0"
 mkdocs = "^1.2.3"
-openmetadata-ingestion = { version = ">=0.5", extras = ["docker"]}
+openmetadata-ingestion = { version = ">=0.5", extras = ["docker"] }
 acryl-datahub = "^0.8.20"
 
 [tool.poetry.dev-dependencies]
@@ -33,3 +33,12 @@ pytest = "^6.2.5"
 [tool.isort]
 profile = "black"
 src_paths = ["python/flight-fusion"]
+
+[tool.pyright]
+exclude = [
+  "**/node_modules",
+  "**/__pycache__",
+  "src/experimental",
+  "src/typestubs",
+]
+# stubPath = "python/flight-fusion/stubs"
