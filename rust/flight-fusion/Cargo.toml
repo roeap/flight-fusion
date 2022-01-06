@@ -23,7 +23,8 @@ lazy_static = "1.4.0"
 libc = "0.2.103"
 serde = { version = "1.0", features = ["derive"] }
 prost = "0.9"
-tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
+# tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
+tokio = { version = "1", features = ["full"] }
 tokio-stream = { version = "*", features = ["fs"] }
 tokio-util = { version = "0.6.9", features = ["compat"] }
 tonic = "0.5.2"

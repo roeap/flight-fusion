@@ -7,6 +7,11 @@ use arrow_flight::{
 
 use flight_fusion_ipc::{FlightActionRequest, FlightDoGetRequest};
 use futures::Stream;
+use observability_deps::instrument;
+use observability_deps::instrument::Instrument;
+use observability_deps::opentelemetry::{global, propagation::Extractor};
+use observability_deps::tracing;
+use observability_deps::tracing_opentelemetry::OpenTelemetrySpanExt;
 use prost::Message;
 use std::io::Cursor;
 use std::pin::Pin;
@@ -15,6 +20,26 @@ use tonic::{Request, Response, Status, Streaming};
 
 pub type BoxedFlightStream<T> =
     Pin<Box<dyn Stream<Item = Result<T, Status>> + Send + Sync + 'static>>;
+
+struct MetadataMap<'a>(&'a tonic::metadata::MetadataMap);
+
+impl<'a> Extractor for MetadataMap<'a> {
+    /// Get a value for a key from the MetadataMap.  If the value can't be converted to &str, returns None
+    fn get(&self, key: &str) -> Option<&str> {
+        self.0.get(key).and_then(|metadata| metadata.to_str().ok())
+    }
+
+    /// Collect all the keys from the MetadataMap.
+    fn keys(&self) -> Vec<&str> {
+        self.0
+            .keys()
+            .map(|key| match key {
+                tonic::metadata::KeyRef::Ascii(v) => v.as_str(),
+                tonic::metadata::KeyRef::Binary(v) => v.as_str(),
+            })
+            .collect::<Vec<_>>()
+    }
+}
 
 pub struct FlightFusionService {
     action_handler: Arc<FusionActionHandler>,
@@ -25,6 +50,12 @@ impl FlightFusionService {
         Self {
             action_handler: Arc::new(FusionActionHandler::new()),
         }
+    }
+}
+
+impl std::fmt::Debug for FlightFusionService {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("FlightFusionService").finish()
     }
 }
 
@@ -101,10 +132,15 @@ impl FlightService for FlightFusionService {
         Ok(Response::new(response))
     }
 
+    #[instrument(skip(self, request))]
     async fn do_action(
         &self,
         request: Request<Action>,
     ) -> Result<Response<Self::DoActionStream>, Status> {
+        let parent_cx =
+            global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
+        tracing::Span::current().set_parent(parent_cx);
+
         // Decode FlightRequest from buffer.
         let flight_action = request.into_inner();
         let mut buf = Cursor::new(&flight_action.body);

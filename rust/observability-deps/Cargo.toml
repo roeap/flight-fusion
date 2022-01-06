@@ -5,9 +5,12 @@ edition = "2021"
 description = "Observability ecosystem dependencies for Flight Fusion, to ensure consistent versions and unified updates"
 
 [dependencies]
+opentelemetry = { version = "0.16", features = ["rt-tokio"] }
+opentelemetry-jaeger = { version = "0.15", features = ["rt-tokio"] }
 tracing = { version = "0.1", features = [
   "max_level_trace",
   "release_max_level_debug",
 ] }
 tracing-futures = "0.2"
-tracing-subscriber = "0.3"
+tracing-opentelemetry = "0.16"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

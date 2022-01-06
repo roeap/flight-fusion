@@ -13,10 +13,12 @@ ignoreWords:
   - clippy
   - datafusion
   - datasource
+  - deps
   - dotenv
   - hmac
   - jdbc
   - mkdocs
+  - opentelemetry
   - petgraph
   - prost
   - proto

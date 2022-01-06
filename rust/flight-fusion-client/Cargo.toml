@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 # Workspace dependencies
 flight-fusion-ipc = { path = "../flight-fusion-ipc" }
+observability_deps = { path = "../observability-deps" }
 
 # Crates.io dependencies
 arrow = { version = "6.4", features = ["pyarrow", "prettyprint"] }
