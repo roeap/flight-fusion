@@ -1,5 +1,11 @@
 # flight-fusion
 
+[![CI](https://github.com/roeap/flight-fusion/actions/workflows/rust.yml/badge.svg)](https://github.com/roeap/flight-fusion/actions/workflows/rust.yml)
+
+This repository contains some experiments on what a modern data platform could look like.
+A strong emphasis lies on how observability can be achieved throughout all actions
+occurring on a data platform.
+
 ## Documentation
 
 Currently the documentation is not published, but can be viewed in this repository.
@@ -10,19 +16,25 @@ mkdocs serve
 
 ## Development
 
-To build and install the python bindings
+To run unit tests for the rust crates execute
+
+```sh
+cargo test
+```
+
+To build and install the python bindings run
 
 ```sh
 make python-develop
 ```
 
-## Build Docker
+### Build Docker
 
 ```sh
 docker build -f docker/Dockerfile
 ```
 
-## Generating python protos
+### Generating python protos
 
 To generate proto definitions for use in python client.
 
@@ -31,6 +43,11 @@ make proto
 ```
 
 Afterwards imports in the generated `message_pb2.py` and `message_pb2.pyi` have to be fixed manually.
+
+## Known issues
+
+Right now the current release of the `quote` crate breaks the build. Until the dependent crates have addressed
+the underlying issue, the version of the quote crate has to be manually pinned.
 
 ```sh
 cargo update --package quote --precise 1.0.10

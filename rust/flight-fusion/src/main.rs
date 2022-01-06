@@ -1,11 +1,8 @@
-#[macro_use]
-extern crate lazy_static;
-use tracing::info;
-
 use arrow_flight::flight_service_server::FlightServiceServer;
-
 use dotenv::dotenv;
+use lazy_static::lazy_static;
 use tonic::transport::Server;
+use tracing::info;
 
 mod handlers;
 mod object_store;
