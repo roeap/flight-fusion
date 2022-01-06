@@ -1,8 +1,9 @@
 use arrow_flight::flight_service_server::FlightServiceServer;
 use dotenv::dotenv;
 use lazy_static::lazy_static;
+use observability_deps::tracing::info;
+use observability_deps::tracing_subscriber;
 use tonic::transport::Server;
-use tracing::info;
 
 mod handlers;
 mod object_store;
@@ -20,6 +21,8 @@ lazy_static! {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
+    // install global collector configured based on RUST_LOG env var.
+    tracing_subscriber::fmt::init();
 
     let addr = "0.0.0.0:50051".parse()?;
     let service = service::FlightFusionService::new_default();

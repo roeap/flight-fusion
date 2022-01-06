@@ -12,38 +12,25 @@ observability_deps = { path = "../observability-deps" }
 # deltalake = { path = "../../../delta-rs/rust" }
 # datafusion = { path = "../../../arrow-datafusion/datafusion" }
 
-# Git dependencies
-# datafusion = { git = "https://github.com/apache/arrow-datafusion", rev = "07b29856c7a1287459e6b8545a41142c466d82bd" }
-# arrow-azure-core = { git = "https://github.com/roeap/arrow-azure-rs" }
-# deltalake = { git = "https://github.com/roeap/delta-rs", branch = "high-level-writer", features = [
-#   "datafusion-ext",
-# ] }
-
 # Crates.io dependencies
 arrow-flight = "6"
+async-trait = "0.1"
 chrono = "^0.4"
 config = "0.11.0"
-# datafusion = "5.0.0"
 dotenv = "0.15"
 futures = "^0.3"
 lazy_static = "1.4.0"
 libc = "0.2.103"
-# TODO there is higher version available already, but we need to figure out some azure sdk deps first
 serde = { version = "1.0", features = ["derive"] }
-env_logger = "0.9"
 prost = "0.9"
+tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
 tokio-stream = { version = "*", features = ["fs"] }
+tokio-util = { version = "0.6.9", features = ["compat"] }
+tonic = "0.5.2"
 url = "^2.2"
 uuid = "*"
-tonic = "0.5.2"
 # tonic-health = "0.5.0"
-tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
-tokio-util = { version = "0.6.9", features = ["compat"] }
-async-trait = "0.1"
 thiserror = "1"
-tracing = "0.1"
-tracing-futures = "0.2"
-tracing-subscriber = "0.3"
 log = "0.4"
 
 tract-onnx = { version = "*", optional = true }

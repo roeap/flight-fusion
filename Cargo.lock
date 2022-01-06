@@ -940,7 +940,6 @@ dependencies = [
  "chrono",
  "config",
  "dotenv",
- "env_logger",
  "flight-fusion-client",
  "flight-fusion-ipc",
  "futures",
@@ -961,9 +960,6 @@ dependencies = [
  "tokio-util",
  "tonic",
  "tonic-build",
- "tracing",
- "tracing-futures",
- "tracing-subscriber",
  "tract-onnx",
  "url",
  "utime",
@@ -2003,6 +1999,8 @@ name = "observability_deps"
 version = "0.1.0"
 dependencies = [
  "tracing",
+ "tracing-futures",
+ "tracing-subscriber",
 ]
 
 [[package]]
