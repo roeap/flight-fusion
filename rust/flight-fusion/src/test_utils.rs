@@ -14,6 +14,24 @@ use rand::distributions::Standard;
 use rand::prelude::*;
 use std::sync::Arc;
 
+/// Run cargo to get the root of the workspace
+pub fn workspace_root() -> Result<String, Box<dyn std::error::Error>> {
+    let output = std::process::Command::new("cargo")
+        .arg("metadata")
+        .output()?;
+    let output = String::from_utf8_lossy(&output.stdout);
+
+    let key = "workspace_root\":\"";
+    let index = output
+        .find(key)
+        .ok_or_else(|| "workspace_root key not found in metadata".to_string())?;
+    let value = &output[index + key.len()..];
+    let end = value
+        .find('"')
+        .ok_or_else(|| "workspace_root value was malformed".to_string())?;
+    Ok(value[..end].into())
+}
+
 pub fn generate_random_batch(row_count: usize, schema: ArrowSchemaRef) -> RecordBatch {
     let mut arrays: Vec<Arc<dyn Array>> = vec![];
     for field in schema.fields() {

@@ -1,10 +1,12 @@
-use crate::object_store::ChunkObjectReader;
 use crate::stream::*;
 use arrow_deps::datafusion::{
     catalog::{catalog::MemoryCatalogProvider, schema::MemorySchemaProvider},
-    datasource::object_store::{
-        local::{local_unpartitioned_file, LocalFileSystem},
-        ObjectStore,
+    datasource::{
+        file_format::parquet::ChunkObjectReader,
+        object_store::{
+            local::{local_unpartitioned_file, LocalFileSystem},
+            ObjectStore,
+        },
     },
     parquet::{arrow::ParquetFileArrowReader, file::serialized_reader::SerializedFileReader},
     physical_plan::ExecutionPlan,

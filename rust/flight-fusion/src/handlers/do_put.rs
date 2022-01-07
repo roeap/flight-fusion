@@ -86,14 +86,13 @@ impl DoPutHandler<PutRemoteTableRequest> for FusionActionHandler {
         let stats = compute_record_batch_statistics(&[batches.clone()], &schema_ref.clone(), None);
 
         // register received schema
-        let table_provider = MemTable::try_new(schema_ref.clone(), vec![batches]).unwrap();
-        let schema_provider = self.catalog.schema("schema").unwrap();
-        schema_provider
-            .register_table(ticket.name, Arc::new(table_provider))
-            .unwrap();
-
-        self.catalog
-            .register_schema("schema".to_string(), schema_provider);
+        // let table_provider = MemTable::try_new(schema_ref.clone(), vec![batches]).unwrap();
+        // let schema_provider = self.catalog.schema("schema").unwrap();
+        // schema_provider
+        //     .register_table(ticket.name, Arc::new(table_provider))
+        //     .unwrap();
+        // self.catalog
+        //     .register_schema("schema".to_string(), schema_provider);
 
         let columns = stats.column_statistics.map(|s| {
             s.iter()

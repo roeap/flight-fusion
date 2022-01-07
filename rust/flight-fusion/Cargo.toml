@@ -8,6 +8,7 @@ edition = "2021"
 arrow-deps = { path = "../arrow-deps/", features = ["delta"] }
 flight-fusion-ipc = { path = "../flight-fusion-ipc" }
 flight-fusion-client = { path = "../flight-fusion-client" }
+object-store = { path = "../object-store" }
 observability_deps = { path = "../observability-deps" }
 # deltalake = { path = "../../../delta-rs/rust" }
 # datafusion = { path = "../../../arrow-datafusion/datafusion" }
@@ -15,13 +16,16 @@ observability_deps = { path = "../observability-deps" }
 # Crates.io dependencies
 arrow-flight = "6"
 async-trait = "0.1"
+bytes = "1"
 chrono = "^0.4"
 config = "0.11.0"
 dotenv = "0.15"
 futures = "^0.3"
 lazy_static = "1.4.0"
-libc = "0.2.103"
+# libc = "0.2.103"
 serde = { version = "1.0", features = ["derive"] }
+serde_json = "1"
+parquet-format = "*"
 prost = "0.9"
 # tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
 tokio = { version = "1", features = ["full"] }

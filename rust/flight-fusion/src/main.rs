@@ -12,6 +12,7 @@ use observability_deps::tracing_subscriber::prelude::*;
 use tonic::transport::Server;
 use tracing_subscriber::layer::SubscriberExt;
 
+mod area_store;
 mod handlers;
 mod object_store;
 mod service;

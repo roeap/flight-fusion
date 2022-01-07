@@ -57,3 +57,36 @@ impl ActionHandler<RegisterDatasetRequest> for FusionActionHandler {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::object_store::BytesReader;
+    use arrow_deps::datafusion::parquet::{
+        arrow::{ArrowReader, ParquetFileArrowReader},
+        file::serialized_reader::SerializedFileReader,
+    };
+    use bytes::Bytes;
+    use object_store::{path::ObjectStorePath, ObjectStore, ObjectStoreApi};
+    use std::sync::Arc;
+
+    #[tokio::test]
+    async fn read_file() {
+        let ws_root = crate::test_utils::workspace_root().unwrap();
+        let ws_root = std::path::Path::new(&ws_root);
+        let ws_root = ws_root.join("test");
+        println!("{:?}", ws_root);
+        let storage = ObjectStore::new_file(ws_root);
+        let mut location = storage.new_path();
+        location.push_dir("data");
+        location.set_file_name("P1.parquet");
+
+        let obj_reader = BytesReader(Bytes::from(
+            storage.get(&location).await.unwrap().bytes().await.unwrap(),
+        ));
+        let file_reader = Arc::new(SerializedFileReader::new(obj_reader).unwrap());
+        let mut arrow_reader = ParquetFileArrowReader::new(file_reader);
+        let _schema = Arc::new(arrow_reader.get_schema().unwrap());
+
+        // println!("{:?}", schema)
+    }
+}
