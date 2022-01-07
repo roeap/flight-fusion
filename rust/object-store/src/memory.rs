@@ -1,5 +1,4 @@
-//! This module contains the IOx implementation for using memory as the object
-//! store.
+//! This module contains the implementation for using memory as the object store.
 use crate::{
     path::{cloud::CloudPath, parsed::DirsAndFileName},
     GetResult, ListResult, ObjectMeta, ObjectStoreApi,

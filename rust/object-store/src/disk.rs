@@ -1,5 +1,4 @@
-//! This module contains the IOx implementation for using local disk as the
-//! object store.
+//! This module contains the implementation for using local disk as the object store.
 use crate::cache::Cache;
 use crate::path::Path;
 use crate::{path::file::FilePath, GetResult, ListResult, ObjectMeta, ObjectStore, ObjectStoreApi};

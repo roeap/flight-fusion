@@ -1,4 +1,4 @@
-//! This module contains the IOx implementation for wrapping existing object store types into an artificial "sleep" wrapper.
+//! This module contains the implementation for wrapping existing object store types into an artificial "sleep" wrapper.
 use std::{convert::TryInto, sync::Mutex};
 
 use crate::{GetResult, ListResult, ObjectStoreApi, Result};

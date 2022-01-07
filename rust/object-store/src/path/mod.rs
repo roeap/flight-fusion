@@ -25,8 +25,7 @@ pub const DELIMITER: &str = "/";
 /// Universal interface for handling paths and locations for objects and
 /// directories in the object store.
 ///
-/// It allows IOx to be completely decoupled from the underlying object store
-/// implementations.
+/// It allows flight fusion to be completely decoupled from the underlying object store implementations.
 pub trait ObjectStorePath:
     std::fmt::Debug + Clone + PartialEq + Eq + Send + Sync + 'static
 {
