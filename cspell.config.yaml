@@ -11,6 +11,7 @@ ignoreWords:
   - Timespan
   - chrono
   - clippy
+  - codegen
   - datafusion
   - datasource
   - deps

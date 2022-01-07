@@ -11,10 +11,7 @@ use flight_fusion_ipc::{
     RegisterDatasetResponse, RequestFor,
 };
 use observability_deps::instrument;
-use observability_deps::instrument::Instrument;
-use observability_deps::opentelemetry::{global, propagation::Extractor};
 use observability_deps::tracing;
-use observability_deps::tracing_opentelemetry::OpenTelemetrySpanExt;
 use std::io::Cursor;
 use tonic::{
     codegen::InterceptedService,

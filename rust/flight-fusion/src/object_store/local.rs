@@ -7,12 +7,8 @@ use async_trait::async_trait;
 use futures::{stream, AsyncRead, StreamExt};
 
 use arrow_deps::datafusion::{
-    datasource::{
-        object_store::{
-            FileMeta, FileMetaStream, ListEntryStream, ObjectReader, ObjectReaderStream,
-            ObjectStore, SizedFile,
-        },
-        PartitionedFile,
+    datasource::object_store::{
+        FileMeta, FileMetaStream, ListEntryStream, ObjectReader, ObjectStore, SizedFile,
     },
     error::{DataFusionError, Result},
 };
@@ -123,49 +119,6 @@ async fn list_all(prefix: String) -> Result<FileMetaStream> {
         })
         .flatten();
         Ok(Box::pin(result))
-    }
-}
-
-/// Create a stream of `ObjectReader` by converting each file in the `files` vector
-/// into instances of `LocalFileReader`
-pub fn local_object_reader_stream(files: Vec<String>) -> ObjectReaderStream {
-    Box::pin(futures::stream::iter(files).map(|f| Ok(local_object_reader(f))))
-}
-
-/// Helper method to convert a file location to a `LocalFileReader`
-pub fn local_object_reader(file: String) -> Arc<dyn ObjectReader> {
-    LocalFileSystem
-        .file_reader(sync_local_unpartitioned_file(file).file_meta.sized_file)
-        .expect("File not found")
-}
-
-/// Helper method to fetch the file size and date at given path and create a `FileMeta`
-pub fn sync_local_unpartitioned_file(file: String) -> PartitionedFile {
-    let metadata = std::fs::metadata(&file).expect("Local file metadata");
-    PartitionedFile {
-        file_meta: FileMeta {
-            sized_file: SizedFile {
-                size: metadata.len(),
-                path: file,
-            },
-            last_modified: metadata.modified().map(chrono::DateTime::from).ok(),
-        },
-        partition_values: vec![],
-    }
-}
-
-/// Helper method to fetch the file size and date at given path and create a `FileMeta`
-pub async fn local_unpartitioned_file(file: String) -> PartitionedFile {
-    let metadata = fs::metadata(&file).await.expect("Local file metadata");
-    PartitionedFile {
-        file_meta: FileMeta {
-            sized_file: SizedFile {
-                size: metadata.len(),
-                path: file,
-            },
-            last_modified: metadata.modified().map(chrono::DateTime::from).ok(),
-        },
-        partition_values: vec![],
     }
 }
 

@@ -8,7 +8,6 @@ use arrow_flight::{
 use flight_fusion_ipc::{FlightActionRequest, FlightDoGetRequest};
 use futures::Stream;
 use observability_deps::instrument;
-use observability_deps::instrument::Instrument;
 use observability_deps::opentelemetry::{global, propagation::Extractor};
 use observability_deps::tracing;
 use observability_deps::tracing_opentelemetry::OpenTelemetrySpanExt;
