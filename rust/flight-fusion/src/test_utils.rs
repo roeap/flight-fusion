@@ -14,6 +14,20 @@ use rand::distributions::Standard;
 use rand::prelude::*;
 use std::sync::Arc;
 
+pub fn get_test_object_store() -> object_store::ObjectStore {
+    let ws_root = crate::test_utils::workspace_root().unwrap();
+    let ws_root = std::path::Path::new(&ws_root);
+    let ws_root = ws_root.join("test");
+    object_store::ObjectStore::new_file(ws_root)
+}
+
+pub fn get_fusion_handler() -> FusionActionHandler {
+    let ws_root = crate::test_utils::workspace_root().unwrap();
+    let ws_root = std::path::Path::new(&ws_root);
+    let ws_root = ws_root.join("test");
+    FusionActionHandler::new(ws_root)
+}
+
 /// Run cargo to get the root of the workspace
 pub fn workspace_root() -> Result<String, Box<dyn std::error::Error>> {
     let output = std::process::Command::new("cargo")
@@ -187,93 +201,3 @@ fn data_without_null() -> (Int32Array, StringArray, StringArray) {
 
     (base_int, base_str, base_mod)
 }
-
-pub fn get_fusion_handler() -> FusionActionHandler {
-    let handler = FusionActionHandler::new();
-    handler
-}
-
-// pub fn get_delta_schema() -> Schema {
-//     Schema::new(vec![
-//         SchemaField::new(
-//             "id".to_string(),
-//             SchemaDataType::primitive("string".to_string()),
-//             true,
-//             HashMap::new(),
-//         ),
-//         SchemaField::new(
-//             "value".to_string(),
-//             SchemaDataType::primitive("integer".to_string()),
-//             true,
-//             HashMap::new(),
-//         ),
-//         SchemaField::new(
-//             "modified".to_string(),
-//             SchemaDataType::primitive("string".to_string()),
-//             true,
-//             HashMap::new(),
-//         ),
-//     ])
-// }
-
-// pub fn get_delta_metadata(partition_cols: &[String]) -> DeltaTableMetaData {
-//     let table_schema = get_delta_schema();
-//     DeltaTableMetaData::new(
-//         None,
-//         None,
-//         None,
-//         table_schema,
-//         partition_cols.to_vec(),
-//         HashMap::new(),
-//     )
-// }
-
-// pub fn create_bare_table() -> DeltaTable {
-//     let table_dir = tempfile::tempdir().unwrap();
-//     let table_path = table_dir.path();
-//     let backend = Box::new(crate::storage::file::FileStorageBackend::new(
-//         table_path.to_str().unwrap(),
-//     ));
-//     DeltaTable::new(
-//         table_path.to_str().unwrap(),
-//         backend,
-//         DeltaTableConfig::default(),
-//     )
-//     .unwrap()
-// }
-
-// pub async fn create_initialized_table(partition_cols: &[String]) -> DeltaTable {
-//     let mut table = create_bare_table();
-//     let table_schema = get_delta_schema();
-//
-//     let mut commit_info = serde_json::Map::<String, serde_json::Value>::new();
-//     commit_info.insert(
-//         "operation".to_string(),
-//         serde_json::Value::String("CREATE TABLE".to_string()),
-//     );
-//     commit_info.insert(
-//         "userName".to_string(),
-//         serde_json::Value::String("test user".to_string()),
-//     );
-//
-//     let protocol = Protocol {
-//         min_reader_version: 1,
-//         min_writer_version: 2,
-//     };
-//
-//     let metadata = DeltaTableMetaData::new(
-//         None,
-//         None,
-//         None,
-//         table_schema,
-//         partition_cols.to_vec(),
-//         HashMap::new(),
-//     );
-//
-//     table
-//         .create(metadata, protocol, Some(commit_info))
-//         .await
-//         .unwrap();
-//
-//     table
-// }

@@ -60,7 +60,7 @@ impl ActionHandler<RegisterDatasetRequest> for FusionActionHandler {
 
 #[cfg(test)]
 mod tests {
-    use crate::object_store::BytesReader;
+    use crate::area_store::BytesReader;
     use arrow_deps::datafusion::parquet::{
         arrow::{ArrowReader, ParquetFileArrowReader},
         file::serialized_reader::SerializedFileReader,

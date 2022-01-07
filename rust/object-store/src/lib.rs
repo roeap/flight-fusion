@@ -1,11 +1,11 @@
-#[cfg(feature = "aws")]
-mod aws;
-#[cfg(feature = "azure")]
-mod azure;
+// #[cfg(feature = "aws")]
+// mod aws;
+// #[cfg(feature = "azure")]
+// mod azure;
 mod buffer;
 mod disk;
-#[cfg(feature = "gcp")]
-mod gcp;
+// #[cfg(feature = "gcp")]
+// mod gcp;
 mod memory;
 pub mod path;
 mod throttle;
@@ -13,12 +13,12 @@ mod throttle;
 pub mod cache;
 pub mod dummy;
 
-#[cfg(not(feature = "aws"))]
-use dummy as aws;
+// #[cfg(not(feature = "aws"))]
+// use dummy as aws;
 #[cfg(not(feature = "azure"))]
 use dummy as azure;
-#[cfg(not(feature = "gcp"))]
-use dummy as gcp;
+// #[cfg(not(feature = "gcp"))]
+// use dummy as gcp;
 
 // use aws::AmazonS3;
 use azure::MicrosoftAzure;
@@ -28,7 +28,7 @@ use memory::InMemory;
 use path::{parsed::DirsAndFileName, ObjectStorePath};
 use throttle::ThrottledStore;
 
-/// Publically expose throttling configuration
+/// Publicly expose throttling configuration
 pub use throttle::ThrottleConfig;
 
 use crate::{
@@ -39,7 +39,7 @@ use async_trait::async_trait;
 use bytes::Bytes;
 use chrono::{DateTime, Utc};
 use futures::{stream::BoxStream, StreamExt, TryFutureExt, TryStreamExt};
-use std::{fmt::Formatter, num::NonZeroUsize};
+use std::fmt::Formatter;
 use std::{path::PathBuf, sync::Arc};
 
 /// Universal API to multiple object store services.

@@ -4,7 +4,6 @@ use arrow_flight::{
     FlightDescriptor, FlightInfo, HandshakeRequest, HandshakeResponse, PutResult, SchemaResult,
     Ticket,
 };
-
 use flight_fusion_ipc::{FlightActionRequest, FlightDoGetRequest};
 use futures::Stream;
 use observability_deps::instrument;
@@ -13,6 +12,7 @@ use observability_deps::tracing;
 use observability_deps::tracing_opentelemetry::OpenTelemetrySpanExt;
 use prost::Message;
 use std::io::Cursor;
+use std::path::PathBuf;
 use std::pin::Pin;
 use std::sync::Arc;
 use tonic::{Request, Response, Status, Streaming};
@@ -45,10 +45,9 @@ pub struct FlightFusionService {
 }
 
 impl FlightFusionService {
-    pub fn new_default() -> Self {
-        Self {
-            action_handler: Arc::new(FusionActionHandler::new()),
-        }
+    pub fn new_default(root: impl Into<PathBuf>) -> Self {
+        let action_handler = Arc::new(FusionActionHandler::new(root));
+        Self { action_handler }
     }
 }
 
