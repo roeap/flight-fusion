@@ -53,6 +53,8 @@ class DeltaReference(betterproto.Message):
 @dataclass(eq=False, repr=False)
 class ListingReference(betterproto.Message):
     path: str = betterproto.string_field(1)
+    format: "FileFormat" = betterproto.enum_field(2)
+    partition_columns: List[str] = betterproto.string_field(3)
 
 
 @dataclass(eq=False, repr=False)
@@ -237,6 +239,40 @@ class DoPutUpdateResult(betterproto.Message):
     the update.
     """
 
-    # The number of records updated. A return value of -1 represents an unknown
-    # updated record count.
+    statistics: "BatchStatistics" = betterproto.message_field(1)
+
+
+@dataclass(eq=False, repr=False)
+class BatchStatistics(betterproto.Message):
+    """
+    Statistics for a physical plan node Fields are optional and can be inexact
+    because the sources sometimes provide approximate estimates for performance
+    reasons and the transformations output are not always predictable.
+    """
+
+    # The number of table rows
     record_count: int = betterproto.int64_field(1)
+    # total byte of the table rows
+    total_byte_size: int = betterproto.int64_field(2)
+    # Statistics on a column level
+    column_statistics: List["ColumnStatistics"] = betterproto.message_field(3)
+    # If true, any field that is `Some(..)` is the actual value in the data
+    # provided by the operator (it is not an estimate). Any or all other fields
+    # might still be None, in which case no information is known. if false, any
+    # field that is `Some(..)` may contain an inexact estimate and may not be the
+    # actual value.
+    is_exact: bool = betterproto.bool_field(4)
+
+
+@dataclass(eq=False, repr=False)
+class ColumnStatistics(betterproto.Message):
+    """This table statistics are estimates about column"""
+
+    # Number of null values on column
+    null_count: int = betterproto.int64_field(1)
+    # Maximum value of column
+    max_value: str = betterproto.string_field(2)
+    # Minimum value of column
+    min_value: str = betterproto.string_field(3)
+    # Number of distinct values
+    distinct_count: int = betterproto.int64_field(4)

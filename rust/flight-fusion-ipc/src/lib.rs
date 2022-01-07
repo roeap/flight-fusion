@@ -28,7 +28,7 @@ impl RequestFor for PutMemoryTableRequest {
 }
 
 impl RequestFor for PutRemoteTableRequest {
-    type Reply = PutRemoteTableResponse;
+    type Reply = DoPutUpdateResult;
 }
 
 impl RequestFor for DeltaOperationRequest {

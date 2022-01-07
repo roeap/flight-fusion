@@ -9,6 +9,10 @@ pub struct DeltaReference {
 pub struct ListingReference {
     #[prost(string, tag="1")]
     pub path: ::prost::alloc::string::String,
+    #[prost(enumeration="FileFormat", tag="2")]
+    pub format: i32,
+    #[prost(string, repeated, tag="3")]
+    pub partition_columns: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileReference {
@@ -300,10 +304,46 @@ pub mod flight_do_put_request {
 /// results from the update.
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DoPutUpdateResult {
-    /// The number of records updated. A return value of -1 represents
-    /// an unknown updated record count.
+    #[prost(message, optional, tag="1")]
+    pub statistics: ::core::option::Option<BatchStatistics>,
+}
+///
+/// Statistics for a physical plan node
+/// Fields are optional and can be inexact because the sources
+/// sometimes provide approximate estimates for performance reasons
+/// and the transformations output are not always predictable.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BatchStatistics {
+    /// The number of table rows
     #[prost(int64, tag="1")]
     pub record_count: i64,
+    /// total byte of the table rows
+    #[prost(int64, tag="2")]
+    pub total_byte_size: i64,
+    /// Statistics on a column level
+    #[prost(message, repeated, tag="3")]
+    pub column_statistics: ::prost::alloc::vec::Vec<ColumnStatistics>,
+    /// If true, any field that is `Some(..)` is the actual value in the data provided by the operator (it is not
+    /// an estimate). Any or all other fields might still be None, in which case no information is known.
+    /// if false, any field that is `Some(..)` may contain an inexact estimate and may not be the actual value.
+    #[prost(bool, tag="4")]
+    pub is_exact: bool,
+}
+/// This table statistics are estimates about column
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ColumnStatistics {
+    /// Number of null values on column
+    #[prost(int64, tag="1")]
+    pub null_count: i64,
+    /// Maximum value of column
+    #[prost(string, tag="2")]
+    pub max_value: ::prost::alloc::string::String,
+    /// Minimum value of column
+    #[prost(string, tag="3")]
+    pub min_value: ::prost::alloc::string::String,
+    /// Number of distinct values
+    #[prost(int64, tag="4")]
+    pub distinct_count: i64,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Integrity {

@@ -36,6 +36,8 @@ message DeltaReference {
 
 message ListingReference {
   string path = 1;
+  FileFormat format = 2;
+  repeated string partition_columns = 3;
 }
 
 message FileReference {
