@@ -27,6 +27,7 @@ tokio = { version = "1", features = ["rt-multi-thread"] }
 
 # workspace dependencies
 flight-fusion-client = { path = "../../rust/flight-fusion-client" }
+observability_deps = { path = "../../rust/observability-deps" }
 
 [dependencies.pyo3]
 version = "0.14"

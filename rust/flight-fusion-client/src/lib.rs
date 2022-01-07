@@ -10,17 +10,24 @@ use flight_fusion_ipc::{
     FlightDoPutRequest, PutMemoryTableRequest, PutMemoryTableResponse, RegisterDatasetRequest,
     RegisterDatasetResponse, RequestFor,
 };
+use observability_deps::instrument;
+use observability_deps::instrument::Instrument;
+use observability_deps::opentelemetry::{global, propagation::Extractor};
+use observability_deps::tracing;
+use observability_deps::tracing_opentelemetry::OpenTelemetrySpanExt;
 use std::io::Cursor;
-use tonic::{metadata::MetadataValue, service::Interceptor, transport::Channel};
+use tonic::{
+    codegen::InterceptedService,
+    transport::{Channel, Endpoint},
+};
 
 pub mod error;
+mod interceptor;
 pub use arrow;
 
 pub fn crate_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
-
-const AUTH_TOKEN_KEY: &str = "auth-token-bin";
 
 #[inline]
 fn response_message<T: prost::Message + Default>(
@@ -32,16 +39,21 @@ fn response_message<T: prost::Message + Default>(
 
 #[derive(Clone, Debug)]
 pub struct FlightFusionClient {
-    client: FlightServiceClient<Channel>,
+    client: FlightServiceClient<InterceptedService<Channel, interceptor::TracingInterceptor>>,
+    // client: FlightServiceClient<Channel>,
 }
 
 impl FlightFusionClient {
     pub async fn try_new() -> Result<Self, FusionClientError> {
-        let client = FlightServiceClient::connect("http://localhost:50051")
-            .await
-            .unwrap();
-
-        Ok(Self { client })
+        let channel = Endpoint::from_static("http://localhost:50051")
+            .connect()
+            .await?;
+        let interceptor = interceptor::TracingInterceptor {};
+        let intercepted_client = FlightServiceClient::with_interceptor(channel, interceptor);
+        // let intercepted_client = FlightServiceClient::new(channel);
+        Ok(Self {
+            client: intercepted_client,
+        })
     }
 
     pub async fn register_memory_table<T>(
@@ -62,13 +74,13 @@ impl FlightFusionClient {
             .unwrap())
     }
 
-    // #[tracing::instrument(level = "debug", skip(self, v))]
+    #[instrument(skip(self))]
     pub async fn drop_table<T>(
         &self,
         table_name: T,
     ) -> Result<DropDatasetResponse, FusionClientError>
     where
-        T: Into<String>,
+        T: Into<String> + std::fmt::Debug,
     {
         let action_request = FlightActionRequest {
             action: Some(FusionAction::Drop(DropDatasetRequest {
@@ -168,21 +180,5 @@ impl FlightFusionClient {
             None => Err(FusionClientError::TableAlreadyExists("asd".to_string())),
             Some(result) => Ok(response_message::<T::Reply>(result)?),
         }
-    }
-}
-
-#[derive(Clone)]
-pub struct AuthInterceptor {
-    pub token: Vec<u8>,
-}
-
-impl Interceptor for AuthInterceptor {
-    fn call(
-        &mut self,
-        mut req: tonic::Request<()>,
-    ) -> std::result::Result<tonic::Request<()>, tonic::Status> {
-        let metadata = req.metadata_mut();
-        metadata.insert_bin(AUTH_TOKEN_KEY, MetadataValue::from_bytes(&self.token));
-        Ok(req)
     }
 }

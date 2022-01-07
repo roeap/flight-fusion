@@ -1,9 +1,28 @@
 syntax = "proto3";
-package flight_fusion_ipc;
+package flight_fusion.ipc.v1alpha1;
 
-import "actions.proto";
-import "tickets.proto";
+import "common.proto";
+import "signals.proto";
 
+message RegisterDatasetRequest {
+  DatasetFormat format = 1;
+  string path = 2;
+  string name = 3;
+}
+
+message RegisterDatasetResponse {
+    string message = 1;
+}
+
+message DropDatasetRequest {
+  string name = 1;
+}
+
+message DropDatasetResponse {
+  string name = 1;
+}
+
+// Requests submitted against the `do_action` endpoint
 message FlightActionRequest {
   oneof action {
     RegisterDatasetRequest register = 1;
@@ -11,17 +30,125 @@ message FlightActionRequest {
   }
 }
 
+// Describes an SQL query operation
+message CommandSqlOperation {
+  // The SQL syntax.
+  string query = 1;
+}
+
+// Describes a KQL query operation
+message CommandKqlOperation {
+  // name of the Kusto service to be queried
+  string service_name = 1;
+
+  // The KQL syntax.
+  string query = 2;
+}
+
+// Describes a signal frame operation
+message SignalFrameOperation {
+  SignalFrame frame = 1;
+}
+
+// Requests submitted against the `do_get` endpoint
 message FlightDoGetRequest {
   oneof operation {
-    SqlTicket sql = 1;
-    KqlTicket kql = 2;
+    CommandSqlOperation sql = 1;
+    CommandKqlOperation kql = 2;
+    SignalFrameOperation frame = 3;
   }
 }
 
+message DeltaCreateOperation {
+  SaveMode save_mode = 1;
+}
+
+message DeltaWriteOperation {
+  SaveMode save_mode = 1;
+  repeated string partition_columns = 2;
+  string predicate = 3;
+}
+
+message DeltaOperationRequest {
+  DeltaReference table = 1;
+  oneof operation {
+    DeltaCreateOperation create = 10;
+    DeltaWriteOperation write = 11;
+  }
+}
+
+message DeltaOperationResponse {
+  string stats = 1;
+}
+
+message PutMemoryTableRequest {
+  string name = 1;
+}
+
+message PutMemoryTableResponse {
+  string name = 1;
+}
+
+message PutRemoteTableRequest {
+  string name = 1;
+  string path = 2;
+}
+
+message PutRemoteTableResponse {
+  string name = 1;
+}
+
+// Requests submitted against the `do_put` endpoint
 message FlightDoPutRequest {
   oneof operation {
     PutMemoryTableRequest memory = 1;
     PutRemoteTableRequest remote = 2;
     DeltaOperationRequest delta = 3;
   }
+}
+
+/*
+ * Returned from the RPC call DoPut when a CommandStatementUpdate
+ * CommandPreparedStatementUpdate was in the request, containing
+ * results from the update.
+ */
+message DoPutUpdateResult {
+  BatchStatistics statistics = 1;
+}
+
+/*
+ * Statistics for a physical plan node
+ * Fields are optional and can be inexact because the sources
+ * sometimes provide approximate estimates for performance reasons
+ * and the transformations output are not always predictable.
+ */
+message BatchStatistics {
+  // The number of table rows
+  int64 record_count = 1;
+
+  // total byte of the table rows
+  int64 total_byte_size = 2;
+
+  // Statistics on a column level
+  repeated ColumnStatistics column_statistics = 3;
+
+  // If true, any field that is `Some(..)` is the actual value in the data provided by the operator (it is not
+  // an estimate). Any or all other fields might still be None, in which case no information is known.
+  // if false, any field that is `Some(..)` may contain an inexact estimate and may not be the actual value.
+  bool is_exact = 4;
+}
+
+// This table statistics are estimates about column
+message ColumnStatistics {
+  // Number of null values on column
+  int64 null_count = 1;
+
+  // Maximum value of column
+  string max_value = 2;
+
+  // Minimum value of column
+  string min_value = 3;
+
+  // Number of distinct values
+  int64 distinct_count = 4;
 }

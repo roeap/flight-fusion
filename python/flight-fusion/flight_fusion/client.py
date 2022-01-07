@@ -5,32 +5,25 @@ import pyarrow as pa
 import pyarrow.flight as flight
 
 from flight_fusion._internal import FusionClient as RawFusionClient
-from flight_fusion.proto.actions_pb2 import (
+from flight_fusion.ipc.v1alpha1 import (
+    CommandSqlOperation,
+    DeltaOperationRequest,
+    DeltaReference,
+    DeltaWriteOperation,
     DropDatasetResponse,
-    RegisterDatasetRequest,
-    RegisterDatasetResponse,
-)
-from flight_fusion.proto.common_pb2 import DeltaReference, SaveMode
-from flight_fusion.proto.message_pb2 import (
     FlightActionRequest,
     FlightDoGetRequest,
     FlightDoPutRequest,
-)
-from flight_fusion.proto.tickets_pb2 import (
-    DeltaOperationRequest,
-    DeltaWriteOperation,
     PutMemoryTableResponse,
-    SqlTicket,
+    RegisterDatasetRequest,
+    RegisterDatasetResponse,
+    SaveMode,
 )
 
 
 class FlightActions:
     REGISTER_TABLE = b"register-table"
     REGISTER_DELTA_TABLE = b"register-delta-table"
-
-
-def _validate_segment(segment: str):
-    return "." not in segment
 
 
 class FlightFusionClient:
@@ -61,9 +54,7 @@ class FlightFusionClient:
 
     def drop_table(self, table_name: str) -> DropDatasetResponse:
         raw_response = self._raw.drop_table(table_name)
-        response = DropDatasetResponse()
-        response.ParseFromString(raw_response)
-        return response
+        return DropDatasetResponse().parse(raw_response)
 
     def register_memory_table(
         self, table_name: str, data: Union[pd.DataFrame, pa.Table]
@@ -71,11 +62,8 @@ class FlightFusionClient:
         if isinstance(data, pd.DataFrame):
             data = pa.Table.from_pandas(data)
         batches = data.to_batches()
-
         raw_response = self._raw.register_memory_table(table_name, batches)
-        response = PutMemoryTableResponse()
-        response.ParseFromString(raw_response)
-        return response
+        return PutMemoryTableResponse().parse(raw_response)
 
     def write_into_delta(
         self,
@@ -90,15 +78,12 @@ class FlightFusionClient:
             # schema against the delta table schema on the server side.
             data = pa.Table.from_pandas(data).replace_schema_metadata()
 
-        op = DeltaWriteOperation(save_mode=save_mode)  # type: ignore
-
-        command = DeltaOperationRequest(
-            table=DeltaReference(location=location), write=op
+        request = FlightDoPutRequest(
+            delta=DeltaOperationRequest(
+                table=DeltaReference(location=location),
+                write=DeltaWriteOperation(save_mode=save_mode),
+            )
         )
-
-        request = FlightDoPutRequest()
-        request.delta.CopyFrom(command)
-
         descriptor = flight.FlightDescriptor.for_command(request.SerializeToString())
         writer, _ = self.flight_client.do_put(descriptor, data.schema)
         writer.write_table(data)
@@ -107,31 +92,17 @@ class FlightFusionClient:
     def register_remote_dataset(
         self, catalog: str, schema: str, table: str, path: str
     ) -> RegisterDatasetResponse:
-
-        register_table_action = RegisterDatasetRequest()
-        register_table_action.path = path
-        register_table_action.name = table
-
-        action_body = FlightActionRequest()
-        action_body.register.CopyFrom(register_table_action)
-
+        action_body = FlightActionRequest(
+            register=RegisterDatasetRequest(path=path, name=table)
+        )
         action = flight.Action(
             FlightActions.REGISTER_TABLE, action_body.SerializeToString()
         )
         res = list(self.flight_client.do_action(action))
-
-        response = RegisterDatasetResponse()
-        response.ParseFromString(res[0].body.to_pybytes())
-
-        return response
+        return RegisterDatasetResponse().parse(res[0].body.to_pybytes())
 
     def execute_query(self, query: str) -> pa.Table:
-        sql_ticket = SqlTicket()
-        sql_ticket.query = query
-
-        request = FlightDoGetRequest()
-        request.sql.CopyFrom(sql_ticket)
-
+        request = FlightDoGetRequest(sql=CommandSqlOperation(query=query))
         ticket = flight.Ticket(ticket=request.SerializeToString())
         reader = self.flight_client.do_get(ticket)
         table = reader.read_all()

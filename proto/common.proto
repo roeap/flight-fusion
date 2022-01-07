@@ -1,5 +1,5 @@
 syntax = "proto3";
-package flight_fusion_ipc;
+package flight_fusion.ipc.v1alpha1;
 
 enum FileFormat {
   FILE_FORMAT_UNSPECIFIED = 0;
@@ -36,6 +36,8 @@ message DeltaReference {
 
 message ListingReference {
   string path = 1;
+  FileFormat format = 2;
+  repeated string partition_columns = 3;
 }
 
 message FileReference {

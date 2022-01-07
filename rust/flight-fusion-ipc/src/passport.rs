@@ -1,6 +1,6 @@
 use crate::{
     errors::{FlightFusionError, Result},
-    flight_fusion_ipc::*,
+    gen::*,
     setters,
 };
 use ring::{hmac, rand};

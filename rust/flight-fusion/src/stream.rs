@@ -152,8 +152,6 @@ impl ExecutionPlan for FlightReceiverPlan {
     }
 }
 
-/// FlightTonicRecordBatchStream can be used to create a RecordBatchStream
-/// that will produce no results
 pub struct FlightTonicRecordBatchStream {
     /// The original Tonic stream
     inner: Streaming<FlightData>,

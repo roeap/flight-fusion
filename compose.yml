@@ -5,6 +5,9 @@ services:
     build:
       context: .
       dockerfile: rust/flight-fusion/Dockerfile
+    container_name: fusion
+    depends_on:
+      - tracing
     ports:
       - "50051:50051"
     command:
@@ -13,6 +16,16 @@ services:
       - .env
     volumes:
       - "./config:/config"
+    networks:
+      - fusion
+
+  tracing:
+    image: jaegertracing/all-in-one:latest
+    container_name: tracing
+    ports:
+      - 6831:6831/udp
+      - 6832:6832/udp
+      - 16686:16686
     networks:
       - fusion
 
@@ -35,22 +48,22 @@ services:
     networks:
       - fusion
 
-  azurite:
-    image: mcr.microsoft.com/azure-storage/azurite
-    container_name: blob
-    hostname: azurite
-    ports:
-      - 10000:10000
-      - 10001:10001
-    command:
-      - "azurite"
-      - "--blobHost"
-      - "0.0.0.0"
-      - "--loose"
-    volumes:
-      - azurite-storage:/data
-    networks:
-      - fusion
+  # azurite:
+  #   image: mcr.microsoft.com/azure-storage/azurite
+  #   container_name: blob
+  #   hostname: azurite
+  #   ports:
+  #     - 10000:10000
+  #     - 10001:10001
+  #   command:
+  #     - "azurite"
+  #     - "--blobHost"
+  #     - "0.0.0.0"
+  #     - "--loose"
+  #   volumes:
+  #     - azurite-storage:/data
+  #   networks:
+  #     - fusion
 
   # pgadmin:
   #   image: dpage/pgadmin4:latest
@@ -104,5 +117,5 @@ volumes:
     driver: local
   postgres-storage:
     driver: local
-  pgadmin-storage:
-    driver: local
+  # pgadmin-storage:
+  #   driver: local

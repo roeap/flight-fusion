@@ -1,12 +1,14 @@
 pub mod errors;
-#[rustfmt::skip]
-mod flight_fusion_ipc;
 mod macros;
+#[rustfmt::skip]
+mod gen {
+    include!("flight_fusion.ipc.v1alpha1.rs");
+}
 pub mod passport;
 pub mod utils;
 
-pub use crate::flight_fusion_ipc::*;
 pub use errors::*;
+pub use gen::*;
 pub use utils::*;
 
 pub trait RequestFor {
@@ -26,7 +28,7 @@ impl RequestFor for PutMemoryTableRequest {
 }
 
 impl RequestFor for PutRemoteTableRequest {
-    type Reply = PutRemoteTableResponse;
+    type Reply = DoPutUpdateResult;
 }
 
 impl RequestFor for DeltaOperationRequest {

@@ -2,13 +2,14 @@ use super::*;
 use arrow_deps::datafusion::{
     catalog::catalog::CatalogProvider,
     datasource::MemTable,
-    physical_plan::{collect, ExecutionPlan},
+    physical_plan::{collect, common::compute_record_batch_statistics, ExecutionPlan},
 };
 use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, commands::DeltaCommands};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
-    delta_operation_request, DeltaOperationRequest, DeltaOperationResponse, FlightFusionError,
-    PutMemoryTableRequest, PutMemoryTableResponse, Result as FusionResult,
+    delta_operation_request, BatchStatistics, ColumnStatistics, DeltaOperationRequest,
+    DeltaOperationResponse, DoPutUpdateResult, FlightFusionError, PutMemoryTableRequest,
+    PutMemoryTableResponse, PutRemoteTableRequest, Result as FusionResult,
     SaveMode as FusionSaveMode,
 };
 use std::sync::Arc;
@@ -69,6 +70,57 @@ impl DoPutHandler<PutMemoryTableRequest> for FusionActionHandler {
         // https://github.com/jorgecarleitao/arrow2/blob/main/integration-testing/src/flight_server_scenarios/integration_test.rs
         Ok(PutMemoryTableResponse {
             name: "created".to_string(),
+        })
+    }
+}
+
+#[async_trait]
+impl DoPutHandler<PutRemoteTableRequest> for FusionActionHandler {
+    async fn handle_do_put(
+        &self,
+        ticket: PutRemoteTableRequest,
+        input: Arc<dyn ExecutionPlan>,
+    ) -> FusionResult<DoPutUpdateResult> {
+        let schema_ref = input.schema();
+        let batches = collect(input).await.unwrap();
+        let stats = compute_record_batch_statistics(&[batches.clone()], &schema_ref.clone(), None);
+
+        // register received schema
+        let table_provider = MemTable::try_new(schema_ref.clone(), vec![batches]).unwrap();
+        let schema_provider = self.catalog.schema("schema").unwrap();
+        schema_provider
+            .register_table(ticket.name, Arc::new(table_provider))
+            .unwrap();
+
+        self.catalog
+            .register_schema("schema".to_string(), schema_provider);
+
+        let columns = stats.column_statistics.map(|s| {
+            s.iter()
+                .map(|c| ColumnStatistics {
+                    null_count: c.null_count.map(|v| v as i64).unwrap_or(-1),
+                    max_value: c
+                        .max_value
+                        .as_ref()
+                        .map(|v| v.to_string())
+                        .unwrap_or("".to_string()),
+                    min_value: c
+                        .min_value
+                        .as_ref()
+                        .map(|v| v.to_string())
+                        .unwrap_or("".to_string()),
+                    distinct_count: c.distinct_count.map(|v| v as i64).unwrap_or(-1),
+                })
+                .collect::<Vec<_>>()
+        });
+
+        Ok(DoPutUpdateResult {
+            statistics: Some(BatchStatistics {
+                record_count: stats.num_rows.map(|v| v as i64).unwrap_or(-1),
+                total_byte_size: stats.total_byte_size.map(|v| v as i64).unwrap_or(-1),
+                column_statistics: columns.unwrap_or(vec![]),
+                is_exact: stats.is_exact,
+            }),
         })
     }
 }
@@ -213,7 +265,7 @@ mod tests {
             .handle_do_put(request.clone(), plan.clone())
             .await
             .unwrap();
-        let mut dt = open_table(&table_uri).await.unwrap();
+        let dt = open_table(&table_uri).await.unwrap();
         assert_eq!(dt.version, 0);
     }
 }

@@ -1,6 +1,5 @@
-use std::future::Future;
-
 use pyo3::prelude::*;
+use std::future::Future;
 use tokio::runtime::Runtime;
 
 /// Utility to collect rust futures with GIL released

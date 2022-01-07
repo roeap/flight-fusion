@@ -14,3 +14,11 @@
 - write into parquet tables
 
 ### Signal Frames
+
+## Client
+
+- list available datasets
+- register new datasets
+- get return messages
+- drop dataset
+- ...

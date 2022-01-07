@@ -9,6 +9,10 @@ pub struct DeltaReference {
 pub struct ListingReference {
     #[prost(string, tag="1")]
     pub path: ::prost::alloc::string::String,
+    #[prost(enumeration="FileFormat", tag="2")]
+    pub format: i32,
+    #[prost(string, repeated, tag="3")]
+    pub partition_columns: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileReference {
@@ -68,6 +72,76 @@ pub enum StorageType {
     S3 = 5,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExpressionReference {
+    #[prost(string, tag="1")]
+    pub uid: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub expression: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ModelReference {
+    #[prost(string, tag="1")]
+    pub uri: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Signal {
+    #[prost(string, tag="1")]
+    pub uid: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub description: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SignalProvider {
+    #[prost(string, tag="1")]
+    pub uid: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub description: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag="4")]
+    pub signals: ::prost::alloc::vec::Vec<Signal>,
+    #[prost(message, repeated, tag="5")]
+    pub inputs: ::prost::alloc::vec::Vec<Signal>,
+    #[prost(oneof="signal_provider::Source", tags="100, 101, 102")]
+    pub source: ::core::option::Option<signal_provider::Source>,
+}
+/// Nested message and enum types in `SignalProvider`.
+pub mod signal_provider {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Source {
+        #[prost(message, tag="100")]
+        Table(super::TableReference),
+        #[prost(message, tag="101")]
+        Expression(super::ExpressionReference),
+        #[prost(message, tag="102")]
+        Model(super::ModelReference),
+    }
+}
+/// A SignalFrame defines the context for a specialized query across
+/// multiple data sources
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SignalFrame {
+    #[prost(string, tag="1")]
+    pub uid: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub description: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag="4")]
+    pub providers: ::prost::alloc::vec::Vec<SignalProvider>,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum SignalType {
+    Unspecified = 0,
+    Observation = 1,
+    Constant = 2,
+    Expression = 3,
+    Model = 4,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RegisterDatasetRequest {
     #[prost(enumeration="DatasetFormat", tag="1")]
     pub format: i32,
@@ -91,15 +165,62 @@ pub struct DropDatasetResponse {
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
 }
+/// Requests submitted against the `do_action` endpoint
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SqlTicket {
+pub struct FlightActionRequest {
+    #[prost(oneof="flight_action_request::Action", tags="1, 2")]
+    pub action: ::core::option::Option<flight_action_request::Action>,
+}
+/// Nested message and enum types in `FlightActionRequest`.
+pub mod flight_action_request {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Action {
+        #[prost(message, tag="1")]
+        Register(super::RegisterDatasetRequest),
+        #[prost(message, tag="2")]
+        Drop(super::DropDatasetRequest),
+    }
+}
+/// Describes an SQL query operation
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CommandSqlOperation {
+    /// The SQL syntax.
     #[prost(string, tag="1")]
     pub query: ::prost::alloc::string::String,
 }
+/// Describes a KQL query operation
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct KqlTicket {
+pub struct CommandKqlOperation {
+    /// name of the Kusto service to be queried
     #[prost(string, tag="1")]
+    pub service_name: ::prost::alloc::string::String,
+    /// The KQL syntax.
+    #[prost(string, tag="2")]
     pub query: ::prost::alloc::string::String,
+}
+/// Describes a signal frame operation
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SignalFrameOperation {
+    #[prost(message, optional, tag="1")]
+    pub frame: ::core::option::Option<SignalFrame>,
+}
+/// Requests submitted against the `do_get` endpoint
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FlightDoGetRequest {
+    #[prost(oneof="flight_do_get_request::Operation", tags="1, 2, 3")]
+    pub operation: ::core::option::Option<flight_do_get_request::Operation>,
+}
+/// Nested message and enum types in `FlightDoGetRequest`.
+pub mod flight_do_get_request {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Operation {
+        #[prost(message, tag="1")]
+        Sql(super::CommandSqlOperation),
+        #[prost(message, tag="2")]
+        Kql(super::CommandKqlOperation),
+        #[prost(message, tag="3")]
+        Frame(super::SignalFrameOperation),
+    }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeltaCreateOperation {
@@ -159,36 +280,7 @@ pub struct PutRemoteTableResponse {
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct FlightActionRequest {
-    #[prost(oneof="flight_action_request::Action", tags="1, 2")]
-    pub action: ::core::option::Option<flight_action_request::Action>,
-}
-/// Nested message and enum types in `FlightActionRequest`.
-pub mod flight_action_request {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Action {
-        #[prost(message, tag="1")]
-        Register(super::RegisterDatasetRequest),
-        #[prost(message, tag="2")]
-        Drop(super::DropDatasetRequest),
-    }
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct FlightDoGetRequest {
-    #[prost(oneof="flight_do_get_request::Operation", tags="1, 2")]
-    pub operation: ::core::option::Option<flight_do_get_request::Operation>,
-}
-/// Nested message and enum types in `FlightDoGetRequest`.
-pub mod flight_do_get_request {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Operation {
-        #[prost(message, tag="1")]
-        Sql(super::SqlTicket),
-        #[prost(message, tag="2")]
-        Kql(super::KqlTicket),
-    }
-}
+/// Requests submitted against the `do_put` endpoint
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightDoPutRequest {
     #[prost(oneof="flight_do_put_request::Operation", tags="1, 2, 3")]
@@ -205,6 +297,53 @@ pub mod flight_do_put_request {
         #[prost(message, tag="3")]
         Delta(super::DeltaOperationRequest),
     }
+}
+///
+/// Returned from the RPC call DoPut when a CommandStatementUpdate
+/// CommandPreparedStatementUpdate was in the request, containing
+/// results from the update.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DoPutUpdateResult {
+    #[prost(message, optional, tag="1")]
+    pub statistics: ::core::option::Option<BatchStatistics>,
+}
+///
+/// Statistics for a physical plan node
+/// Fields are optional and can be inexact because the sources
+/// sometimes provide approximate estimates for performance reasons
+/// and the transformations output are not always predictable.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BatchStatistics {
+    /// The number of table rows
+    #[prost(int64, tag="1")]
+    pub record_count: i64,
+    /// total byte of the table rows
+    #[prost(int64, tag="2")]
+    pub total_byte_size: i64,
+    /// Statistics on a column level
+    #[prost(message, repeated, tag="3")]
+    pub column_statistics: ::prost::alloc::vec::Vec<ColumnStatistics>,
+    /// If true, any field that is `Some(..)` is the actual value in the data provided by the operator (it is not
+    /// an estimate). Any or all other fields might still be None, in which case no information is known.
+    /// if false, any field that is `Some(..)` may contain an inexact estimate and may not be the actual value.
+    #[prost(bool, tag="4")]
+    pub is_exact: bool,
+}
+/// This table statistics are estimates about column
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ColumnStatistics {
+    /// Number of null values on column
+    #[prost(int64, tag="1")]
+    pub null_count: i64,
+    /// Maximum value of column
+    #[prost(string, tag="2")]
+    pub max_value: ::prost::alloc::string::String,
+    /// Minimum value of column
+    #[prost(string, tag="3")]
+    pub min_value: ::prost::alloc::string::String,
+    /// Number of distinct values
+    #[prost(int64, tag="4")]
+    pub distinct_count: i64,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Integrity {
@@ -294,72 +433,4 @@ pub enum UserAction {
 pub enum DeviceAction {
     Unspecified = 0,
     Read = 1,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ExpressionReference {
-    #[prost(string, tag="1")]
-    pub uid: ::prost::alloc::string::String,
-    #[prost(string, tag="2")]
-    pub expression: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ModelReference {
-    #[prost(string, tag="1")]
-    pub uri: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Signal {
-    #[prost(string, tag="1")]
-    pub uid: ::prost::alloc::string::String,
-    #[prost(string, tag="2")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, tag="3")]
-    pub description: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SignalProvider {
-    #[prost(string, tag="1")]
-    pub uid: ::prost::alloc::string::String,
-    #[prost(string, tag="2")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, tag="3")]
-    pub description: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag="4")]
-    pub signals: ::prost::alloc::vec::Vec<Signal>,
-    #[prost(message, repeated, tag="5")]
-    pub inputs: ::prost::alloc::vec::Vec<Signal>,
-    #[prost(oneof="signal_provider::Source", tags="100, 101, 102")]
-    pub source: ::core::option::Option<signal_provider::Source>,
-}
-/// Nested message and enum types in `SignalProvider`.
-pub mod signal_provider {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Source {
-        #[prost(message, tag="100")]
-        Table(super::TableReference),
-        #[prost(message, tag="101")]
-        Expression(super::ExpressionReference),
-        #[prost(message, tag="102")]
-        Model(super::ModelReference),
-    }
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SignalFrame {
-    #[prost(string, tag="1")]
-    pub uid: ::prost::alloc::string::String,
-    #[prost(string, tag="2")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, tag="3")]
-    pub description: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag="4")]
-    pub providers: ::prost::alloc::vec::Vec<SignalProvider>,
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum SignalType {
-    Unspecified = 0,
-    Observation = 1,
-    Constant = 2,
-    Expression = 3,
-    Model = 4,
 }

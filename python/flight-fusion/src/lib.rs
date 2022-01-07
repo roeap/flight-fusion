@@ -1,5 +1,10 @@
 use error::FlightFusionClientError;
 use flight_fusion_client::{arrow::record_batch::RecordBatch, FlightFusionClient};
+use observability_deps::{
+    opentelemetry::{global, sdk::propagation::TraceContextPropagator},
+    opentelemetry_jaeger, tracing_opentelemetry, tracing_subscriber,
+    tracing_subscriber::prelude::*,
+};
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use utils::wait_for_future;
@@ -57,8 +62,18 @@ fn serialize_message<T: prost::Message>(
 /// The higher-level public API is defined in pure python files under the
 /// flight_fusion directory.
 #[pymodule]
-fn _internal(py: Python, m: &PyModule) -> PyResult<()> {
-    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("warn")).init();
+fn _internal(_py: Python, m: &PyModule) -> PyResult<()> {
+    // env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("warn")).init();
+    global::set_text_map_propagator(TraceContextPropagator::new());
+    let tracer = opentelemetry_jaeger::new_pipeline()
+        .with_service_name("grpc-client")
+        .install_simple()
+        .unwrap();
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::EnvFilter::new("INFO"))
+        .with(tracing_opentelemetry::layer().with_tracer(tracer))
+        .try_init()
+        .unwrap();
 
     m.add_class::<FusionClient>()?;
     // m.add(

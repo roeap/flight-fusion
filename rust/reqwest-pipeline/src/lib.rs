@@ -1,9 +1,3 @@
-extern crate reqwest;
-extern crate serde;
-extern crate serde_derive;
-extern crate serde_json;
-extern crate url;
-
 #[macro_use]
 mod macros;
 pub mod bytes_stream;

@@ -1,0 +1,4 @@
+# we need a separate file since python is not available in the container,
+# but required in the workspace due to pyo3 / maturin builds
+[workspace]
+members = ["rust/*"]

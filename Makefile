@@ -21,7 +21,7 @@ help:
 
 .PHONY: proto
 proto:
-	python -m grpc_tools.protoc -I proto --mypy_out $(PROTO_DEST) --python_out $(PROTO_DEST) proto/message.proto proto/actions.proto proto/tickets.proto proto/common.proto
+	python -m grpc_tools.protoc -I proto --python_betterproto_out=lib proto/common.proto proto/message.proto proto/signals.proto
 
 .PHONY: gen-test-data
 gen-test-data:
@@ -60,7 +60,7 @@ python-check: ## Run check on Python
 .PHONY: python-build
 python-build: ## Build Python binding of flight fusion
 	$(info --- Build Python binding ---)
-	maturin build $(MATURIN_EXTRA_ARGS)
+	cd python/flight-fusion && maturin build --release --no-sdist --strip
 
 .PHONY: rust-test-integration
 rust-test-integration:

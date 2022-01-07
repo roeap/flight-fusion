@@ -1,16 +1,32 @@
+[build-system]
+requires = ["maturin>=0.11.5"]
+build-backend = "maturin"
+
 [project]
 name = "flight-fusion"
 description = "Client to filight fusion service"
 readme = "README.md"
 license = { file = "LICENSE.txt" }
 requires-python = ">=3.6"
-keywords = ["deltalake", "delta", "arrow"]
-classifiers = [
-  "Development Status :: 3 - Alpha",
+keywords = ["deltalake", "delta", "arrow", "datafusion", "arrow-flight"]
+classifier = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
   "License :: OSI Approved :: Apache Software License",
-  "Programming Language :: Python :: 3 :: Only",
+  "License :: OSI Approved",
+  "Operating System :: MacOS",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.6",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python",
+  "Programming Language :: Rust",
 ]
-dependencies = ["pyarrow>=4"]
+dependencies = ["pyarrow>=4", "pandas>=1"]
 
 [project.optional-dependencies]
 devel = [
@@ -42,7 +58,7 @@ pyarrow = ">=5"
 SQLAlchemy = "^1.4.26"
 
 [tool.poetry.dev-dependencies]
-black = "^21.9b0"
+black = "^21.12b0"
 flake8 = "^3.9.2"
 isort = "^5.9.3"
 bandit = "^1.7.0"
@@ -60,7 +76,3 @@ markers = [
   "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
   "azure: marks tests as integration tests with S3 (deselect with '-m \"not azure\"')",
 ]
-
-[build-system]
-requires = ["maturin==0.11.5"]
-build-backend = "maturin"

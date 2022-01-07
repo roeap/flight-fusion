@@ -1,10 +1,7 @@
 use std::fs::Metadata;
 use std::io::{BufReader, Read, Seek, SeekFrom};
 use std::sync::Arc;
-use tokio::{
-    fs::{self, metadata, File},
-    io::AsyncSeekExt,
-};
+use tokio::{fs, io::AsyncSeekExt};
 
 use async_trait::async_trait;
 use futures::{stream, AsyncRead, StreamExt};
