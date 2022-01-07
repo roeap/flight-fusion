@@ -46,8 +46,6 @@ To generate proto definitions for use in python client.
 make proto
 ```
 
-Afterwards imports in the generated `message_pb2.py` and `message_pb2.pyi` have to be fixed manually.
-
 ## Known issues
 
 Right now the current release of the `quote` crate breaks the build. Until the dependent crates have addressed

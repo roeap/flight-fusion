@@ -1,4 +1,10 @@
 from .client import FlightFusionClient
-from .version import __version__
+
+try:
+    from importlib.metadata import version
+except ImportError:
+    from importlib_metadata import version
+
+__version__ = version(__name__)
 
 __all__ = ("FlightFusionClient",)
