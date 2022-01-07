@@ -124,20 +124,6 @@ impl FusionActionHandler {
             )),
         }
     }
-
-    async fn get_arrow_reader_from_path<T>(&self, path: T) -> FusionResult<ParquetFileArrowReader>
-    where
-        T: Into<String>,
-    {
-        let file = local_unpartitioned_file(path.into());
-        let object_reader = self
-            .object_store
-            .file_reader(file.file_meta.sized_file)
-            .unwrap();
-        let obj_reader = ChunkObjectReader(object_reader);
-        let file_reader = Arc::new(SerializedFileReader::new(obj_reader).unwrap());
-        Ok(ParquetFileArrowReader::new(file_reader))
-    }
 }
 
 #[cfg(test)]
