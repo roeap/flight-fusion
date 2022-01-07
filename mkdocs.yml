@@ -1,6 +1,21 @@
 site_name: Flight Fusion
 repo_url: https://github.com/roeap/flight-fusion
 
+theme:
+  name: "material"
+  palette:
+    - scheme: "default"
+      media: "(prefers-color-scheme: light)"
+      toggle:
+        icon: "material/lightbulb"
+        name: "Switch to dark mode"
+    - scheme: "slate"
+      media: "(prefers-color-scheme: dark)"
+      primary: "blue"
+      toggle:
+        icon: "material/lightbulb-outline"
+        name: "Switch to light mode"
+
 nav:
   - Home: index.md
   - Service: service.md
