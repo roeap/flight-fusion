@@ -20,11 +20,85 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+pub type NullCounts = HashMap<String, ColumnCountStat>;
+pub type MinAndMaxValues = (
+    HashMap<String, ColumnValueStat>,
+    HashMap<String, ColumnValueStat>,
+);
+
 // TODO move and rename to something useful
 pub struct Add {
     size: i64,
     stats: Stats,
     modification_time: i64,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum ColumnValueStat {
+    /// Composite HashMap representation of statistics.
+    Column(HashMap<String, ColumnValueStat>),
+    /// Json representation of statistics.
+    Value(Value),
+}
+
+impl ColumnValueStat {
+    /// Returns the HashMap representation of the ColumnValueStat.
+    pub fn as_column(&self) -> Option<&HashMap<String, ColumnValueStat>> {
+        match self {
+            ColumnValueStat::Column(m) => Some(m),
+            _ => None,
+        }
+    }
+
+    /// Returns the serde_json representation of the ColumnValueStat.
+    pub fn as_value(&self) -> Option<&Value> {
+        match self {
+            ColumnValueStat::Value(v) => Some(v),
+            _ => None,
+        }
+    }
+}
+
+/// Struct used to represent nullCount in add action statistics.
+#[derive(Debug, PartialEq, Eq)]
+pub enum ColumnCountStat {
+    /// Composite HashMap representation of statistics.
+    Column(HashMap<String, ColumnCountStat>),
+    /// Json representation of statistics.
+    Value(i64),
+}
+
+impl ColumnCountStat {
+    /// Returns the HashMap representation of the ColumnCountStat.
+    pub fn as_column(&self) -> Option<&HashMap<String, ColumnCountStat>> {
+        match self {
+            ColumnCountStat::Column(m) => Some(m),
+            _ => None,
+        }
+    }
+
+    /// Returns the serde_json representation of the ColumnCountStat.
+    pub fn as_value(&self) -> Option<i64> {
+        match self {
+            ColumnCountStat::Value(v) => Some(*v),
+            _ => None,
+        }
+    }
+}
+
+/// Statistics associated with Add actions contained in the Delta log.
+#[derive(Debug, Default)]
+pub struct Stats {
+    /// Number of records in the file associated with the log action.
+    pub num_records: i64,
+
+    // start of per column stats
+    /// Contains a value smaller than all values present in the file for all columns.
+    pub min_values: HashMap<String, ColumnValueStat>,
+    /// Contains a value larger than all values present in the file for all columns.
+    pub max_values: HashMap<String, ColumnValueStat>,
+    /// The number of null values for all columns.
+    pub null_count: HashMap<String, ColumnCountStat>,
 }
 
 pub(crate) fn create_add(

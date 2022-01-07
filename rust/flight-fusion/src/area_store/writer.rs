@@ -1,6 +1,6 @@
 //! Main writer API to write record batches to delta table
 use super::{
-    stats::{apply_null_counts, create_add, Add},
+    stats::{apply_null_counts, create_add, Add, NullCounts},
     *,
 };
 use arrow_deps::arrow::{
@@ -16,12 +16,11 @@ use arrow_deps::datafusion::parquet::{
 use object_store::path::ObjectStorePath;
 use object_store::{ObjectStore, ObjectStoreApi};
 use std::collections::HashMap;
-use std::convert::TryFrom;
 use std::io::Write;
 use std::sync::Arc;
 use uuid::Uuid;
 
-type NullCounts = HashMap<String, ColumnCountStat>;
+const NULL_PARTITION_VALUE_DATA_PATH: &str = "__HIVE_DEFAULT_PARTITION__";
 
 pub struct DeltaWriter {
     pub(crate) storage: ObjectStore,
@@ -39,25 +38,24 @@ impl std::fmt::Debug for DeltaWriter {
 
 impl DeltaWriter {
     /// Create a new DeltaWriter instance
-    pub fn try_new(
+    pub fn new(
         storage: ObjectStore,
         schema: ArrowSchemaRef,
         partition_columns: Option<Vec<String>>,
-        storage_options: Option<HashMap<String, String>>,
-    ) -> Result<Self, DeltaWriterError> {
+    ) -> Self {
         // Initialize writer properties for the underlying arrow writer
         let writer_properties = WriterProperties::builder()
             // NOTE: Consider extracting config for writer properties and setting more than just compression
             .set_compression(Compression::SNAPPY)
             .build();
 
-        Ok(Self {
+        Self {
             storage,
             arrow_schema_ref: schema,
             writer_properties,
             partition_columns: partition_columns.unwrap_or_default(),
             arrow_writers: HashMap::new(),
-        })
+        }
     }
 
     /// Divides a single record batch into into multiple according to table partitioning.
@@ -230,7 +228,7 @@ pub struct PartitionResult {
     pub record_batch: RecordBatch,
 }
 
-pub(crate) struct PartitionWriter {
+pub struct PartitionWriter {
     arrow_schema: Arc<ArrowSchema>,
     writer_properties: WriterProperties,
     pub(super) cursor: InMemoryWriteableCursor,
@@ -268,6 +266,7 @@ impl PartitionWriter {
     }
 
     /// Writes the record batch in-memory and updates internal state accordingly.
+    ///
     /// This method buffers the write stream internally so it can be invoked for many
     /// record batches and flushed after the appropriate number of bytes has been written.
     pub fn write(&mut self, record_batch: &RecordBatch) -> Result<(), DeltaWriterError> {
@@ -439,8 +438,6 @@ fn stringified_partition_value(arr: &Arc<dyn Array>) -> Result<Option<String>, D
 mod tests {
     use super::*;
     use crate::test_utils::get_record_batch;
-    use std::collections::HashMap;
-    use std::path::Path;
     use tempfile::TempDir;
 
     #[tokio::test]
@@ -450,9 +447,7 @@ mod tests {
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
         let partition_cols = vec![];
-        let mut writer =
-            DeltaWriter::try_new(storage, schema, Some(partition_cols), Some(HashMap::new()))
-                .unwrap();
+        let mut writer = DeltaWriter::new(storage, schema, Some(partition_cols));
         let partitions = writer.divide_by_partition_values(&batch).unwrap();
 
         assert_eq!(partitions.len(), 1);
@@ -467,13 +462,7 @@ mod tests {
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
         let partition_cols = vec!["modified".to_string()];
-        let mut writer = DeltaWriter::try_new(
-            storage,
-            schema,
-            Some(partition_cols.clone()),
-            Some(HashMap::new()),
-        )
-        .unwrap();
+        let mut writer = DeltaWriter::new(storage, schema, Some(partition_cols.clone()));
 
         let partitions = writer.divide_by_partition_values(&batch).unwrap();
 
@@ -491,13 +480,7 @@ mod tests {
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
         let partition_cols = vec!["modified".to_string(), "id".to_string()];
-        let mut writer = DeltaWriter::try_new(
-            storage,
-            schema,
-            Some(partition_cols.clone()),
-            Some(HashMap::new()),
-        )
-        .unwrap();
+        let mut writer = DeltaWriter::new(storage, schema, Some(partition_cols.clone()));
 
         let partitions = writer.divide_by_partition_values(&batch).unwrap();
 
@@ -517,9 +500,7 @@ mod tests {
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
         let partition_cols = vec![];
-        let mut writer =
-            DeltaWriter::try_new(storage, schema, Some(partition_cols), Some(HashMap::new()))
-                .unwrap();
+        let mut writer = DeltaWriter::new(storage, schema, Some(partition_cols));
 
         writer.write(&batch).unwrap();
         let adds = writer.flush().await.unwrap();
@@ -533,9 +514,7 @@ mod tests {
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
         let partition_cols = vec!["modified".to_string(), "id".to_string()];
-        let mut writer =
-            DeltaWriter::try_new(storage, schema, Some(partition_cols), Some(HashMap::new()))
-                .unwrap();
+        let mut writer = DeltaWriter::new(storage, schema, Some(partition_cols));
 
         writer.write(&batch).unwrap();
         let adds = writer.flush().await.unwrap();
