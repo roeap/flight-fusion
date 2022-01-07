@@ -7,17 +7,18 @@ import pyarrow.flight as flight
 from flight_fusion._internal import FusionClient as RawFusionClient
 from flight_fusion.ipc.v1alpha1 import (
     CommandSqlOperation,
+    DeltaOperationRequest,
+    DeltaReference,
+    DeltaWriteOperation,
     DropDatasetResponse,
+    FlightActionRequest,
     FlightDoGetRequest,
+    FlightDoPutRequest,
     PutMemoryTableResponse,
-)
-from flight_fusion.proto.actions_pb2 import (
     RegisterDatasetRequest,
     RegisterDatasetResponse,
+    SaveMode,
 )
-from flight_fusion.proto.common_pb2 import DeltaReference, SaveMode
-from flight_fusion.proto.message_pb2 import FlightActionRequest, FlightDoPutRequest
-from flight_fusion.proto.tickets_pb2 import DeltaOperationRequest, DeltaWriteOperation
 
 
 class FlightActions:
@@ -77,15 +78,12 @@ class FlightFusionClient:
             # schema against the delta table schema on the server side.
             data = pa.Table.from_pandas(data).replace_schema_metadata()
 
-        op = DeltaWriteOperation(save_mode=save_mode)  # type: ignore
-
-        command = DeltaOperationRequest(
-            table=DeltaReference(location=location), write=op
+        request = FlightDoPutRequest(
+            delta=DeltaOperationRequest(
+                table=DeltaReference(location=location),
+                write=DeltaWriteOperation(save_mode=save_mode),
+            )
         )
-
-        request = FlightDoPutRequest()
-        request.delta.CopyFrom(command)
-
         descriptor = flight.FlightDescriptor.for_command(request.SerializeToString())
         writer, _ = self.flight_client.do_put(descriptor, data.schema)
         writer.write_table(data)
@@ -94,23 +92,14 @@ class FlightFusionClient:
     def register_remote_dataset(
         self, catalog: str, schema: str, table: str, path: str
     ) -> RegisterDatasetResponse:
-
-        register_table_action = RegisterDatasetRequest()
-        register_table_action.path = path
-        register_table_action.name = table
-
-        action_body = FlightActionRequest()
-        action_body.register.CopyFrom(register_table_action)
-
+        action_body = FlightActionRequest(
+            register=RegisterDatasetRequest(path=path, name=table)
+        )
         action = flight.Action(
             FlightActions.REGISTER_TABLE, action_body.SerializeToString()
         )
         res = list(self.flight_client.do_action(action))
-
-        response = RegisterDatasetResponse()
-        response.ParseFromString(res[0].body.to_pybytes())
-
-        return response
+        return RegisterDatasetResponse().parse(res[0].body.to_pybytes())
 
     def execute_query(self, query: str) -> pa.Table:
         request = FlightDoGetRequest(sql=CommandSqlOperation(query=query))
