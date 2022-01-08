@@ -19,9 +19,7 @@ class FusionClient:
             bytes: Serialized return message
         """
         ...
-    def register_memory_table(
-        self, table_name: str, batches: List[pa.RecordBatch]
-    ) -> bytes:
+    def put_memory_table(self, table_name: str, batches: List[pa.RecordBatch]) -> bytes:
         """Register a table in memory to be available in queries
 
         This will not persist the table in any long lived storage. The table

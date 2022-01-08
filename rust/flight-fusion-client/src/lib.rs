@@ -53,13 +53,14 @@ impl FlightFusionClient {
         })
     }
 
-    pub async fn register_memory_table<T>(
+    #[instrument(skip(self, batches))]
+    pub async fn put_memory_table<T>(
         &self,
         table_name: T,
         batches: Vec<RecordBatch>,
     ) -> Result<PutMemoryTableResponse, FusionClientError>
     where
-        T: Into<String>,
+        T: Into<String> + std::fmt::Debug,
     {
         let operation = flight_do_put_request::Operation::Memory(PutMemoryTableRequest {
             name: table_name.into(),

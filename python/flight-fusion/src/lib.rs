@@ -22,7 +22,7 @@ impl FusionClient {
         Ok(Self {})
     }
 
-    fn register_memory_table<'py>(
+    fn put_memory_table<'py>(
         &self,
         py: Python<'py>,
         table_name: &str,
@@ -30,7 +30,7 @@ impl FusionClient {
     ) -> PyResult<&'py PyBytes> {
         let op = async {
             let client = FlightFusionClient::try_new().await.unwrap();
-            client.register_memory_table(table_name, batches).await
+            client.put_memory_table(table_name, batches).await
         };
         let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
         let obj = serialize_message(response).map_err(FlightFusionClientError::from)?;

@@ -52,17 +52,32 @@ class FlightFusionClient:
     def flight_client(self) -> flight.FlightClient:
         return self._client
 
-    def drop_table(self, table_name: str) -> DropDatasetResponse:
-        raw_response = self._raw.drop_table(table_name)
+    def drop_table(self, table_ref: str) -> DropDatasetResponse:
+        raw_response = self._raw.drop_table(table_ref)
         return DropDatasetResponse().parse(raw_response)
 
     def register_memory_table(
-        self, table_name: str, data: Union[pd.DataFrame, pa.Table]
+        self,
+        table_ref: str,
+        data: Union[pd.DataFrame, pa.Table],
+        save_mode: SaveMode = SaveMode.SAVE_MODE_OVERWRITE,
     ) -> PutMemoryTableResponse:
         if isinstance(data, pd.DataFrame):
             data = pa.Table.from_pandas(data)
         batches = data.to_batches()
-        raw_response = self._raw.register_memory_table(table_name, batches)
+        raw_response = self._raw.put_memory_table(table_ref, batches)
+        return PutMemoryTableResponse().parse(raw_response)
+
+    def write_into_table(
+        self,
+        table_ref: str,
+        data: Union[pd.DataFrame, pa.Table],
+        save_mode: SaveMode = SaveMode.SAVE_MODE_OVERWRITE,
+    ) -> PutMemoryTableResponse:
+        if isinstance(data, pd.DataFrame):
+            data = pa.Table.from_pandas(data)
+        batches = data.to_batches()
+        raw_response = self._raw.put_memory_table(table_ref, batches)
         return PutMemoryTableResponse().parse(raw_response)
 
     def write_into_delta(
