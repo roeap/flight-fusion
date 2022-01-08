@@ -309,7 +309,7 @@ pub struct PutTableRequest {
     /// table identifier
     #[prost(message, optional, tag="1")]
     pub table: ::core::option::Option<AreaSourceReference>,
-    /// denotes how to beahve for existing data
+    /// denotes how to beahve for existing data - defaults to overwrite
     #[prost(enumeration="SaveMode", tag="3")]
     pub save_mode: i32,
 }

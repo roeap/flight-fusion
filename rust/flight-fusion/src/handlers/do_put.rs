@@ -10,7 +10,7 @@ use async_trait::async_trait;
 use flight_fusion_ipc::{
     delta_operation_request, BatchStatistics, ColumnStatistics, DeltaOperationRequest,
     DeltaOperationResponse, DoPutUpdateResult, FlightFusionError, PutMemoryTableRequest,
-    PutMemoryTableResponse, PutTableRequest, Result as FusionResult, SaveMode as FusionSaveMode,
+    PutMemoryTableResponse, PutTableRequest, Result as FusionResult, SaveMode,
 };
 use std::sync::Arc;
 
@@ -88,7 +88,11 @@ impl DoPutHandler<PutTableRequest> for FusionActionHandler {
             // TODO remove panic
             let adds = self
                 .area_store
-                .put_batches(batches, &location.to_raw())
+                .put_batches(
+                    batches,
+                    &location,
+                    SaveMode::from_i32(ticket.save_mode).unwrap_or(SaveMode::Overwrite),
+                )
                 .await
                 .unwrap();
             Ok(DoPutUpdateResult { statistics: None })
@@ -114,10 +118,10 @@ impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
 
         match ticket.operation {
             Some(delta_operation_request::Operation::Write(req)) => {
-                let mode = match FusionSaveMode::from_i32(req.save_mode) {
-                    Some(FusionSaveMode::Append) => DeltaSaveMode::Append,
-                    Some(FusionSaveMode::Overwrite) => DeltaSaveMode::Overwrite,
-                    Some(FusionSaveMode::ErrorIfExists) => DeltaSaveMode::ErrorIfExists,
+                let mode = match SaveMode::from_i32(req.save_mode) {
+                    Some(SaveMode::Append) => DeltaSaveMode::Append,
+                    Some(SaveMode::Overwrite) => DeltaSaveMode::Overwrite,
+                    Some(SaveMode::ErrorIfExists) => DeltaSaveMode::ErrorIfExists,
                     _ => todo!(),
                 };
                 delta_cmd
@@ -135,6 +139,7 @@ impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::area_store::flatten_list_stream;
     use crate::test_utils::{
         generate_random_batch, get_fusion_handler, get_input_plan, get_record_batch,
     };
@@ -163,7 +168,7 @@ mod tests {
         });
         let request = PutTableRequest {
             table: Some(AreaSourceReference { table: Some(table) }),
-            save_mode: FusionSaveMode::Overwrite as i32,
+            save_mode: SaveMode::Overwrite as i32,
         };
 
         assert!(!table_dir.exists());
@@ -174,6 +179,63 @@ mod tests {
             .unwrap();
 
         assert!(table_dir.is_dir())
+    }
+
+    #[tokio::test]
+    async fn test_put_table_append_overwrite() {
+        let root = tempfile::tempdir().unwrap();
+        let plan = get_input_plan(None, false);
+        let handler = get_fusion_handler(root.path());
+        let table_dir = root.path().join("data/new_table");
+
+        let table_ref = AreaSourceReference {
+            table: Some(TableReference::Location(AreaTableLocation {
+                name: "new_table".to_string(),
+                areas: vec![],
+            })),
+        };
+        let request = PutTableRequest {
+            table: Some(table_ref.clone()),
+            save_mode: SaveMode::Append as i32,
+        };
+
+        assert!(!table_dir.exists());
+
+        let _response = handler
+            .handle_do_put(request.clone(), plan.clone())
+            .await
+            .unwrap();
+
+        assert!(table_dir.is_dir());
+
+        let table_location = handler.area_store.get_table_location(&table_ref).unwrap();
+        let files = flatten_list_stream(&handler.area_store.object_store(), Some(&table_location))
+            .await
+            .unwrap();
+        assert!(files.len() == 1);
+
+        let _response = handler
+            .handle_do_put(request.clone(), plan.clone())
+            .await
+            .unwrap();
+        let files = flatten_list_stream(&handler.area_store.object_store(), Some(&table_location))
+            .await
+            .unwrap();
+        assert!(files.len() == 2);
+
+        let request = PutTableRequest {
+            table: Some(table_ref.clone()),
+            save_mode: SaveMode::Overwrite as i32,
+        };
+
+        let _response = handler
+            .handle_do_put(request.clone(), plan.clone())
+            .await
+            .unwrap();
+        let files = flatten_list_stream(&handler.area_store.object_store(), Some(&table_location))
+            .await
+            .unwrap();
+        assert!(files.len() == 1)
     }
 
     #[tokio::test]

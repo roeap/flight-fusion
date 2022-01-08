@@ -9,7 +9,9 @@ use arrow_deps::datafusion::parquet::{
 };
 use async_trait::async_trait;
 pub use error::*;
-use flight_fusion_ipc::{area_source_reference::Table as TableReference, AreaSourceReference};
+use flight_fusion_ipc::{
+    area_source_reference::Table as TableReference, AreaSourceReference, SaveMode,
+};
 use futures::{stream, StreamExt, TryStreamExt};
 use object_store::{path::ObjectStorePath, ObjectStoreApi};
 pub use utils::*;
@@ -44,8 +46,15 @@ pub trait AreaStore {
     fn object_store(&self) -> Arc<object_store::ObjectStore>;
 
     // TODO use a more structured reference for table location
-    async fn put_batches(&self, batches: Vec<RecordBatch>, path: &str) -> Result<Vec<stats::Add>>;
+    async fn put_batches(
+        &self,
+        batches: Vec<RecordBatch>,
+        location: &object_store::path::Path,
+        save_mode: SaveMode,
+    ) -> Result<Vec<stats::Add>>;
     async fn get_arrow_reader(&self, path: &str) -> ParquetFileArrowReader;
+
+    /// Resolve an [`AreaSourceReference`] to a storage location
     fn get_table_location(&self, source: &AreaSourceReference) -> Result<object_store::path::Path>;
 }
 
@@ -82,14 +91,34 @@ impl AreaStore for InMemoryAreaStore {
     }
 
     // TODO use some sort of borrowed reference
-    async fn put_batches(&self, batches: Vec<RecordBatch>, path: &str) -> Result<Vec<stats::Add>> {
+    async fn put_batches(
+        &self,
+        batches: Vec<RecordBatch>,
+        location: &object_store::path::Path,
+        save_mode: SaveMode,
+    ) -> Result<Vec<stats::Add>> {
         let schema = batches[0].schema();
         let partition_cols = vec![];
         let mut writer =
             DeltaWriter::new(self.object_store().clone(), schema, Some(partition_cols));
         batches.iter().for_each(|b| writer.write(b).unwrap());
-        let location = self.object_store().path_from_raw(&path);
-        writer.flush(&location).await
+
+        match save_mode {
+            SaveMode::Overwrite => {
+                let files = flatten_list_stream(&self.object_store(), Some(&location))
+                    .await
+                    .unwrap();
+                for file in files {
+                    // TODO remove panic
+                    self.object_store().delete(&file).await.unwrap();
+                }
+                writer.flush(location).await
+            }
+            SaveMode::ErrorIfExists => Err(AreaStoreError::TableAlreadyExists(
+                location.to_raw().to_string(),
+            )),
+            _ => writer.flush(location).await,
+        }
     }
 
     async fn get_arrow_reader(&self, path: &str) -> ParquetFileArrowReader {

@@ -7,6 +7,10 @@ use std::sync::Arc;
 /// Enum representing an error when calling [`DeltaWriter`].
 #[derive(thiserror::Error, Debug)]
 pub enum AreaStoreError {
+    /// Error returned when a table to be created already exists
+    #[error("Table: '{0}' already exists")]
+    TableAlreadyExists(String),
+
     /// Partition column is missing in a record written to delta.
     #[error("Missing partition column: {0}")]
     MissingPartitionColumn(String),

@@ -94,7 +94,7 @@ message PutMemoryTableResponse {
 message PutTableRequest {
   // table identifier
   AreaSourceReference table = 1;
-  // denotes how to beahve for existing data
+  // denotes how to beahve for existing data - defaults to overwrite
   SaveMode save_mode = 3;
 }
 
