@@ -10,6 +10,7 @@ use arrow_deps::datafusion::parquet::{
 use async_trait::async_trait;
 pub use error::*;
 use flight_fusion_ipc::{area_source_reference::Table as TableReference, AreaSourceReference};
+use futures::{stream, StreamExt, TryStreamExt};
 use object_store::{path::ObjectStorePath, ObjectStoreApi};
 pub use utils::*;
 pub use writer::*;
@@ -20,6 +21,22 @@ pub mod utils;
 pub mod writer;
 
 const DATA_FOLDER_NAME: &str = "data";
+
+type AuxError = Box<dyn std::error::Error + Send + Sync + 'static>;
+type AuxResult<T, E = AuxError> = std::result::Result<T, E>;
+
+pub async fn flatten_list_stream(
+    storage: &object_store::ObjectStore,
+    prefix: Option<&object_store::path::Path>,
+) -> AuxResult<Vec<object_store::path::Path>> {
+    storage
+        .list(prefix)
+        .await?
+        .map_ok(|v| stream::iter(v).map(Ok))
+        .try_flatten()
+        .try_collect()
+        .await
+}
 
 #[async_trait]
 pub trait AreaStore {

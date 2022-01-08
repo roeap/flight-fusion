@@ -1,5 +1,5 @@
 use super::{ActionHandler, FusionActionHandler};
-use crate::area_store::AreaStore;
+use crate::area_store::{flatten_list_stream, AreaStore};
 use arrow_deps::datafusion::{
     catalog::catalog::CatalogProvider, datasource::MemTable, parquet::arrow::ArrowReader,
 };
@@ -7,25 +7,8 @@ use flight_fusion_ipc::{
     DatasetFormat, DropDatasetRequest, DropDatasetResponse, FlightFusionError,
     RegisterDatasetRequest, RegisterDatasetResponse, Result as FusionResult,
 };
-use futures::{stream, stream::BoxStream, StreamExt, TryFutureExt, TryStreamExt};
 use object_store::ObjectStoreApi;
 use std::sync::Arc;
-
-type AuxError = Box<dyn std::error::Error + Send + Sync + 'static>;
-type AuxResult<T, E = AuxError> = std::result::Result<T, E>;
-
-async fn flatten_list_stream(
-    storage: &object_store::ObjectStore,
-    prefix: Option<&object_store::path::Path>,
-) -> AuxResult<Vec<object_store::path::Path>> {
-    storage
-        .list(prefix)
-        .await?
-        .map_ok(|v| stream::iter(v).map(Ok))
-        .try_flatten()
-        .try_collect()
-        .await
-}
 
 #[async_trait::async_trait]
 impl ActionHandler<DropDatasetRequest> for FusionActionHandler {
