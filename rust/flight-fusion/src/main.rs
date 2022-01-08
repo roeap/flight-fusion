@@ -1,16 +1,14 @@
 use arrow_flight::flight_service_server::FlightServiceServer;
 use dotenv::dotenv;
 use lazy_static::lazy_static;
-use observability_deps::opentelemetry::{
-    global, runtime::Tokio, sdk::propagation::TraceContextPropagator,
+use observability_deps::{
+    opentelemetry::{global, runtime::Tokio, sdk::propagation::TraceContextPropagator},
+    opentelemetry_jaeger,
+    tracing::info,
+    tracing_opentelemetry,
+    tracing_subscriber::{self, layer::SubscriberExt, prelude::*},
 };
-use observability_deps::opentelemetry_jaeger;
-use observability_deps::tracing::info;
-use observability_deps::tracing_opentelemetry;
-use observability_deps::tracing_subscriber;
-use observability_deps::tracing_subscriber::prelude::*;
 use tonic::transport::Server;
-use tracing_subscriber::layer::SubscriberExt;
 
 mod area_store;
 mod error;
