@@ -26,6 +26,7 @@ pub type MinAndMaxValues = (
     HashMap<String, ColumnValueStat>,
 );
 
+#[derive(Debug, Clone)]
 // TODO move and rename to something useful
 pub struct Add {
     size: i64,
@@ -33,7 +34,7 @@ pub struct Add {
     modification_time: i64,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ColumnValueStat {
     /// Composite HashMap representation of statistics.
     Column(HashMap<String, ColumnValueStat>),
@@ -60,7 +61,7 @@ impl ColumnValueStat {
 }
 
 /// Struct used to represent nullCount in add action statistics.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ColumnCountStat {
     /// Composite HashMap representation of statistics.
     Column(HashMap<String, ColumnCountStat>),
@@ -87,11 +88,10 @@ impl ColumnCountStat {
 }
 
 /// Statistics associated with Add actions contained in the Delta log.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Stats {
     /// Number of records in the file associated with the log action.
     pub num_records: i64,
-
     // start of per column stats
     /// Contains a value smaller than all values present in the file for all columns.
     pub min_values: HashMap<String, ColumnValueStat>,
@@ -107,7 +107,7 @@ pub(crate) fn create_add(
     path: String,
     size: i64,
     file_metadata: &FileMetaData,
-) -> Result<Add, DeltaWriterError> {
+) -> Result<Add> {
     let (min_values, max_values) =
         min_max_values_from_file_metadata(partition_values, file_metadata)?;
 
@@ -183,18 +183,19 @@ pub(crate) fn apply_null_counts(
 fn min_max_values_from_file_metadata(
     partition_values: &HashMap<String, Option<String>>,
     file_metadata: &FileMetaData,
-) -> Result<MinAndMaxValues, ParquetError> {
+) -> std::result::Result<MinAndMaxValues, ParquetError> {
     let type_ptr = parquet::schema::types::from_thrift(file_metadata.schema.as_slice());
     let schema_descriptor = type_ptr.map(|type_| Arc::new(SchemaDescriptor::new(type_)))?;
 
     let mut min_values: HashMap<String, ColumnValueStat> = HashMap::new();
     let mut max_values: HashMap<String, ColumnValueStat> = HashMap::new();
 
-    let row_group_metadata: Result<Vec<RowGroupMetaData>, ParquetError> = file_metadata
-        .row_groups
-        .iter()
-        .map(|rg| RowGroupMetaData::from_thrift(schema_descriptor.clone(), rg.clone()))
-        .collect();
+    let row_group_metadata: std::result::Result<Vec<RowGroupMetaData>, ParquetError> =
+        file_metadata
+            .row_groups
+            .iter()
+            .map(|rg| RowGroupMetaData::from_thrift(schema_descriptor.clone(), rg.clone()))
+            .collect();
     let row_group_metadata = row_group_metadata?;
 
     for i in 0..schema_descriptor.num_columns() {
@@ -239,7 +240,7 @@ fn apply_min_max_for_column(
     column_path_parts: &[String],
     min_values: &mut HashMap<String, ColumnValueStat>,
     max_values: &mut HashMap<String, ColumnValueStat>,
-) -> Result<(), ParquetError> {
+) -> std::result::Result<(), ParquetError> {
     match (column_path_parts.len(), column_path_parts.first()) {
         // Base case - we are at the leaf struct level in the path
         (1, _) => {
@@ -304,7 +305,7 @@ fn is_utf8(opt: Option<LogicalType>) -> bool {
 fn min_and_max_from_parquet_statistics(
     statistics: &[&Statistics],
     column_descr: Arc<ColumnDescriptor>,
-) -> Result<(Option<Value>, Option<Value>), ParquetError> {
+) -> std::result::Result<(Option<Value>, Option<Value>), ParquetError> {
     let stats_with_min_max: Vec<&Statistics> = statistics
         .iter()
         .filter(|s| s.has_min_max_set())

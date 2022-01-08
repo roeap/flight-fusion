@@ -23,7 +23,7 @@ use uuid::Uuid;
 const NULL_PARTITION_VALUE_DATA_PATH: &str = "__HIVE_DEFAULT_PARTITION__";
 
 pub struct DeltaWriter {
-    pub(crate) storage: ObjectStore,
+    pub(crate) storage: Arc<ObjectStore>,
     pub(crate) arrow_schema_ref: Arc<ArrowSchema>,
     pub(crate) writer_properties: WriterProperties,
     pub(crate) partition_columns: Vec<String>,
@@ -39,7 +39,7 @@ impl std::fmt::Debug for DeltaWriter {
 impl DeltaWriter {
     /// Create a new DeltaWriter instance
     pub fn new(
-        storage: ObjectStore,
+        storage: Arc<ObjectStore>,
         schema: ArrowSchemaRef,
         partition_columns: Option<Vec<String>>,
     ) -> Self {
@@ -58,14 +58,16 @@ impl DeltaWriter {
         }
     }
 
+    /// Write [`RecordBatch`] to internal buffers
+    ///
     /// Divides a single record batch into into multiple according to table partitioning.
     /// Values are written to arrow buffers, to collect data until it should be written to disk.
-    pub fn write(&mut self, values: &RecordBatch) -> Result<(), DeltaWriterError> {
+    pub fn write(&mut self, values: &RecordBatch) -> Result<()> {
         let arrow_schema = self.partition_arrow_schema();
         for result in self.divide_by_partition_values(values)? {
             let partition_key = self
                 .get_partition_key(&self.partition_columns, &result.partition_values)?
-                .to_raw();
+                .join("/");
             match self.arrow_writers.get_mut(&partition_key) {
                 Some(writer) => {
                     writer.write(&result.record_batch)?;
@@ -86,19 +88,17 @@ impl DeltaWriter {
     }
 
     /// Writes the existing parquet bytes to storage and resets internal state to handle another file.
-    pub async fn flush(&mut self) -> Result<Vec<Add>, DeltaWriterError> {
+    pub async fn flush(&mut self, location: &object_store::path::Path) -> Result<Vec<Add>> {
         let writers = std::mem::take(&mut self.arrow_writers);
         let mut actions = Vec::new();
 
         for (_, mut writer) in writers {
             let metadata = writer.arrow_writer.close()?;
-
-            let location = self.next_data_path(&writer.partition_values, None)?;
-
+            let mut file_loc = location.clone();
+            self.next_data_path(&mut file_loc, &writer.partition_values, None)?;
             let obj_bytes = bytes::Bytes::from(writer.cursor.data());
             let file_size = obj_bytes.len() as i64;
-
-            self.storage.put(&location, obj_bytes).await.unwrap();
+            self.storage.put(&file_loc, obj_bytes).await.unwrap();
 
             // Replace self null_counts with an empty map. Use the other for stats.
             let null_counts = std::mem::take(&mut writer.null_counts);
@@ -111,13 +111,11 @@ impl DeltaWriter {
                 &metadata,
             )?);
         }
+
         Ok(actions)
     }
 
-    fn divide_by_partition_values(
-        &mut self,
-        values: &RecordBatch,
-    ) -> Result<Vec<PartitionResult>, DeltaWriterError> {
+    fn divide_by_partition_values(&mut self, values: &RecordBatch) -> Result<Vec<PartitionResult>> {
         divide_by_partition_values(
             self.partition_arrow_schema(),
             self.partition_columns.clone(),
@@ -129,9 +127,10 @@ impl DeltaWriter {
     // I have not been able to find documentation for yet.
     fn next_data_path(
         &self,
+        location: &mut object_store::path::Path,
         partition_values: &HashMap<String, Option<String>>,
         part: Option<i32>,
-    ) -> Result<object_store::path::Path, DeltaWriterError> {
+    ) -> Result<()> {
         // TODO: what does 00000 mean?
         // TODO (roeap): my understanding is, that the values are used as a counter - i.e. if a single batch of
         // data written to one partition needs to be split due to desired file size constraints.
@@ -150,36 +149,37 @@ impl DeltaWriter {
         );
 
         if self.partition_columns.is_empty() {
-            let mut location = self.storage.new_path();
             location.set_file_name(file_name);
-            return Ok(location);
+            return Ok(());
         }
 
-        let mut partition_key =
-            self.get_partition_key(&self.partition_columns, partition_values)?;
-        partition_key.set_file_name(file_name);
-        Ok(partition_key)
+        self.get_partition_key(&self.partition_columns.clone(), partition_values)?
+            .iter()
+            .for_each(|s| location.push_dir(s));
+        location.set_file_name(file_name);
+
+        Ok(())
     }
 
     pub(crate) fn get_partition_key(
         &self,
         partition_columns: &[String],
         partition_values: &HashMap<String, Option<String>>,
-    ) -> Result<object_store::path::Path, DeltaWriterError> {
-        let mut location = self.storage.new_path();
+    ) -> Result<Vec<String>> {
+        let mut parts = Vec::new();
         for k in partition_columns.iter() {
             let partition_value = partition_values
                 .get(k)
-                .ok_or_else(|| DeltaWriterError::MissingPartitionColumn(k.to_string()))?;
+                .ok_or_else(|| AreaStoreError::MissingPartitionColumn(k.to_string()))?;
 
             let partition_value = partition_value
                 .as_deref()
                 .unwrap_or(NULL_PARTITION_VALUE_DATA_PATH);
             let part = format!("{}={}", k, partition_value);
 
-            location.push_dir(part);
+            parts.push(part);
         }
-        Ok(location)
+        Ok(parts)
     }
 
     /// Returns the current byte length of the in memory buffer.
@@ -243,7 +243,7 @@ impl PartitionWriter {
         arrow_schema: Arc<ArrowSchema>,
         partition_values: HashMap<String, Option<String>>,
         writer_properties: WriterProperties,
-    ) -> Result<Self, ParquetError> {
+    ) -> std::result::Result<Self, ParquetError> {
         let cursor = InMemoryWriteableCursor::default();
         let arrow_writer = new_underlying_writer(
             cursor.clone(),
@@ -269,9 +269,9 @@ impl PartitionWriter {
     ///
     /// This method buffers the write stream internally so it can be invoked for many
     /// record batches and flushed after the appropriate number of bytes has been written.
-    pub fn write(&mut self, record_batch: &RecordBatch) -> Result<(), DeltaWriterError> {
+    pub fn write(&mut self, record_batch: &RecordBatch) -> Result<()> {
         if record_batch.schema() != self.arrow_schema {
-            return Err(DeltaWriterError::SchemaMismatch {
+            return Err(AreaStoreError::SchemaMismatch {
                 record_batch_schema: record_batch.schema(),
                 expected_schema: self.arrow_schema.clone(),
             });
@@ -315,7 +315,7 @@ pub fn divide_by_partition_values(
     arrow_schema: ArrowSchemaRef,
     partition_columns: Vec<String>,
     values: &RecordBatch,
-) -> Result<Vec<PartitionResult>, DeltaWriterError> {
+) -> Result<Vec<PartitionResult>> {
     let mut partitions = Vec::new();
 
     if partition_columns.is_empty() {
@@ -382,7 +382,7 @@ pub fn divide_by_partition_values(
     Ok(partitions)
 }
 
-fn cursor_from_bytes(bytes: &[u8]) -> Result<InMemoryWriteableCursor, std::io::Error> {
+fn cursor_from_bytes(bytes: &[u8]) -> std::result::Result<InMemoryWriteableCursor, std::io::Error> {
     let mut cursor = InMemoryWriteableCursor::default();
     cursor.write_all(bytes)?;
     Ok(cursor)
@@ -392,7 +392,7 @@ fn new_underlying_writer(
     cursor: InMemoryWriteableCursor,
     arrow_schema: Arc<ArrowSchema>,
     writer_properties: WriterProperties,
-) -> Result<ArrowWriter<InMemoryWriteableCursor>, ParquetError> {
+) -> std::result::Result<ArrowWriter<InMemoryWriteableCursor>, ParquetError> {
     ArrowWriter::try_new(cursor, arrow_schema, Some(writer_properties))
 }
 
@@ -404,7 +404,7 @@ fn new_underlying_writer(
 // also this does not currently support nested partition columns and many other data types.
 // TODO is this comment still valid, since we should be sure now, that the arrays where this
 // gets aplied have a single unique value
-fn stringified_partition_value(arr: &Arc<dyn Array>) -> Result<Option<String>, DeltaWriterError> {
+fn stringified_partition_value(arr: &Arc<dyn Array>) -> Result<Option<String>> {
     let data_type = arr.data_type();
 
     if arr.is_null(0) {
@@ -447,7 +447,7 @@ mod tests {
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
         let partition_cols = vec![];
-        let mut writer = DeltaWriter::new(storage, schema, Some(partition_cols));
+        let mut writer = DeltaWriter::new(Arc::new(storage), schema, Some(partition_cols));
         let partitions = writer.divide_by_partition_values(&batch).unwrap();
 
         assert_eq!(partitions.len(), 1);
@@ -462,7 +462,7 @@ mod tests {
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
         let partition_cols = vec!["modified".to_string()];
-        let mut writer = DeltaWriter::new(storage, schema, Some(partition_cols.clone()));
+        let mut writer = DeltaWriter::new(Arc::new(storage), schema, Some(partition_cols.clone()));
 
         let partitions = writer.divide_by_partition_values(&batch).unwrap();
 
@@ -480,7 +480,7 @@ mod tests {
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
         let partition_cols = vec!["modified".to_string(), "id".to_string()];
-        let mut writer = DeltaWriter::new(storage, schema, Some(partition_cols.clone()));
+        let mut writer = DeltaWriter::new(Arc::new(storage), schema, Some(partition_cols.clone()));
 
         let partitions = writer.divide_by_partition_values(&batch).unwrap();
 
@@ -497,13 +497,14 @@ mod tests {
     async fn test_write_no_partitions() {
         let root = TempDir::new().unwrap();
         let storage = ObjectStore::new_file(root.path());
+        let location = storage.new_path();
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
         let partition_cols = vec![];
-        let mut writer = DeltaWriter::new(storage, schema, Some(partition_cols));
+        let mut writer = DeltaWriter::new(Arc::new(storage), schema, Some(partition_cols));
 
         writer.write(&batch).unwrap();
-        let adds = writer.flush().await.unwrap();
+        let adds = writer.flush(&location).await.unwrap();
         assert_eq!(adds.len(), 1);
     }
 
@@ -511,13 +512,14 @@ mod tests {
     async fn test_write_multiple_partitions() {
         let root = TempDir::new().unwrap();
         let storage = ObjectStore::new_file(root.path());
+        let location = storage.new_path();
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
         let partition_cols = vec!["modified".to_string(), "id".to_string()];
-        let mut writer = DeltaWriter::new(storage, schema, Some(partition_cols));
+        let mut writer = DeltaWriter::new(Arc::new(storage), schema, Some(partition_cols));
 
         writer.write(&batch).unwrap();
-        let adds = writer.flush().await.unwrap();
+        let adds = writer.flush(&location).await.unwrap();
         assert_eq!(adds.len(), 4);
 
         let expected_keys = vec![
@@ -544,7 +546,7 @@ mod tests {
             let partition_key = writer
                 .get_partition_key(partition_cols, &result.partition_values)
                 .unwrap()
-                .to_raw();
+                .join("/");
             assert!(expected_keys.contains(&partition_key));
             let ref_batch = get_record_batch(Some(partition_key.clone()), false);
             assert_eq!(ref_batch, result.record_batch);

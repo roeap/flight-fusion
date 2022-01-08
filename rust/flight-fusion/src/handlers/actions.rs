@@ -35,14 +35,11 @@ impl ActionHandler<RegisterDatasetRequest> for FusionActionHandler {
                     .into_iter()
                     .map(|batch| batch.unwrap())
                     .collect::<Vec<_>>();
-
-                // declare a table in memory. In spark API, this corresponds to createDataFrame(...).
                 let table_provider = MemTable::try_new(schema, vec![batches]).unwrap();
                 let schema_provider = self.catalog.schema("schema").unwrap();
                 schema_provider
                     .register_table(action.name.clone(), Arc::new(table_provider))
                     .unwrap();
-
                 self.catalog
                     .register_schema("schema".to_string(), schema_provider);
             }

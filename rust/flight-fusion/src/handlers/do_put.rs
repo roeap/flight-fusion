@@ -1,4 +1,5 @@
 use super::*;
+use crate::area_store::AreaStore;
 use arrow_deps::datafusion::{
     catalog::catalog::CatalogProvider,
     datasource::MemTable,
@@ -83,6 +84,12 @@ impl DoPutHandler<PutRemoteTableRequest> for FusionActionHandler {
     ) -> FusionResult<DoPutUpdateResult> {
         let schema_ref = input.schema();
         let batches = collect(input).await.unwrap();
+
+        let mut location = self.area_store.object_store().path_from_raw(&ticket.path);
+        location.set_file_name(format!("{}.parquet", ticket.name));
+
+        println!("{:?}", location);
+
         let stats = compute_record_batch_statistics(&[batches.clone()], &schema_ref.clone(), None);
 
         // register received schema
@@ -171,6 +178,26 @@ mod tests {
         DeltaWriteOperation, SaveMode,
     };
     use std::sync::Arc;
+
+    #[tokio::test]
+    async fn test_put_table_file() {
+        let batch = get_record_batch(None, false);
+        let schema = batch.schema().clone();
+        let plan =
+            Arc::new(MemoryExec::try_new(&[vec![batch.clone()]], schema.clone(), None).unwrap());
+
+        let handler = get_fusion_handler();
+        let request = PutRemoteTableRequest {
+            name: "new_table".to_string(),
+            path: "area1/area2".to_string(),
+        };
+
+        let response = handler
+            .handle_do_put(request.clone(), plan.clone())
+            .await
+            .unwrap();
+        println!("{:?}", response)
+    }
 
     #[tokio::test]
     async fn test_put_delta() {

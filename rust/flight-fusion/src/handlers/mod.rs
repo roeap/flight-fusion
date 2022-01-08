@@ -1,14 +1,6 @@
 use crate::{area_store::InMemoryAreaStore, stream::*};
 use arrow_deps::datafusion::{
     catalog::{catalog::MemoryCatalogProvider, schema::MemorySchemaProvider},
-    datasource::{
-        file_format::parquet::ChunkObjectReader,
-        object_store::{
-            local::{local_unpartitioned_file, LocalFileSystem},
-            ObjectStore,
-        },
-    },
-    parquet::{arrow::ParquetFileArrowReader, file::serialized_reader::SerializedFileReader},
     physical_plan::ExecutionPlan,
 };
 use arrow_flight::{FlightData, PutResult};
@@ -20,6 +12,7 @@ use flight_fusion_ipc::{
     FlightDoGetRequest, FlightFusionError, RequestFor, Result as FusionResult,
 };
 use futures::Stream;
+pub use object_store::{path::ObjectStorePath, ObjectStoreApi};
 use std::sync::Arc;
 use std::{path::PathBuf, pin::Pin};
 use tonic::Status;
@@ -61,19 +54,16 @@ where
 
 pub struct FusionActionHandler {
     catalog: Arc<MemoryCatalogProvider>,
-    object_store: Arc<dyn ObjectStore>,
     area_store: InMemoryAreaStore,
 }
 
 impl FusionActionHandler {
     pub fn new(root: impl Into<PathBuf>) -> Self {
-        let object_store = Arc::new(LocalFileSystem);
         let area_store = InMemoryAreaStore::new(root);
         let schema_provider = MemorySchemaProvider::new();
         let catalog = Arc::new(MemoryCatalogProvider::new());
         catalog.register_schema("schema".to_string(), Arc::new(schema_provider));
         Self {
-            object_store,
             catalog,
             area_store,
         }

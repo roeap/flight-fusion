@@ -1,5 +1,5 @@
 //! Handle JSON messages when writing to delta tables
-use super::DeltaWriterError;
+use super::AreaStoreError;
 use arrow_deps::arrow::{datatypes::Schema as ArrowSchema, json::reader::Decoder, record_batch::*};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -9,7 +9,7 @@ use std::sync::Arc;
 pub fn divide_by_partition_values(
     partition_columns: &[String],
     records: Vec<Value>,
-) -> Result<HashMap<String, Vec<Value>>, DeltaWriterError> {
+) -> Result<HashMap<String, Vec<Value>>, AreaStoreError> {
     let mut partitioned_records: HashMap<String, Vec<Value>> = HashMap::new();
 
     for record in records {
@@ -28,7 +28,7 @@ pub fn divide_by_partition_values(
 fn json_to_partition_values(
     partition_columns: &[String],
     value: &Value,
-) -> Result<String, DeltaWriterError> {
+) -> Result<String, AreaStoreError> {
     if let Some(obj) = value.as_object() {
         let key: Vec<String> = partition_columns
             .iter()
@@ -37,18 +37,18 @@ fn json_to_partition_values(
         return Ok(key.join("/"));
     }
 
-    Err(DeltaWriterError::InvalidRecord(value.to_string()))
+    Err(AreaStoreError::InvalidRecord(value.to_string()))
 }
 
 /// Convert a vector of json values to a RecordBatch
 pub fn record_batch_from_message(
     arrow_schema: Arc<ArrowSchema>,
     message_buffer: &[Value],
-) -> Result<RecordBatch, DeltaWriterError> {
+) -> Result<RecordBatch, AreaStoreError> {
     let row_count = message_buffer.len();
     let mut value_iter = message_buffer.iter().map(|j| Ok(j.to_owned()));
     let decoder = Decoder::new(arrow_schema, row_count, None);
     decoder
         .next_batch(&mut value_iter)?
-        .ok_or(DeltaWriterError::EmptyRecordBatch)
+        .ok_or(AreaStoreError::EmptyRecordBatch)
 }

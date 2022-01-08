@@ -4,13 +4,12 @@ use std::sync::Arc;
 
 use arrow_deps::arrow::{datatypes::*, record_batch::*};
 use arrow_deps::datafusion::parquet::{
-    arrow::{ArrowReader, ParquetFileArrowReader},
-    basic::LogicalType,
+    arrow::ParquetFileArrowReader, basic::LogicalType,
     file::serialized_reader::SerializedFileReader,
 };
 use async_trait::async_trait;
 pub use error::*;
-use object_store::{path::parsed::DirsAndFileName, ObjectStoreApi};
+use object_store::ObjectStoreApi;
 pub use utils::*;
 pub use writer::*;
 
@@ -22,30 +21,38 @@ pub mod writer;
 
 #[async_trait]
 pub trait AreaStore {
-    fn store_batches(&self);
-    fn object_store(&self) -> &object_store::ObjectStore;
+    fn object_store(&self) -> &Arc<object_store::ObjectStore>;
+    // TODO use a more structured reference for table location
+    async fn put_batches(&self, batches: Vec<RecordBatch>, path: &str) -> Result<Vec<stats::Add>>;
     async fn get_arrow_reader(&self, path: &str) -> ParquetFileArrowReader;
 }
 
 pub struct InMemoryAreaStore {
-    object_store: object_store::ObjectStore,
+    object_store: Arc<object_store::ObjectStore>,
 }
 
 impl InMemoryAreaStore {
     pub fn new(root: impl Into<PathBuf>) -> Self {
-        let object_store = object_store::ObjectStore::new_file(root);
+        let object_store = Arc::new(object_store::ObjectStore::new_file(root));
         Self { object_store }
     }
 }
 
 #[async_trait]
 impl AreaStore for InMemoryAreaStore {
-    fn object_store(&self) -> &object_store::ObjectStore {
+    fn object_store(&self) -> &Arc<object_store::ObjectStore> {
         &self.object_store
     }
 
-    fn store_batches(&self) {
-        println!("hello")
+    // TODO use some sort of borrowed reference
+    async fn put_batches(&self, batches: Vec<RecordBatch>, path: &str) -> Result<Vec<stats::Add>> {
+        let schema = batches[0].schema();
+        let partition_cols = vec![];
+        let mut writer =
+            DeltaWriter::new(self.object_store().clone(), schema, Some(partition_cols));
+        batches.iter().for_each(|b| writer.write(b).unwrap());
+        let location = self.object_store().path_from_raw(&path);
+        writer.flush(&location).await
     }
 
     async fn get_arrow_reader(&self, path: &str) -> ParquetFileArrowReader {
@@ -68,6 +75,7 @@ impl AreaStore for InMemoryAreaStore {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use arrow_deps::datafusion::parquet::arrow::ArrowReader;
 
     #[tokio::test]
     async fn test_arrow_reader() {

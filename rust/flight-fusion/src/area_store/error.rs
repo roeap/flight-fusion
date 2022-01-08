@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 /// Enum representing an error when calling [`DeltaWriter`].
 #[derive(thiserror::Error, Debug)]
-pub enum DeltaWriterError {
+pub enum AreaStoreError {
     /// Partition column is missing in a record written to delta.
     #[error("Missing partition column: {0}")]
     MissingPartitionColumn(String),
@@ -52,3 +52,5 @@ pub enum DeltaWriterError {
         source: std::io::Error,
     },
 }
+
+pub type Result<T> = std::result::Result<T, AreaStoreError>;
