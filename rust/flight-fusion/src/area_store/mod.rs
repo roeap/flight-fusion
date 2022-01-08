@@ -14,7 +14,6 @@ pub use utils::*;
 pub use writer::*;
 
 pub mod error;
-pub mod json;
 mod stats;
 pub mod utils;
 pub mod writer;

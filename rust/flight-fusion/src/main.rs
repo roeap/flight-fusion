@@ -13,6 +13,7 @@ use tonic::transport::Server;
 use tracing_subscriber::layer::SubscriberExt;
 
 mod area_store;
+mod error;
 mod handlers;
 mod service;
 mod settings;

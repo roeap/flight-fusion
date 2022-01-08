@@ -24,10 +24,6 @@ pub enum AreaStoreError {
     #[error("Arrow RecordBatch created from JSON buffer is a None value")]
     EmptyRecordBatch,
 
-    /// A record was written that was not a JSON object.
-    #[error("Record {0} is not a JSON object")]
-    InvalidRecord(String),
-
     /// Arrow returned an error.
     #[error("Arrow interaction failed: {source}")]
     Arrow {
