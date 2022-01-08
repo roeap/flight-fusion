@@ -63,6 +63,7 @@ message FlightDoGetRequest {
     CommandSqlOperation sql = 1;
     CommandKqlOperation kql = 2;
     SignalFrameOperation frame = 3;
+    CommandReadTable read = 4;
   }
 }
 

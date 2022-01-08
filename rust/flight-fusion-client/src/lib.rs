@@ -1,15 +1,22 @@
-use arrow::{ipc::writer::IpcWriteOptions, record_batch::RecordBatch};
+use arrow::{
+    datatypes::{Schema as ArrowSchema, SchemaRef as ArrowSchemaRef},
+    ipc::writer::IpcWriteOptions,
+    record_batch::RecordBatch,
+};
 use arrow_flight::{
     flight_descriptor, flight_service_client::FlightServiceClient, Action, FlightData,
-    FlightDescriptor, SchemaAsIpc,
+    FlightDescriptor, SchemaAsIpc, Ticket,
 };
 use error::FusionClientError;
 use flight_fusion_ipc::{
     area_source_reference::Table as TableReference, flight_action_request::Action as FusionAction,
-    flight_do_put_request, utils::serialize_message, AreaSourceReference, AreaTableLocation,
+    flight_do_get_request::Operation as DoGetOperation,
+    flight_do_put_request::Operation as DoPutOperation, to_flight_fusion_err,
+    utils::serialize_message, AreaSourceReference, AreaTableLocation, CommandReadTable,
     DatasetFormat, DoPutUpdateResult, DropDatasetRequest, DropDatasetResponse, FlightActionRequest,
-    FlightDoPutRequest, PutMemoryTableRequest, PutMemoryTableResponse, PutTableRequest,
-    RegisterDatasetRequest, RegisterDatasetResponse, RequestFor, SaveMode,
+    FlightDoGetRequest, FlightDoPutRequest, FlightFusionError, PutMemoryTableRequest,
+    PutMemoryTableResponse, PutTableRequest, RegisterDatasetRequest, RegisterDatasetResponse,
+    RequestFor, SaveMode,
 };
 use observability_deps::instrument;
 use observability_deps::tracing;
@@ -21,6 +28,8 @@ use tonic::{
 pub mod error;
 pub use arrow;
 pub use flight_fusion_ipc;
+use futures::{stream::Stream, StreamExt, TryStreamExt};
+use std::sync::Arc;
 
 mod interceptor;
 
@@ -71,7 +80,7 @@ impl FlightFusionClient {
                 areas: vec![],
             })),
         };
-        let operation = flight_do_put_request::Operation::Storage(PutTableRequest {
+        let operation = DoPutOperation::Storage(PutTableRequest {
             table: Some(table_ref),
             save_mode: save_mode as i32,
         });
@@ -79,6 +88,34 @@ impl FlightFusionClient {
             .do_put::<DoPutUpdateResult>(batches, operation)
             .await?
             .unwrap())
+    }
+
+    #[instrument(skip(self))]
+    pub async fn read_table<T>(&self, table_ref: T) -> Result<Vec<RecordBatch>, FusionClientError>
+    where
+        T: Into<String> + std::fmt::Debug,
+    {
+        let table_ref = AreaSourceReference {
+            table: Some(TableReference::Location(AreaTableLocation {
+                name: table_ref.into(),
+                areas: vec![],
+            })),
+        };
+        let operation = DoGetOperation::Read(CommandReadTable {
+            table: Some(table_ref),
+        });
+
+        let request = FlightDoGetRequest {
+            operation: Some(operation),
+        };
+
+        let ticket = Ticket {
+            ticket: serialize_message(request),
+        };
+        // TODO Don't panic
+        let response = self.client.clone().do_get(ticket).await.unwrap();
+
+        collect_response_stream(response.into_inner()).await
     }
 
     #[instrument(skip(self, batches))]
@@ -90,7 +127,7 @@ impl FlightFusionClient {
     where
         T: Into<String> + std::fmt::Debug,
     {
-        let operation = flight_do_put_request::Operation::Memory(PutMemoryTableRequest {
+        let operation = DoPutOperation::Memory(PutMemoryTableRequest {
             name: table_ref.into(),
         });
         Ok(self
@@ -159,7 +196,7 @@ impl FlightFusionClient {
     pub async fn do_put<R>(
         &self,
         batches: Vec<RecordBatch>,
-        operation: flight_do_put_request::Operation,
+        operation: DoPutOperation,
     ) -> Result<Option<R>, FusionClientError>
     where
         R: prost::Message + Default,
@@ -220,4 +257,34 @@ impl FlightFusionClient {
             Some(result) => Ok(response_message::<T::Reply>(result)?),
         }
     }
+}
+
+async fn collect_response_stream(
+    mut stream: tonic::Streaming<FlightData>,
+) -> Result<Vec<RecordBatch>, FusionClientError> {
+    // TODO get rid of all the panics
+    let flight_data = stream.message().await.unwrap().unwrap();
+    let schema = Arc::new(
+        ArrowSchema::try_from(&flight_data)
+            .map_err(|e| FlightFusionError::ExternalError(format!("Invalid schema: {:?}", e)))
+            .unwrap(),
+    );
+
+    let to_batch = |flight_data| {
+        let dictionaries_by_field = vec![None; schema.fields().len()];
+        arrow_flight::utils::flight_data_to_arrow_batch(
+            &flight_data,
+            schema.clone(),
+            &dictionaries_by_field,
+        )
+        .unwrap()
+    };
+
+    Ok(stream
+        .try_collect::<Vec<_>>()
+        .await
+        .unwrap()
+        .into_iter()
+        .map(to_batch)
+        .collect::<Vec<_>>())
 }

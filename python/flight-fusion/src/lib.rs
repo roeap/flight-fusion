@@ -41,6 +41,15 @@ impl FusionClient {
         Ok(PyBytes::new(py, &obj))
     }
 
+    fn read_table<'py>(&self, py: Python<'py>, table_ref: &str) -> PyResult<Vec<RecordBatch>> {
+        let op = async {
+            let client = FlightFusionClient::try_new().await?;
+            client.read_table(table_ref).await
+        };
+        let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
+        Ok(response)
+    }
+
     fn put_memory_table<'py>(
         &self,
         py: Python<'py>,

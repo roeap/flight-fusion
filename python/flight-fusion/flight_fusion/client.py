@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 import pandas as pd
 import pyarrow as pa
@@ -80,6 +80,9 @@ class FlightFusionClient:
         batches = data.to_batches()
         raw_response = self._raw.write_into_table(table_ref, save_mode.value, batches)
         return DoPutUpdateResult().parse(raw_response)
+
+    def read_table(self, table_ref: str) -> List[pa.RecordBatch]:
+        return self._raw.read_table(table_ref)
 
     def write_into_delta(
         self,

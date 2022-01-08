@@ -249,7 +249,7 @@ pub struct SignalFrameOperation {
 /// Requests submitted against the `do_get` endpoint
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightDoGetRequest {
-    #[prost(oneof="flight_do_get_request::Operation", tags="1, 2, 3")]
+    #[prost(oneof="flight_do_get_request::Operation", tags="1, 2, 3, 4")]
     pub operation: ::core::option::Option<flight_do_get_request::Operation>,
 }
 /// Nested message and enum types in `FlightDoGetRequest`.
@@ -262,6 +262,8 @@ pub mod flight_do_get_request {
         Kql(super::CommandKqlOperation),
         #[prost(message, tag="3")]
         Frame(super::SignalFrameOperation),
+        #[prost(message, tag="4")]
+        Read(super::CommandReadTable),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]

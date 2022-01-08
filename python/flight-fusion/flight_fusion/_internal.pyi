@@ -33,6 +33,16 @@ class FusionClient:
             bytes: Serialized return message
         """
         ...
+    def read_table(self, table_ref: str) -> List[pa.RecordBatch]:
+        """Read table data into record batches
+
+        Args:
+            table_ref (str): A name to reference the table in queries
+
+        Returns:
+            List[pa.RecordBatch]: Data contained in table
+        """
+        ...
     def put_memory_table(self, table_ref: str, batches: List[pa.RecordBatch]) -> bytes:
         """Register a table in memory to be available in queries
 
