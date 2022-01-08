@@ -1,12 +1,6 @@
-use crate::object_store::ChunkObjectReader;
-use crate::stream::*;
+use crate::{area_store::InMemoryAreaStore, stream::*};
 use arrow_deps::datafusion::{
     catalog::{catalog::MemoryCatalogProvider, schema::MemorySchemaProvider},
-    datasource::object_store::{
-        local::{local_unpartitioned_file, LocalFileSystem},
-        ObjectStore,
-    },
-    parquet::{arrow::ParquetFileArrowReader, file::serialized_reader::SerializedFileReader},
     physical_plan::ExecutionPlan,
 };
 use arrow_flight::{FlightData, PutResult};
@@ -18,8 +12,9 @@ use flight_fusion_ipc::{
     FlightDoGetRequest, FlightFusionError, RequestFor, Result as FusionResult,
 };
 use futures::Stream;
-use std::pin::Pin;
+pub use object_store::{path::ObjectStorePath, ObjectStoreApi};
 use std::sync::Arc;
+use std::{path::PathBuf, pin::Pin};
 use tonic::Status;
 
 pub mod actions;
@@ -59,18 +54,18 @@ where
 
 pub struct FusionActionHandler {
     catalog: Arc<MemoryCatalogProvider>,
-    object_store: Arc<dyn ObjectStore>,
+    area_store: InMemoryAreaStore,
 }
 
 impl FusionActionHandler {
-    pub fn new() -> Self {
-        let object_store = Arc::new(LocalFileSystem);
+    pub fn new(root: impl Into<PathBuf>) -> Self {
+        let area_store = InMemoryAreaStore::new(root);
         let schema_provider = MemorySchemaProvider::new();
         let catalog = Arc::new(MemoryCatalogProvider::new());
         catalog.register_schema("schema".to_string(), Arc::new(schema_provider));
         Self {
-            object_store,
             catalog,
+            area_store,
         }
     }
 
@@ -119,20 +114,6 @@ impl FusionActionHandler {
             )),
         }
     }
-
-    async fn get_arrow_reader_from_path<T>(&self, path: T) -> FusionResult<ParquetFileArrowReader>
-    where
-        T: Into<String>,
-    {
-        let file = local_unpartitioned_file(path.into());
-        let object_reader = self
-            .object_store
-            .file_reader(file.file_meta.sized_file)
-            .unwrap();
-        let obj_reader = ChunkObjectReader(object_reader);
-        let file_reader = Arc::new(SerializedFileReader::new(obj_reader).unwrap());
-        Ok(ParquetFileArrowReader::new(file_reader))
-    }
 }
 
 #[cfg(test)]
@@ -142,31 +123,26 @@ mod tests {
 
     #[tokio::test]
     async fn test_drop_table_action() {
-        let handler = FusionActionHandler::new();
-
+        let handler = crate::test_utils::get_fusion_handler();
         let req = DropDatasetRequest {
             name: "some.table".to_string(),
         };
-
         let res = handler.handle_do_action(req).await.unwrap();
         assert_eq!(res.name, "some.table")
     }
 
     #[tokio::test]
     async fn test_put_table() {
-        // let batch = get_record_batch(None, false);
-        let handler = FusionActionHandler::new();
+        let handler = crate::test_utils::get_fusion_handler();
         let register_table_action = RegisterDatasetRequest {
             path: "./tests/data/file/table.parquet".to_string(),
             name: "table".to_string(),
             format: DatasetFormat::File as i32,
         };
-
         let res = handler
             .handle_do_action(register_table_action)
             .await
             .unwrap();
-
         println!("{:?}", res)
     }
 }

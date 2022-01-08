@@ -12,8 +12,8 @@ use observability_deps::tracing_subscriber::prelude::*;
 use tonic::transport::Server;
 use tracing_subscriber::layer::SubscriberExt;
 
+mod area_store;
 mod handlers;
-mod object_store;
 mod service;
 mod settings;
 mod stream;
@@ -44,7 +44,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .try_init()?;
 
     let addr = "0.0.0.0:50051".parse()?;
-    let service = service::FlightFusionService::new_default();
+    let area_root = "/home/robstar/github/flight-fusion/.tmp";
+    let service = service::FlightFusionService::new_default(area_root);
 
     let svc = FlightServiceServer::new(service);
     info!("Listening on {:?} ({})", CONFIG.server.port, CONFIG.env);

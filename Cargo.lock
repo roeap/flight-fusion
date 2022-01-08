@@ -957,6 +957,7 @@ dependencies = [
  "arrow-deps",
  "arrow-flight",
  "async-trait",
+ "bytes",
  "chrono",
  "config",
  "dotenv",
@@ -964,13 +965,15 @@ dependencies = [
  "flight-fusion-ipc",
  "futures",
  "lazy_static",
- "libc",
  "log",
+ "object-store",
  "observability_deps",
+ "parquet-format",
  "pretty_assertions",
  "prost 0.9.0",
  "rand 0.8.4",
  "serde 1.0.133",
+ "serde_json",
  "serial_test",
  "tempdir",
  "tempfile",
@@ -1159,6 +1162,23 @@ name = "futures-task"
 version = "0.3.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ee7c6485c30167ce4dfb83ac568a849fe53274c831081476ee13e0dce1aad72"
+
+[[package]]
+name = "futures-test"
+version = "0.3.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4e741bc851e1e90ad08901b329389ae77e02d5e9a0ec61955b80834630fbdc2f"
+dependencies = [
+ "futures-core",
+ "futures-executor",
+ "futures-io",
+ "futures-macro",
+ "futures-sink",
+ "futures-task",
+ "futures-util",
+ "pin-project",
+ "pin-utils",
+]
 
 [[package]]
 name = "futures-util"
@@ -2023,6 +2043,25 @@ dependencies = [
  "sha2",
  "thiserror",
  "url",
+]
+
+[[package]]
+name = "object-store"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "chrono",
+ "futures",
+ "futures-test",
+ "itertools",
+ "percent-encoding",
+ "reqwest",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "tokio-util",
+ "walkdir",
 ]
 
 [[package]]

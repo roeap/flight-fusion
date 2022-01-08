@@ -11,11 +11,13 @@ ignoreWords:
   - Timespan
   - chrono
   - clippy
+  - codegen
   - datafusion
   - datasource
   - deps
   - dotenv
   - hmac
+  - itertools
   - jdbc
   - mkdocs
   - opentelemetry
@@ -37,4 +39,5 @@ ignoreWords:
   - tempfile
   - toposort
   - unpartitioned
+  - walkdir
 import: []

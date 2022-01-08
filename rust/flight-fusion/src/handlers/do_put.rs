@@ -1,8 +1,9 @@
 use super::*;
+use crate::area_store::AreaStore;
 use arrow_deps::datafusion::{
     catalog::catalog::CatalogProvider,
     datasource::MemTable,
-    physical_plan::{collect, common::compute_record_batch_statistics, ExecutionPlan},
+    physical_plan::{collect, ExecutionPlan},
 };
 use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, commands::DeltaCommands};
 use async_trait::async_trait;
@@ -81,47 +82,21 @@ impl DoPutHandler<PutRemoteTableRequest> for FusionActionHandler {
         ticket: PutRemoteTableRequest,
         input: Arc<dyn ExecutionPlan>,
     ) -> FusionResult<DoPutUpdateResult> {
-        let schema_ref = input.schema();
-        let batches = collect(input).await.unwrap();
-        let stats = compute_record_batch_statistics(&[batches.clone()], &schema_ref.clone(), None);
+        let mut location = self.area_store.object_store().path_from_raw(&ticket.path);
+        location.push_dir("data");
+        location.push_dir(&ticket.name);
 
-        // register received schema
-        let table_provider = MemTable::try_new(schema_ref.clone(), vec![batches]).unwrap();
-        let schema_provider = self.catalog.schema("schema").unwrap();
-        schema_provider
-            .register_table(ticket.name, Arc::new(table_provider))
+        let batches = collect(input).await.unwrap();
+        // TODO remove panic
+        let adds = self
+            .area_store
+            .put_batches(batches, &location.to_raw())
+            .await
             .unwrap();
 
-        self.catalog
-            .register_schema("schema".to_string(), schema_provider);
+        println!("{:?}", adds);
 
-        let columns = stats.column_statistics.map(|s| {
-            s.iter()
-                .map(|c| ColumnStatistics {
-                    null_count: c.null_count.map(|v| v as i64).unwrap_or(-1),
-                    max_value: c
-                        .max_value
-                        .as_ref()
-                        .map(|v| v.to_string())
-                        .unwrap_or("".to_string()),
-                    min_value: c
-                        .min_value
-                        .as_ref()
-                        .map(|v| v.to_string())
-                        .unwrap_or("".to_string()),
-                    distinct_count: c.distinct_count.map(|v| v as i64).unwrap_or(-1),
-                })
-                .collect::<Vec<_>>()
-        });
-
-        Ok(DoPutUpdateResult {
-            statistics: Some(BatchStatistics {
-                record_count: stats.num_rows.map(|v| v as i64).unwrap_or(-1),
-                total_byte_size: stats.total_byte_size.map(|v| v as i64).unwrap_or(-1),
-                column_statistics: columns.unwrap_or(vec![]),
-                is_exact: stats.is_exact,
-            }),
-        })
+        Ok(DoPutUpdateResult { statistics: None })
     }
 }
 
@@ -172,6 +147,27 @@ mod tests {
         DeltaWriteOperation, SaveMode,
     };
     use std::sync::Arc;
+
+    #[tokio::test]
+    async fn test_put_table_file() {
+        let batch = get_record_batch(None, false);
+        let schema = batch.schema().clone();
+        let plan =
+            Arc::new(MemoryExec::try_new(&[vec![batch.clone()]], schema.clone(), None).unwrap());
+
+        let handler = get_fusion_handler();
+        let request = PutRemoteTableRequest {
+            name: "new_table".to_string(),
+            path: "area1/area2".to_string(),
+        };
+
+        let response = handler
+            .handle_do_put(request.clone(), plan.clone())
+            .await
+            .unwrap();
+
+        println!("{:?}", response)
+    }
 
     #[tokio::test]
     async fn test_put_delta() {

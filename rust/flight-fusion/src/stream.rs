@@ -161,7 +161,7 @@ pub struct FlightTonicRecordBatchStream {
 
 impl FlightTonicRecordBatchStream {
     /// Create an empty RecordBatchStream
-    pub async fn new(schema: ArrowSchemaRef, stream: Streaming<FlightData>) -> FusionResult<Self> {
+    pub async fn _new(schema: ArrowSchemaRef, stream: Streaming<FlightData>) -> FusionResult<Self> {
         Ok(Self {
             inner: stream,
             schema,

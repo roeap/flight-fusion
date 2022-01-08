@@ -5,17 +5,16 @@
 use crate::path::Path;
 use crate::ObjectStore;
 use async_trait::async_trait;
-use snafu::Snafu;
 use std::sync::Arc;
 
 /// Result for the cache
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 /// A specialized `Error` for Cache related errors
-#[derive(Debug, Snafu)]
+#[derive(Debug, thiserror::Error)]
 #[allow(missing_docs)]
 pub enum Error {
-    #[snafu(display("unable to evict '{}' from the local cache", name))]
+    #[error("unable to evict '{name}' from the local cache")]
     UnableToEvict { name: String },
 }
 

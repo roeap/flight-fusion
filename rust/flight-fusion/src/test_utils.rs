@@ -3,19 +3,48 @@
 // use crate::{
 //     action::Protocol, DeltaTable, DeltaTableConfig, DeltaTableMetaData, SchemaDataType, SchemaField,
 // };
-use crate::{handlers::FusionActionHandler, service::BoxedFlightStream};
+use crate::handlers::FusionActionHandler;
 use arrow_deps::datafusion::arrow::{
     array::{Array, Float32Array, Float64Array, Int32Array, Int64Array, StringArray, UInt32Array},
     compute::take,
     datatypes::{DataType, Field, Schema as ArrowSchema, SchemaRef as ArrowSchemaRef},
-    ipc::writer::IpcWriteOptions,
     record_batch::RecordBatch,
 };
-use arrow_flight::{FlightData, SchemaAsIpc};
 use rand::distributions::Standard;
 use rand::prelude::*;
 use std::sync::Arc;
-use tonic::Status;
+
+pub fn get_test_object_store() -> object_store::ObjectStore {
+    let ws_root = crate::test_utils::workspace_root().unwrap();
+    let ws_root = std::path::Path::new(&ws_root);
+    let ws_root = ws_root.join("test");
+    object_store::ObjectStore::new_file(ws_root)
+}
+
+pub fn get_fusion_handler() -> FusionActionHandler {
+    let ws_root = crate::test_utils::workspace_root().unwrap();
+    let ws_root = std::path::Path::new(&ws_root);
+    let ws_root = ws_root.join("test");
+    FusionActionHandler::new(ws_root)
+}
+
+/// Run cargo to get the root of the workspace
+pub fn workspace_root() -> Result<String, Box<dyn std::error::Error>> {
+    let output = std::process::Command::new("cargo")
+        .arg("metadata")
+        .output()?;
+    let output = String::from_utf8_lossy(&output.stdout);
+
+    let key = "workspace_root\":\"";
+    let index = output
+        .find(key)
+        .ok_or_else(|| "workspace_root key not found in metadata".to_string())?;
+    let value = &output[index + key.len()..];
+    let end = value
+        .find('"')
+        .ok_or_else(|| "workspace_root value was malformed".to_string())?;
+    Ok(value[..end].into())
+}
 
 pub fn generate_random_batch(row_count: usize, schema: ArrowSchemaRef) -> RecordBatch {
     let mut arrays: Vec<Arc<dyn Array>> = vec![];
@@ -57,30 +86,6 @@ where
         *x = rng.gen::<T>();
     }
     raw.to_vec()
-}
-
-pub fn get_record_batch_stream() -> BoxedFlightStream<FlightData> {
-    let batch = get_record_batch(None, false);
-    let results = vec![batch.clone()];
-    let options = IpcWriteOptions::default();
-    let schema_flight_data: FlightData = SchemaAsIpc::new(&batch.schema().clone(), &options).into();
-
-    let mut flights: Vec<Result<FlightData, Status>> = vec![Ok(schema_flight_data)];
-    let mut batches: Vec<Result<FlightData, Status>> = results
-        .iter()
-        .flat_map(|batch| {
-            let (flight_dictionaries, flight_batch) =
-                arrow_flight::utils::flight_data_from_arrow_batch(batch, &options);
-            flight_dictionaries
-                .into_iter()
-                .chain(std::iter::once(flight_batch))
-                .map(Ok)
-        })
-        .collect();
-
-    flights.append(&mut batches);
-
-    Box::pin(futures::stream::iter(flights)) as BoxedFlightStream<FlightData>
 }
 
 pub fn get_record_batch(part: Option<String>, with_null: bool) -> RecordBatch {
@@ -196,93 +201,3 @@ fn data_without_null() -> (Int32Array, StringArray, StringArray) {
 
     (base_int, base_str, base_mod)
 }
-
-pub fn get_fusion_handler() -> FusionActionHandler {
-    let handler = FusionActionHandler::new();
-    handler
-}
-
-// pub fn get_delta_schema() -> Schema {
-//     Schema::new(vec![
-//         SchemaField::new(
-//             "id".to_string(),
-//             SchemaDataType::primitive("string".to_string()),
-//             true,
-//             HashMap::new(),
-//         ),
-//         SchemaField::new(
-//             "value".to_string(),
-//             SchemaDataType::primitive("integer".to_string()),
-//             true,
-//             HashMap::new(),
-//         ),
-//         SchemaField::new(
-//             "modified".to_string(),
-//             SchemaDataType::primitive("string".to_string()),
-//             true,
-//             HashMap::new(),
-//         ),
-//     ])
-// }
-
-// pub fn get_delta_metadata(partition_cols: &[String]) -> DeltaTableMetaData {
-//     let table_schema = get_delta_schema();
-//     DeltaTableMetaData::new(
-//         None,
-//         None,
-//         None,
-//         table_schema,
-//         partition_cols.to_vec(),
-//         HashMap::new(),
-//     )
-// }
-
-// pub fn create_bare_table() -> DeltaTable {
-//     let table_dir = tempfile::tempdir().unwrap();
-//     let table_path = table_dir.path();
-//     let backend = Box::new(crate::storage::file::FileStorageBackend::new(
-//         table_path.to_str().unwrap(),
-//     ));
-//     DeltaTable::new(
-//         table_path.to_str().unwrap(),
-//         backend,
-//         DeltaTableConfig::default(),
-//     )
-//     .unwrap()
-// }
-
-// pub async fn create_initialized_table(partition_cols: &[String]) -> DeltaTable {
-//     let mut table = create_bare_table();
-//     let table_schema = get_delta_schema();
-//
-//     let mut commit_info = serde_json::Map::<String, serde_json::Value>::new();
-//     commit_info.insert(
-//         "operation".to_string(),
-//         serde_json::Value::String("CREATE TABLE".to_string()),
-//     );
-//     commit_info.insert(
-//         "userName".to_string(),
-//         serde_json::Value::String("test user".to_string()),
-//     );
-//
-//     let protocol = Protocol {
-//         min_reader_version: 1,
-//         min_writer_version: 2,
-//     };
-//
-//     let metadata = DeltaTableMetaData::new(
-//         None,
-//         None,
-//         None,
-//         table_schema,
-//         partition_cols.to_vec(),
-//         HashMap::new(),
-//     );
-//
-//     table
-//         .create(metadata, protocol, Some(commit_info))
-//         .await
-//         .unwrap();
-//
-//     table
-// }

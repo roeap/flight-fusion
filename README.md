@@ -1,6 +1,9 @@
 # flight-fusion
 
-[![CI](https://github.com/roeap/flight-fusion/actions/workflows/rust.yml/badge.svg)](https://github.com/roeap/flight-fusion/actions/workflows/rust.yml)
+<p align="center">
+<a href="https://github.com/roeap/flight-fusion/actions/workflows/rust.yml"><img alt="Actions Status" src="https://github.com/roeap/flight-fusion/actions/workflows/rust.yml/badge.svg"></a>
+<a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+</p>
 
 This repository contains some experiments on what a modern data platform could look like.
 A strong emphasis lies on how observability can be achieved throughout all actions
@@ -45,8 +48,6 @@ To generate proto definitions for use in python client.
 ```
 make proto
 ```
-
-Afterwards imports in the generated `message_pb2.py` and `message_pb2.pyi` have to be fixed manually.
 
 ## Known issues
 
