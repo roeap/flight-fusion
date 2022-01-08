@@ -130,7 +130,7 @@ dependencies = [
  "prost-derive 0.8.0",
  "tokio",
  "tonic",
- "tonic-build",
+ "tonic-build 0.5.2",
 ]
 
 [[package]]
@@ -886,7 +886,7 @@ dependencies = [
  "tokio-stream",
  "tokio-util",
  "tonic",
- "tonic-build",
+ "tonic-build 0.6.2",
  "tract-onnx",
  "url",
  "utime",
@@ -924,7 +924,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tonic",
- "tonic-build",
+ "tonic-build 0.6.2",
 ]
 
 [[package]]
@@ -3293,6 +3293,18 @@ checksum = "12b52d07035516c2b74337d2ac7746075e7dcae7643816c1b12c5ff8a7484c08"
 dependencies = [
  "proc-macro2",
  "prost-build 0.8.0",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "tonic-build"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9403f1bafde247186684b230dc6f38b5cd514584e8bec1dd32514be4745fa757"
+dependencies = [
+ "proc-macro2",
+ "prost-build 0.9.0",
  "quote",
  "syn",
 ]

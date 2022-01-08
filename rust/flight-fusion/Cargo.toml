@@ -49,7 +49,7 @@ utime = "0.3"
 serial_test = "0"
 pretty_assertions = "1.0.0"
 tempfile = "3"
-tonic-build = "0.5.2"
+tonic-build = "0.6.2"
 rand = "*"
 
 [[example]]
