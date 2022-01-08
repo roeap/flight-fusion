@@ -4,10 +4,28 @@ use arrow_deps::datafusion::{
     catalog::catalog::CatalogProvider, datasource::MemTable, parquet::arrow::ArrowReader,
 };
 use flight_fusion_ipc::{
-    DatasetFormat, DropDatasetRequest, DropDatasetResponse, RegisterDatasetRequest,
-    RegisterDatasetResponse, Result as FusionResult,
+    DatasetFormat, DropDatasetRequest, DropDatasetResponse, FlightFusionError,
+    RegisterDatasetRequest, RegisterDatasetResponse, Result as FusionResult,
 };
+use futures::{stream, stream::BoxStream, StreamExt, TryFutureExt, TryStreamExt};
+use object_store::ObjectStoreApi;
 use std::sync::Arc;
+
+type AuxError = Box<dyn std::error::Error + Send + Sync + 'static>;
+type AuxResult<T, E = AuxError> = std::result::Result<T, E>;
+
+async fn flatten_list_stream(
+    storage: &object_store::ObjectStore,
+    prefix: Option<&object_store::path::Path>,
+) -> AuxResult<Vec<object_store::path::Path>> {
+    storage
+        .list(prefix)
+        .await?
+        .map_ok(|v| stream::iter(v).map(Ok))
+        .try_flatten()
+        .try_collect()
+        .await
+}
 
 #[async_trait::async_trait]
 impl ActionHandler<DropDatasetRequest> for FusionActionHandler {
@@ -15,8 +33,30 @@ impl ActionHandler<DropDatasetRequest> for FusionActionHandler {
         &self,
         action: DropDatasetRequest,
     ) -> FusionResult<DropDatasetResponse> {
-        let response = DropDatasetResponse { name: action.name };
-        Ok(response)
+        if let Some(source) = action.table {
+            // TODO remove panic
+            let location = self.area_store.get_table_location(&source).unwrap();
+            let files = flatten_list_stream(&self.area_store.object_store(), Some(&location))
+                .await
+                .unwrap();
+            for file in files {
+                // TODO remove panic
+                self.area_store.object_store().delete(&file).await.unwrap();
+            }
+            self.area_store
+                .object_store()
+                .delete_dir(&location)
+                .await
+                .unwrap();
+            // TODO return a more meaningful message
+            Ok(DropDatasetResponse {
+                name: "dropped".to_string(),
+            })
+        } else {
+            Err(FlightFusionError::InputError(
+                "missing table reference".to_string(),
+            ))
+        }
     }
 }
 

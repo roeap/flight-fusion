@@ -15,7 +15,8 @@ message RegisterDatasetResponse {
 }
 
 message DropDatasetRequest {
-  string name = 1;
+  // table identifier
+  AreaSourceReference table = 1;
 }
 
 message DropDatasetResponse {

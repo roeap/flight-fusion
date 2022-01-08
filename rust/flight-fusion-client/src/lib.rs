@@ -65,12 +65,14 @@ impl FlightFusionClient {
     where
         T: Into<String> + std::fmt::Debug,
     {
-        let table = TableReference::Location(AreaTableLocation {
-            name: table_ref.into(),
-            areas: vec![],
-        });
+        let table_ref = AreaSourceReference {
+            table: Some(TableReference::Location(AreaTableLocation {
+                name: table_ref.into(),
+                areas: vec![],
+            })),
+        };
         let operation = flight_do_put_request::Operation::Storage(PutTableRequest {
-            table: Some(AreaSourceReference { table: Some(table) }),
+            table: Some(table_ref),
             save_mode: save_mode as i32,
         });
         Ok(self
@@ -100,14 +102,20 @@ impl FlightFusionClient {
     #[instrument(skip(self))]
     pub async fn drop_table<T>(
         &self,
-        table_name: T,
+        table_ref: T,
     ) -> Result<DropDatasetResponse, FusionClientError>
     where
         T: Into<String> + std::fmt::Debug,
     {
+        let table_ref = AreaSourceReference {
+            table: Some(TableReference::Location(AreaTableLocation {
+                name: table_ref.into(),
+                areas: vec![],
+            })),
+        };
         let action_request = FlightActionRequest {
             action: Some(FusionAction::Drop(DropDatasetRequest {
-                name: table_name.into(),
+                table: Some(table_ref),
             })),
         };
         let result = self

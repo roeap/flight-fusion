@@ -131,12 +131,14 @@ mod tests {
         let handler = crate::test_utils::get_fusion_handler(root.clone());
         let table_dir = root.join("data/new_table");
 
-        let table = TableReference::Location(AreaTableLocation {
-            name: "new_table".to_string(),
-            areas: vec![],
-        });
+        let table_ref = AreaSourceReference {
+            table: Some(TableReference::Location(AreaTableLocation {
+                name: "new_table".to_string(),
+                areas: vec![],
+            })),
+        };
         let put_request = PutTableRequest {
-            table: Some(AreaSourceReference { table: Some(table) }),
+            table: Some(table_ref.clone()),
             save_mode: SaveMode::Overwrite as i32,
         };
 
@@ -147,7 +149,7 @@ mod tests {
         assert!(table_dir.is_dir());
 
         let drop_request = DropDatasetRequest {
-            name: "some.table".to_string(),
+            table: Some(table_ref),
         };
         let _drop_response = handler.handle_do_action(drop_request).await.unwrap();
 

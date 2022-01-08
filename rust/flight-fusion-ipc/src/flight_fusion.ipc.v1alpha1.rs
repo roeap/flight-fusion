@@ -191,8 +191,9 @@ pub struct RegisterDatasetResponse {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DropDatasetRequest {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
+    /// table identifier
+    #[prost(message, optional, tag="1")]
+    pub table: ::core::option::Option<AreaSourceReference>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DropDatasetResponse {

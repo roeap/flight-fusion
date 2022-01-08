@@ -66,6 +66,9 @@ pub trait ObjectStoreApi: Send + Sync + 'static {
     /// Delete the object at the specified location.
     async fn delete(&self, location: &Self::Path) -> Result<(), Self::Error>;
 
+    /// Delete the folder at the specified location.
+    async fn delete_dir(&self, location: &Self::Path) -> Result<(), Self::Error>;
+
     /// List all the objects with the given prefix.
     ///
     /// Prefixes are evaluated on a path segment basis, i.e. `foo/bar/` is a prefix of `foo/bar/x` but not of
@@ -295,6 +298,29 @@ impl ObjectStoreApi for ObjectStore {
             (File(file), path::Path::File(location)) => file.delete(location).await?,
             (MicrosoftAzure(azure), path::Path::MicrosoftAzure(location)) => {
                 azure.delete(location).await?
+            }
+            _ => unreachable!(),
+        }
+
+        Ok(())
+    }
+
+    async fn delete_dir(&self, location: &Self::Path) -> Result<()> {
+        use ObjectStoreIntegration::*;
+        match (&self.integration, location) {
+            // (AmazonS3(s3), path::Path::AmazonS3(location)) => s3.delete(location).await?,
+            // (GoogleCloudStorage(gcs), path::Path::GoogleCloudStorage(location)) => {
+            //     gcs.delete(location).await?
+            // }
+            (InMemory(in_mem), path::Path::InMemory(location)) => {
+                in_mem.delete_dir(location).await?
+            }
+            (InMemoryThrottled(in_mem_throttled), path::Path::InMemory(location)) => {
+                in_mem_throttled.delete_dir(location).await?
+            }
+            (File(file), path::Path::File(location)) => file.delete_dir(location).await?,
+            (MicrosoftAzure(azure), path::Path::MicrosoftAzure(location)) => {
+                azure.delete_dir(location).await?
             }
             _ => unreachable!(),
         }
