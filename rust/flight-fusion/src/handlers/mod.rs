@@ -119,32 +119,38 @@ impl FusionActionHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use flight_fusion_ipc::{DatasetFormat, DropDatasetRequest, RegisterDatasetRequest};
-
-    #[tokio::test]
-    async fn test_drop_table_action() {
-        let root = crate::test_utils::workspace_test_data_folder();
-        let handler = crate::test_utils::get_fusion_handler(root);
-        let req = DropDatasetRequest {
-            name: "some.table".to_string(),
-        };
-        let res = handler.handle_do_action(req).await.unwrap();
-        assert_eq!(res.name, "some.table")
-    }
+    use flight_fusion_ipc::{
+        area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
+        DropDatasetRequest, PutTableRequest, SaveMode,
+    };
 
     #[tokio::test]
     async fn test_table_put_drop() {
         let root = crate::test_utils::workspace_test_data_folder();
-        let handler = crate::test_utils::get_fusion_handler(root);
-        let register_table_action = RegisterDatasetRequest {
-            path: "./tests/data/file/table.parquet".to_string(),
-            name: "table".to_string(),
-            format: DatasetFormat::File as i32,
+        let plan = crate::test_utils::get_input_plan(None, false);
+        let handler = crate::test_utils::get_fusion_handler(root.clone());
+        let table_dir = root.join("data/new_table");
+
+        let table = TableReference::Location(AreaTableLocation {
+            name: "new_table".to_string(),
+            areas: vec![],
+        });
+        let put_request = PutTableRequest {
+            table: Some(AreaSourceReference { table: Some(table) }),
+            save_mode: SaveMode::Overwrite as i32,
         };
-        let res = handler
-            .handle_do_action(register_table_action)
-            .await
-            .unwrap();
-        println!("{:?}", res)
+
+        assert!(!table_dir.exists());
+
+        let _put_response = handler.handle_do_put(put_request, plan).await.unwrap();
+
+        assert!(table_dir.is_dir());
+
+        let drop_request = DropDatasetRequest {
+            name: "some.table".to_string(),
+        };
+        let _drop_response = handler.handle_do_action(drop_request).await.unwrap();
+
+        assert!(!table_dir.exists());
     }
 }

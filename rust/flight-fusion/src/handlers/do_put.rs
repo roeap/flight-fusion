@@ -8,14 +8,11 @@ use arrow_deps::datafusion::{
 use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, commands::DeltaCommands};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
-    area_source_reference::Table as TableReference, delta_operation_request, AreaSourceReference,
-    BatchStatistics, ColumnStatistics, DeltaOperationRequest, DeltaOperationResponse,
-    DoPutUpdateResult, FlightFusionError, PutMemoryTableRequest, PutMemoryTableResponse,
-    PutTableRequest, Result as FusionResult, SaveMode as FusionSaveMode,
+    delta_operation_request, BatchStatistics, ColumnStatistics, DeltaOperationRequest,
+    DeltaOperationResponse, DoPutUpdateResult, FlightFusionError, PutMemoryTableRequest,
+    PutMemoryTableResponse, PutTableRequest, Result as FusionResult, SaveMode as FusionSaveMode,
 };
 use std::sync::Arc;
-
-const DATA_FOLDER_NAME: &str = "data";
 
 impl FusionActionHandler {
     pub async fn execute_do_put(
@@ -84,34 +81,21 @@ impl DoPutHandler<PutTableRequest> for FusionActionHandler {
         ticket: PutTableRequest,
         input: Arc<dyn ExecutionPlan>,
     ) -> FusionResult<DoPutUpdateResult> {
-        let location = match ticket.table {
-            Some(AreaSourceReference { table: Some(tbl) }) => match tbl {
-                TableReference::Location(loc) => {
-                    let mut location = self
-                        .area_store
-                        .object_store()
-                        .path_from_raw(&loc.areas.join("/"));
-                    location.push_dir(DATA_FOLDER_NAME);
-                    location.push_dir(&loc.name);
-                    location
-                }
-                _ => todo!(),
-            },
-            _ => todo!(),
-        };
-
-        let batches = collect(input).await.unwrap();
-        // TODO remove panic
-        let adds = self
-            .area_store
-            .put_batches(batches, &location.to_raw())
-            .await
-            .unwrap();
-
-        // TODO convert statistics
-        println!("{:?}", adds);
-
-        Ok(DoPutUpdateResult { statistics: None })
+        if let Some(source) = ticket.table {
+            // TODO remove panic
+            let location = self.area_store.get_table_location(&source).unwrap();
+            let batches = collect(input).await.unwrap();
+            // TODO remove panic
+            let adds = self
+                .area_store
+                .put_batches(batches, &location.to_raw())
+                .await
+                .unwrap();
+            Ok(DoPutUpdateResult { statistics: None })
+        } else {
+            // TODO migrate errors and raise something more meaningful
+            Err(FlightFusionError::generic("Source not found"))
+        }
     }
 }
 
@@ -160,8 +144,9 @@ mod tests {
     };
     use arrow_deps::deltalake::open_table;
     use flight_fusion_ipc::{
-        delta_operation_request::Operation, AreaTableLocation, DeltaOperationRequest,
-        DeltaReference, DeltaWriteOperation, SaveMode,
+        area_source_reference::Table as TableReference, delta_operation_request::Operation,
+        AreaSourceReference, AreaTableLocation, DeltaOperationRequest, DeltaReference,
+        DeltaWriteOperation, SaveMode,
     };
     use std::sync::Arc;
 

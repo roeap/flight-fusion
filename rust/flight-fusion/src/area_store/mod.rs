@@ -9,7 +9,8 @@ use arrow_deps::datafusion::parquet::{
 };
 use async_trait::async_trait;
 pub use error::*;
-use object_store::ObjectStoreApi;
+use flight_fusion_ipc::{area_source_reference::Table as TableReference, AreaSourceReference};
+use object_store::{path::ObjectStorePath, ObjectStoreApi};
 pub use utils::*;
 pub use writer::*;
 
@@ -18,12 +19,17 @@ mod stats;
 pub mod utils;
 pub mod writer;
 
+const DATA_FOLDER_NAME: &str = "data";
+
 #[async_trait]
 pub trait AreaStore {
-    fn object_store(&self) -> &Arc<object_store::ObjectStore>;
+    /// Get a reference to the underlying object store
+    fn object_store(&self) -> Arc<object_store::ObjectStore>;
+
     // TODO use a more structured reference for table location
     async fn put_batches(&self, batches: Vec<RecordBatch>, path: &str) -> Result<Vec<stats::Add>>;
     async fn get_arrow_reader(&self, path: &str) -> ParquetFileArrowReader;
+    fn get_table_location(&self, source: &AreaSourceReference) -> Result<object_store::path::Path>;
 }
 
 pub struct InMemoryAreaStore {
@@ -39,8 +45,23 @@ impl InMemoryAreaStore {
 
 #[async_trait]
 impl AreaStore for InMemoryAreaStore {
-    fn object_store(&self) -> &Arc<object_store::ObjectStore> {
-        &self.object_store
+    fn object_store(&self) -> Arc<object_store::ObjectStore> {
+        self.object_store.clone()
+    }
+
+    fn get_table_location(&self, source: &AreaSourceReference) -> Result<object_store::path::Path> {
+        match source {
+            AreaSourceReference { table: Some(tbl) } => match tbl {
+                TableReference::Location(loc) => {
+                    let mut location = self.object_store().path_from_raw(&loc.areas.join("/"));
+                    location.push_dir(DATA_FOLDER_NAME);
+                    location.push_dir(&loc.name);
+                    Ok(location)
+                }
+                _ => todo!(),
+            },
+            _ => todo!(),
+        }
     }
 
     // TODO use some sort of borrowed reference
