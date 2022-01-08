@@ -46,6 +46,12 @@ message CommandKqlOperation {
   string query = 2;
 }
 
+// Read entire table from storage
+message CommandReadTable {
+  // table identifier
+  AreaSourceReference table = 1;
+}
+
 // Describes a signal frame operation
 message SignalFrameOperation {
   SignalFrame frame = 1;

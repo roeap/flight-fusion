@@ -233,6 +233,13 @@ pub struct CommandKqlOperation {
     #[prost(string, tag="2")]
     pub query: ::prost::alloc::string::String,
 }
+/// Read entire table from storage
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CommandReadTable {
+    /// table identifier
+    #[prost(message, optional, tag="1")]
+    pub table: ::core::option::Option<AreaSourceReference>,
+}
 /// Describes a signal frame operation
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SignalFrameOperation {

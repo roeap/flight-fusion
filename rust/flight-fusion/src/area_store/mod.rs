@@ -4,8 +4,9 @@ use std::sync::Arc;
 
 use arrow_deps::arrow::{datatypes::*, record_batch::*};
 use arrow_deps::datafusion::parquet::{
-    arrow::ParquetFileArrowReader, basic::LogicalType,
-    file::serialized_reader::SerializedFileReader,
+    arrow::{ArrowReader, ParquetFileArrowReader},
+    basic::LogicalType,
+    file::serialized_reader::{SerializedFileReader, SliceableCursor},
 };
 use async_trait::async_trait;
 pub use error::*;
@@ -23,6 +24,7 @@ pub mod utils;
 pub mod writer;
 
 const DATA_FOLDER_NAME: &str = "data";
+const DEFAULT_READ_BATCH_SIZE: usize = 1024;
 
 type AuxError = Box<dyn std::error::Error + Send + Sync + 'static>;
 type AuxResult<T, E = AuxError> = std::result::Result<T, E>;
@@ -46,13 +48,21 @@ pub trait AreaStore {
     fn object_store(&self) -> Arc<object_store::ObjectStore>;
 
     // TODO use a more structured reference for table location
+    /// Write batches into table location
     async fn put_batches(
         &self,
         batches: Vec<RecordBatch>,
         location: &object_store::path::Path,
         save_mode: SaveMode,
     ) -> Result<Vec<stats::Add>>;
-    async fn get_arrow_reader(&self, path: &str) -> ParquetFileArrowReader;
+
+    /// Read batches from location
+    async fn get_batches(&self, location: &object_store::path::Path) -> Result<Vec<RecordBatch>>;
+
+    async fn get_arrow_reader(
+        &self,
+        location: &object_store::path::Path,
+    ) -> Result<ParquetFileArrowReader>;
 
     /// Resolve an [`AreaSourceReference`] to a storage location
     fn get_table_location(&self, source: &AreaSourceReference) -> Result<object_store::path::Path>;
@@ -121,36 +131,62 @@ impl AreaStore for InMemoryAreaStore {
         }
     }
 
-    async fn get_arrow_reader(&self, path: &str) -> ParquetFileArrowReader {
-        let location = self.object_store().path_from_raw(path);
-        let obj_reader = BytesReader(bytes::Bytes::from(
-            self.object_store()
-                .get(&location)
-                .await
-                .unwrap()
-                .bytes()
-                .await
-                .unwrap(),
-        ));
+    /// Read batches from location
+    async fn get_batches(&self, location: &object_store::path::Path) -> Result<Vec<RecordBatch>> {
+        let files = flatten_list_stream(&self.object_store(), Some(&location))
+            .await
+            .unwrap();
+        let mut batches = Vec::new();
+        for file in files {
+            // TODO remove panic
+            let mut reader = self.get_arrow_reader(&file).await?;
+            let batch_reader = reader.get_record_reader(DEFAULT_READ_BATCH_SIZE).unwrap();
+            let mut file_batches = batch_reader
+                .into_iter()
+                .map(|batch| batch.unwrap())
+                .collect::<Vec<_>>();
+            batches.append(&mut file_batches);
+        }
+        Ok(batches)
+    }
+
+    async fn get_arrow_reader(
+        &self,
+        location: &object_store::path::Path,
+    ) -> Result<ParquetFileArrowReader> {
+        let bytes = self
+            .object_store()
+            .get(&location)
+            .await
+            .unwrap()
+            .bytes()
+            .await
+            .unwrap();
+        let cursor = SliceableCursor::new(Arc::new(bytes));
         // TODO remove panic and return result
-        let file_reader = Arc::new(SerializedFileReader::new(obj_reader).unwrap());
-        ParquetFileArrowReader::new(file_reader)
+        let file_reader = Arc::new(SerializedFileReader::new(cursor)?);
+        Ok(ParquetFileArrowReader::new(file_reader))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use arrow_deps::datafusion::parquet::arrow::ArrowReader;
 
     #[tokio::test]
-    async fn test_arrow_reader() {
-        let ws_root = crate::test_utils::workspace_root().unwrap();
-        let root = format!("{}/test", ws_root);
-        let area_store = InMemoryAreaStore::new(root);
-        let file_path = "data/P1.parquet";
-        let mut arrow_reader = area_store.get_arrow_reader(file_path).await;
-        let schema = Arc::new(arrow_reader.get_schema().unwrap());
-        assert!(schema.fields().len() > 1)
+    async fn test_put_get_batches() {
+        let root = tempfile::tempdir().unwrap();
+        let area_store = InMemoryAreaStore::new(root.path());
+        let location = area_store.object_store().new_path();
+
+        let batch = crate::test_utils::get_record_batch(None, false);
+        area_store
+            .put_batches(vec![batch.clone()], &location, SaveMode::Append)
+            .await
+            .unwrap();
+
+        let read_batch = area_store.get_batches(&location).await.unwrap();
+
+        assert_eq!(batch, read_batch[0])
     }
 }
