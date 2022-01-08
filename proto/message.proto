@@ -89,20 +89,21 @@ message PutMemoryTableResponse {
   string name = 1;
 }
 
-message PutRemoteTableRequest {
+// Request to write data to area storage
+message PutTableRequest {
+  // table identifier
   string name = 1;
-  string path = 2;
-}
-
-message PutRemoteTableResponse {
-  string name = 1;
+  // area path / hierarchy where data is to be placed
+  repeated string areas = 2;
+  // denotes how to beahve for existing data
+  SaveMode save_mode = 3;
 }
 
 // Requests submitted against the `do_put` endpoint
 message FlightDoPutRequest {
   oneof operation {
     PutMemoryTableRequest memory = 1;
-    PutRemoteTableRequest remote = 2;
+    PutTableRequest storage = 2;
     DeltaOperationRequest delta = 3;
   }
 }

@@ -10,8 +10,7 @@ use async_trait::async_trait;
 use flight_fusion_ipc::{
     delta_operation_request, BatchStatistics, ColumnStatistics, DeltaOperationRequest,
     DeltaOperationResponse, DoPutUpdateResult, FlightFusionError, PutMemoryTableRequest,
-    PutMemoryTableResponse, PutRemoteTableRequest, Result as FusionResult,
-    SaveMode as FusionSaveMode,
+    PutMemoryTableResponse, PutTableRequest, Result as FusionResult, SaveMode as FusionSaveMode,
 };
 use std::sync::Arc;
 
@@ -27,11 +26,11 @@ impl FusionActionHandler {
                     DoPutOperation::Memory(memory) => {
                         serialize_message(self.handle_do_put(memory.clone(), stream).await?)
                     }
-                    DoPutOperation::Remote(_remote) => {
-                        todo!()
+                    DoPutOperation::Storage(storage) => {
+                        serialize_message(self.handle_do_put(storage.clone(), stream).await?)
                     }
-                    DoPutOperation::Delta(req) => {
-                        serialize_message(self.handle_do_put(req.clone(), stream).await?)
+                    DoPutOperation::Delta(delta) => {
+                        serialize_message(self.handle_do_put(delta.clone(), stream).await?)
                     }
                 };
 
@@ -76,13 +75,16 @@ impl DoPutHandler<PutMemoryTableRequest> for FusionActionHandler {
 }
 
 #[async_trait]
-impl DoPutHandler<PutRemoteTableRequest> for FusionActionHandler {
+impl DoPutHandler<PutTableRequest> for FusionActionHandler {
     async fn handle_do_put(
         &self,
-        ticket: PutRemoteTableRequest,
+        ticket: PutTableRequest,
         input: Arc<dyn ExecutionPlan>,
     ) -> FusionResult<DoPutUpdateResult> {
-        let mut location = self.area_store.object_store().path_from_raw(&ticket.path);
+        let mut location = self
+            .area_store
+            .object_store()
+            .path_from_raw(&ticket.areas.join("/"));
         location.push_dir("data");
         location.push_dir(&ticket.name);
 
@@ -156,9 +158,10 @@ mod tests {
             Arc::new(MemoryExec::try_new(&[vec![batch.clone()]], schema.clone(), None).unwrap());
 
         let handler = get_fusion_handler();
-        let request = PutRemoteTableRequest {
+        let request = PutTableRequest {
             name: "new_table".to_string(),
-            path: "area1/area2".to_string(),
+            areas: vec!["area1".to_string(), "area2".to_string()],
+            save_mode: FusionSaveMode::Overwrite as i32,
         };
 
         let response = handler

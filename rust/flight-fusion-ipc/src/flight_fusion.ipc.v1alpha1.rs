@@ -268,17 +268,18 @@ pub struct PutMemoryTableResponse {
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
 }
+/// Request to write data to area storage
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PutRemoteTableRequest {
+pub struct PutTableRequest {
+    /// table identifier
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
-    #[prost(string, tag="2")]
-    pub path: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PutRemoteTableResponse {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
+    /// area path / hierarchy where data is to be placed
+    #[prost(string, repeated, tag="2")]
+    pub areas: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// denotes how to beahve for existing data
+    #[prost(enumeration="SaveMode", tag="3")]
+    pub save_mode: i32,
 }
 /// Requests submitted against the `do_put` endpoint
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -293,7 +294,7 @@ pub mod flight_do_put_request {
         #[prost(message, tag="1")]
         Memory(super::PutMemoryTableRequest),
         #[prost(message, tag="2")]
-        Remote(super::PutRemoteTableRequest),
+        Storage(super::PutTableRequest),
         #[prost(message, tag="3")]
         Delta(super::DeltaOperationRequest),
     }

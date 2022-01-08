@@ -212,14 +212,10 @@ class PutMemoryTableResponse(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
-class PutRemoteTableRequest(betterproto.Message):
+class PutTableRequest(betterproto.Message):
     name: str = betterproto.string_field(1)
-    path: str = betterproto.string_field(2)
-
-
-@dataclass(eq=False, repr=False)
-class PutRemoteTableResponse(betterproto.Message):
-    name: str = betterproto.string_field(1)
+    areas: List[str] = betterproto.string_field(2)
+    save_mode: "SaveMode" = betterproto.enum_field(3)
 
 
 @dataclass(eq=False, repr=False)
@@ -227,7 +223,7 @@ class FlightDoPutRequest(betterproto.Message):
     """Requests submitted against the `do_put` endpoint"""
 
     memory: "PutMemoryTableRequest" = betterproto.message_field(1, group="operation")
-    remote: "PutRemoteTableRequest" = betterproto.message_field(2, group="operation")
+    storage: "PutTableRequest" = betterproto.message_field(2, group="operation")
     delta: "DeltaOperationRequest" = betterproto.message_field(3, group="operation")
 
 
