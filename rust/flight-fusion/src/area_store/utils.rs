@@ -48,33 +48,3 @@ pub fn timestamp_to_delta_stats_string(n: i64, time_unit: &TimeUnit) -> String {
 
     format!("{}", dt.format("%Y-%m-%dT%H:%M:%S%.3fZ"))
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::area_store::BytesReader;
-    use arrow_deps::datafusion::parquet::{
-        arrow::{ArrowReader, ParquetFileArrowReader},
-        file::serialized_reader::SerializedFileReader,
-    };
-    use bytes::Bytes;
-    use object_store::{path::ObjectStorePath, ObjectStoreApi};
-    use std::sync::Arc;
-
-    #[tokio::test]
-    async fn read_bytes_reader() {
-        let storage = crate::test_utils::get_test_object_store();
-
-        let mut location = storage.new_path();
-        location.push_dir("data");
-        location.set_file_name("P1.parquet");
-
-        let obj_reader = BytesReader(Bytes::from(
-            storage.get(&location).await.unwrap().bytes().await.unwrap(),
-        ));
-        let file_reader = Arc::new(SerializedFileReader::new(obj_reader).unwrap());
-        let mut arrow_reader = ParquetFileArrowReader::new(file_reader);
-        let schema = Arc::new(arrow_reader.get_schema().unwrap());
-
-        assert!(schema.fields().len() > 1)
-    }
-}

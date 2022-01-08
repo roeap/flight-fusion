@@ -8,9 +8,7 @@ edition = "2021"
 arrow-flight = "6"
 
 # Git dependencies
-arrow-azure-core = { git = "https://github.com/roeap/arrow-azure-rs" }
 datafusion = { git = "https://github.com/apache/arrow-datafusion", rev = "07b29856c7a1287459e6b8545a41142c466d82bd" }
-# datafusion = { version = "6" }
 deltalake = { git = "https://github.com/roeap/delta-rs", branch = "high-level-writer", features = [
   "datafusion-ext",
 ], optional = true }

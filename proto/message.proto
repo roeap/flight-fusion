@@ -15,7 +15,8 @@ message RegisterDatasetResponse {
 }
 
 message DropDatasetRequest {
-  string name = 1;
+  // table identifier
+  AreaSourceReference table = 1;
 }
 
 message DropDatasetResponse {
@@ -45,6 +46,12 @@ message CommandKqlOperation {
   string query = 2;
 }
 
+// Read entire table from storage
+message CommandReadTable {
+  // table identifier
+  AreaSourceReference table = 1;
+}
+
 // Describes a signal frame operation
 message SignalFrameOperation {
   SignalFrame frame = 1;
@@ -56,6 +63,7 @@ message FlightDoGetRequest {
     CommandSqlOperation sql = 1;
     CommandKqlOperation kql = 2;
     SignalFrameOperation frame = 3;
+    CommandReadTable read = 4;
   }
 }
 
@@ -89,20 +97,19 @@ message PutMemoryTableResponse {
   string name = 1;
 }
 
-message PutRemoteTableRequest {
-  string name = 1;
-  string path = 2;
-}
-
-message PutRemoteTableResponse {
-  string name = 1;
+// Request to write data to area storage
+message PutTableRequest {
+  // table identifier
+  AreaSourceReference table = 1;
+  // denotes how to beahve for existing data - defaults to overwrite
+  SaveMode save_mode = 3;
 }
 
 // Requests submitted against the `do_put` endpoint
 message FlightDoPutRequest {
   oneof operation {
     PutMemoryTableRequest memory = 1;
-    PutRemoteTableRequest remote = 2;
+    PutTableRequest storage = 2;
     DeltaOperationRequest delta = 3;
   }
 }

@@ -27,7 +27,7 @@ impl RequestFor for PutMemoryTableRequest {
     type Reply = PutMemoryTableResponse;
 }
 
-impl RequestFor for PutRemoteTableRequest {
+impl RequestFor for PutTableRequest {
     type Reply = DoPutUpdateResult;
 }
 

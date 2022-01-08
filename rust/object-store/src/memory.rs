@@ -70,6 +70,10 @@ impl ObjectStoreApi for InMemory {
         Ok(())
     }
 
+    async fn delete_dir(&self, location: &Self::Path) -> Result<()> {
+        todo!()
+    }
+
     async fn list<'a>(
         &'a self,
         prefix: Option<&'a Self::Path>,

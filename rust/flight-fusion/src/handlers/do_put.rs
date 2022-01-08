@@ -10,8 +10,7 @@ use async_trait::async_trait;
 use flight_fusion_ipc::{
     delta_operation_request, BatchStatistics, ColumnStatistics, DeltaOperationRequest,
     DeltaOperationResponse, DoPutUpdateResult, FlightFusionError, PutMemoryTableRequest,
-    PutMemoryTableResponse, PutRemoteTableRequest, Result as FusionResult,
-    SaveMode as FusionSaveMode,
+    PutMemoryTableResponse, PutTableRequest, Result as FusionResult, SaveMode,
 };
 use std::sync::Arc;
 
@@ -27,11 +26,11 @@ impl FusionActionHandler {
                     DoPutOperation::Memory(memory) => {
                         serialize_message(self.handle_do_put(memory.clone(), stream).await?)
                     }
-                    DoPutOperation::Remote(_remote) => {
-                        todo!()
+                    DoPutOperation::Storage(storage) => {
+                        serialize_message(self.handle_do_put(storage.clone(), stream).await?)
                     }
-                    DoPutOperation::Delta(req) => {
-                        serialize_message(self.handle_do_put(req.clone(), stream).await?)
+                    DoPutOperation::Delta(delta) => {
+                        serialize_message(self.handle_do_put(delta.clone(), stream).await?)
                     }
                 };
 
@@ -76,27 +75,31 @@ impl DoPutHandler<PutMemoryTableRequest> for FusionActionHandler {
 }
 
 #[async_trait]
-impl DoPutHandler<PutRemoteTableRequest> for FusionActionHandler {
+impl DoPutHandler<PutTableRequest> for FusionActionHandler {
     async fn handle_do_put(
         &self,
-        ticket: PutRemoteTableRequest,
+        ticket: PutTableRequest,
         input: Arc<dyn ExecutionPlan>,
     ) -> FusionResult<DoPutUpdateResult> {
-        let mut location = self.area_store.object_store().path_from_raw(&ticket.path);
-        location.push_dir("data");
-        location.push_dir(&ticket.name);
-
-        let batches = collect(input).await.unwrap();
-        // TODO remove panic
-        let adds = self
-            .area_store
-            .put_batches(batches, &location.to_raw())
-            .await
-            .unwrap();
-
-        println!("{:?}", adds);
-
-        Ok(DoPutUpdateResult { statistics: None })
+        if let Some(source) = ticket.table {
+            // TODO remove panic
+            let location = self.area_store.get_table_location(&source).unwrap();
+            let batches = collect(input).await.unwrap();
+            // TODO remove panic
+            let adds = self
+                .area_store
+                .put_batches(
+                    batches,
+                    &location,
+                    SaveMode::from_i32(ticket.save_mode).unwrap_or(SaveMode::Overwrite),
+                )
+                .await
+                .unwrap();
+            Ok(DoPutUpdateResult { statistics: None })
+        } else {
+            // TODO migrate errors and raise something more meaningful
+            Err(FlightFusionError::generic("Source not found"))
+        }
     }
 }
 
@@ -115,10 +118,10 @@ impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
 
         match ticket.operation {
             Some(delta_operation_request::Operation::Write(req)) => {
-                let mode = match FusionSaveMode::from_i32(req.save_mode) {
-                    Some(FusionSaveMode::Append) => DeltaSaveMode::Append,
-                    Some(FusionSaveMode::Overwrite) => DeltaSaveMode::Overwrite,
-                    Some(FusionSaveMode::ErrorIfExists) => DeltaSaveMode::ErrorIfExists,
+                let mode = match SaveMode::from_i32(req.save_mode) {
+                    Some(SaveMode::Append) => DeltaSaveMode::Append,
+                    Some(SaveMode::Overwrite) => DeltaSaveMode::Overwrite,
+                    Some(SaveMode::ErrorIfExists) => DeltaSaveMode::ErrorIfExists,
                     _ => todo!(),
                 };
                 delta_cmd
@@ -136,37 +139,103 @@ impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{generate_random_batch, get_fusion_handler, get_record_batch};
+    use crate::area_store::flatten_list_stream;
+    use crate::test_utils::{
+        generate_random_batch, get_fusion_handler, get_input_plan, get_record_batch,
+    };
     use arrow_deps::datafusion::{
         arrow::datatypes::{DataType, Field, Schema as ArrowSchema},
         physical_plan::memory::MemoryExec,
     };
     use arrow_deps::deltalake::open_table;
     use flight_fusion_ipc::{
-        delta_operation_request::Operation, DeltaOperationRequest, DeltaReference,
+        area_source_reference::Table as TableReference, delta_operation_request::Operation,
+        AreaSourceReference, AreaTableLocation, DeltaOperationRequest, DeltaReference,
         DeltaWriteOperation, SaveMode,
     };
     use std::sync::Arc;
 
     #[tokio::test]
-    async fn test_put_table_file() {
-        let batch = get_record_batch(None, false);
-        let schema = batch.schema().clone();
-        let plan =
-            Arc::new(MemoryExec::try_new(&[vec![batch.clone()]], schema.clone(), None).unwrap());
+    async fn test_put_table() {
+        let root = tempfile::tempdir().unwrap();
+        let plan = get_input_plan(None, false);
+        let handler = get_fusion_handler(root.path());
+        let table_dir = root.path().join("data/new_table");
 
-        let handler = get_fusion_handler();
-        let request = PutRemoteTableRequest {
+        let table = TableReference::Location(AreaTableLocation {
             name: "new_table".to_string(),
-            path: "area1/area2".to_string(),
+            areas: vec![],
+        });
+        let request = PutTableRequest {
+            table: Some(AreaSourceReference { table: Some(table) }),
+            save_mode: SaveMode::Overwrite as i32,
         };
 
-        let response = handler
+        assert!(!table_dir.exists());
+
+        let _response = handler
             .handle_do_put(request.clone(), plan.clone())
             .await
             .unwrap();
 
-        println!("{:?}", response)
+        assert!(table_dir.is_dir())
+    }
+
+    #[tokio::test]
+    async fn test_put_table_append_overwrite() {
+        let root = tempfile::tempdir().unwrap();
+        let plan = get_input_plan(None, false);
+        let handler = get_fusion_handler(root.path());
+        let table_dir = root.path().join("data/new_table");
+
+        let table_ref = AreaSourceReference {
+            table: Some(TableReference::Location(AreaTableLocation {
+                name: "new_table".to_string(),
+                areas: vec![],
+            })),
+        };
+        let request = PutTableRequest {
+            table: Some(table_ref.clone()),
+            save_mode: SaveMode::Append as i32,
+        };
+
+        assert!(!table_dir.exists());
+
+        let _response = handler
+            .handle_do_put(request.clone(), plan.clone())
+            .await
+            .unwrap();
+
+        assert!(table_dir.is_dir());
+
+        let table_location = handler.area_store.get_table_location(&table_ref).unwrap();
+        let files = flatten_list_stream(&handler.area_store.object_store(), Some(&table_location))
+            .await
+            .unwrap();
+        assert!(files.len() == 1);
+
+        let _response = handler
+            .handle_do_put(request.clone(), plan.clone())
+            .await
+            .unwrap();
+        let files = flatten_list_stream(&handler.area_store.object_store(), Some(&table_location))
+            .await
+            .unwrap();
+        assert!(files.len() == 2);
+
+        let request = PutTableRequest {
+            table: Some(table_ref.clone()),
+            save_mode: SaveMode::Overwrite as i32,
+        };
+
+        let _response = handler
+            .handle_do_put(request.clone(), plan.clone())
+            .await
+            .unwrap();
+        let files = flatten_list_stream(&handler.area_store.object_store(), Some(&table_location))
+            .await
+            .unwrap();
+        assert!(files.len() == 1)
     }
 
     #[tokio::test]
@@ -191,7 +260,7 @@ mod tests {
             })),
         };
 
-        let handler = get_fusion_handler();
+        let handler = get_fusion_handler(table_uri.clone());
 
         // create table and write some data
         let _ = handler
@@ -256,7 +325,7 @@ mod tests {
             })),
         };
 
-        let handler = get_fusion_handler();
+        let handler = get_fusion_handler(table_uri.clone());
         let _ = handler
             .handle_do_put(request.clone(), plan.clone())
             .await

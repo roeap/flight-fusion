@@ -7,6 +7,10 @@ use std::sync::Arc;
 /// Enum representing an error when calling [`DeltaWriter`].
 #[derive(thiserror::Error, Debug)]
 pub enum AreaStoreError {
+    /// Error returned when a table to be created already exists
+    #[error("Table: '{0}' already exists")]
+    TableAlreadyExists(String),
+
     /// Partition column is missing in a record written to delta.
     #[error("Missing partition column: {0}")]
     MissingPartitionColumn(String),
@@ -23,10 +27,6 @@ pub enum AreaStoreError {
     /// An Arrow RecordBatch could not be created from the JSON buffer.
     #[error("Arrow RecordBatch created from JSON buffer is a None value")]
     EmptyRecordBatch,
-
-    /// A record was written that was not a JSON object.
-    #[error("Record {0} is not a JSON object")]
-    InvalidRecord(String),
 
     /// Arrow returned an error.
     #[error("Arrow interaction failed: {source}")]

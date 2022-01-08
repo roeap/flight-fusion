@@ -38,6 +38,40 @@ pub mod table_reference {
         File(super::FileReference),
     }
 }
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AreaTableLocation {
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag="2")]
+    pub areas: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AreaTableId {
+    #[prost(string, tag="1")]
+    pub id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AreaTableUri {
+    #[prost(string, tag="1")]
+    pub id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AreaSourceReference {
+    #[prost(oneof="area_source_reference::Table", tags="1, 2, 3")]
+    pub table: ::core::option::Option<area_source_reference::Table>,
+}
+/// Nested message and enum types in `AreaSourceReference`.
+pub mod area_source_reference {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Table {
+        #[prost(message, tag="1")]
+        Location(super::AreaTableLocation),
+        #[prost(message, tag="2")]
+        Id(super::AreaTableId),
+        #[prost(message, tag="3")]
+        Uri(super::AreaTableUri),
+    }
+}
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum FileFormat {
@@ -157,8 +191,9 @@ pub struct RegisterDatasetResponse {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DropDatasetRequest {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
+    /// table identifier
+    #[prost(message, optional, tag="1")]
+    pub table: ::core::option::Option<AreaSourceReference>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DropDatasetResponse {
@@ -198,6 +233,13 @@ pub struct CommandKqlOperation {
     #[prost(string, tag="2")]
     pub query: ::prost::alloc::string::String,
 }
+/// Read entire table from storage
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CommandReadTable {
+    /// table identifier
+    #[prost(message, optional, tag="1")]
+    pub table: ::core::option::Option<AreaSourceReference>,
+}
 /// Describes a signal frame operation
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SignalFrameOperation {
@@ -207,7 +249,7 @@ pub struct SignalFrameOperation {
 /// Requests submitted against the `do_get` endpoint
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightDoGetRequest {
-    #[prost(oneof="flight_do_get_request::Operation", tags="1, 2, 3")]
+    #[prost(oneof="flight_do_get_request::Operation", tags="1, 2, 3, 4")]
     pub operation: ::core::option::Option<flight_do_get_request::Operation>,
 }
 /// Nested message and enum types in `FlightDoGetRequest`.
@@ -220,6 +262,8 @@ pub mod flight_do_get_request {
         Kql(super::CommandKqlOperation),
         #[prost(message, tag="3")]
         Frame(super::SignalFrameOperation),
+        #[prost(message, tag="4")]
+        Read(super::CommandReadTable),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -268,17 +312,15 @@ pub struct PutMemoryTableResponse {
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
 }
+/// Request to write data to area storage
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PutRemoteTableRequest {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, tag="2")]
-    pub path: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PutRemoteTableResponse {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
+pub struct PutTableRequest {
+    /// table identifier
+    #[prost(message, optional, tag="1")]
+    pub table: ::core::option::Option<AreaSourceReference>,
+    /// denotes how to beahve for existing data - defaults to overwrite
+    #[prost(enumeration="SaveMode", tag="3")]
+    pub save_mode: i32,
 }
 /// Requests submitted against the `do_put` endpoint
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -293,7 +335,7 @@ pub mod flight_do_put_request {
         #[prost(message, tag="1")]
         Memory(super::PutMemoryTableRequest),
         #[prost(message, tag="2")]
-        Remote(super::PutRemoteTableRequest),
+        Storage(super::PutTableRequest),
         #[prost(message, tag="3")]
         Delta(super::DeltaOperationRequest),
     }

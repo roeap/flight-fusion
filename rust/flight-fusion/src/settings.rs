@@ -11,11 +11,18 @@ pub struct Log {
 pub struct Server {
     pub port: u16,
     pub url: String,
+    pub service_name: String,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Service {
+    pub area_root: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Settings {
     pub server: Server,
+    pub service: Service,
     pub log: Log,
     pub env: ENV,
 }
@@ -32,8 +39,8 @@ impl Settings {
         s.merge(File::with_name(CONFIG_FILE_PATH))?;
         s.merge(File::with_name(&format!("{}{}", CONFIG_FILE_PREFIX, env)))?;
 
-        // This makes it so "EA_SERVER__PORT overrides server.port
-        s.merge(Environment::with_prefix("ea").separator("__"))?;
+        // This makes it so "FF_SERVER__PORT overrides server.port
+        s.merge(Environment::with_prefix("ff").separator("__"))?;
 
         s.try_into()
     }

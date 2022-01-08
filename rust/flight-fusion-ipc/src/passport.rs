@@ -1,19 +1,30 @@
-use crate::{
-    errors::{FlightFusionError, Result},
-    gen::*,
-    setters,
-};
+use crate::{gen::*, setters};
 use ring::{hmac, rand};
+use std::result::Result;
 use std::sync::Arc;
 
-pub enum ValidationResult {
-    Valid,
-    Invalid,
+#[derive(thiserror::Error, Debug)]
+pub enum PassportError {
+    /// Error raised when a named key is not found in Key Store
+    #[error("No key with name {0} in store.")]
+    KeyNotFoundError(String),
+
+    /// Error returned when encoding messages
+    #[error(transparent)]
+    EncodeError(#[from] prost::EncodeError),
+
+    /// Error returned when encoding messages
+    #[error(transparent)]
+    DecodeError(#[from] prost::DecodeError),
+
+    /// Error returned when validating passports
+    #[error("Error validating passport: {0}")]
+    ValidationError(String),
 }
 
 #[async_trait::async_trait]
 pub trait KeyStore {
-    async fn get_key(&self, key_name: String) -> Result<hmac::Key>;
+    async fn get_key(&self, key_name: String) -> Result<hmac::Key, PassportError>;
 }
 
 pub struct StaticKeyStore {
@@ -30,7 +41,7 @@ impl StaticKeyStore {
 
 #[async_trait::async_trait]
 impl KeyStore for StaticKeyStore {
-    async fn get_key(&self, _key_name: String) -> Result<hmac::Key> {
+    async fn get_key(&self, _key_name: String) -> Result<hmac::Key, PassportError> {
         Ok(self.key.clone())
     }
 }
@@ -51,18 +62,18 @@ impl PassportHandler {
         Self { store }
     }
 
-    pub async fn builder(&self) -> Result<PassportBuilder> {
+    pub async fn builder(&self) -> Result<PassportBuilder, PassportError> {
         let key = self.store.get_key("default".to_string()).await?;
         Ok(PassportBuilder::new(key))
     }
 
-    pub async fn verify(&self, passport: Passport) -> Result<()> {
+    pub async fn verify(&self, passport: Passport) -> Result<(), PassportError> {
         if let Some(user_info) = passport.user_info {
             let buf = serialize_message(user_info)?;
             let integrity = passport.user_integrity.unwrap();
             let key = self.store.get_key(integrity.key_name).await?;
             hmac::verify(&key, &buf, &integrity.hmac)
-                .map_err(|_| FlightFusionError::Generic("Validation failed".to_string()))?;
+                .map_err(|_| PassportError::ValidationError("Validation failed".to_string()))?;
         };
 
         if let Some(device_info) = passport.device_info {
@@ -70,7 +81,7 @@ impl PassportHandler {
             let integrity = passport.device_integrity.unwrap();
             let key = self.store.get_key(integrity.key_name).await?;
             hmac::verify(&key, &buf, &integrity.hmac)
-                .map_err(|_| FlightFusionError::Generic("Validation failed".to_string()))?;
+                .map_err(|_| PassportError::ValidationError("Validation failed".to_string()))?;
         };
 
         Ok(())
@@ -139,14 +150,14 @@ pub fn passport_builder() -> Passport {
     }
 }
 
-pub fn serialize_message<T: prost::Message>(msg: T) -> Result<Vec<u8>> {
+pub fn serialize_message<T: prost::Message>(msg: T) -> Result<Vec<u8>, PassportError> {
     let mut buf = Vec::new();
     buf.reserve(msg.encoded_len());
     msg.encode(&mut buf)?;
     Ok(buf)
 }
 
-pub fn deserialize_message<T: prost::Message + Default>(buf: &[u8]) -> Result<T> {
+pub fn deserialize_message<T: prost::Message + Default>(buf: &[u8]) -> Result<T, PassportError> {
     Ok(T::decode(buf)?)
 }
 

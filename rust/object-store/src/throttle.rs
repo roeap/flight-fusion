@@ -163,6 +163,12 @@ impl<T: ObjectStoreApi> ObjectStoreApi for ThrottledStore<T> {
         self.inner.delete(location).await
     }
 
+    async fn delete_dir(&self, location: &Self::Path) -> Result<(), Self::Error> {
+        sleep(self.config().wait_delete_per_call).await;
+
+        self.inner.delete_dir(location).await
+    }
+
     async fn list<'a>(
         &'a self,
         prefix: Option<&'a Self::Path>,

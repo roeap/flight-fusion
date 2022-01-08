@@ -1,6 +1,10 @@
 [server]
 port = "50051"
-url = "http://localhost:50051"
+url = "0.0.0.0"
+service_name = "flight-fusion"
+
+[service]
+area_root = "./.tmp"
 
 [log]
 level = "info"

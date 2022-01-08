@@ -66,6 +66,12 @@ impl ObjectStoreApi for DummyObjectStore {
         })
     }
 
+    async fn delete_dir(&self, _location: &Self::Path) -> crate::Result<(), Self::Error> {
+        Err(Error::NotSupported {
+            name: self.name.clone(),
+        })
+    }
+
     async fn list<'a>(
         &'a self,
         _prefix: Option<&'a Self::Path>,

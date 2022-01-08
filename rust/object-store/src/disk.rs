@@ -138,6 +138,12 @@ impl ObjectStoreApi for File {
         Ok(())
     }
 
+    async fn delete_dir(&self, location: &Self::Path) -> Result<()> {
+        let path = self.path(location);
+        fs::remove_dir(&path).await?;
+        Ok(())
+    }
+
     async fn list<'a>(
         &'a self,
         prefix: Option<&'a Self::Path>,

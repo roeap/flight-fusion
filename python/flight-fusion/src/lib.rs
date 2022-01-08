@@ -1,5 +1,7 @@
 use error::FlightFusionClientError;
-use flight_fusion_client::{arrow::record_batch::RecordBatch, FlightFusionClient};
+use flight_fusion_client::{
+    arrow::record_batch::RecordBatch, flight_fusion_ipc::SaveMode, FlightFusionClient,
+};
 use observability_deps::{
     opentelemetry::{global, sdk::propagation::TraceContextPropagator},
     opentelemetry_jaeger, tracing_opentelemetry, tracing_subscriber,
@@ -22,25 +24,51 @@ impl FusionClient {
         Ok(Self {})
     }
 
-    fn register_memory_table<'py>(
+    fn write_into_table<'py>(
         &self,
         py: Python<'py>,
-        table_name: &str,
+        table_ref: &str,
+        save_mode: i32,
         batches: Vec<RecordBatch>,
     ) -> PyResult<&'py PyBytes> {
+        let save_mode = SaveMode::from_i32(save_mode).unwrap_or(SaveMode::Overwrite);
         let op = async {
-            let client = FlightFusionClient::try_new().await.unwrap();
-            client.register_memory_table(table_name, batches).await
+            let client = FlightFusionClient::try_new().await?;
+            client.write_into_table(table_ref, save_mode, batches).await
         };
         let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
         let obj = serialize_message(response).map_err(FlightFusionClientError::from)?;
         Ok(PyBytes::new(py, &obj))
     }
 
-    fn drop_table<'py>(&self, py: Python<'py>, table_name: &str) -> PyResult<&'py PyBytes> {
+    fn read_table<'py>(&self, py: Python<'py>, table_ref: &str) -> PyResult<Vec<RecordBatch>> {
         let op = async {
-            let client = FlightFusionClient::try_new().await.unwrap();
-            client.drop_table(table_name).await
+            let client = FlightFusionClient::try_new().await?;
+            client.read_table(table_ref).await
+        };
+        let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
+        Ok(response)
+    }
+
+    fn put_memory_table<'py>(
+        &self,
+        py: Python<'py>,
+        table_ref: &str,
+        batches: Vec<RecordBatch>,
+    ) -> PyResult<&'py PyBytes> {
+        let op = async {
+            let client = FlightFusionClient::try_new().await?;
+            client.put_memory_table(table_ref, batches).await
+        };
+        let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
+        let obj = serialize_message(response).map_err(FlightFusionClientError::from)?;
+        Ok(PyBytes::new(py, &obj))
+    }
+
+    fn drop_table<'py>(&self, py: Python<'py>, table_ref: &str) -> PyResult<&'py PyBytes> {
+        let op = async {
+            let client = FlightFusionClient::try_new().await?;
+            client.drop_table(table_ref).await
         };
         let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
         let obj = serialize_message(response).map_err(FlightFusionClientError::from)?;

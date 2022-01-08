@@ -4,15 +4,20 @@
 //     action::Protocol, DeltaTable, DeltaTableConfig, DeltaTableMetaData, SchemaDataType, SchemaField,
 // };
 use crate::handlers::FusionActionHandler;
-use arrow_deps::datafusion::arrow::{
-    array::{Array, Float32Array, Float64Array, Int32Array, Int64Array, StringArray, UInt32Array},
-    compute::take,
-    datatypes::{DataType, Field, Schema as ArrowSchema, SchemaRef as ArrowSchemaRef},
-    record_batch::RecordBatch,
+use arrow_deps::datafusion::{
+    arrow::{
+        array::{
+            Array, Float32Array, Float64Array, Int32Array, Int64Array, StringArray, UInt32Array,
+        },
+        compute::take,
+        datatypes::{DataType, Field, Schema as ArrowSchema, SchemaRef as ArrowSchemaRef},
+        record_batch::RecordBatch,
+    },
+    physical_plan::memory::MemoryExec,
 };
 use rand::distributions::Standard;
 use rand::prelude::*;
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
 
 pub fn get_test_object_store() -> object_store::ObjectStore {
     let ws_root = crate::test_utils::workspace_root().unwrap();
@@ -21,11 +26,14 @@ pub fn get_test_object_store() -> object_store::ObjectStore {
     object_store::ObjectStore::new_file(ws_root)
 }
 
-pub fn get_fusion_handler() -> FusionActionHandler {
+pub fn workspace_test_data_folder() -> PathBuf {
     let ws_root = crate::test_utils::workspace_root().unwrap();
     let ws_root = std::path::Path::new(&ws_root);
-    let ws_root = ws_root.join("test");
-    FusionActionHandler::new(ws_root)
+    ws_root.join("test")
+}
+
+pub fn get_fusion_handler(root: impl Into<PathBuf>) -> FusionActionHandler {
+    FusionActionHandler::new(root)
 }
 
 /// Run cargo to get the root of the workspace
@@ -86,6 +94,12 @@ where
         *x = rng.gen::<T>();
     }
     raw.to_vec()
+}
+
+pub fn get_input_plan(part: Option<String>, with_null: bool) -> Arc<MemoryExec> {
+    let batch = get_record_batch(part, with_null);
+    let schema = batch.schema().clone();
+    Arc::new(MemoryExec::try_new(&[vec![batch.clone()]], schema.clone(), None).unwrap())
 }
 
 pub fn get_record_batch(part: Option<String>, with_null: bool) -> RecordBatch {
