@@ -37,6 +37,7 @@ ignoreWords:
   - seekable
   - sqlparser
   - structopt
+  - tempdir
   - tempfile
   - toposort
   - unpartitioned

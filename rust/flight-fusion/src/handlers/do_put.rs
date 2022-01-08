@@ -151,7 +151,9 @@ impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{generate_random_batch, get_fusion_handler, get_record_batch};
+    use crate::test_utils::{
+        generate_random_batch, get_fusion_handler, get_input_plan, get_record_batch,
+    };
     use arrow_deps::datafusion::{
         arrow::datatypes::{DataType, Field, Schema as ArrowSchema},
         physical_plan::memory::MemoryExec,
@@ -164,13 +166,12 @@ mod tests {
     use std::sync::Arc;
 
     #[tokio::test]
-    async fn test_put_table_file() {
-        let batch = get_record_batch(None, false);
-        let schema = batch.schema().clone();
-        let plan =
-            Arc::new(MemoryExec::try_new(&[vec![batch.clone()]], schema.clone(), None).unwrap());
+    async fn test_put_table() {
+        let root = tempfile::tempdir().unwrap();
+        let plan = get_input_plan(None, false);
+        let handler = get_fusion_handler(root.path());
+        let table_dir = root.path().join("data/new_table");
 
-        let handler = get_fusion_handler();
         let table = TableReference::Location(AreaTableLocation {
             name: "new_table".to_string(),
             areas: vec![],
@@ -180,12 +181,14 @@ mod tests {
             save_mode: FusionSaveMode::Overwrite as i32,
         };
 
-        let response = handler
+        assert!(!table_dir.exists());
+
+        let _response = handler
             .handle_do_put(request.clone(), plan.clone())
             .await
             .unwrap();
 
-        println!("{:?}", response)
+        assert!(table_dir.is_dir())
     }
 
     #[tokio::test]
@@ -210,7 +213,7 @@ mod tests {
             })),
         };
 
-        let handler = get_fusion_handler();
+        let handler = get_fusion_handler(table_uri.clone());
 
         // create table and write some data
         let _ = handler
@@ -275,7 +278,7 @@ mod tests {
             })),
         };
 
-        let handler = get_fusion_handler();
+        let handler = get_fusion_handler(table_uri.clone());
         let _ = handler
             .handle_do_put(request.clone(), plan.clone())
             .await

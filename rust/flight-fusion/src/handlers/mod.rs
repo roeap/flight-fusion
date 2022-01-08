@@ -123,7 +123,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_drop_table_action() {
-        let handler = crate::test_utils::get_fusion_handler();
+        let root = crate::test_utils::workspace_test_data_folder();
+        let handler = crate::test_utils::get_fusion_handler(root);
         let req = DropDatasetRequest {
             name: "some.table".to_string(),
         };
@@ -132,8 +133,9 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_put_table() {
-        let handler = crate::test_utils::get_fusion_handler();
+    async fn test_table_put_drop() {
+        let root = crate::test_utils::workspace_test_data_folder();
+        let handler = crate::test_utils::get_fusion_handler(root);
         let register_table_action = RegisterDatasetRequest {
             path: "./tests/data/file/table.parquet".to_string(),
             name: "table".to_string(),
