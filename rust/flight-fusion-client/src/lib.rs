@@ -6,9 +6,9 @@ use arrow_flight::{
 use error::FusionClientError;
 use flight_fusion_ipc::{
     flight_action_request::Action as FusionAction, flight_do_put_request, utils::serialize_message,
-    DatasetFormat, DropDatasetRequest, DropDatasetResponse, FlightActionRequest,
-    FlightDoPutRequest, PutMemoryTableRequest, PutMemoryTableResponse, RegisterDatasetRequest,
-    RegisterDatasetResponse, RequestFor,
+    DatasetFormat, DoPutUpdateResult, DropDatasetRequest, DropDatasetResponse, FlightActionRequest,
+    FlightDoPutRequest, PutMemoryTableRequest, PutMemoryTableResponse, PutTableRequest,
+    RegisterDatasetRequest, RegisterDatasetResponse, RequestFor, SaveMode,
 };
 use observability_deps::instrument;
 use observability_deps::tracing;
@@ -17,10 +17,11 @@ use tonic::{
     codegen::InterceptedService,
     transport::{Channel, Endpoint},
 };
-
 pub mod error;
-mod interceptor;
 pub use arrow;
+pub use flight_fusion_ipc;
+
+mod interceptor;
 
 pub fn crate_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
@@ -54,21 +55,41 @@ impl FlightFusionClient {
     }
 
     #[instrument(skip(self, batches))]
+    pub async fn write_into_table<T>(
+        &self,
+        table_ref: T,
+        save_mode: SaveMode,
+        batches: Vec<RecordBatch>,
+    ) -> Result<DoPutUpdateResult, FusionClientError>
+    where
+        T: Into<String> + std::fmt::Debug,
+    {
+        let operation = flight_do_put_request::Operation::Storage(PutTableRequest {
+            name: table_ref.into(),
+            areas: vec![],
+            save_mode: save_mode as i32,
+        });
+        Ok(self
+            .do_put::<DoPutUpdateResult>(batches, operation)
+            .await?
+            .unwrap())
+    }
+
+    #[instrument(skip(self, batches))]
     pub async fn put_memory_table<T>(
         &self,
-        table_name: T,
+        table_ref: T,
         batches: Vec<RecordBatch>,
     ) -> Result<PutMemoryTableResponse, FusionClientError>
     where
         T: Into<String> + std::fmt::Debug,
     {
         let operation = flight_do_put_request::Operation::Memory(PutMemoryTableRequest {
-            name: table_name.into(),
+            name: table_ref.into(),
         });
         Ok(self
             .do_put::<PutMemoryTableResponse>(batches, operation)
-            .await
-            .unwrap()
+            .await?
             .unwrap())
     }
 
@@ -89,6 +110,14 @@ impl FlightFusionClient {
             .do_action::<DropDatasetRequest, DropDatasetResponse>(action_request)
             .await?;
         Ok(result)
+    }
+
+    #[instrument(skip(self))]
+    pub async fn execute_query(
+        &self,
+        query: String,
+    ) -> Result<Vec<RecordBatch>, FusionClientError> {
+        todo!()
     }
 
     pub async fn register_dataset<S, T, P>(

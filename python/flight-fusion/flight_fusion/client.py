@@ -10,6 +10,7 @@ from flight_fusion.ipc.v1alpha1 import (
     DeltaOperationRequest,
     DeltaReference,
     DeltaWriteOperation,
+    DoPutUpdateResult,
     DropDatasetResponse,
     FlightActionRequest,
     FlightDoGetRequest,
@@ -56,7 +57,7 @@ class FlightFusionClient:
         raw_response = self._raw.drop_table(table_ref)
         return DropDatasetResponse().parse(raw_response)
 
-    def register_memory_table(
+    def put_memory_table(
         self,
         table_ref: str,
         data: Union[pd.DataFrame, pa.Table],
@@ -73,12 +74,12 @@ class FlightFusionClient:
         table_ref: str,
         data: Union[pd.DataFrame, pa.Table],
         save_mode: SaveMode = SaveMode.SAVE_MODE_OVERWRITE,
-    ) -> PutMemoryTableResponse:
+    ) -> DoPutUpdateResult:
         if isinstance(data, pd.DataFrame):
             data = pa.Table.from_pandas(data)
         batches = data.to_batches()
-        raw_response = self._raw.put_memory_table(table_ref, batches)
-        return PutMemoryTableResponse().parse(raw_response)
+        raw_response = self._raw.write_into_table(table_ref, save_mode.value, batches)
+        return DoPutUpdateResult().parse(raw_response)
 
     def write_into_delta(
         self,
