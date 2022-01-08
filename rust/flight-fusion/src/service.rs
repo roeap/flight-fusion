@@ -67,34 +67,39 @@ impl FlightService for FlightFusionService {
     type ListActionsStream = BoxedFlightStream<ActionType>;
     type DoExchangeStream = BoxedFlightStream<FlightData>;
 
+    #[instrument(skip(self, request))]
     async fn handshake(
         &self,
-        _request: Request<Streaming<HandshakeRequest>>,
+        request: Request<Streaming<HandshakeRequest>>,
     ) -> Result<Response<Self::HandshakeStream>, Status> {
         Err(Status::unimplemented("Not yet implemented"))
     }
 
+    #[instrument(skip(self, request))]
     async fn list_flights(
         &self,
-        _request: Request<Criteria>,
+        request: Request<Criteria>,
     ) -> Result<Response<Self::ListFlightsStream>, Status> {
         Err(Status::unimplemented("Not yet implemented"))
     }
 
+    #[instrument(skip(self, request))]
     async fn get_flight_info(
         &self,
-        _request: Request<FlightDescriptor>,
+        request: Request<FlightDescriptor>,
     ) -> Result<Response<FlightInfo>, Status> {
         Err(Status::unimplemented("Not yet implemented"))
     }
 
+    #[instrument(skip(self, request))]
     async fn get_schema(
         &self,
-        _request: Request<FlightDescriptor>,
+        request: Request<FlightDescriptor>,
     ) -> Result<Response<SchemaResult>, Status> {
         Err(Status::unimplemented("Not yet implemented"))
     }
 
+    #[instrument(skip(self, request))]
     async fn do_get(
         &self,
         request: Request<Ticket>,
@@ -113,6 +118,7 @@ impl FlightService for FlightFusionService {
         Ok(Response::new(result))
     }
 
+    #[instrument(skip(self, request))]
     async fn do_put(
         &self,
         request: Request<Streaming<FlightData>>,
@@ -154,16 +160,18 @@ impl FlightService for FlightFusionService {
         Ok(Response::new(response))
     }
 
+    #[instrument(skip(self, request))]
     async fn list_actions(
         &self,
-        _request: Request<Empty>,
+        request: Request<Empty>,
     ) -> Result<Response<Self::ListActionsStream>, Status> {
         Err(Status::unimplemented("Not yet implemented"))
     }
 
+    #[instrument(skip(self, request))]
     async fn do_exchange(
         &self,
-        _request: Request<Streaming<FlightData>>,
+        request: Request<Streaming<FlightData>>,
     ) -> Result<Response<Self::DoExchangeStream>, Status> {
         Err(Status::unimplemented("Not yet implemented"))
     }

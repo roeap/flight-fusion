@@ -30,8 +30,6 @@ lazy_static! {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
     // install global collector configured based on RUST_LOG env var.
-    // tracing_subscriber::fmt::init();
-    // let subscriber = tracing_subscriber::fmt
     let stdout_log = tracing_subscriber::fmt::layer().pretty();
 
     global::set_text_map_propagator(TraceContextPropagator::new());
@@ -39,17 +37,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_service_name("grpc-server")
         .install_batch(Tokio)?;
     tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::new("INFO"))
+        .with(tracing_subscriber::EnvFilter::new(CONFIG.log.level.clone()))
         .with(tracing_opentelemetry::layer().with_tracer(tracer))
         .with(stdout_log)
         .try_init()?;
 
-    let addr = "0.0.0.0:50051".parse()?;
-    let area_root = "/home/robstar/github/flight-fusion/.tmp";
-    let service = service::FlightFusionService::new_default(area_root);
+    let addr = format!("{}:{}", CONFIG.server.url, CONFIG.server.port).parse()?;
+    let service = service::FlightFusionService::new_default(CONFIG.service.area_root.clone());
 
     let svc = FlightServiceServer::new(service);
-    info!("Listening on {:?} ({})", CONFIG.server.port, CONFIG.env);
+    info!(
+        "Listening on {}:{} ({})",
+        CONFIG.server.url, CONFIG.server.port, CONFIG.env
+    );
 
     Server::builder().add_service(svc).serve(addr).await?;
 

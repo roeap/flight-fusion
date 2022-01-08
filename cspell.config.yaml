@@ -6,6 +6,7 @@ words: []
 ignoreWords:
   - Datetime
   - Introspector
+  - Kubernetes
   - Kusto
   - Pageable
   - Timespan

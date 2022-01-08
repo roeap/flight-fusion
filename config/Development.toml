@@ -1,2 +1,6 @@
 [log]
 level = "debug"
+
+[server]
+port = "50051"
+url = "0.0.0.0"
