@@ -92,9 +92,7 @@ message PutMemoryTableResponse {
 // Request to write data to area storage
 message PutTableRequest {
   // table identifier
-  string name = 1;
-  // area path / hierarchy where data is to be placed
-  repeated string areas = 2;
+  AreaSourceReference table = 1;
   // denotes how to beahve for existing data
   SaveMode save_mode = 3;
 }

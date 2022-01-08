@@ -52,3 +52,24 @@ message TableReference {
     FileReference file = 3;
   }
 }
+
+message AreaTableLocation {
+  string name = 1;
+  repeated string areas = 2;
+}
+
+message AreaTableId {
+  string id = 1;
+}
+
+message AreaTableUri {
+  string id = 1;
+}
+
+message AreaSourceReference {
+  oneof table {
+    AreaTableLocation location = 1;
+    AreaTableId id = 2;
+    AreaTableUri uri = 3;
+  }
+}

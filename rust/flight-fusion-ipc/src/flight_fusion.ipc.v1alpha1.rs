@@ -38,6 +38,40 @@ pub mod table_reference {
         File(super::FileReference),
     }
 }
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AreaTableLocation {
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag="2")]
+    pub areas: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AreaTableId {
+    #[prost(string, tag="1")]
+    pub id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AreaTableUri {
+    #[prost(string, tag="1")]
+    pub id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AreaSourceReference {
+    #[prost(oneof="area_source_reference::Table", tags="1, 2, 3")]
+    pub table: ::core::option::Option<area_source_reference::Table>,
+}
+/// Nested message and enum types in `AreaSourceReference`.
+pub mod area_source_reference {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Table {
+        #[prost(message, tag="1")]
+        Location(super::AreaTableLocation),
+        #[prost(message, tag="2")]
+        Id(super::AreaTableId),
+        #[prost(message, tag="3")]
+        Uri(super::AreaTableUri),
+    }
+}
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum FileFormat {
@@ -272,11 +306,8 @@ pub struct PutMemoryTableResponse {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PutTableRequest {
     /// table identifier
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-    /// area path / hierarchy where data is to be placed
-    #[prost(string, repeated, tag="2")]
-    pub areas: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(message, optional, tag="1")]
+    pub table: ::core::option::Option<AreaSourceReference>,
     /// denotes how to beahve for existing data
     #[prost(enumeration="SaveMode", tag="3")]
     pub save_mode: i32,

@@ -71,6 +71,29 @@ class TableReference(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
+class AreaTableLocation(betterproto.Message):
+    name: str = betterproto.string_field(1)
+    areas: List[str] = betterproto.string_field(2)
+
+
+@dataclass(eq=False, repr=False)
+class AreaTableId(betterproto.Message):
+    id: str = betterproto.string_field(1)
+
+
+@dataclass(eq=False, repr=False)
+class AreaTableUri(betterproto.Message):
+    id: str = betterproto.string_field(1)
+
+
+@dataclass(eq=False, repr=False)
+class AreaSourceReference(betterproto.Message):
+    location: "AreaTableLocation" = betterproto.message_field(1, group="table")
+    id: "AreaTableId" = betterproto.message_field(2, group="table")
+    uri: "AreaTableUri" = betterproto.message_field(3, group="table")
+
+
+@dataclass(eq=False, repr=False)
 class ExpressionReference(betterproto.Message):
     uid: str = betterproto.string_field(1)
     expression: str = betterproto.string_field(2)
@@ -213,8 +236,11 @@ class PutMemoryTableResponse(betterproto.Message):
 
 @dataclass(eq=False, repr=False)
 class PutTableRequest(betterproto.Message):
-    name: str = betterproto.string_field(1)
-    areas: List[str] = betterproto.string_field(2)
+    """Request to write data to area storage"""
+
+    # table identifier
+    table: "AreaSourceReference" = betterproto.message_field(1)
+    # denotes how to beahve for existing data
     save_mode: "SaveMode" = betterproto.enum_field(3)
 
 

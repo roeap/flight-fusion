@@ -5,7 +5,8 @@ use arrow_flight::{
 };
 use error::FusionClientError;
 use flight_fusion_ipc::{
-    flight_action_request::Action as FusionAction, flight_do_put_request, utils::serialize_message,
+    area_source_reference::Table as TableReference, flight_action_request::Action as FusionAction,
+    flight_do_put_request, utils::serialize_message, AreaSourceReference, AreaTableLocation,
     DatasetFormat, DoPutUpdateResult, DropDatasetRequest, DropDatasetResponse, FlightActionRequest,
     FlightDoPutRequest, PutMemoryTableRequest, PutMemoryTableResponse, PutTableRequest,
     RegisterDatasetRequest, RegisterDatasetResponse, RequestFor, SaveMode,
@@ -64,9 +65,12 @@ impl FlightFusionClient {
     where
         T: Into<String> + std::fmt::Debug,
     {
-        let operation = flight_do_put_request::Operation::Storage(PutTableRequest {
+        let table = TableReference::Location(AreaTableLocation {
             name: table_ref.into(),
             areas: vec![],
+        });
+        let operation = flight_do_put_request::Operation::Storage(PutTableRequest {
+            table: Some(AreaSourceReference { table: Some(table) }),
             save_mode: save_mode as i32,
         });
         Ok(self

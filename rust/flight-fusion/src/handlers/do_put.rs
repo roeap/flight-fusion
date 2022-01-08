@@ -8,11 +8,14 @@ use arrow_deps::datafusion::{
 use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, commands::DeltaCommands};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
-    delta_operation_request, BatchStatistics, ColumnStatistics, DeltaOperationRequest,
-    DeltaOperationResponse, DoPutUpdateResult, FlightFusionError, PutMemoryTableRequest,
-    PutMemoryTableResponse, PutTableRequest, Result as FusionResult, SaveMode as FusionSaveMode,
+    area_source_reference::Table as TableReference, delta_operation_request, AreaSourceReference,
+    BatchStatistics, ColumnStatistics, DeltaOperationRequest, DeltaOperationResponse,
+    DoPutUpdateResult, FlightFusionError, PutMemoryTableRequest, PutMemoryTableResponse,
+    PutTableRequest, Result as FusionResult, SaveMode as FusionSaveMode,
 };
 use std::sync::Arc;
+
+const DATA_FOLDER_NAME: &str = "data";
 
 impl FusionActionHandler {
     pub async fn execute_do_put(
@@ -81,12 +84,21 @@ impl DoPutHandler<PutTableRequest> for FusionActionHandler {
         ticket: PutTableRequest,
         input: Arc<dyn ExecutionPlan>,
     ) -> FusionResult<DoPutUpdateResult> {
-        let mut location = self
-            .area_store
-            .object_store()
-            .path_from_raw(&ticket.areas.join("/"));
-        location.push_dir("data");
-        location.push_dir(&ticket.name);
+        let location = match ticket.table {
+            Some(AreaSourceReference { table: Some(tbl) }) => match tbl {
+                TableReference::Location(loc) => {
+                    let mut location = self
+                        .area_store
+                        .object_store()
+                        .path_from_raw(&loc.areas.join("/"));
+                    location.push_dir(DATA_FOLDER_NAME);
+                    location.push_dir(&loc.name);
+                    location
+                }
+                _ => todo!(),
+            },
+            _ => todo!(),
+        };
 
         let batches = collect(input).await.unwrap();
         // TODO remove panic
@@ -145,8 +157,8 @@ mod tests {
     };
     use arrow_deps::deltalake::open_table;
     use flight_fusion_ipc::{
-        delta_operation_request::Operation, DeltaOperationRequest, DeltaReference,
-        DeltaWriteOperation, SaveMode,
+        delta_operation_request::Operation, AreaTableLocation, DeltaOperationRequest,
+        DeltaReference, DeltaWriteOperation, SaveMode,
     };
     use std::sync::Arc;
 
@@ -158,9 +170,12 @@ mod tests {
             Arc::new(MemoryExec::try_new(&[vec![batch.clone()]], schema.clone(), None).unwrap());
 
         let handler = get_fusion_handler();
-        let request = PutTableRequest {
+        let table = TableReference::Location(AreaTableLocation {
             name: "new_table".to_string(),
-            areas: vec!["area1".to_string(), "area2".to_string()],
+            areas: vec![],
+        });
+        let request = PutTableRequest {
+            table: Some(AreaSourceReference { table: Some(table) }),
             save_mode: FusionSaveMode::Overwrite as i32,
         };
 
