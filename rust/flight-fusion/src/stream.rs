@@ -20,8 +20,7 @@ use core::any::Any;
 use flight_fusion_ipc::{
     to_flight_fusion_err, FlightDoPutRequest, FlightFusionError, Result as FusionResult,
 };
-use futures::TryStreamExt;
-use futures::{stream::Stream, StreamExt};
+use futures::{stream::Stream, StreamExt, TryStreamExt};
 use prost::Message;
 use std::io::Cursor;
 use std::pin::Pin;

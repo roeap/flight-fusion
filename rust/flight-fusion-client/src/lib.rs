@@ -1,7 +1,5 @@
 use arrow::{
-    datatypes::{Schema as ArrowSchema, SchemaRef as ArrowSchemaRef},
-    ipc::writer::IpcWriteOptions,
-    record_batch::RecordBatch,
+    datatypes::Schema as ArrowSchema, ipc::writer::IpcWriteOptions, record_batch::RecordBatch,
 };
 use arrow_flight::{
     flight_descriptor, flight_service_client::FlightServiceClient, Action, FlightData,
@@ -11,12 +9,11 @@ use error::FusionClientError;
 use flight_fusion_ipc::{
     area_source_reference::Table as TableReference, flight_action_request::Action as FusionAction,
     flight_do_get_request::Operation as DoGetOperation,
-    flight_do_put_request::Operation as DoPutOperation, to_flight_fusion_err,
-    utils::serialize_message, AreaSourceReference, AreaTableLocation, CommandReadTable,
-    DatasetFormat, DoPutUpdateResult, DropDatasetRequest, DropDatasetResponse, FlightActionRequest,
-    FlightDoGetRequest, FlightDoPutRequest, FlightFusionError, PutMemoryTableRequest,
-    PutMemoryTableResponse, PutTableRequest, RegisterDatasetRequest, RegisterDatasetResponse,
-    RequestFor, SaveMode,
+    flight_do_put_request::Operation as DoPutOperation, utils::serialize_message,
+    AreaSourceReference, AreaTableLocation, CommandReadTable, DatasetFormat, DoPutUpdateResult,
+    DropDatasetRequest, DropDatasetResponse, FlightActionRequest, FlightDoGetRequest,
+    FlightDoPutRequest, FlightFusionError, PutMemoryTableRequest, PutMemoryTableResponse,
+    PutTableRequest, RegisterDatasetRequest, RegisterDatasetResponse, RequestFor, SaveMode,
 };
 use observability_deps::instrument;
 use observability_deps::tracing;
@@ -28,7 +25,7 @@ use tonic::{
 pub mod error;
 pub use arrow;
 pub use flight_fusion_ipc;
-use futures::{stream::Stream, StreamExt, TryStreamExt};
+use futures::TryStreamExt;
 use std::sync::Arc;
 
 mod interceptor;
