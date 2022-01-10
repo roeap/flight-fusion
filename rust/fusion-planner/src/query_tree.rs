@@ -232,6 +232,7 @@ mod tests {
                 uid: "expr-id".to_string(),
                 name: "S4".to_string(),
                 description: "description".to_string(),
+                traits: vec![],
             }],
             inputs: vec![],
             source: Some(ProviderSource::Expression(ExpressionReference {
@@ -274,6 +275,7 @@ mod tests {
                 uid: "expr-id".to_string(),
                 name: "S4".to_string(),
                 description: "description".to_string(),
+                traits: vec![],
             }],
             inputs: vec![],
             source: Some(ProviderSource::Expression(ExpressionReference {
