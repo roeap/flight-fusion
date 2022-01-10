@@ -1,7 +1,7 @@
 // #[cfg(feature = "aws")]
 // mod aws;
-// #[cfg(feature = "azure")]
-// mod azure;
+#[cfg(feature = "azure")]
+mod azure;
 mod buffer;
 mod disk;
 // #[cfg(feature = "gcp")]
