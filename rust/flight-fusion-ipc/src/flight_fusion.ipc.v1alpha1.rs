@@ -125,6 +125,40 @@ pub struct Signal {
     pub name: ::prost::alloc::string::String,
     #[prost(string, tag="3")]
     pub description: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag="10")]
+    pub traits: ::prost::alloc::vec::Vec<SignalTrait>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SignalTrait {
+    #[prost(oneof="signal_trait::Trait", tags="1, 2, 3")]
+    pub r#trait: ::core::option::Option<signal_trait::Trait>,
+}
+/// Nested message and enum types in `SignalTrait`.
+pub mod signal_trait {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Trait {
+        #[prost(message, tag="1")]
+        Sensitive(super::SensitiveDataTrait),
+        #[prost(message, tag="2")]
+        TimeSeries(super::TimeSeriesTrait),
+        #[prost(message, tag="3")]
+        EntityReference(super::EntityReferenceTrait),
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SensitiveDataTrait {
+    #[prost(string, tag="1")]
+    pub level: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TimeSeriesTrait {
+    #[prost(string, tag="1")]
+    pub level: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EntityReferenceTrait {
+    #[prost(string, tag="1")]
+    pub level: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SignalProvider {

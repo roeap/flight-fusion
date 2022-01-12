@@ -1,14 +1,13 @@
 // #[cfg(feature = "aws")]
 // mod aws;
-// #[cfg(feature = "azure")]
-// mod azure;
+#[cfg(feature = "azure")]
+mod azure;
 mod buffer;
 mod disk;
 // #[cfg(feature = "gcp")]
 // mod gcp;
 mod memory;
 pub mod path;
-mod throttle;
 
 pub mod cache;
 pub mod dummy;
@@ -26,10 +25,6 @@ use disk::File;
 // use gcp::GoogleCloudStorage;
 use memory::InMemory;
 use path::{parsed::DirsAndFileName, ObjectStorePath};
-use throttle::ThrottledStore;
-
-/// Publicly expose throttling configuration
-pub use throttle::ThrottleConfig;
 
 use crate::{
     cache::{Cache, LocalFSCache},
@@ -145,16 +140,6 @@ impl ObjectStore {
         }
     }
 
-    /// For Testing: Configure throttled in-memory storage.
-    pub fn new_in_memory_throttled(config: ThrottleConfig) -> Self {
-        let in_mem = InMemory::new();
-        let in_mem_throttled = ThrottledStore::new(in_mem, config);
-        Self {
-            integration: ObjectStoreIntegration::InMemoryThrottled(in_mem_throttled),
-            cache: None,
-        }
-    }
-
     /// For Testing: Configure a object store with invalid credentials
     /// that will always fail on operations (hopefully)
     // pub fn new_failing_store() -> Result<Self> {
@@ -195,7 +180,6 @@ impl ObjectStore {
             // AmazonS3(_) => path::Path::AmazonS3(path.into()),
             // GoogleCloudStorage(_) => path::Path::GoogleCloudStorage(path.into()),
             InMemory(_) => path::Path::InMemory(path),
-            InMemoryThrottled(_) => path::Path::InMemory(path),
             File(_) => path::Path::File(path.into()),
             MicrosoftAzure(_) => path::Path::MicrosoftAzure(path.into()),
         }
@@ -218,9 +202,6 @@ impl ObjectStoreApi for ObjectStore {
             // AmazonS3(s3) => path::Path::AmazonS3(s3.new_path()),
             // GoogleCloudStorage(gcs) => path::Path::GoogleCloudStorage(gcs.new_path()),
             InMemory(in_mem) => path::Path::InMemory(in_mem.new_path()),
-            InMemoryThrottled(in_mem_throttled) => {
-                path::Path::InMemory(in_mem_throttled.new_path())
-            }
             File(file) => path::Path::File(file.new_path()),
             MicrosoftAzure(azure) => path::Path::MicrosoftAzure(azure.new_path()),
         }
@@ -232,9 +213,6 @@ impl ObjectStoreApi for ObjectStore {
             // AmazonS3(s3) => path::Path::AmazonS3(s3.path_from_raw(raw)),
             // GoogleCloudStorage(gcs) => path::Path::GoogleCloudStorage(gcs.path_from_raw(raw)),
             InMemory(in_mem) => path::Path::InMemory(in_mem.path_from_raw(raw)),
-            InMemoryThrottled(in_mem_throttled) => {
-                path::Path::InMemory(in_mem_throttled.path_from_raw(raw))
-            }
             File(file) => path::Path::File(file.path_from_raw(raw)),
             MicrosoftAzure(azure) => path::Path::MicrosoftAzure(azure.path_from_raw(raw)),
         }
@@ -249,9 +227,6 @@ impl ObjectStoreApi for ObjectStore {
             // }
             (InMemory(in_mem), path::Path::InMemory(location)) => {
                 in_mem.put(location, bytes).await?
-            }
-            (InMemoryThrottled(in_mem_throttled), path::Path::InMemory(location)) => {
-                in_mem_throttled.put(location, bytes).await?
             }
             (File(file), path::Path::File(location)) => file.put(location, bytes).await?,
             (MicrosoftAzure(azure), path::Path::MicrosoftAzure(location)) => {
@@ -273,9 +248,6 @@ impl ObjectStoreApi for ObjectStore {
             (InMemory(in_mem), path::Path::InMemory(location)) => {
                 in_mem.get(location).await?.err_into()
             }
-            (InMemoryThrottled(in_mem_throttled), path::Path::InMemory(location)) => {
-                in_mem_throttled.get(location).await?.err_into()
-            }
             (File(file), path::Path::File(location)) => file.get(location).await?.err_into(),
             (MicrosoftAzure(azure), path::Path::MicrosoftAzure(location)) => {
                 azure.get(location).await?.err_into()
@@ -292,9 +264,6 @@ impl ObjectStoreApi for ObjectStore {
             //     gcs.delete(location).await?
             // }
             (InMemory(in_mem), path::Path::InMemory(location)) => in_mem.delete(location).await?,
-            (InMemoryThrottled(in_mem_throttled), path::Path::InMemory(location)) => {
-                in_mem_throttled.delete(location).await?
-            }
             (File(file), path::Path::File(location)) => file.delete(location).await?,
             (MicrosoftAzure(azure), path::Path::MicrosoftAzure(location)) => {
                 azure.delete(location).await?
@@ -314,9 +283,6 @@ impl ObjectStoreApi for ObjectStore {
             // }
             (InMemory(in_mem), path::Path::InMemory(location)) => {
                 in_mem.delete_dir(location).await?
-            }
-            (InMemoryThrottled(in_mem_throttled), path::Path::InMemory(location)) => {
-                in_mem_throttled.delete_dir(location).await?
             }
             (File(file), path::Path::File(location)) => file.delete_dir(location).await?,
             (MicrosoftAzure(azure), path::Path::MicrosoftAzure(location)) => {
@@ -372,21 +338,6 @@ impl ObjectStoreApi for ObjectStore {
                 .err_into()
                 .boxed(),
 
-            (InMemoryThrottled(in_mem_throttled), Some(path::Path::InMemory(prefix))) => {
-                in_mem_throttled
-                    .list(Some(prefix))
-                    .await?
-                    .map_ok(|s| s.into_iter().map(path::Path::InMemory).collect())
-                    .err_into()
-                    .boxed()
-            }
-            (InMemoryThrottled(in_mem_throttled), None) => in_mem_throttled
-                .list(None)
-                .await?
-                .map_ok(|s| s.into_iter().map(path::Path::InMemory).collect())
-                .err_into()
-                .boxed(),
-
             (File(file), Some(path::Path::File(prefix))) => file
                 .list(Some(prefix))
                 .await?
@@ -433,12 +384,6 @@ impl ObjectStoreApi for ObjectStore {
                 .list_with_delimiter(prefix)
                 .map_ok(|list_result| list_result.map_paths(path::Path::InMemory))
                 .await?),
-            (InMemoryThrottled(in_mem_throttled), path::Path::InMemory(prefix)) => {
-                Ok(in_mem_throttled
-                    .list_with_delimiter(prefix)
-                    .map_ok(|list_result| list_result.map_paths(path::Path::InMemory))
-                    .await?)
-            }
             (File(file), path::Path::File(prefix)) => Ok(file
                 .list_with_delimiter(prefix)
                 .map_ok(|list_result| list_result.map_paths(path::Path::File))
@@ -461,8 +406,6 @@ pub enum ObjectStoreIntegration {
     // AmazonS3(AmazonS3),
     /// In memory storage for testing
     InMemory(InMemory),
-    /// Throttled in memory storage for testing
-    InMemoryThrottled(ThrottledStore<InMemory>),
     /// Local file system storage
     File(File),
     /// Microsoft Azure Blob storage

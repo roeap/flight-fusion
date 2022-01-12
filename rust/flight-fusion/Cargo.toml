@@ -7,7 +7,6 @@ edition = "2021"
 # Workspace dependencies
 arrow-deps = { path = "../arrow-deps/", features = ["delta"] }
 flight-fusion-ipc = { path = "../flight-fusion-ipc" }
-flight-fusion-client = { path = "../flight-fusion-client" }
 object-store = { path = "../object-store" }
 observability_deps = { path = "../observability-deps" }
 # deltalake = { path = "../../../delta-rs/rust" }
@@ -25,7 +24,7 @@ lazy_static = "1.4.0"
 # libc = "0.2.103"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
-parquet-format = "*"
+parquet-format = "~2.6.1"
 prost = "0.9"
 # tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
 tokio = { version = "1", features = ["full"] }

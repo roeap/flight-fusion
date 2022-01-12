@@ -24,6 +24,27 @@ message Signal {
   string uid = 1;
   string name = 2;
   string description = 3;
+  repeated SignalTrait traits = 10;
+}
+
+message SignalTrait {
+  oneof trait {
+    SensitiveDataTrait sensitive = 1;
+    TimeSeriesTrait time_series = 2;
+    EntityReferenceTrait entity_reference = 3;
+  }
+}
+
+message SensitiveDataTrait {
+  string level = 1;
+}
+
+message TimeSeriesTrait {
+  string level = 1;
+}
+
+message EntityReferenceTrait {
+  string level = 1;
 }
 
 message SignalProvider {
