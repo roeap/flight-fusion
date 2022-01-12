@@ -1,0 +1,40 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "dagster-fusion"
+version = "0.1.0"
+description = ""
+authors = ["Robert Pack <robstar.pack@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+# dagster = ">=0.13.1"
+pyarrow = ">=5"
+
+[tool.poetry.dev-dependencies]
+bandit = "^1.7.0"
+black = "^21.12b0"
+flake8 = "^3.9.2"
+isort = "^5.9.3"
+pytest = "^6.2.5"
+
+[tool.black]
+line-length = 100
+target-version = ['py37']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+src_paths = ["python/flight-fusion"]
+
+[tool.pyright]
+exclude = [
+  "**/node_modules",
+  "**/__pycache__",
+  "src/experimental",
+  "src/typestubs",
+]
+# stubPath = "python/flight-fusion/stubs"

@@ -3,6 +3,12 @@
 version = 3
 
 [[package]]
+name = "RustyXML"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b5ace29ee3216de37c0546865ad08edef58b0f9e76838ed8959a84a990e58c5"
+
+[[package]]
 name = "adler"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -112,7 +118,7 @@ name = "arrow-deps"
 version = "0.1.0"
 dependencies = [
  "arrow-flight",
- "datafusion 6.0.0 (git+https://github.com/apache/arrow-datafusion?rev=07b29856c7a1287459e6b8545a41142c466d82bd)",
+ "datafusion 6.0.0 (git+https://github.com/apache/arrow-datafusion?rev=06d147aace7a923752cef2fcf98f4732de31a6a6)",
  "deltalake",
 ]
 
@@ -210,7 +216,33 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 [[package]]
 name = "azure_core"
 version = "0.1.0"
-source = "git+https://github.com/Azure/azure-sdk-for-rust?rev=21e23649f0fd7d10fddfb5bf54ea94dcc13e0eb0#21e23649f0fd7d10fddfb5bf54ea94dcc13e0eb0"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=datalake-ops#1877225e2df1ec7e2d0c1b3dd1a0c49e25f9f4dd"
+dependencies = [
+ "async-trait",
+ "base64",
+ "bytes",
+ "chrono",
+ "dyn-clone",
+ "futures",
+ "getrandom",
+ "http",
+ "log",
+ "oauth2",
+ "rand",
+ "reqwest",
+ "rustc_version",
+ "serde 1.0.133",
+ "serde_derive",
+ "serde_json",
+ "thiserror",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "azure_core"
+version = "0.1.0"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=f4f95aa15618ce1f2266b34d2a117737a24b84f3#f4f95aa15618ce1f2266b34d2a117737a24b84f3"
 dependencies = [
  "async-trait",
  "base64",
@@ -236,11 +268,11 @@ dependencies = [
 [[package]]
 name = "azure_identity"
 version = "0.1.0"
-source = "git+https://github.com/Azure/azure-sdk-for-rust?rev=21e23649f0fd7d10fddfb5bf54ea94dcc13e0eb0#21e23649f0fd7d10fddfb5bf54ea94dcc13e0eb0"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=datalake-ops#1877225e2df1ec7e2d0c1b3dd1a0c49e25f9f4dd"
 dependencies = [
  "async-timer",
  "async-trait",
- "azure_core",
+ "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?branch=datalake-ops)",
  "chrono",
  "futures",
  "log",
@@ -250,6 +282,95 @@ dependencies = [
  "serde_json",
  "thiserror",
  "url",
+]
+
+[[package]]
+name = "azure_identity"
+version = "0.1.0"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=f4f95aa15618ce1f2266b34d2a117737a24b84f3#f4f95aa15618ce1f2266b34d2a117737a24b84f3"
+dependencies = [
+ "async-timer",
+ "async-trait",
+ "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=f4f95aa15618ce1f2266b34d2a117737a24b84f3)",
+ "chrono",
+ "futures",
+ "log",
+ "oauth2",
+ "reqwest",
+ "serde 1.0.133",
+ "serde_json",
+ "thiserror",
+ "url",
+]
+
+[[package]]
+name = "azure_storage"
+version = "0.1.0"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=f4f95aa15618ce1f2266b34d2a117737a24b84f3#f4f95aa15618ce1f2266b34d2a117737a24b84f3"
+dependencies = [
+ "RustyXML",
+ "async-trait",
+ "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=f4f95aa15618ce1f2266b34d2a117737a24b84f3)",
+ "base64",
+ "bytes",
+ "chrono",
+ "futures",
+ "http",
+ "log",
+ "once_cell",
+ "ring",
+ "serde 1.0.133",
+ "serde-xml-rs",
+ "serde_derive",
+ "serde_json",
+ "thiserror",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "azure_storage_blobs"
+version = "0.1.0"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=f4f95aa15618ce1f2266b34d2a117737a24b84f3#f4f95aa15618ce1f2266b34d2a117737a24b84f3"
+dependencies = [
+ "RustyXML",
+ "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=f4f95aa15618ce1f2266b34d2a117737a24b84f3)",
+ "azure_storage",
+ "base64",
+ "bytes",
+ "chrono",
+ "futures",
+ "http",
+ "log",
+ "md5",
+ "serde 1.0.133",
+ "serde-xml-rs",
+ "serde_derive",
+ "serde_json",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "azure_storage_datalake"
+version = "0.1.0"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=f4f95aa15618ce1f2266b34d2a117737a24b84f3#f4f95aa15618ce1f2266b34d2a117737a24b84f3"
+dependencies = [
+ "async-trait",
+ "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=f4f95aa15618ce1f2266b34d2a117737a24b84f3)",
+ "azure_storage",
+ "base64",
+ "bytes",
+ "chrono",
+ "futures",
+ "http",
+ "log",
+ "serde 1.0.133",
+ "serde-xml-rs",
+ "serde_derive",
+ "serde_json",
+ "url",
+ "uuid",
 ]
 
 [[package]]
@@ -599,7 +720,7 @@ dependencies = [
 [[package]]
 name = "datafusion"
 version = "6.0.0"
-source = "git+https://github.com/apache/arrow-datafusion?rev=07b29856c7a1287459e6b8545a41142c466d82bd#07b29856c7a1287459e6b8545a41142c466d82bd"
+source = "git+https://github.com/apache/arrow-datafusion?rev=06d147aace7a923752cef2fcf98f4732de31a6a6#06d147aace7a923752cef2fcf98f4732de31a6a6"
 dependencies = [
  "ahash",
  "arrow",
@@ -875,7 +996,6 @@ dependencies = [
  "chrono",
  "config",
  "dotenv",
- "flight-fusion-client",
  "flight-fusion-ipc",
  "futures",
  "lazy_static",
@@ -1412,8 +1532,8 @@ version = "0.1.0"
 dependencies = [
  "arrow-deps",
  "async-trait",
- "azure_core",
- "azure_identity",
+ "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?branch=datalake-ops)",
+ "azure_identity 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?branch=datalake-ops)",
  "bytes",
  "chrono",
  "dotenv",
@@ -1669,6 +1789,12 @@ dependencies = [
  "digest 0.9.0",
  "opaque-debug 0.3.0",
 ]
+
+[[package]]
+name = "md5"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "490cc448043f947bae3cbee9c203358d62dbee0db12107a74be5c30ccfd09771"
 
 [[package]]
 name = "memchr"
@@ -1938,8 +2064,14 @@ name = "object-store"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=f4f95aa15618ce1f2266b34d2a117737a24b84f3)",
+ "azure_identity 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=f4f95aa15618ce1f2266b34d2a117737a24b84f3)",
+ "azure_storage",
+ "azure_storage_blobs",
+ "azure_storage_datalake",
  "bytes",
  "chrono",
+ "dotenv",
  "futures",
  "futures-test",
  "itertools",
@@ -2833,6 +2965,18 @@ dependencies = [
  "num-traits 0.1.43",
  "regex",
  "serde 0.8.23",
+]
+
+[[package]]
+name = "serde-xml-rs"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "65162e9059be2f6a3421ebbb4fef3e74b7d9e7c60c50a0e292c6239f19f1edfa"
+dependencies = [
+ "log",
+ "serde 1.0.133",
+ "thiserror",
+ "xml-rs",
 ]
 
 [[package]]
@@ -3837,6 +3981,12 @@ checksum = "244c3741f4240ef46274860397c7c74e50eb23624996930e484c16679633a54c"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "xml-rs"
+version = "0.8.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d2d7d3948613f75c98fd9328cfdcc45acc4d360655289d0a7d4ec931392200a3"
 
 [[package]]
 name = "yaml-rust"

@@ -26,7 +26,9 @@ thiserror = "1"
 tokio = { version = "1", features = ["rt-multi-thread"] }
 
 # workspace dependencies
-flight-fusion-client = { path = "../../rust/flight-fusion-client" }
+flight-fusion-client = { path = "../../rust/flight-fusion-client", features = [
+  "pyarrow",
+] }
 observability_deps = { path = "../../rust/observability-deps" }
 
 [dependencies.pyo3]
