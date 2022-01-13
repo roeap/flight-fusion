@@ -326,6 +326,7 @@ mod tests {
         },
         Error as ObjectStoreError, ObjectStore, ObjectStoreApi, ObjectStorePath,
     };
+    #[cfg(target_family = "unix")]
     use std::{fs::set_permissions, os::unix::prelude::PermissionsExt};
     use tempfile::TempDir;
 
@@ -385,6 +386,7 @@ mod tests {
         assert_eq!(&*read_data, expected_data);
     }
 
+    #[cfg(target_family = "unix")]
     #[tokio::test]
     async fn bubble_up_io_errors() {
         let root = TempDir::new().unwrap();
