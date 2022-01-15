@@ -10,6 +10,7 @@ ignoreWords:
   - Kusto
   - Pageable
   - Timespan
+  - betterproto
   - chrono
   - clippy
   - codegen

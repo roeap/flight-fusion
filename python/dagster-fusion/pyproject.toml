@@ -11,8 +11,8 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-# dagster = ">=0.13.1"
-pyarrow = ">=5"
+dagster = "^0.13"
+pyarrow = "*"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"
