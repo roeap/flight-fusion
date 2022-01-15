@@ -14,21 +14,8 @@ message RegisterDatasetResponse {
     string message = 1;
 }
 
-message DropDatasetRequest {
-  // table identifier
-  AreaSourceReference table = 1;
-}
-
 message DropDatasetResponse {
   string name = 1;
-}
-
-// Requests submitted against the `do_action` endpoint
-message FlightActionRequest {
-  oneof action {
-    RegisterDatasetRequest register = 1;
-    DropDatasetRequest drop = 2;
-  }
 }
 
 // Describes an SQL query operation
@@ -46,26 +33,35 @@ message CommandKqlOperation {
   string query = 2;
 }
 
+// Commands
+
 // Read entire table from storage
-message CommandReadTable {
+message CommandReadDataset {
   // table identifier
   AreaSourceReference table = 1;
 }
+
+message CommandDropDataset {
+  // table identifier
+  AreaSourceReference table = 1;
+}
+
+// Request to write data to area storage
+message CommandWriteIntoDataset {
+  // table identifier
+  AreaSourceReference table = 1;
+  // denotes how to beahve for existing data - defaults to overwrite
+  SaveMode save_mode = 3;
+}
+
+// Signals
 
 // Describes a signal frame operation
 message SignalFrameOperation {
   SignalFrame frame = 1;
 }
 
-// Requests submitted against the `do_get` endpoint
-message FlightDoGetRequest {
-  oneof operation {
-    CommandSqlOperation sql = 1;
-    CommandKqlOperation kql = 2;
-    SignalFrameOperation frame = 3;
-    CommandReadTable read = 4;
-  }
-}
+// Delta
 
 message DeltaCreateOperation {
   SaveMode save_mode = 1;
@@ -97,20 +93,32 @@ message PutMemoryTableResponse {
   string name = 1;
 }
 
-// Request to write data to area storage
-message PutTableRequest {
-  // table identifier
-  AreaSourceReference table = 1;
-  // denotes how to beahve for existing data - defaults to overwrite
-  SaveMode save_mode = 3;
+// Flight
+
+// Requests submitted against the `do_get` endpoint
+message FlightDoGetRequest {
+  oneof operation {
+    CommandSqlOperation sql = 1;
+    CommandKqlOperation kql = 2;
+    SignalFrameOperation frame = 3;
+    CommandReadDataset read = 4;
+  }
 }
 
 // Requests submitted against the `do_put` endpoint
 message FlightDoPutRequest {
   oneof operation {
     PutMemoryTableRequest memory = 1;
-    PutTableRequest storage = 2;
+    CommandWriteIntoDataset storage = 2;
     DeltaOperationRequest delta = 3;
+  }
+}
+
+// Requests submitted against the `do_action` endpoint
+message FlightActionRequest {
+  oneof action {
+    RegisterDatasetRequest register = 1;
+    CommandDropDataset drop = 2;
   }
 }
 

@@ -7,7 +7,7 @@ use arrow_deps::{
 use arrow_flight::{FlightData, SchemaAsIpc};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
-    CommandReadTable, CommandSqlOperation, FlightFusionError, Result as FusionResult,
+    CommandReadDataset, CommandSqlOperation, FlightFusionError, Result as FusionResult,
 };
 use tonic::Status;
 
@@ -32,10 +32,10 @@ impl DoGetHandler<CommandSqlOperation> for FusionActionHandler {
 }
 
 #[async_trait]
-impl DoGetHandler<CommandReadTable> for FusionActionHandler {
+impl DoGetHandler<CommandReadDataset> for FusionActionHandler {
     async fn handle_do_get(
         &self,
-        ticket: CommandReadTable,
+        ticket: CommandReadDataset,
     ) -> FusionResult<BoxedFlightStream<FlightData>> {
         if let Some(table) = ticket.table {
             // TODO remove panics

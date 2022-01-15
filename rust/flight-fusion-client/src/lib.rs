@@ -7,13 +7,13 @@ use arrow_flight::{
 };
 use error::FusionClientError;
 use flight_fusion_ipc::{
-    area_source_reference::Table as TableReference, flight_action_request::Action as FusionAction,
+    flight_action_request::Action as FusionAction,
     flight_do_get_request::Operation as DoGetOperation,
     flight_do_put_request::Operation as DoPutOperation, utils::serialize_message,
-    AreaSourceReference, AreaTableLocation, CommandReadTable, DatasetFormat, DoPutUpdateResult,
-    DropDatasetRequest, DropDatasetResponse, FlightActionRequest, FlightDoGetRequest,
+    CommandDropDataset, CommandReadDataset, CommandWriteIntoDataset, DatasetFormat,
+    DoPutUpdateResult, DropDatasetResponse, FlightActionRequest, FlightDoGetRequest,
     FlightDoPutRequest, FlightFusionError, PutMemoryTableRequest, PutMemoryTableResponse,
-    PutTableRequest, RegisterDatasetRequest, RegisterDatasetResponse, RequestFor,
+    RegisterDatasetRequest, RegisterDatasetResponse, RequestFor,
 };
 use observability_deps::instrument;
 use observability_deps::tracing;
@@ -67,7 +67,7 @@ impl FlightFusionClient {
     #[instrument(skip(self, batches))]
     pub async fn write_into_table(
         &self,
-        command: PutTableRequest,
+        command: CommandWriteIntoDataset,
         batches: Vec<RecordBatch>,
     ) -> Result<DoPutUpdateResult, FusionClientError> {
         let operation = DoPutOperation::Storage(command);
@@ -80,7 +80,7 @@ impl FlightFusionClient {
     #[instrument(skip(self))]
     pub async fn read_table(
         &self,
-        command: CommandReadTable,
+        command: CommandReadDataset,
     ) -> Result<Vec<RecordBatch>, FusionClientError> {
         let ticket = Ticket {
             ticket: serialize_message(FlightDoGetRequest {
@@ -111,26 +111,15 @@ impl FlightFusionClient {
     }
 
     #[instrument(skip(self))]
-    pub async fn drop_table<T>(
+    pub async fn drop_table(
         &self,
-        table_ref: T,
-    ) -> Result<DropDatasetResponse, FusionClientError>
-    where
-        T: Into<String> + std::fmt::Debug,
-    {
-        let table_ref = AreaSourceReference {
-            table: Some(TableReference::Location(AreaTableLocation {
-                name: table_ref.into(),
-                areas: vec![],
-            })),
-        };
+        command: CommandDropDataset,
+    ) -> Result<DropDatasetResponse, FusionClientError> {
         let action_request = FlightActionRequest {
-            action: Some(FusionAction::Drop(DropDatasetRequest {
-                table: Some(table_ref),
-            })),
+            action: Some(FusionAction::Drop(command)),
         };
         let result = self
-            .do_action::<DropDatasetRequest, DropDatasetResponse>(action_request)
+            .do_action::<CommandDropDataset, DropDatasetResponse>(action_request)
             .await?;
         Ok(result)
     }

@@ -1,7 +1,7 @@
 use error::FlightFusionClientError;
 use flight_fusion_client::{
     arrow::record_batch::RecordBatch,
-    flight_fusion_ipc::{CommandReadTable, PutTableRequest},
+    flight_fusion_ipc::{CommandDropDataset, CommandReadDataset, CommandWriteIntoDataset},
     FlightFusionClient,
 };
 use observability_deps::{
@@ -36,8 +36,8 @@ impl FusionClient {
         command: Vec<u8>,
         batches: Vec<RecordBatch>,
     ) -> PyResult<&'py PyBytes> {
-        let command =
-            PutTableRequest::decode(command.as_ref()).map_err(FlightFusionClientError::from)?;
+        let command = CommandWriteIntoDataset::decode(command.as_ref())
+            .map_err(FlightFusionClientError::from)?;
         let op = async {
             let client = FlightFusionClient::try_new(&self.host, self.port).await?;
             client.write_into_table(command, batches).await
@@ -49,7 +49,7 @@ impl FusionClient {
 
     fn read_table<'py>(&self, py: Python<'py>, command: Vec<u8>) -> PyResult<Vec<RecordBatch>> {
         let command =
-            CommandReadTable::decode(command.as_ref()).map_err(FlightFusionClientError::from)?;
+            CommandReadDataset::decode(command.as_ref()).map_err(FlightFusionClientError::from)?;
         let op = async {
             let client = FlightFusionClient::try_new(&self.host, self.port).await?;
             client.read_table(command).await
@@ -73,10 +73,12 @@ impl FusionClient {
         Ok(PyBytes::new(py, &obj))
     }
 
-    fn drop_table<'py>(&self, py: Python<'py>, table_ref: &str) -> PyResult<&'py PyBytes> {
+    fn drop_table<'py>(&self, py: Python<'py>, command: Vec<u8>) -> PyResult<&'py PyBytes> {
+        let command =
+            CommandDropDataset::decode(command.as_ref()).map_err(FlightFusionClientError::from)?;
         let op = async {
             let client = FlightFusionClient::try_new(&self.host, self.port).await?;
-            client.drop_table(table_ref).await
+            client.drop_table(command).await
         };
         let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
         let obj = serialize_message(response).map_err(FlightFusionClientError::from)?;

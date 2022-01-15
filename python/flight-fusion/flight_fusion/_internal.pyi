@@ -12,7 +12,7 @@ class FusionClient:
     def __init__(self, host: str, port: int) -> None:
         """Create a new instance of FusionClient"""
         ...
-    def drop_table(self, table_ref: str) -> bytes:
+    def drop_table(self, command: bytes) -> bytes:
         """Drop a table registered in the FlightFusion service
 
         Args:

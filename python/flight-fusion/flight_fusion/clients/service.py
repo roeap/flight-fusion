@@ -8,13 +8,15 @@ from pydantic import BaseSettings
 
 from flight_fusion._internal import FusionClient as RawFusionClient
 from flight_fusion.ipc.v1alpha1 import (
+    AreaSourceReference,
+    AreaTableLocation,
     DropDatasetResponse,
     PutMemoryTableResponse,
     SaveMode,
 )
 
 if TYPE_CHECKING:
-    from .area import AreaClient
+    from flight_fusion.clients import AreaClient, DatasetClient
 
 
 class FlightActions:
@@ -46,6 +48,16 @@ class FlightFusionClient:
         from flight_fusion.clients.area import AreaClient
 
         return AreaClient(self, areas)
+
+    def get_dataset_client(self, name: str, areas: List[str]) -> DatasetClient:
+        from flight_fusion.clients.dataset import TableClient
+
+        return TableClient(
+            client=self.get_area_client(areas),
+            reference=AreaSourceReference(
+                location=AreaTableLocation(name=name, areas=areas)
+            ),
+        )
 
     def drop_table(self, table_ref: str) -> DropDatasetResponse:
         raw_response = self._raw.drop_table(table_ref)

@@ -13,14 +13,16 @@ from flight_fusion.clients.service import ClientOptions
 from flight_fusion.ipc.v1alpha1 import (
     AreaSourceReference,
     AreaTableLocation,
-    CommandReadTable,
+    CommandDropDataset,
+    CommandReadDataset,
+    CommandWriteIntoDataset,
     DoPutUpdateResult,
-    PutTableRequest,
+    DropDatasetResponse,
     SaveMode,
 )
 
 
-class DataSetClient:
+class DatasetClient:
     def __init__(self, client: AreaClient, reference: AreaSourceReference) -> None:
         self._reference = reference
         self._client = client
@@ -29,7 +31,7 @@ class DataSetClient:
     @abstractmethod
     def from_options(
         cls, name: str, areas: List[str], options: ClientOptions
-    ) -> DataSetClient:
+    ) -> DatasetClient:
         """Create a new DatasetClient instance from service options
 
         Args:
@@ -64,7 +66,7 @@ class DataSetClient:
         if isinstance(data, pd.DataFrame):
             data = pa.Table.from_pandas(data)
         batches = data.to_batches()
-        command = PutTableRequest(table=self._reference, save_mode=save_mode)
+        command = CommandWriteIntoDataset(table=self._reference, save_mode=save_mode)
         response = self._client.fusion.write_into_table(
             command=command.SerializeToString(), batches=batches
         )
@@ -75,20 +77,21 @@ class DataSetClient:
         pass
 
     def load(self) -> pa.Table:
-        command = CommandReadTable(table=self._reference)
+        command = CommandReadDataset(table=self._reference)
         batches = self._client.fusion.read_table(command=command.SerializeToString())
         return pa.Table.from_batches(batches)
 
-    @abstractmethod
-    def drop(self):
-        pass
+    def drop(self) -> DropDatasetResponse:
+        command = CommandDropDataset(table=self._reference)
+        response = self._client.fusion.drop_table(command=command.SerializeToString())
+        return DropDatasetResponse().parse(response)
 
     def get_metadata(self):
         # TODO implement ...
         pass
 
 
-class TableClient(DataSetClient):
+class TableClient(DatasetClient):
     def __init__(self, client: AreaClient, reference: AreaSourceReference) -> None:
         super().__init__(client, reference)
 

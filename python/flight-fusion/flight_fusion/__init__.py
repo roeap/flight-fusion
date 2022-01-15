@@ -1,7 +1,7 @@
 from .clients import (
     AreaClient,
     ClientOptions,
-    DataSetClient,
+    DatasetClient,
     FlightFusionClient,
     TableClient,
 )
@@ -16,7 +16,7 @@ __version__ = version(__name__)
 __all__ = (
     "AreaClient",
     "ClientOptions",
-    "DataSetClient",
+    "DatasetClient",
     "FlightFusionClient",
     "TableClient",
 )
