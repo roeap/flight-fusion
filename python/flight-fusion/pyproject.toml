@@ -28,6 +28,7 @@ classifier = [
 ]
 dependencies = [
   "pyarrow>=4",
+  "pydantic[dotenv]>=1",
   "pandas>=1",
   "betterproto==2.0.0b4",
   "SQLAlchemy>=1.4",

@@ -109,6 +109,31 @@ class Signal(betterproto.Message):
     uid: str = betterproto.string_field(1)
     name: str = betterproto.string_field(2)
     description: str = betterproto.string_field(3)
+    traits: List["SignalTrait"] = betterproto.message_field(10)
+
+
+@dataclass(eq=False, repr=False)
+class SignalTrait(betterproto.Message):
+    sensitive: "SensitiveDataTrait" = betterproto.message_field(1, group="trait")
+    time_series: "TimeSeriesTrait" = betterproto.message_field(2, group="trait")
+    entity_reference: "EntityReferenceTrait" = betterproto.message_field(
+        3, group="trait"
+    )
+
+
+@dataclass(eq=False, repr=False)
+class SensitiveDataTrait(betterproto.Message):
+    level: str = betterproto.string_field(1)
+
+
+@dataclass(eq=False, repr=False)
+class TimeSeriesTrait(betterproto.Message):
+    level: str = betterproto.string_field(1)
+
+
+@dataclass(eq=False, repr=False)
+class EntityReferenceTrait(betterproto.Message):
+    level: str = betterproto.string_field(1)
 
 
 @dataclass(eq=False, repr=False)
@@ -186,6 +211,14 @@ class CommandKqlOperation(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
+class CommandReadTable(betterproto.Message):
+    """Read entire table from storage"""
+
+    # table identifier
+    table: "AreaSourceReference" = betterproto.message_field(1)
+
+
+@dataclass(eq=False, repr=False)
 class SignalFrameOperation(betterproto.Message):
     """Describes a signal frame operation"""
 
@@ -199,6 +232,7 @@ class FlightDoGetRequest(betterproto.Message):
     sql: "CommandSqlOperation" = betterproto.message_field(1, group="operation")
     kql: "CommandKqlOperation" = betterproto.message_field(2, group="operation")
     frame: "SignalFrameOperation" = betterproto.message_field(3, group="operation")
+    read: "CommandReadTable" = betterproto.message_field(4, group="operation")
 
 
 @dataclass(eq=False, repr=False)
@@ -241,7 +275,7 @@ class PutTableRequest(betterproto.Message):
 
     # table identifier
     table: "AreaSourceReference" = betterproto.message_field(1)
-    # denotes how to beahve for existing data
+    # denotes how to beahve for existing data - defaults to overwrite
     save_mode: "SaveMode" = betterproto.enum_field(3)
 
 
