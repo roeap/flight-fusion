@@ -9,6 +9,9 @@ rust_core_version: Callable[[], str]
 class FusionClient:
     """Client for interaction with flight fusion service"""
 
+    def __init__(self, host: str, port: int) -> None:
+        """Create a new instance of FusionClient"""
+        ...
     def drop_table(self, table_ref: str) -> bytes:
         """Drop a table registered in the FlightFusion service
 
@@ -19,14 +22,11 @@ class FusionClient:
             bytes: Serialized return message
         """
         ...
-    def write_into_table(
-        self, table_ref: str, save_mode: int, batches: List[pa.RecordBatch]
-    ) -> bytes:
+    def write_into_table(self, request: bytes, batches: List[pa.RecordBatch]) -> bytes:
         """Write data into a persisted table
 
         Args:
-            table_ref (str): A name to reference the table in queries
-            save_mode (int): Controls behavior for existing data in table
+            request (bytes): serialized operation proto message
             batches (List[pa.RecordBatch]): Data to be written to the table
 
         Returns:

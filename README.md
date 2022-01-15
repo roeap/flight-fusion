@@ -20,19 +20,43 @@ mkdocs serve
 
 ## Development
 
+### Prerequisites
+
+- rust>=1.57
+- poetry (for python development)
+
+### Rust
+
 To run unit tests for the rust crates execute
 
 ```sh
 cargo test
 ```
 
-To build and install the python bindings run
+To build crates and services
+
+```sh
+cargo build
+```
+
+TODO explain mock framework
+
+## Python Development
+
+To set up the python environment run
+
+```sh
+poetry install
+```
+
+The python bindings fofr rust dependent crates have to be build and installed separately.
+Make sure you have the environment created by poetry activated and run.
 
 ```sh
 make python-develop
 ```
 
-### Build Docker
+## Build Docker
 
 ```sh
 docker build -f docker/Dockerfile
@@ -47,7 +71,7 @@ docker run -d -p6831:6831/udp -p6832:6832/udp -p16686:16686 jaegertracing/all-in
 To generate proto definitions for use in python client.
 
 ```
-make proto
+make python-proto
 ```
 
 ## Known issues

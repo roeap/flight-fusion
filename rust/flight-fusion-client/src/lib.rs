@@ -13,11 +13,12 @@ use flight_fusion_ipc::{
     AreaSourceReference, AreaTableLocation, CommandReadTable, DatasetFormat, DoPutUpdateResult,
     DropDatasetRequest, DropDatasetResponse, FlightActionRequest, FlightDoGetRequest,
     FlightDoPutRequest, FlightFusionError, PutMemoryTableRequest, PutMemoryTableResponse,
-    PutTableRequest, RegisterDatasetRequest, RegisterDatasetResponse, RequestFor, SaveMode,
+    PutTableRequest, RegisterDatasetRequest, RegisterDatasetResponse, RequestFor,
 };
 use observability_deps::instrument;
 use observability_deps::tracing;
 use std::io::Cursor;
+use std::str::FromStr;
 use tonic::{
     codegen::InterceptedService,
     transport::{Channel, Endpoint},
@@ -49,10 +50,12 @@ pub struct FlightFusionClient {
 }
 
 impl FlightFusionClient {
-    pub async fn try_new() -> Result<Self, FusionClientError> {
-        let channel = Endpoint::from_static("http://localhost:50051")
-            .connect()
-            .await?;
+    pub async fn try_new<H>(host: H, port: i32) -> Result<Self, FusionClientError>
+    where
+        H: Into<String>,
+    {
+        let address = format!("http://{}:{}", host.into(), port);
+        let channel = Endpoint::from_str(&address).unwrap().connect().await?;
         let interceptor = interceptor::TracingInterceptor {};
         let intercepted_client = FlightServiceClient::with_interceptor(channel, interceptor);
         // let intercepted_client = FlightServiceClient::new(channel);
@@ -62,25 +65,12 @@ impl FlightFusionClient {
     }
 
     #[instrument(skip(self, batches))]
-    pub async fn write_into_table<T>(
+    pub async fn write_into_table(
         &self,
-        table_ref: T,
-        save_mode: SaveMode,
+        request: PutTableRequest,
         batches: Vec<RecordBatch>,
-    ) -> Result<DoPutUpdateResult, FusionClientError>
-    where
-        T: Into<String> + std::fmt::Debug,
-    {
-        let table_ref = AreaSourceReference {
-            table: Some(TableReference::Location(AreaTableLocation {
-                name: table_ref.into(),
-                areas: vec![],
-            })),
-        };
-        let operation = DoPutOperation::Storage(PutTableRequest {
-            table: Some(table_ref),
-            save_mode: save_mode as i32,
-        });
+    ) -> Result<DoPutUpdateResult, FusionClientError> {
+        let operation = DoPutOperation::Storage(request);
         Ok(self
             .do_put::<DoPutUpdateResult>(batches, operation)
             .await?

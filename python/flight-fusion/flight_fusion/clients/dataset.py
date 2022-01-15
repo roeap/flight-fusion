@@ -10,7 +10,13 @@ from betterproto import which_one_of
 import flight_fusion.errors as errors
 from flight_fusion.clients.area import AreaClient
 from flight_fusion.clients.service import ClientOptions
-from flight_fusion.ipc.v1alpha1 import AreaSourceReference, AreaTableLocation, SaveMode
+from flight_fusion.ipc.v1alpha1 import (
+    AreaSourceReference,
+    AreaTableLocation,
+    DoPutUpdateResult,
+    PutTableRequest,
+    SaveMode,
+)
 
 
 class DataSetClient:
@@ -49,13 +55,19 @@ class DataSetClient:
             return value.areas
         raise errors.TableSource(f"Variant {field} not yet supported.")
 
-    @abstractmethod
     def write_into(
         self,
         data: Union[pd.DataFrame, pa.Table],
         save_mode: SaveMode = SaveMode.SAVE_MODE_OVERWRITE,
-    ):
-        pass
+    ) -> DoPutUpdateResult:
+        if isinstance(data, pd.DataFrame):
+            data = pa.Table.from_pandas(data)
+        batches = data.to_batches()
+        request = PutTableRequest(table=self._reference, save_mode=save_mode)
+        response = self._client.fusion.write_into_table(
+            request=request.SerializeToString(), batches=batches
+        )
+        return DoPutUpdateResult().parse(response)
 
     @abstractmethod
     def create(self):
@@ -88,13 +100,3 @@ class TableClient(DataSetClient):
                 location=AreaTableLocation(name=name, areas=areas)
             ),
         )
-
-    def write_into(
-        self,
-        data: Union[pd.DataFrame, pa.Table],
-        save_mode: SaveMode = SaveMode.SAVE_MODE_OVERWRITE,
-    ):
-        pass
-
-    def create(self):
-        pass

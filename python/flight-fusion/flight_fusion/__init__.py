@@ -1,4 +1,10 @@
-from .clients import AreaClient, ClientOptions, DataSetClient, FlightFusionClient
+from .clients import (
+    AreaClient,
+    ClientOptions,
+    DataSetClient,
+    FlightFusionClient,
+    TableClient,
+)
 
 try:
     from importlib.metadata import version
@@ -7,4 +13,10 @@ except ImportError:
 
 __version__ = version(__name__)
 
-__all__ = ("AreaClient", "ClientOptions", "DataSetClient", "FlightFusionClient")
+__all__ = (
+    "AreaClient",
+    "ClientOptions",
+    "DataSetClient",
+    "FlightFusionClient",
+    "TableClient",
+)
