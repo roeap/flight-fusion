@@ -67,10 +67,10 @@ impl FlightFusionClient {
     #[instrument(skip(self, batches))]
     pub async fn write_into_table(
         &self,
-        request: PutTableRequest,
+        command: PutTableRequest,
         batches: Vec<RecordBatch>,
     ) -> Result<DoPutUpdateResult, FusionClientError> {
-        let operation = DoPutOperation::Storage(request);
+        let operation = DoPutOperation::Storage(command);
         Ok(self
             .do_put::<DoPutUpdateResult>(batches, operation)
             .await?
@@ -78,30 +78,17 @@ impl FlightFusionClient {
     }
 
     #[instrument(skip(self))]
-    pub async fn read_table<T>(&self, table_ref: T) -> Result<Vec<RecordBatch>, FusionClientError>
-    where
-        T: Into<String> + std::fmt::Debug,
-    {
-        let table_ref = AreaSourceReference {
-            table: Some(TableReference::Location(AreaTableLocation {
-                name: table_ref.into(),
-                areas: vec![],
-            })),
-        };
-        let operation = DoGetOperation::Read(CommandReadTable {
-            table: Some(table_ref),
-        });
-
-        let request = FlightDoGetRequest {
-            operation: Some(operation),
-        };
-
+    pub async fn read_table(
+        &self,
+        command: CommandReadTable,
+    ) -> Result<Vec<RecordBatch>, FusionClientError> {
         let ticket = Ticket {
-            ticket: serialize_message(request),
+            ticket: serialize_message(FlightDoGetRequest {
+                operation: Some(DoGetOperation::Read(command)),
+            }),
         };
         // TODO Don't panic
-        let response = self.client.clone().do_get(ticket).await.unwrap();
-
+        let response = self.client.clone().do_get(ticket).await?;
         collect_response_stream(response.into_inner()).await
     }
 

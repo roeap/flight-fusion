@@ -62,6 +62,3 @@ class FlightFusionClient:
         batches = data.to_batches()
         raw_response = self._raw.put_memory_table(table_ref, batches)
         return PutMemoryTableResponse().parse(raw_response)
-
-    def read_table(self, table_ref: str) -> List[pa.RecordBatch]:
-        return self._raw.read_table(table_ref)

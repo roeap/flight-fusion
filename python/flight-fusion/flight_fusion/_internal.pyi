@@ -22,18 +22,18 @@ class FusionClient:
             bytes: Serialized return message
         """
         ...
-    def write_into_table(self, request: bytes, batches: List[pa.RecordBatch]) -> bytes:
+    def write_into_table(self, command: bytes, batches: List[pa.RecordBatch]) -> bytes:
         """Write data into a persisted table
 
         Args:
-            request (bytes): serialized operation proto message
+            command (bytes): serialized operation proto message
             batches (List[pa.RecordBatch]): Data to be written to the table
 
         Returns:
             bytes: Serialized return message
         """
         ...
-    def read_table(self, table_ref: str) -> List[pa.RecordBatch]:
+    def read_table(self, command: bytes) -> List[pa.RecordBatch]:
         """Read table data into record batches
 
         Args:

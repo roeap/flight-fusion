@@ -13,6 +13,7 @@ from flight_fusion.clients.service import ClientOptions
 from flight_fusion.ipc.v1alpha1 import (
     AreaSourceReference,
     AreaTableLocation,
+    CommandReadTable,
     DoPutUpdateResult,
     PutTableRequest,
     SaveMode,
@@ -63,9 +64,9 @@ class DataSetClient:
         if isinstance(data, pd.DataFrame):
             data = pa.Table.from_pandas(data)
         batches = data.to_batches()
-        request = PutTableRequest(table=self._reference, save_mode=save_mode)
+        command = PutTableRequest(table=self._reference, save_mode=save_mode)
         response = self._client.fusion.write_into_table(
-            request=request.SerializeToString(), batches=batches
+            command=command.SerializeToString(), batches=batches
         )
         return DoPutUpdateResult().parse(response)
 
@@ -73,9 +74,10 @@ class DataSetClient:
     def create(self):
         pass
 
-    @abstractmethod
     def load(self) -> pa.Table:
-        pass
+        command = CommandReadTable(table=self._reference)
+        batches = self._client.fusion.read_table(command=command.SerializeToString())
+        return pa.Table.from_batches(batches)
 
     @abstractmethod
     def drop(self):

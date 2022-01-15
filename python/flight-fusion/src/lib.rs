@@ -1,6 +1,8 @@
 use error::FlightFusionClientError;
 use flight_fusion_client::{
-    arrow::record_batch::RecordBatch, flight_fusion_ipc::PutTableRequest, FlightFusionClient,
+    arrow::record_batch::RecordBatch,
+    flight_fusion_ipc::{CommandReadTable, PutTableRequest},
+    FlightFusionClient,
 };
 use observability_deps::{
     opentelemetry::{global, sdk::propagation::TraceContextPropagator},
@@ -31,24 +33,26 @@ impl FusionClient {
     fn write_into_table<'py>(
         &self,
         py: Python<'py>,
-        request: Vec<u8>,
+        command: Vec<u8>,
         batches: Vec<RecordBatch>,
     ) -> PyResult<&'py PyBytes> {
-        let request =
-            PutTableRequest::decode(request.as_ref()).map_err(FlightFusionClientError::from)?;
+        let command =
+            PutTableRequest::decode(command.as_ref()).map_err(FlightFusionClientError::from)?;
         let op = async {
             let client = FlightFusionClient::try_new(&self.host, self.port).await?;
-            client.write_into_table(request, batches).await
+            client.write_into_table(command, batches).await
         };
         let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
         let obj = serialize_message(response).map_err(FlightFusionClientError::from)?;
         Ok(PyBytes::new(py, &obj))
     }
 
-    fn read_table<'py>(&self, py: Python<'py>, table_ref: &str) -> PyResult<Vec<RecordBatch>> {
+    fn read_table<'py>(&self, py: Python<'py>, command: Vec<u8>) -> PyResult<Vec<RecordBatch>> {
+        let command =
+            CommandReadTable::decode(command.as_ref()).map_err(FlightFusionClientError::from)?;
         let op = async {
             let client = FlightFusionClient::try_new(&self.host, self.port).await?;
-            client.read_table(table_ref).await
+            client.read_table(command).await
         };
         let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
         Ok(response)
