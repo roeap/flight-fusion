@@ -28,6 +28,7 @@ ignoreWords:
   - proto
   - protobuf
   - pyclass
+  - pydantic
   - pyfunction
   - pymethods
   - pymodule
