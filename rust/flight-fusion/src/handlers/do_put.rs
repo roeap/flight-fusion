@@ -8,9 +8,9 @@ use arrow_deps::datafusion::{
 use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, commands::DeltaCommands};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
-    delta_operation_request, BatchStatistics, ColumnStatistics, CommandWriteIntoDataset,
-    DeltaOperationRequest, DeltaOperationResponse, DoPutUpdateResult, FlightFusionError,
-    PutMemoryTableRequest, PutMemoryTableResponse, Result as FusionResult, SaveMode,
+    delta_operation_request, CommandWriteIntoDataset, DeltaOperationRequest,
+    DeltaOperationResponse, DoPutUpdateResult, FlightFusionError, PutMemoryTableRequest,
+    PutMemoryTableResponse, Result as FusionResult, SaveMode,
 };
 use std::sync::Arc;
 
@@ -86,7 +86,7 @@ impl DoPutHandler<CommandWriteIntoDataset> for FusionActionHandler {
             let location = self.area_store.get_table_location(&source).unwrap();
             let batches = collect(input).await.unwrap();
             // TODO remove panic
-            let adds = self
+            let _adds = self
                 .area_store
                 .put_batches(
                     batches,

@@ -76,7 +76,7 @@ impl FusionActionHandler {
         let body = match request_data.action {
             Some(action) => {
                 let result_body = match action {
-                    FusionAction::Register(register) => {
+                    FusionAction::Register(_register) => {
                         todo!()
                         // serialize_message(self.handle_do_action(register).await?)
                     }

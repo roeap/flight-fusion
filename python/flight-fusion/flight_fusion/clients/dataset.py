@@ -72,10 +72,6 @@ class DatasetClient:
         )
         return DoPutUpdateResult().parse(response)
 
-    @abstractmethod
-    def create(self):
-        pass
-
     def load(self) -> pa.Table:
         command = CommandReadDataset(table=self._reference)
         batches = self._client.fusion.read_table(command=command.SerializeToString())
