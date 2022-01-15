@@ -7,17 +7,18 @@ use arrow_flight::{
 };
 use error::FusionClientError;
 use flight_fusion_ipc::{
-    area_source_reference::Table as TableReference, flight_action_request::Action as FusionAction,
+    flight_action_request::Action as FusionAction,
     flight_do_get_request::Operation as DoGetOperation,
     flight_do_put_request::Operation as DoPutOperation, utils::serialize_message,
-    AreaSourceReference, AreaTableLocation, CommandReadTable, DatasetFormat, DoPutUpdateResult,
-    DropDatasetRequest, DropDatasetResponse, FlightActionRequest, FlightDoGetRequest,
+    CommandDropDataset, CommandReadDataset, CommandWriteIntoDataset, DatasetFormat,
+    DoPutUpdateResult, DropDatasetResponse, FlightActionRequest, FlightDoGetRequest,
     FlightDoPutRequest, FlightFusionError, PutMemoryTableRequest, PutMemoryTableResponse,
-    PutTableRequest, RegisterDatasetRequest, RegisterDatasetResponse, RequestFor, SaveMode,
+    RegisterDatasetRequest, RegisterDatasetResponse, RequestFor,
 };
 use observability_deps::instrument;
 use observability_deps::tracing;
 use std::io::Cursor;
+use std::str::FromStr;
 use tonic::{
     codegen::InterceptedService,
     transport::{Channel, Endpoint},
@@ -49,10 +50,12 @@ pub struct FlightFusionClient {
 }
 
 impl FlightFusionClient {
-    pub async fn try_new() -> Result<Self, FusionClientError> {
-        let channel = Endpoint::from_static("http://localhost:50051")
-            .connect()
-            .await?;
+    pub async fn try_new<H>(host: H, port: i32) -> Result<Self, FusionClientError>
+    where
+        H: Into<String>,
+    {
+        let address = format!("http://{}:{}", host.into(), port);
+        let channel = Endpoint::from_str(&address).unwrap().connect().await?;
         let interceptor = interceptor::TracingInterceptor {};
         let intercepted_client = FlightServiceClient::with_interceptor(channel, interceptor);
         // let intercepted_client = FlightServiceClient::new(channel);
@@ -62,25 +65,12 @@ impl FlightFusionClient {
     }
 
     #[instrument(skip(self, batches))]
-    pub async fn write_into_table<T>(
+    pub async fn write_into_table(
         &self,
-        table_ref: T,
-        save_mode: SaveMode,
+        command: CommandWriteIntoDataset,
         batches: Vec<RecordBatch>,
-    ) -> Result<DoPutUpdateResult, FusionClientError>
-    where
-        T: Into<String> + std::fmt::Debug,
-    {
-        let table_ref = AreaSourceReference {
-            table: Some(TableReference::Location(AreaTableLocation {
-                name: table_ref.into(),
-                areas: vec![],
-            })),
-        };
-        let operation = DoPutOperation::Storage(PutTableRequest {
-            table: Some(table_ref),
-            save_mode: save_mode as i32,
-        });
+    ) -> Result<DoPutUpdateResult, FusionClientError> {
+        let operation = DoPutOperation::Storage(command);
         Ok(self
             .do_put::<DoPutUpdateResult>(batches, operation)
             .await?
@@ -88,30 +78,17 @@ impl FlightFusionClient {
     }
 
     #[instrument(skip(self))]
-    pub async fn read_table<T>(&self, table_ref: T) -> Result<Vec<RecordBatch>, FusionClientError>
-    where
-        T: Into<String> + std::fmt::Debug,
-    {
-        let table_ref = AreaSourceReference {
-            table: Some(TableReference::Location(AreaTableLocation {
-                name: table_ref.into(),
-                areas: vec![],
-            })),
-        };
-        let operation = DoGetOperation::Read(CommandReadTable {
-            table: Some(table_ref),
-        });
-
-        let request = FlightDoGetRequest {
-            operation: Some(operation),
-        };
-
+    pub async fn read_table(
+        &self,
+        command: CommandReadDataset,
+    ) -> Result<Vec<RecordBatch>, FusionClientError> {
         let ticket = Ticket {
-            ticket: serialize_message(request),
+            ticket: serialize_message(FlightDoGetRequest {
+                operation: Some(DoGetOperation::Read(command)),
+            }),
         };
         // TODO Don't panic
-        let response = self.client.clone().do_get(ticket).await.unwrap();
-
+        let response = self.client.clone().do_get(ticket).await?;
         collect_response_stream(response.into_inner()).await
     }
 
@@ -134,26 +111,15 @@ impl FlightFusionClient {
     }
 
     #[instrument(skip(self))]
-    pub async fn drop_table<T>(
+    pub async fn drop_table(
         &self,
-        table_ref: T,
-    ) -> Result<DropDatasetResponse, FusionClientError>
-    where
-        T: Into<String> + std::fmt::Debug,
-    {
-        let table_ref = AreaSourceReference {
-            table: Some(TableReference::Location(AreaTableLocation {
-                name: table_ref.into(),
-                areas: vec![],
-            })),
-        };
+        command: CommandDropDataset,
+    ) -> Result<DropDatasetResponse, FusionClientError> {
         let action_request = FlightActionRequest {
-            action: Some(FusionAction::Drop(DropDatasetRequest {
-                table: Some(table_ref),
-            })),
+            action: Some(FusionAction::Drop(command)),
         };
         let result = self
-            .do_action::<DropDatasetRequest, DropDatasetResponse>(action_request)
+            .do_action::<CommandDropDataset, DropDatasetResponse>(action_request)
             .await?;
         Ok(result)
     }

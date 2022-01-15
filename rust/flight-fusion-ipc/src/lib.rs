@@ -15,7 +15,7 @@ pub trait RequestFor {
     type Reply;
 }
 
-impl RequestFor for DropDatasetRequest {
+impl RequestFor for CommandDropDataset {
     type Reply = DropDatasetResponse;
 }
 
@@ -27,7 +27,7 @@ impl RequestFor for PutMemoryTableRequest {
     type Reply = PutMemoryTableResponse;
 }
 
-impl RequestFor for PutTableRequest {
+impl RequestFor for CommandWriteIntoDataset {
     type Reply = DoPutUpdateResult;
 }
 

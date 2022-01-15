@@ -1,12 +1,15 @@
 use error::FlightFusionClientError;
 use flight_fusion_client::{
-    arrow::record_batch::RecordBatch, flight_fusion_ipc::SaveMode, FlightFusionClient,
+    arrow::record_batch::RecordBatch,
+    flight_fusion_ipc::{CommandDropDataset, CommandReadDataset, CommandWriteIntoDataset},
+    FlightFusionClient,
 };
 use observability_deps::{
     opentelemetry::{global, sdk::propagation::TraceContextPropagator},
     opentelemetry_jaeger, tracing_opentelemetry, tracing_subscriber,
     tracing_subscriber::prelude::*,
 };
+use prost::Message;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use utils::wait_for_future;
@@ -15,36 +18,41 @@ mod error;
 mod utils;
 
 #[pyclass(module = "flight_fusion")]
-struct FusionClient {}
+struct FusionClient {
+    host: String,
+    port: i32,
+}
 
 #[pymethods]
 impl FusionClient {
     #[new]
-    fn new() -> PyResult<Self> {
-        Ok(Self {})
+    fn new(host: String, port: i32) -> PyResult<Self> {
+        Ok(Self { host, port })
     }
 
     fn write_into_table<'py>(
         &self,
         py: Python<'py>,
-        table_ref: &str,
-        save_mode: i32,
+        command: Vec<u8>,
         batches: Vec<RecordBatch>,
     ) -> PyResult<&'py PyBytes> {
-        let save_mode = SaveMode::from_i32(save_mode).unwrap_or(SaveMode::Overwrite);
+        let command = CommandWriteIntoDataset::decode(command.as_ref())
+            .map_err(FlightFusionClientError::from)?;
         let op = async {
-            let client = FlightFusionClient::try_new().await?;
-            client.write_into_table(table_ref, save_mode, batches).await
+            let client = FlightFusionClient::try_new(&self.host, self.port).await?;
+            client.write_into_table(command, batches).await
         };
         let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
         let obj = serialize_message(response).map_err(FlightFusionClientError::from)?;
         Ok(PyBytes::new(py, &obj))
     }
 
-    fn read_table<'py>(&self, py: Python<'py>, table_ref: &str) -> PyResult<Vec<RecordBatch>> {
+    fn read_table<'py>(&self, py: Python<'py>, command: Vec<u8>) -> PyResult<Vec<RecordBatch>> {
+        let command =
+            CommandReadDataset::decode(command.as_ref()).map_err(FlightFusionClientError::from)?;
         let op = async {
-            let client = FlightFusionClient::try_new().await?;
-            client.read_table(table_ref).await
+            let client = FlightFusionClient::try_new(&self.host, self.port).await?;
+            client.read_table(command).await
         };
         let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
         Ok(response)
@@ -57,7 +65,7 @@ impl FusionClient {
         batches: Vec<RecordBatch>,
     ) -> PyResult<&'py PyBytes> {
         let op = async {
-            let client = FlightFusionClient::try_new().await?;
+            let client = FlightFusionClient::try_new(&self.host, self.port).await?;
             client.put_memory_table(table_ref, batches).await
         };
         let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
@@ -65,10 +73,12 @@ impl FusionClient {
         Ok(PyBytes::new(py, &obj))
     }
 
-    fn drop_table<'py>(&self, py: Python<'py>, table_ref: &str) -> PyResult<&'py PyBytes> {
+    fn drop_table<'py>(&self, py: Python<'py>, command: Vec<u8>) -> PyResult<&'py PyBytes> {
+        let command =
+            CommandDropDataset::decode(command.as_ref()).map_err(FlightFusionClientError::from)?;
         let op = async {
-            let client = FlightFusionClient::try_new().await?;
-            client.drop_table(table_ref).await
+            let client = FlightFusionClient::try_new(&self.host, self.port).await?;
+            client.drop_table(command).await
         };
         let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
         let obj = serialize_message(response).map_err(FlightFusionClientError::from)?;

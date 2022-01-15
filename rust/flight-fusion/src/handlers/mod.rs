@@ -123,7 +123,7 @@ mod tests {
     use super::*;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
-        DropDatasetRequest, PutTableRequest, SaveMode,
+        CommandDropDataset, CommandWriteIntoDataset, SaveMode,
     };
 
     #[tokio::test]
@@ -139,7 +139,7 @@ mod tests {
                 areas: vec![],
             })),
         };
-        let put_request = PutTableRequest {
+        let put_request = CommandWriteIntoDataset {
             table: Some(table_ref.clone()),
             save_mode: SaveMode::Overwrite as i32,
         };
@@ -150,7 +150,7 @@ mod tests {
 
         assert!(table_dir.is_dir());
 
-        let drop_request = DropDatasetRequest {
+        let drop_request = CommandDropDataset {
             table: Some(table_ref),
         };
         let _drop_response = handler.handle_do_action(drop_request).await.unwrap();

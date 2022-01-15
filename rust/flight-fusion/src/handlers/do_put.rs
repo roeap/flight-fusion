@@ -8,9 +8,9 @@ use arrow_deps::datafusion::{
 use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, commands::DeltaCommands};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
-    delta_operation_request, BatchStatistics, ColumnStatistics, DeltaOperationRequest,
-    DeltaOperationResponse, DoPutUpdateResult, FlightFusionError, PutMemoryTableRequest,
-    PutMemoryTableResponse, PutTableRequest, Result as FusionResult, SaveMode,
+    delta_operation_request, BatchStatistics, ColumnStatistics, CommandWriteIntoDataset,
+    DeltaOperationRequest, DeltaOperationResponse, DoPutUpdateResult, FlightFusionError,
+    PutMemoryTableRequest, PutMemoryTableResponse, Result as FusionResult, SaveMode,
 };
 use std::sync::Arc;
 
@@ -75,10 +75,10 @@ impl DoPutHandler<PutMemoryTableRequest> for FusionActionHandler {
 }
 
 #[async_trait]
-impl DoPutHandler<PutTableRequest> for FusionActionHandler {
+impl DoPutHandler<CommandWriteIntoDataset> for FusionActionHandler {
     async fn handle_do_put(
         &self,
-        ticket: PutTableRequest,
+        ticket: CommandWriteIntoDataset,
         input: Arc<dyn ExecutionPlan>,
     ) -> FusionResult<DoPutUpdateResult> {
         if let Some(source) = ticket.table {
@@ -166,7 +166,7 @@ mod tests {
             name: "new_table".to_string(),
             areas: vec![],
         });
-        let request = PutTableRequest {
+        let request = CommandWriteIntoDataset {
             table: Some(AreaSourceReference { table: Some(table) }),
             save_mode: SaveMode::Overwrite as i32,
         };
@@ -194,7 +194,7 @@ mod tests {
                 areas: vec![],
             })),
         };
-        let request = PutTableRequest {
+        let request = CommandWriteIntoDataset {
             table: Some(table_ref.clone()),
             save_mode: SaveMode::Append as i32,
         };
@@ -223,7 +223,7 @@ mod tests {
             .unwrap();
         assert!(files.len() == 2);
 
-        let request = PutTableRequest {
+        let request = CommandWriteIntoDataset {
             table: Some(table_ref.clone()),
             save_mode: SaveMode::Overwrite as i32,
         };

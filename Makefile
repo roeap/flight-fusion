@@ -19,10 +19,6 @@ build: ## Build Python binding of arrow-azure-fs
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: proto
-proto:
-	python -m grpc_tools.protoc -I proto --python_betterproto_out=lib proto/common.proto proto/message.proto proto/signals.proto
-
 .PHONY: gen-test-data
 gen-test-data:
 	python scripts/generate_test_data.py
@@ -62,6 +58,17 @@ python-build: ## Build Python binding of flight fusion
 	$(info --- Build Python binding ---)
 	cd python/flight-fusion && maturin build --release --no-sdist --strip
 
+.PHONY: python-proto
+python-proto:
+	mkdir tmp-proto
+	python -m grpc_tools.protoc -I proto --python_betterproto_out=tmp-proto proto/common.proto proto/message.proto proto/signals.proto
+	mv -f ./tmp-proto/flight_fusion/ipc/v1alpha1/* ./python/flight-fusion/flight_fusion/ipc/v1alpha1/
+	rm -rf ./tmp-proto
+
 .PHONY: rust-test-integration
 rust-test-integration:
 	cargo test --package flight-fusion-client --tests --features integration
+
+.PHONY: run
+run: ## run most recent build of flight fusion
+	./target/debug/flight-fusion

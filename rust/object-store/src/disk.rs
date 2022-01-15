@@ -320,12 +320,10 @@ impl File {
 mod tests {
     use super::*;
     use crate::{
-        tests::{
-            get_nonexistent_object, list_uses_directories_correctly, list_with_delimiter,
-            put_get_delete_list,
-        },
-        Error as ObjectStoreError, ObjectStore, ObjectStoreApi, ObjectStorePath,
+        tests::{list_uses_directories_correctly, list_with_delimiter, put_get_delete_list},
+        ObjectStore, ObjectStoreApi, ObjectStorePath,
     };
+    #[cfg(target_family = "unix")]
     use std::{fs::set_permissions, os::unix::prelude::PermissionsExt};
     use tempfile::TempDir;
 
@@ -385,6 +383,7 @@ mod tests {
         assert_eq!(&*read_data, expected_data);
     }
 
+    #[cfg(target_family = "unix")]
     #[tokio::test]
     async fn bubble_up_io_errors() {
         let root = TempDir::new().unwrap();
@@ -416,32 +415,4 @@ mod tests {
         // `list_with_delimiter
         assert!(store.list_with_delimiter(&store.new_path()).await.is_err());
     }
-
-    // const NON_EXISTENT_NAME: &str = "nonexistentname";
-    //
-    // #[tokio::test]
-    // async fn get_nonexistent_location() {
-    //     let root = TempDir::new().unwrap();
-    //     let integration = ObjectStore::new_file(root.path());
-    //
-    //     let mut location = integration.new_path();
-    //     location.set_file_name(NON_EXISTENT_NAME);
-    //
-    //     let err = get_nonexistent_object(&integration, Some(location))
-    //         .await
-    //         .unwrap_err();
-    //     if let Some(ObjectStoreError::NotFound { location, source }) =
-    //         err.downcast_ref::<ObjectStoreError>()
-    //     {
-    //         let source_variant = source.downcast_ref::<std::io::Error>();
-    //         assert!(
-    //             matches!(source_variant, Some(std::io::Error { .. }),),
-    //             "got: {:?}",
-    //             source_variant
-    //         );
-    //         assert_eq!(location, NON_EXISTENT_NAME);
-    //     } else {
-    //         panic!("unexpected error type: {:?}", err);
-    //     }
-    // }
 }

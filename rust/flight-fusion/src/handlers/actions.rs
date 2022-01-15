@@ -1,20 +1,15 @@
 use super::{ActionHandler, FusionActionHandler};
 use crate::area_store::{flatten_list_stream, AreaStore};
-use arrow_deps::datafusion::{
-    catalog::catalog::CatalogProvider, datasource::MemTable, parquet::arrow::ArrowReader,
-};
 use flight_fusion_ipc::{
-    DatasetFormat, DropDatasetRequest, DropDatasetResponse, FlightFusionError,
-    RegisterDatasetRequest, RegisterDatasetResponse, Result as FusionResult,
+    CommandDropDataset, DropDatasetResponse, FlightFusionError, Result as FusionResult,
 };
 use object_store::ObjectStoreApi;
-use std::sync::Arc;
 
 #[async_trait::async_trait]
-impl ActionHandler<DropDatasetRequest> for FusionActionHandler {
+impl ActionHandler<CommandDropDataset> for FusionActionHandler {
     async fn handle_do_action(
         &self,
-        action: DropDatasetRequest,
+        action: CommandDropDataset,
     ) -> FusionResult<DropDatasetResponse> {
         if let Some(source) = action.table {
             // TODO remove panic

@@ -10,6 +10,7 @@ ignoreWords:
   - Kusto
   - Pageable
   - Timespan
+  - betterproto
   - chrono
   - clippy
   - codegen
@@ -28,6 +29,7 @@ ignoreWords:
   - proto
   - protobuf
   - pyclass
+  - pydantic
   - pyfunction
   - pymethods
   - pymodule
