@@ -3,6 +3,12 @@ syntax = "proto3";
 package flight_fusion.ipc.v1alpha1;
 
 import "message.proto";
+import "common.proto";
+
+message FlightGetSchemaRequest {
+  // source identifier
+  AreaSourceReference source = 1;
+}
 
 // Requests submitted against the `do_get` endpoint
 message FlightDoGetRequest {

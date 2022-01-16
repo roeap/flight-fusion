@@ -10,13 +10,14 @@ use arrow_deps::datafusion::{
 };
 use arrow_flight::{
     flight_descriptor::DescriptorType, FlightData, FlightDescriptor, FlightEndpoint, FlightInfo,
-    PutResult,
+    PutResult, SchemaResult,
 };
 use async_trait::async_trait;
 use flight_fusion_ipc::{
     flight_action_request::Action as FusionAction, flight_do_get_request::Command as DoGetCommand,
     serialize_message, AreaSourceMetadata, CommandListSources, FlightActionRequest,
-    FlightDoGetRequest, FlightFusionError, RequestFor, Result as FusionResult,
+    FlightDoGetRequest, FlightFusionError, FlightGetFlightInfoRequest, FlightGetSchemaRequest,
+    RequestFor, Result as FusionResult,
 };
 use futures::{Stream, StreamExt};
 pub use object_store::{path::ObjectStorePath, ObjectStoreApi};
@@ -92,6 +93,17 @@ impl FusionActionHandler {
                 .map_err(to_fusion_err)?
                 .map(move |meta| meta_to_flight_info(meta)),
         ))
+    }
+
+    pub async fn get_schema(&self, request: FlightGetSchemaRequest) -> FusionResult<SchemaResult> {
+        todo!()
+    }
+
+    pub async fn get_flight_info(
+        &self,
+        request: FlightGetFlightInfoRequest,
+    ) -> FusionResult<FlightInfo> {
+        todo!()
     }
 
     pub async fn execute_action(
@@ -193,7 +205,7 @@ mod tests {
             })),
         };
         let put_request = CommandWriteIntoDataset {
-            table: Some(table_ref.clone()),
+            source: Some(table_ref.clone()),
             save_mode: SaveMode::Overwrite as i32,
         };
 

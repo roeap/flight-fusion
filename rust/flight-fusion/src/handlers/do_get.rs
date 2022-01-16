@@ -37,7 +37,7 @@ impl DoGetHandler<CommandReadDataset> for FusionActionHandler {
         &self,
         ticket: CommandReadDataset,
     ) -> FusionResult<BoxedFlightStream<FlightData>> {
-        if let Some(table) = ticket.table {
+        if let Some(table) = ticket.source {
             // TODO remove panics
             let location = self.area_store.get_table_location(&table).unwrap();
             let batches = self.area_store.get_batches(&location).await.unwrap();

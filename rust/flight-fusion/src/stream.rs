@@ -22,7 +22,6 @@ use flight_fusion_ipc::{
 };
 use futures::{stream::Stream, StreamExt, TryStreamExt};
 use prost::Message;
-use std::io::Cursor;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
@@ -53,8 +52,7 @@ impl FlightReceiverPlan {
 
         let ticket = match DescriptorType::from_i32(descriptor.r#type) {
             Some(DescriptorType::Cmd) => {
-                let mut buf = Cursor::new(&descriptor.cmd);
-                let request_data = FlightDoPutRequest::decode(&mut buf)
+                let request_data = FlightDoPutRequest::decode(&mut descriptor.cmd.as_ref())
                     .map_err(|e| FlightFusionError::external(e.to_string()))?;
                 Ok(request_data)
             }

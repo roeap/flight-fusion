@@ -218,6 +218,12 @@ class CommandKqlOperation(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
+class CommandGetSchema(betterproto.Message):
+    # source identifier
+    source: "AreaSourceReference" = betterproto.message_field(1)
+
+
+@dataclass(eq=False, repr=False)
 class CommandListSources(betterproto.Message):
     root: Optional["AreaReference"] = betterproto.message_field(
         1, optional=True, group="_root"
@@ -228,13 +234,13 @@ class CommandListSources(betterproto.Message):
 class CommandReadDataset(betterproto.Message):
     """Read entire table from storage"""
 
-    # table identifier
-    table: "AreaSourceReference" = betterproto.message_field(1)
+    # source identifier
+    source: "AreaSourceReference" = betterproto.message_field(1)
 
 
 @dataclass(eq=False, repr=False)
 class CommandDropSource(betterproto.Message):
-    # table identifier
+    # source identifier
     source: "AreaSourceReference" = betterproto.message_field(1)
 
 
@@ -242,8 +248,8 @@ class CommandDropSource(betterproto.Message):
 class CommandWriteIntoDataset(betterproto.Message):
     """Request to write data to area storage"""
 
-    # table identifier
-    table: "AreaSourceReference" = betterproto.message_field(1)
+    # source identifier
+    source: "AreaSourceReference" = betterproto.message_field(1)
     # denotes how to beahve for existing data - defaults to overwrite
     save_mode: "SaveMode" = betterproto.enum_field(3)
 
@@ -368,6 +374,18 @@ class ColumnStatistics(betterproto.Message):
     min_value: str = betterproto.string_field(3)
     # Number of distinct values
     distinct_count: int = betterproto.int64_field(4)
+
+
+@dataclass(eq=False, repr=False)
+class FlightGetFlightInfoRequest(betterproto.Message):
+    # source identifier
+    source: "AreaSourceReference" = betterproto.message_field(1)
+
+
+@dataclass(eq=False, repr=False)
+class FlightGetSchemaRequest(betterproto.Message):
+    # source identifier
+    source: "AreaSourceReference" = betterproto.message_field(1)
 
 
 @dataclass(eq=False, repr=False)

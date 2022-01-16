@@ -274,6 +274,12 @@ pub struct CommandKqlOperation {
 // Commands
 
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CommandGetSchema {
+    /// source identifier
+    #[prost(message, optional, tag="1")]
+    pub source: ::core::option::Option<AreaSourceReference>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CommandListSources {
     #[prost(message, optional, tag="1")]
     pub root: ::core::option::Option<AreaReference>,
@@ -281,22 +287,22 @@ pub struct CommandListSources {
 /// Read entire table from storage
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CommandReadDataset {
-    /// table identifier
+    /// source identifier
     #[prost(message, optional, tag="1")]
-    pub table: ::core::option::Option<AreaSourceReference>,
+    pub source: ::core::option::Option<AreaSourceReference>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CommandDropSource {
-    /// table identifier
+    /// source identifier
     #[prost(message, optional, tag="1")]
     pub source: ::core::option::Option<AreaSourceReference>,
 }
 /// Request to write data to area storage
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CommandWriteIntoDataset {
-    /// table identifier
+    /// source identifier
     #[prost(message, optional, tag="1")]
-    pub table: ::core::option::Option<AreaSourceReference>,
+    pub source: ::core::option::Option<AreaSourceReference>,
     /// denotes how to beahve for existing data - defaults to overwrite
     #[prost(enumeration="SaveMode", tag="3")]
     pub save_mode: i32,
@@ -531,6 +537,18 @@ pub enum UserAction {
 pub enum DeviceAction {
     Unspecified = 0,
     Read = 1,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FlightGetFlightInfoRequest {
+    /// source identifier
+    #[prost(message, optional, tag="1")]
+    pub source: ::core::option::Option<AreaSourceReference>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FlightGetSchemaRequest {
+    /// source identifier
+    #[prost(message, optional, tag="1")]
+    pub source: ::core::option::Option<AreaSourceReference>,
 }
 /// Requests submitted against the `do_get` endpoint
 #[derive(Clone, PartialEq, ::prost::Message)]

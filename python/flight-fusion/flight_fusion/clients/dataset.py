@@ -67,14 +67,14 @@ class DatasetClient:
         if isinstance(data, pd.DataFrame):
             data = pa.Table.from_pandas(data)
         batches = data.to_batches()
-        command = CommandWriteIntoDataset(table=self._reference, save_mode=save_mode)
+        command = CommandWriteIntoDataset(source=self._reference, save_mode=save_mode)
         response = self._client.fusion.write_into_table(
             command=command.SerializeToString(), batches=batches
         )
         return ResultDoPutUpdate().parse(response)
 
     def load(self) -> pa.Table:
-        command = CommandReadDataset(table=self._reference)
+        command = CommandReadDataset(source=self._reference)
         batches = self._client.fusion.read_table(command=command.SerializeToString())
         return pa.Table.from_batches(batches)
 

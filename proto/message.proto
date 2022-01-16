@@ -21,25 +21,30 @@ message CommandKqlOperation {
 
 // Commands
 
+message CommandGetSchema {
+  // source identifier
+  AreaSourceReference source = 1;
+}
+
 message CommandListSources {
   optional AreaReference root = 1;
 }
 
 // Read entire table from storage
 message CommandReadDataset {
-  // table identifier
-  AreaSourceReference table = 1;
+  // source identifier
+  AreaSourceReference source = 1;
 }
 
 message CommandDropSource {
-  // table identifier
+  // source identifier
   AreaSourceReference source = 1;
 }
 
 // Request to write data to area storage
 message CommandWriteIntoDataset {
-  // table identifier
-  AreaSourceReference table = 1;
+  // source identifier
+  AreaSourceReference source = 1;
   // denotes how to beahve for existing data - defaults to overwrite
   SaveMode save_mode = 3;
 }

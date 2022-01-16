@@ -82,7 +82,7 @@ impl DoPutHandler<CommandWriteIntoDataset> for FusionActionHandler {
         ticket: CommandWriteIntoDataset,
         input: Arc<dyn ExecutionPlan>,
     ) -> FusionResult<ResultDoPutUpdate> {
-        if let Some(source) = ticket.table {
+        if let Some(source) = ticket.source {
             // TODO remove panic
             let location = self.area_store.get_table_location(&source).unwrap();
             let batches = collect(input).await.unwrap();
@@ -168,7 +168,7 @@ mod tests {
             areas: vec![],
         });
         let request = CommandWriteIntoDataset {
-            table: Some(AreaSourceReference { table: Some(table) }),
+            source: Some(AreaSourceReference { table: Some(table) }),
             save_mode: SaveMode::Overwrite as i32,
         };
 
@@ -196,7 +196,7 @@ mod tests {
             })),
         };
         let request = CommandWriteIntoDataset {
-            table: Some(table_ref.clone()),
+            source: Some(table_ref.clone()),
             save_mode: SaveMode::Append as i32,
         };
 
@@ -225,7 +225,7 @@ mod tests {
         assert!(files.len() == 2);
 
         let request = CommandWriteIntoDataset {
-            table: Some(table_ref.clone()),
+            source: Some(table_ref.clone()),
             save_mode: SaveMode::Overwrite as i32,
         };
 

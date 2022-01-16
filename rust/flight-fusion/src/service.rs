@@ -1,10 +1,13 @@
 use crate::{handlers::FusionActionHandler, stream::FlightReceiverPlan};
 use arrow_flight::{
-    flight_service_server::FlightService, Action, ActionType, Criteria, Empty, FlightData,
-    FlightDescriptor, FlightInfo, HandshakeRequest, HandshakeResponse, PutResult, SchemaResult,
-    Ticket,
+    flight_descriptor::DescriptorType, flight_service_server::FlightService, Action, ActionType,
+    Criteria, Empty, FlightData, FlightDescriptor, FlightInfo, HandshakeRequest, HandshakeResponse,
+    PutResult, SchemaResult, Ticket,
 };
-use flight_fusion_ipc::{CommandListSources, FlightActionRequest, FlightDoGetRequest};
+use flight_fusion_ipc::{
+    CommandListSources, FlightActionRequest, FlightDoGetRequest, FlightGetFlightInfoRequest,
+    FlightGetSchemaRequest,
+};
 use futures::Stream;
 use observability_deps::instrument;
 use observability_deps::opentelemetry::{global, propagation::Extractor};
@@ -100,7 +103,28 @@ impl FlightService for FlightFusionService {
         &self,
         request: Request<FlightDescriptor>,
     ) -> Result<Response<FlightInfo>, Status> {
-        Err(Status::unimplemented("Not yet implemented"))
+        let parent_cx =
+            global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
+        tracing::Span::current().set_parent(parent_cx);
+
+        let descriptor = request.into_inner();
+        let command = match DescriptorType::from_i32(descriptor.r#type) {
+            Some(DescriptorType::Cmd) => {
+                let request_data = FlightGetFlightInfoRequest::decode(&mut descriptor.cmd.as_ref())
+                    .map_err(|e| tonic::Status::internal(e.to_string()))?;
+                Ok(request_data)
+            }
+            _ => Err(tonic::Status::internal(
+                "`get_schema` requires command to be defined on flight descriptor",
+            )),
+        }?;
+
+        Ok(Response::new(
+            self.action_handler
+                .get_flight_info(command)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?,
+        ))
     }
 
     #[instrument(skip(self, request))]
@@ -108,7 +132,28 @@ impl FlightService for FlightFusionService {
         &self,
         request: Request<FlightDescriptor>,
     ) -> Result<Response<SchemaResult>, Status> {
-        Err(Status::unimplemented("Not yet implemented"))
+        let parent_cx =
+            global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
+        tracing::Span::current().set_parent(parent_cx);
+
+        let descriptor = request.into_inner();
+        let command = match DescriptorType::from_i32(descriptor.r#type) {
+            Some(DescriptorType::Cmd) => {
+                let request_data = FlightGetSchemaRequest::decode(&mut descriptor.cmd.as_ref())
+                    .map_err(|e| tonic::Status::internal(e.to_string()))?;
+                Ok(request_data)
+            }
+            _ => Err(tonic::Status::internal(
+                "`get_schema` requires command to be defined on flight descriptor",
+            )),
+        }?;
+
+        Ok(Response::new(
+            self.action_handler
+                .get_schema(command)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?,
+        ))
     }
 
     #[instrument(skip(self, request))]
