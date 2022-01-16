@@ -1,0 +1,58 @@
+// Wrappers around to commands and actions tha get passed to the Flight service.
+syntax = "proto3";
+package flight_fusion.ipc.v1alpha1;
+
+import "message.proto";
+
+// Requests submitted against the `do_get` endpoint
+message FlightDoGetRequest {
+  oneof command {
+    CommandSqlOperation sql = 1;
+    CommandKqlOperation kql = 2;
+    SignalFrameOperation frame = 3;
+
+    // Read data from a registered source
+    CommandReadDataset read = 4;
+  }
+}
+
+// Requests submitted against the `do_put` endpoint
+message FlightDoPutRequest {
+  oneof command {
+    PutMemoryTableRequest memory = 1;
+
+    // Write data into a registered source
+    CommandWriteIntoDataset storage = 2;
+    DeltaOperationRequest delta = 3;
+  }
+}
+
+// Response recieved from `do_put` operations`
+message FlightDoPutResponse {
+  oneof payload {
+    // statistics for data written to source
+    ResultDoPutUpdate update = 1;
+  }
+}
+
+// Requests submitted against the `do_action` endpoint
+message FlightActionRequest {
+  // parameters for the specific action to be executed.
+  oneof action {
+    // Register a new data source to service
+    CommandRegisterSource register = 1;
+
+    // command to remove a dataset from the area store
+    CommandDropSource drop = 2;
+  }
+}
+
+message FlightActionResponse {
+  oneof payload {
+    // Operation info when source is registered
+    ResultRegisterSource register = 1;
+
+    // Operation info when source is dropped
+    ResultDropSource drop = 2;
+  }
+}

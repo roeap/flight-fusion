@@ -64,7 +64,7 @@ python-build: ## Build Python binding of flight fusion
 python-proto:
 	$(info Generate python protobuffers)
 	mkdir tmp-proto
-	python -m grpc_tools.protoc -I proto --python_betterproto_out=tmp-proto proto/common.proto proto/message.proto proto/signals.proto
+	python -m grpc_tools.protoc -I proto --python_betterproto_out=tmp-proto proto/common.proto proto/message.proto proto/signals.proto proto/flight.proto
 	mv -f ./tmp-proto/flight_fusion/ipc/v1alpha1/* ./python/flight-fusion/flight_fusion/ipc/v1alpha1/
 	rm -rf ./tmp-proto
 

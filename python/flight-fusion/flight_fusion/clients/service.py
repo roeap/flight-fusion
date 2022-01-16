@@ -10,7 +10,6 @@ from flight_fusion._internal import FusionClient as RawFusionClient
 from flight_fusion.ipc.v1alpha1 import (
     AreaSourceReference,
     AreaTableLocation,
-    DropDatasetResponse,
     PutMemoryTableResponse,
     SaveMode,
 )
@@ -58,10 +57,6 @@ class FlightFusionClient:
                 location=AreaTableLocation(name=name, areas=areas)
             ),
         )
-
-    def drop_table(self, table_ref: str) -> DropDatasetResponse:
-        raw_response = self._raw.drop_table(table_ref)
-        return DropDatasetResponse().parse(raw_response)
 
     def put_memory_table(
         self,

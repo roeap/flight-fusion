@@ -14,11 +14,11 @@ from flight_fusion.ipc.v1alpha1 import (
     AreaSourceMetadata,
     AreaSourceReference,
     AreaTableLocation,
-    CommandDropDataset,
+    CommandDropSource,
     CommandReadDataset,
     CommandWriteIntoDataset,
-    DoPutUpdateResult,
-    DropDatasetResponse,
+    ResultDoPutUpdate,
+    ResultDropSource,
     SaveMode,
 )
 
@@ -63,7 +63,7 @@ class DatasetClient:
         self,
         data: Union[pd.DataFrame, pa.Table],
         save_mode: SaveMode = SaveMode.SAVE_MODE_OVERWRITE,
-    ) -> DoPutUpdateResult:
+    ) -> ResultDoPutUpdate:
         if isinstance(data, pd.DataFrame):
             data = pa.Table.from_pandas(data)
         batches = data.to_batches()
@@ -71,7 +71,7 @@ class DatasetClient:
         response = self._client.fusion.write_into_table(
             command=command.SerializeToString(), batches=batches
         )
-        return DoPutUpdateResult().parse(response)
+        return ResultDoPutUpdate().parse(response)
 
     def load(self) -> pa.Table:
         command = CommandReadDataset(table=self._reference)
@@ -81,10 +81,10 @@ class DatasetClient:
     def query(self, query: str) -> pa.Table:
         ...
 
-    def drop(self) -> DropDatasetResponse:
-        command = CommandDropDataset(table=self._reference)
+    def drop(self) -> ResultDropSource:
+        command = CommandDropSource(source=self._reference)
         response = self._client.fusion.drop_table(command=command.SerializeToString())
-        return DropDatasetResponse().parse(response)
+        return ResultDropSource().parse(response)
 
     def get_metadata(self) -> AreaSourceMetadata:
         ...

@@ -8,9 +8,10 @@ use arrow_deps::datafusion::{
 use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, commands::DeltaCommands};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
-    delta_operation_request, CommandWriteIntoDataset, DeltaOperationRequest,
-    DeltaOperationResponse, DoPutUpdateResult, FlightFusionError, PutMemoryTableRequest,
-    PutMemoryTableResponse, Result as FusionResult, SaveMode,
+    delta_operation_request, flight_do_put_request::Command as DoPutCommand,
+    CommandWriteIntoDataset, DeltaOperationRequest, DeltaOperationResponse, FlightFusionError,
+    PutMemoryTableRequest, PutMemoryTableResponse, Result as FusionResult, ResultDoPutUpdate,
+    SaveMode,
 };
 use std::sync::Arc;
 
@@ -20,16 +21,16 @@ impl FusionActionHandler {
         stream: Arc<FlightReceiverPlan>,
     ) -> FusionResult<BoxedFlightStream<PutResult>> {
         let request_data = stream.ticket();
-        let body = match &request_data.operation {
+        let body = match &request_data.command {
             Some(action) => {
                 let result_body = match action {
-                    DoPutOperation::Memory(memory) => {
+                    DoPutCommand::Memory(memory) => {
                         serialize_message(self.handle_do_put(memory.clone(), stream).await?)
                     }
-                    DoPutOperation::Storage(storage) => {
+                    DoPutCommand::Storage(storage) => {
                         serialize_message(self.handle_do_put(storage.clone(), stream).await?)
                     }
-                    DoPutOperation::Delta(delta) => {
+                    DoPutCommand::Delta(delta) => {
                         serialize_message(self.handle_do_put(delta.clone(), stream).await?)
                     }
                 };
@@ -80,7 +81,7 @@ impl DoPutHandler<CommandWriteIntoDataset> for FusionActionHandler {
         &self,
         ticket: CommandWriteIntoDataset,
         input: Arc<dyn ExecutionPlan>,
-    ) -> FusionResult<DoPutUpdateResult> {
+    ) -> FusionResult<ResultDoPutUpdate> {
         if let Some(source) = ticket.table {
             // TODO remove panic
             let location = self.area_store.get_table_location(&source).unwrap();
@@ -95,7 +96,7 @@ impl DoPutHandler<CommandWriteIntoDataset> for FusionActionHandler {
                 )
                 .await
                 .unwrap();
-            Ok(DoPutUpdateResult { statistics: None })
+            Ok(ResultDoPutUpdate { statistics: None })
         } else {
             // TODO migrate errors and raise something more meaningful
             Err(FlightFusionError::generic("Source not found"))

@@ -1,17 +1,14 @@
 use super::{ActionHandler, FusionActionHandler};
 use crate::area_store::{flatten_list_stream, AreaStore};
 use flight_fusion_ipc::{
-    CommandDropDataset, DropDatasetResponse, FlightFusionError, Result as FusionResult,
+    CommandDropSource, FlightFusionError, Result as FusionResult, ResultDropSource,
 };
 use object_store::ObjectStoreApi;
 
 #[async_trait::async_trait]
-impl ActionHandler<CommandDropDataset> for FusionActionHandler {
-    async fn handle_do_action(
-        &self,
-        action: CommandDropDataset,
-    ) -> FusionResult<DropDatasetResponse> {
-        if let Some(source) = action.table {
+impl ActionHandler<CommandDropSource> for FusionActionHandler {
+    async fn handle_do_action(&self, action: CommandDropSource) -> FusionResult<ResultDropSource> {
+        if let Some(source) = action.source {
             // TODO remove panic
             let location = self.area_store.get_table_location(&source).unwrap();
             let files = flatten_list_stream(&self.area_store.object_store(), Some(&location))
@@ -27,7 +24,7 @@ impl ActionHandler<CommandDropDataset> for FusionActionHandler {
                 .await
                 .unwrap();
             // TODO return a more meaningful message
-            Ok(DropDatasetResponse {
+            Ok(ResultDropSource {
                 name: "dropped".to_string(),
             })
         } else {

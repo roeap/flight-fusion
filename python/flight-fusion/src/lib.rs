@@ -1,7 +1,7 @@
 use error::FlightFusionClientError;
 use flight_fusion_client::{
     arrow::record_batch::RecordBatch,
-    flight_fusion_ipc::{CommandDropDataset, CommandReadDataset, CommandWriteIntoDataset},
+    flight_fusion_ipc::{CommandDropSource, CommandReadDataset, CommandWriteIntoDataset},
     FlightFusionClient,
 };
 use observability_deps::{
@@ -75,7 +75,7 @@ impl FusionClient {
 
     fn drop_table<'py>(&self, py: Python<'py>, command: Vec<u8>) -> PyResult<&'py PyBytes> {
         let command =
-            CommandDropDataset::decode(command.as_ref()).map_err(FlightFusionClientError::from)?;
+            CommandDropSource::decode(command.as_ref()).map_err(FlightFusionClientError::from)?;
         let op = async {
             let client = FlightFusionClient::try_new(&self.host, self.port).await?;
             client.drop_table(command).await

@@ -1,13 +1,25 @@
 //! File based AreaCatalog implementation stored on disk.
 use super::AreaCatalog;
-use crate::error::{Result, ResultStream};
+use crate::{
+    area_store::AreaStore,
+    error::{Result, ResultStream},
+};
 use async_trait::async_trait;
 use flight_fusion_ipc::{AreaSourceMetadata, AreaSourceReference};
+use std::sync::Arc;
 
-pub struct DiskAreaCatalog {}
+pub struct FileAreaCatalog {
+    store: Arc<dyn AreaStore>,
+}
+
+impl FileAreaCatalog {
+    pub fn new(store: Arc<dyn AreaStore>) -> Self {
+        Self { store }
+    }
+}
 
 #[async_trait]
-impl AreaCatalog for DiskAreaCatalog {
+impl AreaCatalog for FileAreaCatalog {
     async fn get_source_meta(&self, _reference: AreaSourceReference) -> Result<AreaSourceMetadata> {
         todo!()
     }

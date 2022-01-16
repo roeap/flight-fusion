@@ -43,7 +43,7 @@ pub async fn flatten_list_stream(
 }
 
 #[async_trait]
-pub trait AreaStore {
+pub trait AreaStore: Send + Sync {
     /// Get a reference to the underlying object store
     fn object_store(&self) -> Arc<object_store::ObjectStore>;
 

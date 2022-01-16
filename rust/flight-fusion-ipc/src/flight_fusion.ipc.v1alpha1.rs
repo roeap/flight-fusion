@@ -28,6 +28,38 @@ pub mod table_reference {
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EntityUri {
+    #[prost(string, tag="1")]
+    pub uri: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EntityId {
+    #[prost(string, tag="1")]
+    pub id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct EntityPath {
+    #[prost(string, repeated, tag="1")]
+    pub path: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AreaReference {
+    #[prost(oneof="area_reference::Area", tags="1, 2, 3")]
+    pub area: ::core::option::Option<area_reference::Area>,
+}
+/// Nested message and enum types in `AreaReference`.
+pub mod area_reference {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Area {
+        #[prost(message, tag="1")]
+        Id(super::EntityId),
+        #[prost(message, tag="2")]
+        Uri(super::EntityUri),
+        #[prost(message, tag="3")]
+        Path(super::EntityPath),
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AreaTableLocation {
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
@@ -222,25 +254,6 @@ pub enum SignalType {
     Expression = 3,
     Model = 4,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RegisterDatasetRequest {
-    #[prost(enumeration="DatasetFormat", tag="1")]
-    pub format: i32,
-    #[prost(string, tag="2")]
-    pub path: ::prost::alloc::string::String,
-    #[prost(string, tag="3")]
-    pub name: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RegisterDatasetResponse {
-    #[prost(string, tag="1")]
-    pub message: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DropDatasetResponse {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-}
 /// Describes an SQL query operation
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CommandSqlOperation {
@@ -260,6 +273,11 @@ pub struct CommandKqlOperation {
 }
 // Commands
 
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CommandListSources {
+    #[prost(message, optional, tag="1")]
+    pub root: ::core::option::Option<AreaReference>,
+}
 /// Read entire table from storage
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CommandReadDataset {
@@ -268,10 +286,10 @@ pub struct CommandReadDataset {
     pub table: ::core::option::Option<AreaSourceReference>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CommandDropDataset {
+pub struct CommandDropSource {
     /// table identifier
     #[prost(message, optional, tag="1")]
-    pub table: ::core::option::Option<AreaSourceReference>,
+    pub source: ::core::option::Option<AreaSourceReference>,
 }
 /// Request to write data to area storage
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -282,6 +300,35 @@ pub struct CommandWriteIntoDataset {
     /// denotes how to beahve for existing data - defaults to overwrite
     #[prost(enumeration="SaveMode", tag="3")]
     pub save_mode: i32,
+}
+/// Command to register a new source to service
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CommandRegisterSource {
+    #[prost(enumeration="DatasetFormat", tag="1")]
+    pub format: i32,
+    #[prost(string, tag="2")]
+    pub path: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub name: ::prost::alloc::string::String,
+}
+// Results
+
+/// result when a new source is registered
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResultRegisterSource {
+    #[prost(string, tag="1")]
+    pub message: ::prost::alloc::string::String,
+}
+/// result when a source is dropped
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResultDropSource {
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResultDoPutUpdate {
+    #[prost(message, optional, tag="1")]
+    pub statistics: ::core::option::Option<BatchStatistics>,
 }
 // Signals
 
@@ -338,74 +385,6 @@ pub struct PutMemoryTableRequest {
 pub struct PutMemoryTableResponse {
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
-}
-// Flight
-
-/// Requests submitted against the `do_get` endpoint
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct FlightDoGetRequest {
-    #[prost(oneof="flight_do_get_request::Operation", tags="1, 2, 3, 4")]
-    pub operation: ::core::option::Option<flight_do_get_request::Operation>,
-}
-/// Nested message and enum types in `FlightDoGetRequest`.
-pub mod flight_do_get_request {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Operation {
-        #[prost(message, tag="1")]
-        Sql(super::CommandSqlOperation),
-        #[prost(message, tag="2")]
-        Kql(super::CommandKqlOperation),
-        #[prost(message, tag="3")]
-        Frame(super::SignalFrameOperation),
-        #[prost(message, tag="4")]
-        Read(super::CommandReadDataset),
-    }
-}
-/// Requests submitted against the `do_put` endpoint
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct FlightDoPutRequest {
-    #[prost(oneof="flight_do_put_request::Operation", tags="1, 2, 3")]
-    pub operation: ::core::option::Option<flight_do_put_request::Operation>,
-}
-/// Nested message and enum types in `FlightDoPutRequest`.
-pub mod flight_do_put_request {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Operation {
-        #[prost(message, tag="1")]
-        Memory(super::PutMemoryTableRequest),
-        #[prost(message, tag="2")]
-        Storage(super::CommandWriteIntoDataset),
-        #[prost(message, tag="3")]
-        Delta(super::DeltaOperationRequest),
-    }
-}
-/// Requests submitted against the `do_action` endpoint
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct FlightActionRequest {
-    /// parameters for the specific action to be executed.
-    #[prost(oneof="flight_action_request::Action", tags="1, 2")]
-    pub action: ::core::option::Option<flight_action_request::Action>,
-}
-/// Nested message and enum types in `FlightActionRequest`.
-pub mod flight_action_request {
-    /// parameters for the specific action to be executed.
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Action {
-        #[prost(message, tag="1")]
-        Register(super::RegisterDatasetRequest),
-        /// command to remove a dataset from the area store
-        #[prost(message, tag="2")]
-        Drop(super::CommandDropDataset),
-    }
-}
-///
-/// Returned from the RPC call DoPut when a CommandStatementUpdate
-/// CommandPreparedStatementUpdate was in the request, containing
-/// results from the update.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DoPutUpdateResult {
-    #[prost(message, optional, tag="1")]
-    pub statistics: ::core::option::Option<BatchStatistics>,
 }
 // Metadata
 
@@ -552,4 +531,96 @@ pub enum UserAction {
 pub enum DeviceAction {
     Unspecified = 0,
     Read = 1,
+}
+/// Requests submitted against the `do_get` endpoint
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FlightDoGetRequest {
+    #[prost(oneof="flight_do_get_request::Command", tags="1, 2, 3, 4")]
+    pub command: ::core::option::Option<flight_do_get_request::Command>,
+}
+/// Nested message and enum types in `FlightDoGetRequest`.
+pub mod flight_do_get_request {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Command {
+        #[prost(message, tag="1")]
+        Sql(super::CommandSqlOperation),
+        #[prost(message, tag="2")]
+        Kql(super::CommandKqlOperation),
+        #[prost(message, tag="3")]
+        Frame(super::SignalFrameOperation),
+        /// Read data from a registered source
+        #[prost(message, tag="4")]
+        Read(super::CommandReadDataset),
+    }
+}
+/// Requests submitted against the `do_put` endpoint
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FlightDoPutRequest {
+    #[prost(oneof="flight_do_put_request::Command", tags="1, 2, 3")]
+    pub command: ::core::option::Option<flight_do_put_request::Command>,
+}
+/// Nested message and enum types in `FlightDoPutRequest`.
+pub mod flight_do_put_request {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Command {
+        #[prost(message, tag="1")]
+        Memory(super::PutMemoryTableRequest),
+        /// Write data into a registered source
+        #[prost(message, tag="2")]
+        Storage(super::CommandWriteIntoDataset),
+        #[prost(message, tag="3")]
+        Delta(super::DeltaOperationRequest),
+    }
+}
+/// Response recieved from `do_put` operations`
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FlightDoPutResponse {
+    #[prost(oneof="flight_do_put_response::Payload", tags="1")]
+    pub payload: ::core::option::Option<flight_do_put_response::Payload>,
+}
+/// Nested message and enum types in `FlightDoPutResponse`.
+pub mod flight_do_put_response {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Payload {
+        /// statistics for data written to source
+        #[prost(message, tag="1")]
+        Update(super::ResultDoPutUpdate),
+    }
+}
+/// Requests submitted against the `do_action` endpoint
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FlightActionRequest {
+    /// parameters for the specific action to be executed.
+    #[prost(oneof="flight_action_request::Action", tags="1, 2")]
+    pub action: ::core::option::Option<flight_action_request::Action>,
+}
+/// Nested message and enum types in `FlightActionRequest`.
+pub mod flight_action_request {
+    /// parameters for the specific action to be executed.
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Action {
+        /// Register a new data source to service
+        #[prost(message, tag="1")]
+        Register(super::CommandRegisterSource),
+        /// command to remove a dataset from the area store
+        #[prost(message, tag="2")]
+        Drop(super::CommandDropSource),
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FlightActionResponse {
+    #[prost(oneof="flight_action_response::Payload", tags="1, 2")]
+    pub payload: ::core::option::Option<flight_action_response::Payload>,
+}
+/// Nested message and enum types in `FlightActionResponse`.
+pub mod flight_action_response {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Payload {
+        /// Operation info when source is registered
+        #[prost(message, tag="1")]
+        Register(super::ResultRegisterSource),
+        /// Operation info when source is dropped
+        #[prost(message, tag="2")]
+        Drop(super::ResultDropSource),
+    }
 }

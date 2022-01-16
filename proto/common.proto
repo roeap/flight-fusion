@@ -73,6 +73,26 @@ message TableReference {
   }
 }
 
+message EntityUri {
+  string uri = 1;
+}
+
+message EntityId {
+  string id = 1;
+}
+
+message EntityPath {
+  repeated string path = 1;
+}
+
+message AreaReference {
+  oneof area {
+    EntityId id = 1;
+    EntityUri uri = 2;
+    EntityPath path = 3;
+  }
+}
+
 message AreaTableLocation {
   string name = 1;
   repeated string areas = 2;

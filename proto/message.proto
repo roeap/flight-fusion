@@ -4,20 +4,6 @@ package flight_fusion.ipc.v1alpha1;
 import "common.proto";
 import "signals.proto";
 
-message RegisterDatasetRequest {
-  DatasetFormat format = 1;
-  string path = 2;
-  string name = 3;
-}
-
-message RegisterDatasetResponse {
-    string message = 1;
-}
-
-message DropDatasetResponse {
-  string name = 1;
-}
-
 // Describes an SQL query operation
 message CommandSqlOperation {
   // The SQL syntax.
@@ -35,15 +21,19 @@ message CommandKqlOperation {
 
 // Commands
 
+message CommandListSources {
+  optional AreaReference root = 1;
+}
+
 // Read entire table from storage
 message CommandReadDataset {
   // table identifier
   AreaSourceReference table = 1;
 }
 
-message CommandDropDataset {
+message CommandDropSource {
   // table identifier
-  AreaSourceReference table = 1;
+  AreaSourceReference source = 1;
 }
 
 // Request to write data to area storage
@@ -52,6 +42,29 @@ message CommandWriteIntoDataset {
   AreaSourceReference table = 1;
   // denotes how to beahve for existing data - defaults to overwrite
   SaveMode save_mode = 3;
+}
+
+// Command to register a new source to service
+message CommandRegisterSource {
+  DatasetFormat format = 1;
+  string path = 2;
+  string name = 3;
+}
+
+// Results
+
+// result when a new source is registered
+message ResultRegisterSource {
+  string message = 1;
+}
+
+// result when a source is dropped
+message ResultDropSource {
+  string name = 1;
+}
+
+message ResultDoPutUpdate {
+  BatchStatistics statistics = 1;
 }
 
 // Signals
@@ -91,47 +104,6 @@ message PutMemoryTableRequest {
 
 message PutMemoryTableResponse {
   string name = 1;
-}
-
-// Flight
-
-// Requests submitted against the `do_get` endpoint
-message FlightDoGetRequest {
-  oneof operation {
-    CommandSqlOperation sql = 1;
-    CommandKqlOperation kql = 2;
-    SignalFrameOperation frame = 3;
-    CommandReadDataset read = 4;
-  }
-}
-
-// Requests submitted against the `do_put` endpoint
-message FlightDoPutRequest {
-  oneof operation {
-    PutMemoryTableRequest memory = 1;
-    CommandWriteIntoDataset storage = 2;
-    DeltaOperationRequest delta = 3;
-  }
-}
-
-// Requests submitted against the `do_action` endpoint
-message FlightActionRequest {
-  // parameters for the specific action to be executed.
-  oneof action {
-    RegisterDatasetRequest register = 1;
-
-    // command to remove a dataset from the area store
-    CommandDropDataset drop = 2;
-  }
-}
-
-/*
- * Returned from the RPC call DoPut when a CommandStatementUpdate
- * CommandPreparedStatementUpdate was in the request, containing
- * results from the update.
- */
- message DoPutUpdateResult {
-  BatchStatistics statistics = 1;
 }
 
 // Metadata
