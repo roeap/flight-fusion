@@ -116,10 +116,31 @@ message FlightDoPutRequest {
 
 // Requests submitted against the `do_action` endpoint
 message FlightActionRequest {
+  // parameters for the specific action to be executed.
   oneof action {
     RegisterDatasetRequest register = 1;
+
+    // command to remove a dataset from the area store
     CommandDropDataset drop = 2;
   }
+}
+
+// Metadata
+
+// Metadata associated with an area source
+message AreaSourceMetadata {
+  // A human readable name for the source
+  string name = 1;
+
+  // A short descrptive text that describes the content
+  // and purpose of the data source
+  string description = 2;
+
+  // tags associated with source
+  repeated Tag tags = 9;
+
+  // user defined properties
+  map<string, string> properties = 10;
 }
 
 /*
@@ -147,13 +168,13 @@ message BatchStatistics {
   // Statistics on a column level
   repeated ColumnStatistics column_statistics = 3;
 
-  // If true, any field that is `Some(..)` is the actual value in the data provided by the operator (it is not
+  // If true, any field that is defined is the actual value in the data provided by the operator (it is not
   // an estimate). Any or all other fields might still be None, in which case no information is known.
-  // if false, any field that is `Some(..)` may contain an inexact estimate and may not be the actual value.
+  // if false, any field that is has a value may contain an inexact estimate and may not be the actual value.
   bool is_exact = 4;
 }
 
-// This table statistics are estimates about column
+// This table statistics are estimates about column properties
 message ColumnStatistics {
   // Number of null values on column
   int64 null_count = 1;

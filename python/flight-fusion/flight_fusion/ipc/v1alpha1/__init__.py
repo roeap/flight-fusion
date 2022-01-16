@@ -2,7 +2,7 @@
 # sources: common.proto, message.proto, signals.proto
 # plugin: python-betterproto
 from dataclasses import dataclass
-from typing import List
+from typing import Dict, List
 
 import betterproto
 from betterproto.grpc.grpclib_server import ServiceBase
@@ -91,6 +91,12 @@ class AreaSourceReference(betterproto.Message):
     location: "AreaTableLocation" = betterproto.message_field(1, group="table")
     id: "AreaTableId" = betterproto.message_field(2, group="table")
     uri: "AreaTableUri" = betterproto.message_field(3, group="table")
+
+
+@dataclass(eq=False, repr=False)
+class Tag(betterproto.Message):
+    key: str = betterproto.string_field(1)
+    value: str = betterproto.string_field(2)
 
 
 @dataclass(eq=False, repr=False)
@@ -285,7 +291,25 @@ class FlightActionRequest(betterproto.Message):
     """Requests submitted against the `do_action` endpoint"""
 
     register: "RegisterDatasetRequest" = betterproto.message_field(1, group="action")
+    # command to remove a dataset from the area store
     drop: "CommandDropDataset" = betterproto.message_field(2, group="action")
+
+
+@dataclass(eq=False, repr=False)
+class AreaSourceMetadata(betterproto.Message):
+    """Metadata associated with an area source"""
+
+    # A human readable name for the source
+    name: str = betterproto.string_field(1)
+    # A short descrptive text that describes the content and purpose of the data
+    # source
+    description: str = betterproto.string_field(2)
+    # tags associated with source
+    tags: List["Tag"] = betterproto.message_field(9)
+    # user defined properties
+    properties: Dict[str, str] = betterproto.map_field(
+        10, betterproto.TYPE_STRING, betterproto.TYPE_STRING
+    )
 
 
 @dataclass(eq=False, repr=False)
@@ -313,17 +337,17 @@ class BatchStatistics(betterproto.Message):
     total_byte_size: int = betterproto.int64_field(2)
     # Statistics on a column level
     column_statistics: List["ColumnStatistics"] = betterproto.message_field(3)
-    # If true, any field that is `Some(..)` is the actual value in the data
-    # provided by the operator (it is not an estimate). Any or all other fields
-    # might still be None, in which case no information is known. if false, any
-    # field that is `Some(..)` may contain an inexact estimate and may not be the
+    # If true, any field that is defined is the actual value in the data provided
+    # by the operator (it is not an estimate). Any or all other fields might
+    # still be None, in which case no information is known. if false, any field
+    # that is has a value may contain an inexact estimate and may not be the
     # actual value.
     is_exact: bool = betterproto.bool_field(4)
 
 
 @dataclass(eq=False, repr=False)
 class ColumnStatistics(betterproto.Message):
-    """This table statistics are estimates about column"""
+    """This table statistics are estimates about column properties"""
 
     # Number of null values on column
     null_count: int = betterproto.int64_field(1)

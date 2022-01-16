@@ -72,6 +72,13 @@ pub mod area_source_reference {
         Uri(super::AreaTableUri),
     }
 }
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Tag {
+    #[prost(string, tag="1")]
+    pub key: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub value: ::prost::alloc::string::String,
+}
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum FileFormat {
@@ -369,18 +376,40 @@ pub mod flight_do_put_request {
 /// Requests submitted against the `do_action` endpoint
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightActionRequest {
+    /// parameters for the specific action to be executed.
     #[prost(oneof="flight_action_request::Action", tags="1, 2")]
     pub action: ::core::option::Option<flight_action_request::Action>,
 }
 /// Nested message and enum types in `FlightActionRequest`.
 pub mod flight_action_request {
+    /// parameters for the specific action to be executed.
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Action {
         #[prost(message, tag="1")]
         Register(super::RegisterDatasetRequest),
+        /// command to remove a dataset from the area store
         #[prost(message, tag="2")]
         Drop(super::CommandDropDataset),
     }
+}
+// Metadata
+
+/// Metadata associated with an area source
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AreaSourceMetadata {
+    /// A human readable name for the source
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+    /// A short descrptive text that describes the content
+    /// and purpose of the data source
+    #[prost(string, tag="2")]
+    pub description: ::prost::alloc::string::String,
+    /// tags associated with source
+    #[prost(message, repeated, tag="9")]
+    pub tags: ::prost::alloc::vec::Vec<Tag>,
+    /// user defined properties
+    #[prost(map="string, string", tag="10")]
+    pub properties: ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
 }
 ///
 /// Returned from the RPC call DoPut when a CommandStatementUpdate
@@ -407,13 +436,13 @@ pub struct BatchStatistics {
     /// Statistics on a column level
     #[prost(message, repeated, tag="3")]
     pub column_statistics: ::prost::alloc::vec::Vec<ColumnStatistics>,
-    /// If true, any field that is `Some(..)` is the actual value in the data provided by the operator (it is not
+    /// If true, any field that is defined is the actual value in the data provided by the operator (it is not
     /// an estimate). Any or all other fields might still be None, in which case no information is known.
-    /// if false, any field that is `Some(..)` may contain an inexact estimate and may not be the actual value.
+    /// if false, any field that is has a value may contain an inexact estimate and may not be the actual value.
     #[prost(bool, tag="4")]
     pub is_exact: bool,
 }
-/// This table statistics are estimates about column
+/// This table statistics are estimates about column properties
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ColumnStatistics {
     /// Number of null values on column

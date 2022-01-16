@@ -160,19 +160,19 @@ impl FlightService for FlightFusionService {
         Ok(Response::new(response))
     }
 
-    #[instrument(skip(self, request))]
+    #[instrument(skip(self, _request))]
     async fn list_actions(
         &self,
-        request: Request<Empty>,
+        _request: Request<Empty>,
     ) -> Result<Response<Self::ListActionsStream>, Status> {
-        Err(Status::unimplemented("Not yet implemented"))
+        Err(Status::unimplemented("Not implemented"))
     }
 
-    #[instrument(skip(self, request))]
+    #[instrument(skip(self, _request))]
     async fn do_exchange(
         &self,
-        request: Request<Streaming<FlightData>>,
+        _request: Request<Streaming<FlightData>>,
     ) -> Result<Response<Self::DoExchangeStream>, Status> {
-        Err(Status::unimplemented("Not yet implemented"))
+        Err(Status::unimplemented("Not implemented"))
     }
 }

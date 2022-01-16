@@ -11,6 +11,7 @@ import flight_fusion.errors as errors
 from flight_fusion.clients.area import AreaClient
 from flight_fusion.clients.service import ClientOptions
 from flight_fusion.ipc.v1alpha1 import (
+    AreaSourceMetadata,
     AreaSourceReference,
     AreaTableLocation,
     CommandDropDataset,
@@ -77,14 +78,19 @@ class DatasetClient:
         batches = self._client.fusion.read_table(command=command.SerializeToString())
         return pa.Table.from_batches(batches)
 
+    def query(self, query: str) -> pa.Table:
+        ...
+
     def drop(self) -> DropDatasetResponse:
         command = CommandDropDataset(table=self._reference)
         response = self._client.fusion.drop_table(command=command.SerializeToString())
         return DropDatasetResponse().parse(response)
 
-    def get_metadata(self):
-        # TODO implement ...
-        pass
+    def get_metadata(self) -> AreaSourceMetadata:
+        ...
+
+    def set_metadata(self, metadata: AreaSourceMetadata = None) -> None:
+        ...
 
 
 class TableClient(DatasetClient):

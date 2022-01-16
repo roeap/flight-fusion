@@ -73,3 +73,8 @@ message AreaSourceReference {
     AreaTableUri uri = 3;
   }
 }
+
+message Tag {
+  string key = 1;
+  string value = 2;
+}

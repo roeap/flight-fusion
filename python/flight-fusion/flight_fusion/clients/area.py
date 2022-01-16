@@ -3,10 +3,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, List
 
 from flight_fusion._internal import FusionClient as RawFusionClient
-from flight_fusion.clients.service import ClientOptions, FlightFusionClient
+from flight_fusion.clients.service import (
+    AreaSourceReference,
+    AreaTableLocation,
+    ClientOptions,
+    FlightFusionClient,
+)
+from flight_fusion.ipc.v1alpha1 import AreaSourceMetadata
 
 if TYPE_CHECKING:
-    from .dataset import DataSetClient
+    from .dataset import DatasetClient
 
 
 class AreaClient:
@@ -36,11 +42,15 @@ class AreaClient:
     def areas(self) -> List[str]:
         return self.areas
 
-    def get_dataset_client(self, name: str) -> DataSetClient:
+    def get_dataset_client(self, name: str) -> DatasetClient:
+        from flight_fusion.clients import DatasetClient
+
+        return DatasetClient(
+            client=self,
+            reference=AreaSourceReference(
+                location=AreaTableLocation(name=name, areas=self.areas)
+            ),
+        )
+
+    def list_sources(self, recursive: bool = False) -> List[AreaSourceMetadata]:
         ...
-
-    def create_dataset(self, name: str):
-        pass
-
-    def drop_dataset(self, name: str):
-        pass
