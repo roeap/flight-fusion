@@ -17,8 +17,8 @@ from flight_fusion.ipc.v1alpha1 import (
     CommandDropSource,
     CommandReadDataset,
     CommandWriteIntoDataset,
+    ResultActionStatus,
     ResultDoPutUpdate,
-    ResultDropSource,
     SaveMode,
 )
 
@@ -81,10 +81,10 @@ class DatasetClient:
     def query(self, query: str) -> pa.Table:
         ...
 
-    def drop(self) -> ResultDropSource:
+    def drop(self) -> ResultActionStatus:
         command = CommandDropSource(source=self._reference)
         response = self._client.fusion.drop_table(command=command.SerializeToString())
-        return ResultDropSource().parse(response)
+        return ResultActionStatus().parse(response)
 
     def get_metadata(self) -> AreaSourceMetadata:
         ...

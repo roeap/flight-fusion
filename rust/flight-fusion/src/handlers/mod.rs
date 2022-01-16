@@ -15,9 +15,9 @@ use arrow_flight::{
 use async_trait::async_trait;
 use flight_fusion_ipc::{
     flight_action_request::Action as FusionAction, flight_do_get_request::Command as DoGetCommand,
-    serialize_message, AreaSourceMetadata, CommandListSources, FlightActionRequest,
-    FlightDoGetRequest, FlightFusionError, FlightGetFlightInfoRequest, FlightGetSchemaRequest,
-    RequestFor, Result as FusionResult,
+    serialize_message, AreaSourceDetails, AreaSourceMetadata, CommandListSources,
+    FlightActionRequest, FlightDoGetRequest, FlightFusionError, FlightGetFlightInfoRequest,
+    FlightGetSchemaRequest, RequestFor, Result as FusionResult,
 };
 use futures::{Stream, StreamExt};
 pub use object_store::{path::ObjectStorePath, ObjectStoreApi};
@@ -96,14 +96,34 @@ impl FusionActionHandler {
     }
 
     pub async fn get_schema(&self, request: FlightGetSchemaRequest) -> FusionResult<SchemaResult> {
-        todo!()
+        if let Some(source) = request.source {
+            let _meta = self
+                .area_catalog
+                .get_source_metadata(source)
+                .await
+                .map_err(to_fusion_err)?;
+
+            todo!()
+        } else {
+            todo!()
+        }
     }
 
     pub async fn get_flight_info(
         &self,
         request: FlightGetFlightInfoRequest,
     ) -> FusionResult<FlightInfo> {
-        todo!()
+        if let Some(source) = request.source {
+            let details = self
+                .area_catalog
+                .get_source_details(source)
+                .await
+                .map_err(to_fusion_err)?;
+
+            Ok(details_to_flight_info(details))
+        } else {
+            todo!()
+        }
     }
 
     pub async fn execute_action(
@@ -119,6 +139,9 @@ impl FusionActionHandler {
                     }
                     FusionAction::Drop(drop) => {
                         serialize_message(self.handle_do_action(drop).await?)
+                    }
+                    FusionAction::SetMeta(meta) => {
+                        serialize_message(self.handle_do_action(meta).await?)
                     }
                 };
 
@@ -162,7 +185,7 @@ fn meta_to_flight_info(
         Ok(_m) => {
             // TODO populate with meaningful data
             let descriptor = FlightDescriptor {
-                r#type: DescriptorType::Cmd as i32,
+                r#type: DescriptorType::Cmd.into(),
                 cmd: vec![],
                 ..FlightDescriptor::default()
             };
@@ -181,6 +204,10 @@ fn meta_to_flight_info(
         }
         Err(e) => Err(tonic::Status::internal(e.to_string())),
     }
+}
+
+fn details_to_flight_info(details: AreaSourceDetails) -> FlightInfo {
+    todo!()
 }
 
 #[cfg(test)]
@@ -206,7 +233,7 @@ mod tests {
         };
         let put_request = CommandWriteIntoDataset {
             source: Some(table_ref.clone()),
-            save_mode: SaveMode::Overwrite as i32,
+            save_mode: SaveMode::Overwrite.into(),
         };
 
         assert!(!table_dir.exists());

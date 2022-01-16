@@ -10,7 +10,7 @@ from flight_fusion._internal import FusionClient as RawFusionClient
 from flight_fusion.ipc.v1alpha1 import (
     AreaSourceReference,
     AreaTableLocation,
-    PutMemoryTableResponse,
+    ResultActionStatus,
     SaveMode,
 )
 
@@ -63,9 +63,9 @@ class FlightFusionClient:
         table_ref: str,
         data: Union[pd.DataFrame, pa.Table],
         save_mode: SaveMode = SaveMode.SAVE_MODE_OVERWRITE,
-    ) -> PutMemoryTableResponse:
+    ) -> ResultActionStatus:
         if isinstance(data, pd.DataFrame):
             data = pa.Table.from_pandas(data)
         batches = data.to_batches()
         raw_response = self._raw.put_memory_table(table_ref, batches)
-        return PutMemoryTableResponse().parse(raw_response)
+        return ResultActionStatus().parse(raw_response)

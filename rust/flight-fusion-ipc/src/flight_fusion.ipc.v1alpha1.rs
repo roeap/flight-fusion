@@ -297,6 +297,16 @@ pub struct CommandDropSource {
     #[prost(message, optional, tag="1")]
     pub source: ::core::option::Option<AreaSourceReference>,
 }
+/// Update metadata associated with source
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CommandSetMetadata {
+    /// source identifier
+    #[prost(message, optional, tag="1")]
+    pub source: ::core::option::Option<AreaSourceReference>,
+    /// metadata to be written to source
+    #[prost(message, optional, tag="2")]
+    pub meta: ::core::option::Option<AreaSourceMetadata>,
+}
 /// Request to write data to area storage
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CommandWriteIntoDataset {
@@ -317,19 +327,11 @@ pub struct CommandRegisterSource {
     #[prost(string, tag="3")]
     pub name: ::prost::alloc::string::String,
 }
-// Results
-
-/// result when a new source is registered
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ResultRegisterSource {
-    #[prost(string, tag="1")]
-    pub message: ::prost::alloc::string::String,
-}
 /// result when a source is dropped
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ResultDropSource {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
+pub struct ResultActionStatus {
+    #[prost(enumeration="ActionStatus", tag="1")]
+    pub status: i32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ResultDoPutUpdate {
@@ -387,22 +389,20 @@ pub struct PutMemoryTableRequest {
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PutMemoryTableResponse {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-}
 // Metadata
 
 /// Metadata associated with an area source
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AreaSourceMetadata {
-    /// A human readable name for the source
+    /// globally unique idetifier for the source
     #[prost(string, tag="1")]
+    pub id: ::prost::alloc::string::String,
+    /// A human readable name for the source
+    #[prost(string, tag="2")]
     pub name: ::prost::alloc::string::String,
     /// A short descrptive text that describes the content
     /// and purpose of the data source
-    #[prost(string, tag="2")]
+    #[prost(string, tag="3")]
     pub description: ::prost::alloc::string::String,
     /// tags associated with source
     #[prost(message, repeated, tag="9")]
@@ -410,6 +410,16 @@ pub struct AreaSourceMetadata {
     /// user defined properties
     #[prost(map="string, string", tag="10")]
     pub properties: ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
+}
+/// Detialed metadata and statistics about a source
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AreaSourceDetails {
+    /// globally unique idetifier for the source
+    #[prost(string, tag="1")]
+    pub id: ::prost::alloc::string::String,
+    /// Metadata associated with the source
+    #[prost(message, optional, tag="2")]
+    pub metadata: ::core::option::Option<AreaSourceMetadata>,
 }
 ///
 /// Statistics for a physical plan node
@@ -448,6 +458,15 @@ pub struct ColumnStatistics {
     /// Number of distinct values
     #[prost(int64, tag="4")]
     pub distinct_count: i64,
+}
+// Results
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum ActionStatus {
+    Unspecified = 0,
+    Success = 1,
+    Failure = 2,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Integrity {
@@ -609,7 +628,7 @@ pub mod flight_do_put_response {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightActionRequest {
     /// parameters for the specific action to be executed.
-    #[prost(oneof="flight_action_request::Action", tags="1, 2")]
+    #[prost(oneof="flight_action_request::Action", tags="1, 2, 3")]
     pub action: ::core::option::Option<flight_action_request::Action>,
 }
 /// Nested message and enum types in `FlightActionRequest`.
@@ -623,22 +642,22 @@ pub mod flight_action_request {
         /// command to remove a dataset from the area store
         #[prost(message, tag="2")]
         Drop(super::CommandDropSource),
+        /// Set the metadata for a data source
+        #[prost(message, tag="3")]
+        SetMeta(super::CommandSetMetadata),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightActionResponse {
-    #[prost(oneof="flight_action_response::Payload", tags="1, 2")]
+    #[prost(oneof="flight_action_response::Payload", tags="1")]
     pub payload: ::core::option::Option<flight_action_response::Payload>,
 }
 /// Nested message and enum types in `FlightActionResponse`.
 pub mod flight_action_response {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Payload {
-        /// Operation info when source is registered
+        /// Result when actions reports its execution status
         #[prost(message, tag="1")]
-        Register(super::ResultRegisterSource),
-        /// Operation info when source is dropped
-        #[prost(message, tag="2")]
-        Drop(super::ResultDropSource),
+        Status(super::ResultActionStatus),
     }
 }

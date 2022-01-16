@@ -16,15 +16,19 @@ pub trait RequestFor {
 }
 
 impl RequestFor for CommandDropSource {
-    type Reply = ResultDropSource;
+    type Reply = ResultActionStatus;
+}
+
+impl RequestFor for CommandSetMetadata {
+    type Reply = ResultActionStatus;
 }
 
 impl RequestFor for CommandRegisterSource {
-    type Reply = ResultRegisterSource;
+    type Reply = ResultActionStatus;
 }
 
 impl RequestFor for PutMemoryTableRequest {
-    type Reply = PutMemoryTableResponse;
+    type Reply = ResultDoPutUpdate;
 }
 
 impl RequestFor for CommandWriteIntoDataset {

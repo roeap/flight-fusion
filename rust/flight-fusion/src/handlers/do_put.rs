@@ -10,8 +10,7 @@ use async_trait::async_trait;
 use flight_fusion_ipc::{
     delta_operation_request, flight_do_put_request::Command as DoPutCommand,
     CommandWriteIntoDataset, DeltaOperationRequest, DeltaOperationResponse, FlightFusionError,
-    PutMemoryTableRequest, PutMemoryTableResponse, Result as FusionResult, ResultDoPutUpdate,
-    SaveMode,
+    PutMemoryTableRequest, Result as FusionResult, ResultDoPutUpdate, SaveMode,
 };
 use std::sync::Arc;
 
@@ -53,7 +52,7 @@ impl DoPutHandler<PutMemoryTableRequest> for FusionActionHandler {
         &self,
         ticket: PutMemoryTableRequest,
         input: Arc<dyn ExecutionPlan>,
-    ) -> FusionResult<PutMemoryTableResponse> {
+    ) -> FusionResult<ResultDoPutUpdate> {
         let schema_ref = input.schema();
         let batches = collect(input).await.unwrap();
 
@@ -69,9 +68,7 @@ impl DoPutHandler<PutMemoryTableRequest> for FusionActionHandler {
 
         // TODO generate messages in channel
         // https://github.com/jorgecarleitao/arrow2/blob/main/integration-testing/src/flight_server_scenarios/integration_test.rs
-        Ok(PutMemoryTableResponse {
-            name: "created".to_string(),
-        })
+        Ok(ResultDoPutUpdate { statistics: None })
     }
 }
 
@@ -169,7 +166,7 @@ mod tests {
         });
         let request = CommandWriteIntoDataset {
             source: Some(AreaSourceReference { table: Some(table) }),
-            save_mode: SaveMode::Overwrite as i32,
+            save_mode: SaveMode::Overwrite.into(),
         };
 
         assert!(!table_dir.exists());
@@ -197,7 +194,7 @@ mod tests {
         };
         let request = CommandWriteIntoDataset {
             source: Some(table_ref.clone()),
-            save_mode: SaveMode::Append as i32,
+            save_mode: SaveMode::Append.into(),
         };
 
         assert!(!table_dir.exists());
@@ -226,7 +223,7 @@ mod tests {
 
         let request = CommandWriteIntoDataset {
             source: Some(table_ref.clone()),
-            save_mode: SaveMode::Overwrite as i32,
+            save_mode: SaveMode::Overwrite.into(),
         };
 
         let _response = handler
@@ -255,7 +252,7 @@ mod tests {
                 location: table_uri.clone(),
             }),
             operation: Some(Operation::Write(DeltaWriteOperation {
-                save_mode: SaveMode::Append as i32,
+                save_mode: SaveMode::Append.into(),
                 partition_columns: vec!["modified".to_string()],
                 ..Default::default()
             })),
@@ -287,7 +284,7 @@ mod tests {
                 location: table_uri.clone(),
             }),
             operation: Some(Operation::Write(DeltaWriteOperation {
-                save_mode: SaveMode::Overwrite as i32,
+                save_mode: SaveMode::Overwrite.into(),
                 partition_columns: vec!["modified".to_string()],
                 ..Default::default()
             })),
@@ -320,7 +317,7 @@ mod tests {
                 location: table_uri.clone(),
             }),
             operation: Some(Operation::Write(DeltaWriteOperation {
-                save_mode: SaveMode::Append as i32,
+                save_mode: SaveMode::Append.into(),
                 partition_columns: vec![],
                 ..Default::default()
             })),

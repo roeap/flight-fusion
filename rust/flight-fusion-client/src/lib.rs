@@ -11,8 +11,7 @@ use flight_fusion_ipc::{
     flight_do_put_request::Command as DoPutCommand, utils::serialize_message, CommandDropSource,
     CommandReadDataset, CommandRegisterSource, CommandWriteIntoDataset, DatasetFormat,
     FlightActionRequest, FlightDoGetRequest, FlightDoPutRequest, FlightFusionError,
-    PutMemoryTableRequest, PutMemoryTableResponse, RequestFor, ResultDoPutUpdate, ResultDropSource,
-    ResultRegisterSource,
+    PutMemoryTableRequest, RequestFor, ResultActionStatus, ResultDoPutUpdate,
 };
 use observability_deps::instrument;
 use observability_deps::tracing;
@@ -96,7 +95,7 @@ impl FlightFusionClient {
         &self,
         table_ref: T,
         batches: Vec<RecordBatch>,
-    ) -> Result<PutMemoryTableResponse, FusionClientError>
+    ) -> Result<ResultDoPutUpdate, FusionClientError>
     where
         T: Into<String> + std::fmt::Debug,
     {
@@ -104,7 +103,7 @@ impl FlightFusionClient {
             name: table_ref.into(),
         });
         Ok(self
-            .do_put::<PutMemoryTableResponse>(batches, operation)
+            .do_put::<ResultDoPutUpdate>(batches, operation)
             .await?
             .unwrap())
     }
@@ -113,12 +112,12 @@ impl FlightFusionClient {
     pub async fn drop_table(
         &self,
         command: CommandDropSource,
-    ) -> Result<ResultDropSource, FusionClientError> {
+    ) -> Result<ResultActionStatus, FusionClientError> {
         let action_request = FlightActionRequest {
             action: Some(FusionAction::Drop(command)),
         };
         let result = self
-            .do_action::<CommandDropSource, ResultDropSource>(action_request)
+            .do_action::<CommandDropSource, ResultActionStatus>(action_request)
             .await?;
         Ok(result)
     }
@@ -136,7 +135,7 @@ impl FlightFusionClient {
         _schema_name: S,
         table_name: T,
         path: P,
-    ) -> Result<ResultRegisterSource, FusionClientError>
+    ) -> Result<ResultActionStatus, FusionClientError>
     where
         S: Into<String>,
         T: Into<String>,
@@ -150,7 +149,7 @@ impl FlightFusionClient {
             })),
         };
         let result = self
-            .do_action::<CommandRegisterSource, ResultRegisterSource>(action_request)
+            .do_action::<CommandRegisterSource, ResultActionStatus>(action_request)
             .await?;
         Ok(result)
     }
@@ -168,7 +167,7 @@ impl FlightFusionClient {
         // Create initial message with schema and flight descriptor
         let schema = batches[0].schema();
         let descriptor = FlightDescriptor {
-            r#type: flight_descriptor::DescriptorType::Cmd as i32,
+            r#type: flight_descriptor::DescriptorType::Cmd.into(),
             cmd: serialize_message(FlightDoPutRequest {
                 command: Some(operation),
             }),

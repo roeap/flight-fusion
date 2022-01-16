@@ -63,6 +63,12 @@ class SignalType(betterproto.Enum):
     SIGNAL_TYPE_MODEL = 4
 
 
+class ActionStatus(betterproto.Enum):
+    ACTION_STATUS_UNSPECIFIED = 0
+    ACTION_STATUS_SUCCESS = 1
+    ACTION_STATUS_FAILURE = 2
+
+
 @dataclass(eq=False, repr=False)
 class DeltaReference(betterproto.Message):
     location: str = betterproto.string_field(1)
@@ -245,6 +251,16 @@ class CommandDropSource(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
+class CommandSetMetadata(betterproto.Message):
+    """Update metadata associated with source"""
+
+    # source identifier
+    source: "AreaSourceReference" = betterproto.message_field(1)
+    # metadata to be written to source
+    meta: "AreaSourceMetadata" = betterproto.message_field(2)
+
+
+@dataclass(eq=False, repr=False)
 class CommandWriteIntoDataset(betterproto.Message):
     """Request to write data to area storage"""
 
@@ -264,17 +280,10 @@ class CommandRegisterSource(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
-class ResultRegisterSource(betterproto.Message):
-    """result when a new source is registered"""
-
-    message: str = betterproto.string_field(1)
-
-
-@dataclass(eq=False, repr=False)
-class ResultDropSource(betterproto.Message):
+class ResultActionStatus(betterproto.Message):
     """result when a source is dropped"""
 
-    name: str = betterproto.string_field(1)
+    status: "ActionStatus" = betterproto.enum_field(1)
 
 
 @dataclass(eq=False, repr=False)
@@ -319,25 +328,32 @@ class PutMemoryTableRequest(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
-class PutMemoryTableResponse(betterproto.Message):
-    name: str = betterproto.string_field(1)
-
-
-@dataclass(eq=False, repr=False)
 class AreaSourceMetadata(betterproto.Message):
     """Metadata associated with an area source"""
 
+    # globally unique idetifier for the source
+    id: str = betterproto.string_field(1)
     # A human readable name for the source
-    name: str = betterproto.string_field(1)
+    name: str = betterproto.string_field(2)
     # A short descrptive text that describes the content and purpose of the data
     # source
-    description: str = betterproto.string_field(2)
+    description: str = betterproto.string_field(3)
     # tags associated with source
     tags: List["Tag"] = betterproto.message_field(9)
     # user defined properties
     properties: Dict[str, str] = betterproto.map_field(
         10, betterproto.TYPE_STRING, betterproto.TYPE_STRING
     )
+
+
+@dataclass(eq=False, repr=False)
+class AreaSourceDetails(betterproto.Message):
+    """Detialed metadata and statistics about a source"""
+
+    # globally unique idetifier for the source
+    id: str = betterproto.string_field(1)
+    # Metadata associated with the source
+    metadata: "AreaSourceMetadata" = betterproto.message_field(2)
 
 
 @dataclass(eq=False, repr=False)
@@ -425,11 +441,11 @@ class FlightActionRequest(betterproto.Message):
     register: "CommandRegisterSource" = betterproto.message_field(1, group="action")
     # command to remove a dataset from the area store
     drop: "CommandDropSource" = betterproto.message_field(2, group="action")
+    # Set the metadata for a data source
+    set_meta: "CommandSetMetadata" = betterproto.message_field(3, group="action")
 
 
 @dataclass(eq=False, repr=False)
 class FlightActionResponse(betterproto.Message):
-    # Operation info when source is registered
-    register: "ResultRegisterSource" = betterproto.message_field(1, group="payload")
-    # Operation info when source is dropped
-    drop: "ResultDropSource" = betterproto.message_field(2, group="payload")
+    # Result when actions reports its execution status
+    status: "ResultActionStatus" = betterproto.message_field(1, group="payload")

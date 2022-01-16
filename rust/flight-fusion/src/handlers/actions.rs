@@ -1,13 +1,21 @@
 use super::{ActionHandler, FusionActionHandler};
-use crate::area_store::{flatten_list_stream, AreaStore};
+use crate::{
+    area_store::{flatten_list_stream, AreaStore},
+    catalog::AreaCatalog,
+    error::to_fusion_err,
+};
 use flight_fusion_ipc::{
-    CommandDropSource, FlightFusionError, Result as FusionResult, ResultDropSource,
+    ActionStatus, CommandDropSource, CommandSetMetadata, FlightFusionError, Result as FusionResult,
+    ResultActionStatus,
 };
 use object_store::ObjectStoreApi;
 
 #[async_trait::async_trait]
 impl ActionHandler<CommandDropSource> for FusionActionHandler {
-    async fn handle_do_action(&self, action: CommandDropSource) -> FusionResult<ResultDropSource> {
+    async fn handle_do_action(
+        &self,
+        action: CommandDropSource,
+    ) -> FusionResult<ResultActionStatus> {
         if let Some(source) = action.source {
             // TODO remove panic
             let location = self.area_store.get_table_location(&source).unwrap();
@@ -24,13 +32,39 @@ impl ActionHandler<CommandDropSource> for FusionActionHandler {
                 .await
                 .unwrap();
             // TODO return a more meaningful message
-            Ok(ResultDropSource {
-                name: "dropped".to_string(),
+            Ok(ResultActionStatus {
+                status: ActionStatus::Success.into(),
             })
         } else {
             Err(FlightFusionError::InputError(
                 "missing table reference".to_string(),
             ))
+        }
+    }
+}
+
+#[async_trait::async_trait]
+impl ActionHandler<CommandSetMetadata> for FusionActionHandler {
+    async fn handle_do_action(
+        &self,
+        action: CommandSetMetadata,
+    ) -> FusionResult<ResultActionStatus> {
+        match action {
+            CommandSetMetadata {
+                source: Some(source),
+                meta: Some(meta),
+            } => {
+                self.area_catalog
+                    .set_source_metadata(source, meta)
+                    .await
+                    .map_err(to_fusion_err)?;
+                Ok(ResultActionStatus {
+                    status: ActionStatus::Success.into(),
+                })
+            }
+            _ => Err(FlightFusionError::InputError(
+                "source and metadata must be specified".to_string(),
+            )),
         }
     }
 }

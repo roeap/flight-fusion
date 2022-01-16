@@ -53,7 +53,7 @@ pub fn get_provider_1() -> SignalProvider {
         source: Some(ProviderSource::Table(TableReference {
             table: Some(TableRef::File(FileReference {
                 path,
-                format: FileFormat::Parquet as i32,
+                format: FileFormat::Parquet.into(),
             })),
         })),
     }
@@ -84,7 +84,7 @@ pub fn get_provider_2() -> SignalProvider {
         source: Some(ProviderSource::Table(TableReference {
             table: Some(TableRef::File(FileReference {
                 path,
-                format: FileFormat::Parquet as i32,
+                format: FileFormat::Parquet.into(),
             })),
         })),
     }

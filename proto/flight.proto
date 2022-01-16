@@ -5,6 +5,11 @@ package flight_fusion.ipc.v1alpha1;
 import "message.proto";
 import "common.proto";
 
+message FlightGetFlightInfoRequest {
+  // source identifier
+  AreaSourceReference source = 1;
+}
+
 message FlightGetSchemaRequest {
   // source identifier
   AreaSourceReference source = 1;
@@ -50,15 +55,15 @@ message FlightActionRequest {
 
     // command to remove a dataset from the area store
     CommandDropSource drop = 2;
+
+    // Set the metadata for a data source
+    CommandSetMetadata set_meta = 3;
   }
 }
 
 message FlightActionResponse {
   oneof payload {
-    // Operation info when source is registered
-    ResultRegisterSource register = 1;
-
-    // Operation info when source is dropped
-    ResultDropSource drop = 2;
+    // Result when actions reports its execution status
+    ResultActionStatus status = 1;
   }
 }

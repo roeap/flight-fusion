@@ -41,6 +41,14 @@ message CommandDropSource {
   AreaSourceReference source = 1;
 }
 
+// Update metadata associated with source
+message CommandSetMetadata {
+  // source identifier
+  AreaSourceReference source = 1;
+  // metadata to be written to source
+  AreaSourceMetadata meta = 2;
+}
+
 // Request to write data to area storage
 message CommandWriteIntoDataset {
   // source identifier
@@ -58,14 +66,15 @@ message CommandRegisterSource {
 
 // Results
 
-// result when a new source is registered
-message ResultRegisterSource {
-  string message = 1;
+enum ActionStatus {
+  ACTION_STATUS_UNSPECIFIED = 0;
+  ACTION_STATUS_SUCCESS = 1;
+  ACTION_STATUS_FAILURE = 2;
 }
 
 // result when a source is dropped
-message ResultDropSource {
-  string name = 1;
+message ResultActionStatus {
+  ActionStatus status = 1;
 }
 
 message ResultDoPutUpdate {
@@ -107,26 +116,35 @@ message PutMemoryTableRequest {
   string name = 1;
 }
 
-message PutMemoryTableResponse {
-  string name = 1;
-}
-
 // Metadata
 
 // Metadata associated with an area source
 message AreaSourceMetadata {
+  // globally unique idetifier for the source
+  string id = 1;
+
   // A human readable name for the source
-  string name = 1;
+  string name = 2;
 
   // A short descrptive text that describes the content
   // and purpose of the data source
-  string description = 2;
+  string description = 3;
 
   // tags associated with source
   repeated Tag tags = 9;
 
   // user defined properties
   map<string, string> properties = 10;
+}
+
+// Detialed metadata and statistics about a source
+message AreaSourceDetails {
+  // globally unique idetifier for the source
+  string id = 1;
+
+  // Metadata associated with the source
+  AreaSourceMetadata metadata = 2;
+
 }
 
 /*
