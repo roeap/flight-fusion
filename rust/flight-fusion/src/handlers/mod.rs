@@ -91,7 +91,7 @@ impl FusionActionHandler {
                 .list_area_sources(command.root)
                 .await
                 .map_err(to_fusion_err)?
-                .map(move |meta| meta_to_flight_info(meta)),
+                .map(meta_to_flight_info),
         ))
     }
 

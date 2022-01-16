@@ -1,12 +1,12 @@
 name: Python
 
 on:
+  #   push:
+  #     tags: ["python-v*"]
   push:
-    tags: ["python-v*"]
-#   push:
-#     branches: [main]
-#   pull_request:
-#     branches: [main]
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 defaults:
   run:
