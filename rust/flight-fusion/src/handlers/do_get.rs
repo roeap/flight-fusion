@@ -63,8 +63,8 @@ async fn create_response_stream(
     let options = IpcWriteOptions::default();
     let schema_flight_data = SchemaAsIpc::new(&schema, &options).into();
 
-    let mut flights: Vec<Result<FlightData, Status>> = vec![Ok(schema_flight_data)];
-    let mut batches: Vec<Result<FlightData, Status>> = results
+    let mut flights: Vec<std::result::Result<FlightData, Status>> = vec![Ok(schema_flight_data)];
+    let mut batches: Vec<std::result::Result<FlightData, Status>> = results
         .iter()
         .flat_map(|batch| {
             let (flight_dictionaries, flight_batch) =

@@ -1,16 +1,24 @@
-use crate::{area_store::InMemoryAreaStore, catalog::FileAreaCatalog, stream::*};
+use crate::{
+    area_store::InMemoryAreaStore,
+    catalog::{AreaCatalog, FileAreaCatalog},
+    error::{to_fusion_err, Result},
+    stream::*,
+};
 use arrow_deps::datafusion::{
     catalog::{catalog::MemoryCatalogProvider, schema::MemorySchemaProvider},
     physical_plan::ExecutionPlan,
 };
-use arrow_flight::{FlightData, PutResult};
+use arrow_flight::{
+    flight_descriptor::DescriptorType, FlightData, FlightDescriptor, FlightEndpoint, FlightInfo,
+    PutResult,
+};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
     flight_action_request::Action as FusionAction, flight_do_get_request::Command as DoGetCommand,
-    serialize_message, FlightActionRequest, FlightDoGetRequest, FlightFusionError, RequestFor,
-    Result as FusionResult,
+    serialize_message, AreaSourceMetadata, CommandListSources, FlightActionRequest,
+    FlightDoGetRequest, FlightFusionError, RequestFor, Result as FusionResult,
 };
-use futures::Stream;
+use futures::{Stream, StreamExt};
 pub use object_store::{path::ObjectStorePath, ObjectStoreApi};
 use std::sync::Arc;
 use std::{path::PathBuf, pin::Pin};
@@ -21,7 +29,7 @@ pub mod do_get;
 pub mod do_put;
 
 pub type BoxedFlightStream<T> =
-    Pin<Box<dyn Stream<Item = Result<T, Status>> + Send + Sync + 'static>>;
+    Pin<Box<dyn Stream<Item = std::result::Result<T, Status>> + Send + Sync + 'static>>;
 
 fn to_flight_fusion_err(e: arrow_deps::datafusion::error::DataFusionError) -> FlightFusionError {
     FlightFusionError::ExternalError(format!("{:?}", e))
@@ -73,6 +81,19 @@ impl FusionActionHandler {
         }
     }
 
+    pub async fn list_flights(
+        &self,
+        command: CommandListSources,
+    ) -> FusionResult<BoxedFlightStream<FlightInfo>> {
+        Ok(Box::pin(
+            self.area_catalog
+                .list_area_sources(command.root)
+                .await
+                .map_err(to_fusion_err)?
+                .map(move |meta| meta_to_flight_info(meta)),
+        ))
+    }
+
     pub async fn execute_action(
         &self,
         request_data: FlightActionRequest,
@@ -119,6 +140,34 @@ impl FusionActionHandler {
                 "No operation data passed".to_string(),
             )),
         }
+    }
+}
+
+fn meta_to_flight_info(
+    meta: Result<AreaSourceMetadata>,
+) -> std::result::Result<FlightInfo, tonic::Status> {
+    match meta {
+        Ok(_m) => {
+            // TODO populate with meaningful data
+            let descriptor = FlightDescriptor {
+                r#type: DescriptorType::Cmd as i32,
+                cmd: vec![],
+                ..FlightDescriptor::default()
+            };
+            let endpoint = FlightEndpoint {
+                ticket: None,
+                location: vec![],
+            };
+            let info = FlightInfo {
+                schema: vec![],
+                flight_descriptor: Some(descriptor),
+                endpoint: vec![endpoint],
+                total_records: -1,
+                total_bytes: -1,
+            };
+            Ok(info)
+        }
+        Err(e) => Err(tonic::Status::internal(e.to_string())),
     }
 }
 

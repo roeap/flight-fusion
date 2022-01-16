@@ -4,14 +4,13 @@ use arrow_flight::{
     FlightDescriptor, FlightInfo, HandshakeRequest, HandshakeResponse, PutResult, SchemaResult,
     Ticket,
 };
-use flight_fusion_ipc::{FlightActionRequest, FlightDoGetRequest};
+use flight_fusion_ipc::{CommandListSources, FlightActionRequest, FlightDoGetRequest};
 use futures::Stream;
 use observability_deps::instrument;
 use observability_deps::opentelemetry::{global, propagation::Extractor};
 use observability_deps::tracing;
 use observability_deps::tracing_opentelemetry::OpenTelemetrySpanExt;
 use prost::Message;
-use std::io::Cursor;
 use std::path::PathBuf;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -80,7 +79,17 @@ impl FlightService for FlightFusionService {
         &self,
         request: Request<Criteria>,
     ) -> Result<Response<Self::ListFlightsStream>, Status> {
-        Err(Status::unimplemented("Not yet implemented"))
+        let criteria = request.into_inner();
+        let command = CommandListSources::decode(&mut criteria.expression.as_ref())
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        let flights = self
+            .action_handler
+            .list_flights(command)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        Ok(Response::new(flights))
     }
 
     #[instrument(skip(self, request))]
@@ -105,9 +114,9 @@ impl FlightService for FlightFusionService {
         request: Request<Ticket>,
     ) -> Result<Response<Self::DoGetStream>, Status> {
         let flight_ticket = request.into_inner();
-        let mut buf = Cursor::new(&flight_ticket.ticket);
-        let request_data: FlightDoGetRequest = FlightDoGetRequest::decode(&mut buf)
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let request_data: FlightDoGetRequest =
+            FlightDoGetRequest::decode(&mut flight_ticket.ticket.as_ref())
+                .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
         let result = self
             .action_handler
@@ -147,9 +156,9 @@ impl FlightService for FlightFusionService {
 
         // Decode FlightRequest from buffer.
         let flight_action = request.into_inner();
-        let mut buf = Cursor::new(&flight_action.body);
-        let request_data: FlightActionRequest = FlightActionRequest::decode(&mut buf)
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let request_data: FlightActionRequest =
+            FlightActionRequest::decode(&mut flight_action.body.as_ref())
+                .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
         let response = self
             .action_handler

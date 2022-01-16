@@ -4,7 +4,7 @@ mod disk;
 use crate::error::{Result, ResultStream};
 use async_trait::async_trait;
 pub use disk::*;
-use flight_fusion_ipc::{AreaSourceMetadata, AreaSourceReference};
+use flight_fusion_ipc::{AreaReference, AreaSourceMetadata, AreaSourceReference};
 
 #[async_trait]
 pub trait AreaCatalog: Send + Sync {
@@ -17,6 +17,6 @@ pub trait AreaCatalog: Send + Sync {
     /// List all data sources registered in teh catalog
     async fn list_area_sources(
         &self,
-        root: AreaSourceReference,
+        root: Option<AreaReference>,
     ) -> ResultStream<AreaSourceMetadata>;
 }

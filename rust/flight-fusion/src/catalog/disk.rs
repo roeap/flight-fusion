@@ -5,7 +5,7 @@ use crate::{
     error::{Result, ResultStream},
 };
 use async_trait::async_trait;
-use flight_fusion_ipc::{AreaSourceMetadata, AreaSourceReference};
+use flight_fusion_ipc::{AreaReference, AreaSourceMetadata, AreaSourceReference};
 use std::sync::Arc;
 
 pub struct FileAreaCatalog {
@@ -30,7 +30,7 @@ impl AreaCatalog for FileAreaCatalog {
 
     async fn list_area_sources(
         &self,
-        _reference: AreaSourceReference,
+        _root: Option<AreaReference>,
     ) -> ResultStream<AreaSourceMetadata> {
         todo!()
     }
