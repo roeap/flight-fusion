@@ -44,7 +44,7 @@ build-docker-fusion:
 .PHONY: python-develop
 python-develop: ## Run check on Python
 	$(info Dev build for python bindings)
-	cd python/flight-fusion && maturin develop $(MATURIN_EXTRA_ARGS)
+	cd python/flight-fusion && maturin develop --extras=devel $(MATURIN_EXTRA_ARGS)
 
 .PHONY: python-check
 python-check: ## Run check on Python
@@ -52,6 +52,8 @@ python-check: ## Run check on Python
 	isort --diff --check-only .
 	$(info Check Python black)
 	black --check
+	$(info Check Python pyright)
+	pyright
 
 .PHONY: python-build
 python-build: ## Build Python binding of flight fusion
@@ -60,10 +62,18 @@ python-build: ## Build Python binding of flight fusion
 
 .PHONY: python-proto
 python-proto:
+	$(info Generate python protobuffers)
 	mkdir tmp-proto
 	python -m grpc_tools.protoc -I proto --python_betterproto_out=tmp-proto proto/common.proto proto/message.proto proto/signals.proto
 	mv -f ./tmp-proto/flight_fusion/ipc/v1alpha1/* ./python/flight-fusion/flight_fusion/ipc/v1alpha1/
 	rm -rf ./tmp-proto
+
+.PHONY: rust-check
+rust-check: ## Run check on Rust
+	$(info --- Check Rust clippy ---)
+	cargo clippy
+	$(info --- Check Rust format ---)
+	cargo fmt -- --check
 
 .PHONY: rust-test-integration
 rust-test-integration:

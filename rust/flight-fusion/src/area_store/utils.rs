@@ -19,7 +19,7 @@ impl Length for BytesReader {
 
 impl Read for BytesReader {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        Ok(Read::read(&mut self.0.as_ref(), buf)?)
+        Read::read(&mut self.0.as_ref(), buf)
     }
 }
 
