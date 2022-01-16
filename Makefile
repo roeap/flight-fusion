@@ -68,6 +68,13 @@ python-proto:
 	mv -f ./tmp-proto/flight_fusion/ipc/v1alpha1/* ./python/flight-fusion/flight_fusion/ipc/v1alpha1/
 	rm -rf ./tmp-proto
 
+.PHONY: python-test
+python-test: ## Run check on Rust
+	$(info --- Check Rust clippy ---)
+	cargo clippy
+	$(info --- Check Rust format ---)
+	cargo fmt -- --check
+
 .PHONY: rust-check
 rust-check: ## Run check on Rust
 	$(info --- Check Rust clippy ---)

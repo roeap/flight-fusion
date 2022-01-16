@@ -66,6 +66,7 @@ jobs:
           pip install virtualenv
           virtualenv venv
           source venv/bin/activate
+          pip install maturin
           make python-develop
 
       - name: Run tests
