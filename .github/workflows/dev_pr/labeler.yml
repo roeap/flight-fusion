@@ -1,0 +1,16 @@
+python:
+  - python/**/*
+
+rust:
+  - rust/**/*
+
+development-process:
+  - dev/**.*
+  - .github/**.*
+  - ci/**.*
+
+documentation:
+  - docs/**.*
+  - README.md
+  - ./**/README.md
+  - DEVELOPERS.md

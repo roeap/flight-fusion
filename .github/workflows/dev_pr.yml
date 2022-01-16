@@ -1,0 +1,26 @@
+name: Labeler
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
+
+jobs:
+  process:
+    name: Process
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Assign GitHub labels
+        if: |
+          github.event_name == 'pull_request_target' &&
+            (github.event.action == 'opened' ||
+             github.event.action == 'synchronize')
+        uses: actions/labeler@2.2.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/workflows/dev_pr/labeler.yml
+          sync-labels: true
