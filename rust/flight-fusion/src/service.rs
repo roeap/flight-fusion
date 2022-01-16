@@ -66,10 +66,10 @@ impl FlightService for FlightFusionService {
     type ListActionsStream = BoxedFlightStream<ActionType>;
     type DoExchangeStream = BoxedFlightStream<FlightData>;
 
-    #[instrument(skip(self, request))]
+    #[instrument(skip(self, _request))]
     async fn handshake(
         &self,
-        request: Request<Streaming<HandshakeRequest>>,
+        _request: Request<Streaming<HandshakeRequest>>,
     ) -> Result<Response<Self::HandshakeStream>, Status> {
         Err(Status::unimplemented("Not yet implemented"))
     }
@@ -79,17 +79,20 @@ impl FlightService for FlightFusionService {
         &self,
         request: Request<Criteria>,
     ) -> Result<Response<Self::ListFlightsStream>, Status> {
+        let parent_cx =
+            global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
+        tracing::Span::current().set_parent(parent_cx);
+
         let criteria = request.into_inner();
         let command = CommandListSources::decode(&mut criteria.expression.as_ref())
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
-        let flights = self
-            .action_handler
-            .list_flights(command)
-            .await
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
-
-        Ok(Response::new(flights))
+        Ok(Response::new(
+            self.action_handler
+                .list_flights(command)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?,
+        ))
     }
 
     #[instrument(skip(self, request))]
@@ -113,18 +116,21 @@ impl FlightService for FlightFusionService {
         &self,
         request: Request<Ticket>,
     ) -> Result<Response<Self::DoGetStream>, Status> {
+        let parent_cx =
+            global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
+        tracing::Span::current().set_parent(parent_cx);
+
         let flight_ticket = request.into_inner();
         let request_data: FlightDoGetRequest =
             FlightDoGetRequest::decode(&mut flight_ticket.ticket.as_ref())
                 .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
-        let result = self
-            .action_handler
-            .execute_do_get(request_data)
-            .await
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
-
-        Ok(Response::new(result))
+        Ok(Response::new(
+            self.action_handler
+                .execute_do_get(request_data)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?,
+        ))
     }
 
     #[instrument(skip(self, request))]
@@ -132,17 +138,20 @@ impl FlightService for FlightFusionService {
         &self,
         request: Request<Streaming<FlightData>>,
     ) -> Result<Response<Self::DoPutStream>, Status> {
-        let response = self
-            .action_handler
-            .execute_do_put(Arc::new(
-                FlightReceiverPlan::try_new(request.into_inner())
-                    .await
-                    .map_err(|e| tonic::Status::internal(e.to_string()))?,
-            ))
-            .await
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let parent_cx =
+            global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
+        tracing::Span::current().set_parent(parent_cx);
 
-        Ok(Response::new(response))
+        Ok(Response::new(
+            self.action_handler
+                .execute_do_put(Arc::new(
+                    FlightReceiverPlan::try_new(request.into_inner())
+                        .await
+                        .map_err(|e| tonic::Status::internal(e.to_string()))?,
+                ))
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?,
+        ))
     }
 
     #[instrument(skip(self, request))]
@@ -154,19 +163,17 @@ impl FlightService for FlightFusionService {
             global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
         tracing::Span::current().set_parent(parent_cx);
 
-        // Decode FlightRequest from buffer.
         let flight_action = request.into_inner();
         let request_data: FlightActionRequest =
             FlightActionRequest::decode(&mut flight_action.body.as_ref())
                 .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
-        let response = self
-            .action_handler
-            .execute_action(request_data)
-            .await
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
-
-        Ok(Response::new(response))
+        Ok(Response::new(
+            self.action_handler
+                .execute_action(request_data)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?,
+        ))
     }
 
     #[instrument(skip(self, _request))]
