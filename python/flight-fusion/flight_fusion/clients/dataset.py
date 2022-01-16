@@ -15,6 +15,7 @@ from flight_fusion.ipc.v1alpha1 import (
     AreaSourceReference,
     AreaTableLocation,
     CommandDropSource,
+    CommandGetSchema,
     CommandReadDataset,
     CommandWriteIntoDataset,
     ResultActionStatus,
@@ -27,6 +28,7 @@ class DatasetClient:
     def __init__(self, client: AreaClient, reference: AreaSourceReference) -> None:
         self._reference = reference
         self._client = client
+        self._schema = None
 
     @classmethod
     @abstractmethod
@@ -58,6 +60,14 @@ class DatasetClient:
         if isinstance(value, AreaTableLocation):
             return value.areas
         raise errors.TableSource(f"Variant {field} not yet supported.")
+
+    def schema(self) -> pa.Schema:
+        if self._schema is None:
+            command = CommandGetSchema(source=self._reference)
+            self._schema = self._client.fusion.get_schema(
+                command=command.SerializeToString()
+            )
+        return self._schema
 
     def write_into(
         self,
