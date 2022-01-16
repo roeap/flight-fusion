@@ -37,7 +37,7 @@ impl DoGetHandler<CommandReadDataset> for FusionActionHandler {
         &self,
         ticket: CommandReadDataset,
     ) -> FusionResult<BoxedFlightStream<FlightData>> {
-        if let Some(table) = ticket.table {
+        if let Some(table) = ticket.source {
             // TODO remove panics
             let location = self.area_store.get_table_location(&table).unwrap();
             let batches = self.area_store.get_batches(&location).await.unwrap();
@@ -63,8 +63,8 @@ async fn create_response_stream(
     let options = IpcWriteOptions::default();
     let schema_flight_data = SchemaAsIpc::new(&schema, &options).into();
 
-    let mut flights: Vec<Result<FlightData, Status>> = vec![Ok(schema_flight_data)];
-    let mut batches: Vec<Result<FlightData, Status>> = results
+    let mut flights: Vec<std::result::Result<FlightData, Status>> = vec![Ok(schema_flight_data)];
+    let mut batches: Vec<std::result::Result<FlightData, Status>> = results
         .iter()
         .flat_map(|batch| {
             let (flight_dictionaries, flight_batch) =

@@ -24,10 +24,6 @@ pub enum AreaStoreError {
         expected_schema: Arc<arrow_deps::arrow::datatypes::Schema>,
     },
 
-    /// An Arrow RecordBatch could not be created from the JSON buffer.
-    #[error("Arrow RecordBatch created from JSON buffer is a None value")]
-    EmptyRecordBatch,
-
     /// Arrow returned an error.
     #[error("Arrow interaction failed: {source}")]
     Arrow {

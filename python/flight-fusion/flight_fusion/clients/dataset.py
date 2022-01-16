@@ -11,13 +11,14 @@ import flight_fusion.errors as errors
 from flight_fusion.clients.area import AreaClient
 from flight_fusion.clients.service import ClientOptions
 from flight_fusion.ipc.v1alpha1 import (
+    AreaSourceMetadata,
     AreaSourceReference,
     AreaTableLocation,
-    CommandDropDataset,
+    CommandDropSource,
     CommandReadDataset,
     CommandWriteIntoDataset,
-    DoPutUpdateResult,
-    DropDatasetResponse,
+    ResultActionStatus,
+    ResultDoPutUpdate,
     SaveMode,
 )
 
@@ -62,33 +63,34 @@ class DatasetClient:
         self,
         data: Union[pd.DataFrame, pa.Table],
         save_mode: SaveMode = SaveMode.SAVE_MODE_OVERWRITE,
-    ) -> DoPutUpdateResult:
+    ) -> ResultDoPutUpdate:
         if isinstance(data, pd.DataFrame):
             data = pa.Table.from_pandas(data)
         batches = data.to_batches()
-        command = CommandWriteIntoDataset(table=self._reference, save_mode=save_mode)
+        command = CommandWriteIntoDataset(source=self._reference, save_mode=save_mode)
         response = self._client.fusion.write_into_table(
             command=command.SerializeToString(), batches=batches
         )
-        return DoPutUpdateResult().parse(response)
-
-    @abstractmethod
-    def create(self):
-        pass
+        return ResultDoPutUpdate().parse(response)
 
     def load(self) -> pa.Table:
-        command = CommandReadDataset(table=self._reference)
+        command = CommandReadDataset(source=self._reference)
         batches = self._client.fusion.read_table(command=command.SerializeToString())
         return pa.Table.from_batches(batches)
 
-    def drop(self) -> DropDatasetResponse:
-        command = CommandDropDataset(table=self._reference)
-        response = self._client.fusion.drop_table(command=command.SerializeToString())
-        return DropDatasetResponse().parse(response)
+    def query(self, query: str) -> pa.Table:
+        ...
 
-    def get_metadata(self):
-        # TODO implement ...
-        pass
+    def drop(self) -> ResultActionStatus:
+        command = CommandDropSource(source=self._reference)
+        response = self._client.fusion.drop_table(command=command.SerializeToString())
+        return ResultActionStatus().parse(response)
+
+    def get_metadata(self) -> AreaSourceMetadata:
+        ...
+
+    def set_metadata(self, metadata: AreaSourceMetadata = None) -> None:
+        ...
 
 
 class TableClient(DatasetClient):

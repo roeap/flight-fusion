@@ -1,3 +1,13 @@
+mod area_store;
+mod catalog;
+mod error;
+mod handlers;
+mod service;
+mod settings;
+mod stream;
+#[cfg(test)]
+mod test_utils;
+
 use arrow_flight::flight_service_server::FlightServiceServer;
 use dotenv::dotenv;
 use lazy_static::lazy_static;
@@ -9,15 +19,6 @@ use observability_deps::{
     tracing_subscriber::{self, layer::SubscriberExt, prelude::*},
 };
 use tonic::transport::Server;
-
-mod area_store;
-mod error;
-mod handlers;
-mod service;
-mod settings;
-mod stream;
-#[cfg(test)]
-mod test_utils;
 
 lazy_static! {
     static ref CONFIG: settings::Settings =

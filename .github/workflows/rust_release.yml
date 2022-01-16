@@ -1,4 +1,4 @@
-name: Release to Cargo
+name: Rust release
 
 on:
   push:

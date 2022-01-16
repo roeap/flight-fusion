@@ -1,4 +1,9 @@
 //! Abstractions and implementations for writing data to delta tables
+pub mod error;
+mod stats;
+pub mod utils;
+pub mod writer;
+
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -17,11 +22,6 @@ use futures::{stream, StreamExt, TryStreamExt};
 use object_store::{path::ObjectStorePath, ObjectStoreApi};
 pub use utils::*;
 pub use writer::*;
-
-pub mod error;
-mod stats;
-pub mod utils;
-pub mod writer;
 
 const DATA_FOLDER_NAME: &str = "data";
 const DEFAULT_READ_BATCH_SIZE: usize = 1024;
@@ -43,7 +43,7 @@ pub async fn flatten_list_stream(
 }
 
 #[async_trait]
-pub trait AreaStore {
+pub trait AreaStore: Send + Sync {
     /// Get a reference to the underlying object store
     fn object_store(&self) -> Arc<object_store::ObjectStore>;
 
@@ -109,13 +109,12 @@ impl AreaStore for InMemoryAreaStore {
     ) -> Result<Vec<stats::Add>> {
         let schema = batches[0].schema();
         let partition_cols = vec![];
-        let mut writer =
-            DeltaWriter::new(self.object_store().clone(), schema, Some(partition_cols));
+        let mut writer = DeltaWriter::new(self.object_store(), schema, Some(partition_cols));
         batches.iter().for_each(|b| writer.write(b).unwrap());
 
         match save_mode {
             SaveMode::Overwrite => {
-                let files = flatten_list_stream(&self.object_store(), Some(&location))
+                let files = flatten_list_stream(&self.object_store(), Some(location))
                     .await
                     .unwrap();
                 for file in files {
@@ -124,16 +123,14 @@ impl AreaStore for InMemoryAreaStore {
                 }
                 writer.flush(location).await
             }
-            SaveMode::ErrorIfExists => Err(AreaStoreError::TableAlreadyExists(
-                location.to_raw().to_string(),
-            )),
+            SaveMode::ErrorIfExists => Err(AreaStoreError::TableAlreadyExists(location.to_raw())),
             _ => writer.flush(location).await,
         }
     }
 
     /// Read batches from location
     async fn get_batches(&self, location: &object_store::path::Path) -> Result<Vec<RecordBatch>> {
-        let files = flatten_list_stream(&self.object_store(), Some(&location))
+        let files = flatten_list_stream(&self.object_store(), Some(location))
             .await
             .unwrap();
         let mut batches = Vec::new();
@@ -156,7 +153,7 @@ impl AreaStore for InMemoryAreaStore {
     ) -> Result<ParquetFileArrowReader> {
         let bytes = self
             .object_store()
-            .get(&location)
+            .get(location)
             .await
             .unwrap()
             .bytes()

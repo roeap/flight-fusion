@@ -4,20 +4,6 @@ package flight_fusion.ipc.v1alpha1;
 import "common.proto";
 import "signals.proto";
 
-message RegisterDatasetRequest {
-  DatasetFormat format = 1;
-  string path = 2;
-  string name = 3;
-}
-
-message RegisterDatasetResponse {
-    string message = 1;
-}
-
-message DropDatasetResponse {
-  string name = 1;
-}
-
 // Describes an SQL query operation
 message CommandSqlOperation {
   // The SQL syntax.
@@ -35,23 +21,64 @@ message CommandKqlOperation {
 
 // Commands
 
-// Read entire table from storage
-message CommandReadDataset {
-  // table identifier
-  AreaSourceReference table = 1;
+message CommandGetSchema {
+  // source identifier
+  AreaSourceReference source = 1;
 }
 
-message CommandDropDataset {
-  // table identifier
-  AreaSourceReference table = 1;
+message CommandListSources {
+  optional AreaReference root = 1;
+}
+
+// Read entire table from storage
+message CommandReadDataset {
+  // source identifier
+  AreaSourceReference source = 1;
+}
+
+message CommandDropSource {
+  // source identifier
+  AreaSourceReference source = 1;
+}
+
+// Update metadata associated with source
+message CommandSetMetadata {
+  // source identifier
+  AreaSourceReference source = 1;
+  // metadata to be written to source
+  AreaSourceMetadata meta = 2;
 }
 
 // Request to write data to area storage
 message CommandWriteIntoDataset {
-  // table identifier
-  AreaSourceReference table = 1;
+  // source identifier
+  AreaSourceReference source = 1;
   // denotes how to beahve for existing data - defaults to overwrite
   SaveMode save_mode = 3;
+}
+
+// Command to register a new source to service
+message CommandRegisterSource {
+  DatasetFormat format = 1;
+  string path = 2;
+  string name = 3;
+}
+
+// Results
+
+enum ActionStatus {
+  ACTION_STATUS_UNSPECIFIED = 0;
+  ACTION_STATUS_SUCCESS = 1;
+  ACTION_STATUS_FAILURE = 2;
+}
+
+// result when a source is dropped
+message ResultActionStatus {
+  ActionStatus status = 1;
+}
+
+message ResultDoPutUpdate {
+  BatchStatistics statistics = 1;
 }
 
 // Signals
@@ -89,46 +116,35 @@ message PutMemoryTableRequest {
   string name = 1;
 }
 
-message PutMemoryTableResponse {
-  string name = 1;
+// Metadata
+
+// Metadata associated with an area source
+message AreaSourceMetadata {
+  // globally unique idetifier for the source
+  string id = 1;
+
+  // A human readable name for the source
+  string name = 2;
+
+  // A short descrptive text that describes the content
+  // and purpose of the data source
+  string description = 3;
+
+  // tags associated with source
+  repeated Tag tags = 9;
+
+  // user defined properties
+  map<string, string> properties = 10;
 }
 
-// Flight
+// Detialed metadata and statistics about a source
+message AreaSourceDetails {
+  // globally unique idetifier for the source
+  string id = 1;
 
-// Requests submitted against the `do_get` endpoint
-message FlightDoGetRequest {
-  oneof operation {
-    CommandSqlOperation sql = 1;
-    CommandKqlOperation kql = 2;
-    SignalFrameOperation frame = 3;
-    CommandReadDataset read = 4;
-  }
-}
+  // Metadata associated with the source
+  AreaSourceMetadata metadata = 2;
 
-// Requests submitted against the `do_put` endpoint
-message FlightDoPutRequest {
-  oneof operation {
-    PutMemoryTableRequest memory = 1;
-    CommandWriteIntoDataset storage = 2;
-    DeltaOperationRequest delta = 3;
-  }
-}
-
-// Requests submitted against the `do_action` endpoint
-message FlightActionRequest {
-  oneof action {
-    RegisterDatasetRequest register = 1;
-    CommandDropDataset drop = 2;
-  }
-}
-
-/*
- * Returned from the RPC call DoPut when a CommandStatementUpdate
- * CommandPreparedStatementUpdate was in the request, containing
- * results from the update.
- */
-message DoPutUpdateResult {
-  BatchStatistics statistics = 1;
 }
 
 /*
@@ -147,13 +163,13 @@ message BatchStatistics {
   // Statistics on a column level
   repeated ColumnStatistics column_statistics = 3;
 
-  // If true, any field that is `Some(..)` is the actual value in the data provided by the operator (it is not
+  // If true, any field that is defined is the actual value in the data provided by the operator (it is not
   // an estimate). Any or all other fields might still be None, in which case no information is known.
-  // if false, any field that is `Some(..)` may contain an inexact estimate and may not be the actual value.
+  // if false, any field that is has a value may contain an inexact estimate and may not be the actual value.
   bool is_exact = 4;
 }
 
-// This table statistics are estimates about column
+// This table statistics are estimates about column properties
 message ColumnStatistics {
   // Number of null values on column
   int64 null_count = 1;

@@ -1,17 +1,25 @@
-use crate::{area_store::InMemoryAreaStore, stream::*};
+use crate::{
+    area_store::InMemoryAreaStore,
+    catalog::{AreaCatalog, FileAreaCatalog},
+    error::{to_fusion_err, Result},
+    stream::*,
+};
 use arrow_deps::datafusion::{
     catalog::{catalog::MemoryCatalogProvider, schema::MemorySchemaProvider},
     physical_plan::ExecutionPlan,
 };
-use arrow_flight::{FlightData, PutResult};
+use arrow_flight::{
+    flight_descriptor::DescriptorType, FlightData, FlightDescriptor, FlightEndpoint, FlightInfo,
+    PutResult, SchemaResult,
+};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
-    flight_action_request::Action as FusionAction,
-    flight_do_get_request::Operation as DoGetOperation,
-    flight_do_put_request::Operation as DoPutOperation, serialize_message, FlightActionRequest,
-    FlightDoGetRequest, FlightFusionError, RequestFor, Result as FusionResult,
+    flight_action_request::Action as FusionAction, flight_do_get_request::Command as DoGetCommand,
+    serialize_message, AreaSourceDetails, AreaSourceMetadata, CommandListSources,
+    FlightActionRequest, FlightDoGetRequest, FlightFusionError, FlightGetFlightInfoRequest,
+    FlightGetSchemaRequest, RequestFor, Result as FusionResult,
 };
-use futures::Stream;
+use futures::{Stream, StreamExt};
 pub use object_store::{path::ObjectStorePath, ObjectStoreApi};
 use std::sync::Arc;
 use std::{path::PathBuf, pin::Pin};
@@ -22,7 +30,7 @@ pub mod do_get;
 pub mod do_put;
 
 pub type BoxedFlightStream<T> =
-    Pin<Box<dyn Stream<Item = Result<T, Status>> + Send + Sync + 'static>>;
+    Pin<Box<dyn Stream<Item = std::result::Result<T, Status>> + Send + Sync + 'static>>;
 
 fn to_flight_fusion_err(e: arrow_deps::datafusion::error::DataFusionError) -> FlightFusionError {
     FlightFusionError::ExternalError(format!("{:?}", e))
@@ -54,18 +62,67 @@ where
 
 pub struct FusionActionHandler {
     catalog: Arc<MemoryCatalogProvider>,
-    area_store: InMemoryAreaStore,
+    area_store: Arc<InMemoryAreaStore>,
+    area_catalog: Arc<FileAreaCatalog>,
 }
 
 impl FusionActionHandler {
     pub fn new(root: impl Into<PathBuf>) -> Self {
-        let area_store = InMemoryAreaStore::new(root);
         let schema_provider = MemorySchemaProvider::new();
         let catalog = Arc::new(MemoryCatalogProvider::new());
         catalog.register_schema("schema".to_string(), Arc::new(schema_provider));
+
+        let area_store = Arc::new(InMemoryAreaStore::new(root));
+        let area_catalog = Arc::new(FileAreaCatalog::new(area_store.clone()));
+
         Self {
             catalog,
             area_store,
+            area_catalog,
+        }
+    }
+
+    pub async fn list_flights(
+        &self,
+        command: CommandListSources,
+    ) -> FusionResult<BoxedFlightStream<FlightInfo>> {
+        Ok(Box::pin(
+            self.area_catalog
+                .list_area_sources(command.root)
+                .await
+                .map_err(to_fusion_err)?
+                .map(move |meta| meta_to_flight_info(meta)),
+        ))
+    }
+
+    pub async fn get_schema(&self, request: FlightGetSchemaRequest) -> FusionResult<SchemaResult> {
+        if let Some(source) = request.source {
+            let _meta = self
+                .area_catalog
+                .get_source_metadata(source)
+                .await
+                .map_err(to_fusion_err)?;
+
+            todo!()
+        } else {
+            todo!()
+        }
+    }
+
+    pub async fn get_flight_info(
+        &self,
+        request: FlightGetFlightInfoRequest,
+    ) -> FusionResult<FlightInfo> {
+        if let Some(source) = request.source {
+            let details = self
+                .area_catalog
+                .get_source_details(source)
+                .await
+                .map_err(to_fusion_err)?;
+
+            Ok(details_to_flight_info(details))
+        } else {
+            todo!()
         }
     }
 
@@ -76,12 +133,15 @@ impl FusionActionHandler {
         let body = match request_data.action {
             Some(action) => {
                 let result_body = match action {
-                    FusionAction::Register(register) => {
+                    FusionAction::Register(_register) => {
                         todo!()
                         // serialize_message(self.handle_do_action(register).await?)
                     }
                     FusionAction::Drop(drop) => {
                         serialize_message(self.handle_do_action(drop).await?)
+                    }
+                    FusionAction::SetMeta(meta) => {
+                        serialize_message(self.handle_do_action(meta).await?)
                     }
                 };
 
@@ -100,16 +160,16 @@ impl FusionActionHandler {
         &self,
         request_data: FlightDoGetRequest,
     ) -> FusionResult<BoxedFlightStream<FlightData>> {
-        match request_data.operation {
+        match request_data.command {
             Some(op) => match op {
-                DoGetOperation::Sql(sql) => self.handle_do_get(sql).await,
-                DoGetOperation::Kql(_) => {
+                DoGetCommand::Sql(sql) => self.handle_do_get(sql).await,
+                DoGetCommand::Kql(_) => {
                     todo!()
                 }
-                DoGetOperation::Frame(_) => {
+                DoGetCommand::Frame(_) => {
                     todo!()
                 }
-                DoGetOperation::Read(read) => self.handle_do_get(read).await,
+                DoGetCommand::Read(read) => self.handle_do_get(read).await,
             },
             None => Err(FlightFusionError::UnknownAction(
                 "No operation data passed".to_string(),
@@ -118,12 +178,44 @@ impl FusionActionHandler {
     }
 }
 
+fn meta_to_flight_info(
+    meta: Result<AreaSourceMetadata>,
+) -> std::result::Result<FlightInfo, tonic::Status> {
+    match meta {
+        Ok(_m) => {
+            // TODO populate with meaningful data
+            let descriptor = FlightDescriptor {
+                r#type: DescriptorType::Cmd.into(),
+                cmd: vec![],
+                ..FlightDescriptor::default()
+            };
+            let endpoint = FlightEndpoint {
+                ticket: None,
+                location: vec![],
+            };
+            let info = FlightInfo {
+                schema: vec![],
+                flight_descriptor: Some(descriptor),
+                endpoint: vec![endpoint],
+                total_records: -1,
+                total_bytes: -1,
+            };
+            Ok(info)
+        }
+        Err(e) => Err(tonic::Status::internal(e.to_string())),
+    }
+}
+
+fn details_to_flight_info(details: AreaSourceDetails) -> FlightInfo {
+    todo!()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
-        CommandDropDataset, CommandWriteIntoDataset, SaveMode,
+        CommandDropSource, CommandWriteIntoDataset, SaveMode,
     };
 
     #[tokio::test]
@@ -140,8 +232,8 @@ mod tests {
             })),
         };
         let put_request = CommandWriteIntoDataset {
-            table: Some(table_ref.clone()),
-            save_mode: SaveMode::Overwrite as i32,
+            source: Some(table_ref.clone()),
+            save_mode: SaveMode::Overwrite.into(),
         };
 
         assert!(!table_dir.exists());
@@ -150,8 +242,8 @@ mod tests {
 
         assert!(table_dir.is_dir());
 
-        let drop_request = CommandDropDataset {
-            table: Some(table_ref),
+        let drop_request = CommandDropSource {
+            source: Some(table_ref),
         };
         let _drop_response = handler.handle_do_action(drop_request).await.unwrap();
 

@@ -8,9 +8,9 @@ use arrow_deps::datafusion::{
 use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, commands::DeltaCommands};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
-    delta_operation_request, BatchStatistics, ColumnStatistics, CommandWriteIntoDataset,
-    DeltaOperationRequest, DeltaOperationResponse, DoPutUpdateResult, FlightFusionError,
-    PutMemoryTableRequest, PutMemoryTableResponse, Result as FusionResult, SaveMode,
+    delta_operation_request, flight_do_put_request::Command as DoPutCommand,
+    CommandWriteIntoDataset, DeltaOperationRequest, DeltaOperationResponse, FlightFusionError,
+    PutMemoryTableRequest, Result as FusionResult, ResultDoPutUpdate, SaveMode,
 };
 use std::sync::Arc;
 
@@ -20,16 +20,16 @@ impl FusionActionHandler {
         stream: Arc<FlightReceiverPlan>,
     ) -> FusionResult<BoxedFlightStream<PutResult>> {
         let request_data = stream.ticket();
-        let body = match &request_data.operation {
+        let body = match &request_data.command {
             Some(action) => {
                 let result_body = match action {
-                    DoPutOperation::Memory(memory) => {
+                    DoPutCommand::Memory(memory) => {
                         serialize_message(self.handle_do_put(memory.clone(), stream).await?)
                     }
-                    DoPutOperation::Storage(storage) => {
+                    DoPutCommand::Storage(storage) => {
                         serialize_message(self.handle_do_put(storage.clone(), stream).await?)
                     }
-                    DoPutOperation::Delta(delta) => {
+                    DoPutCommand::Delta(delta) => {
                         serialize_message(self.handle_do_put(delta.clone(), stream).await?)
                     }
                 };
@@ -52,7 +52,7 @@ impl DoPutHandler<PutMemoryTableRequest> for FusionActionHandler {
         &self,
         ticket: PutMemoryTableRequest,
         input: Arc<dyn ExecutionPlan>,
-    ) -> FusionResult<PutMemoryTableResponse> {
+    ) -> FusionResult<ResultDoPutUpdate> {
         let schema_ref = input.schema();
         let batches = collect(input).await.unwrap();
 
@@ -68,9 +68,7 @@ impl DoPutHandler<PutMemoryTableRequest> for FusionActionHandler {
 
         // TODO generate messages in channel
         // https://github.com/jorgecarleitao/arrow2/blob/main/integration-testing/src/flight_server_scenarios/integration_test.rs
-        Ok(PutMemoryTableResponse {
-            name: "created".to_string(),
-        })
+        Ok(ResultDoPutUpdate { statistics: None })
     }
 }
 
@@ -80,13 +78,13 @@ impl DoPutHandler<CommandWriteIntoDataset> for FusionActionHandler {
         &self,
         ticket: CommandWriteIntoDataset,
         input: Arc<dyn ExecutionPlan>,
-    ) -> FusionResult<DoPutUpdateResult> {
-        if let Some(source) = ticket.table {
+    ) -> FusionResult<ResultDoPutUpdate> {
+        if let Some(source) = ticket.source {
             // TODO remove panic
             let location = self.area_store.get_table_location(&source).unwrap();
             let batches = collect(input).await.unwrap();
             // TODO remove panic
-            let adds = self
+            let _adds = self
                 .area_store
                 .put_batches(
                     batches,
@@ -95,7 +93,7 @@ impl DoPutHandler<CommandWriteIntoDataset> for FusionActionHandler {
                 )
                 .await
                 .unwrap();
-            Ok(DoPutUpdateResult { statistics: None })
+            Ok(ResultDoPutUpdate { statistics: None })
         } else {
             // TODO migrate errors and raise something more meaningful
             Err(FlightFusionError::generic("Source not found"))
@@ -167,8 +165,8 @@ mod tests {
             areas: vec![],
         });
         let request = CommandWriteIntoDataset {
-            table: Some(AreaSourceReference { table: Some(table) }),
-            save_mode: SaveMode::Overwrite as i32,
+            source: Some(AreaSourceReference { table: Some(table) }),
+            save_mode: SaveMode::Overwrite.into(),
         };
 
         assert!(!table_dir.exists());
@@ -195,8 +193,8 @@ mod tests {
             })),
         };
         let request = CommandWriteIntoDataset {
-            table: Some(table_ref.clone()),
-            save_mode: SaveMode::Append as i32,
+            source: Some(table_ref.clone()),
+            save_mode: SaveMode::Append.into(),
         };
 
         assert!(!table_dir.exists());
@@ -224,8 +222,8 @@ mod tests {
         assert!(files.len() == 2);
 
         let request = CommandWriteIntoDataset {
-            table: Some(table_ref.clone()),
-            save_mode: SaveMode::Overwrite as i32,
+            source: Some(table_ref.clone()),
+            save_mode: SaveMode::Overwrite.into(),
         };
 
         let _response = handler
@@ -254,7 +252,7 @@ mod tests {
                 location: table_uri.clone(),
             }),
             operation: Some(Operation::Write(DeltaWriteOperation {
-                save_mode: SaveMode::Append as i32,
+                save_mode: SaveMode::Append.into(),
                 partition_columns: vec!["modified".to_string()],
                 ..Default::default()
             })),
@@ -286,7 +284,7 @@ mod tests {
                 location: table_uri.clone(),
             }),
             operation: Some(Operation::Write(DeltaWriteOperation {
-                save_mode: SaveMode::Overwrite as i32,
+                save_mode: SaveMode::Overwrite.into(),
                 partition_columns: vec!["modified".to_string()],
                 ..Default::default()
             })),
@@ -319,7 +317,7 @@ mod tests {
                 location: table_uri.clone(),
             }),
             operation: Some(Operation::Write(DeltaWriteOperation {
-                save_mode: SaveMode::Append as i32,
+                save_mode: SaveMode::Append.into(),
                 partition_columns: vec![],
                 ..Default::default()
             })),
