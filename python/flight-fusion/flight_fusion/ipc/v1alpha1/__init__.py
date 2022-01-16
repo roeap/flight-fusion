@@ -9,15 +9,26 @@ from betterproto.grpc.grpclib_server import ServiceBase
 
 
 class FileFormat(betterproto.Enum):
+    """File format for a file stroed on disk"""
+
+    # Undefined file format
     FILE_FORMAT_UNSPECIFIED = 0
+    # Stored in parquet
     FILE_FORMAT_PARQUET = 1
+    # Avro
     FILE_FORMAT_AVRO = 2
+    # Csv
     FILE_FORMAT_CSV = 3
 
 
 class DatasetFormat(betterproto.Enum):
+    """Logical format for a dataset stored on disk"""
+
+    # A single file
     DATASET_FORMAT_FILE = 0
+    # A directory or directory hierarchy (when partitioned)
     DATASET_FORMAT_DATASET = 1
+    # Table stored in teh delta lake format (delta.io)
     DATASET_FORMAT_DELTA = 2
 
 
@@ -29,11 +40,18 @@ class SaveMode(betterproto.Enum):
 
 
 class StorageType(betterproto.Enum):
+    """Type of storage"""
+
     STORAGE_TYPE_UNSPECIFIED = 0
+    # Local filesystem storage
     STORAGE_TYPE_LOCAL = 1
+    # Hadoop file system
     STORAGE_TYPE_HDFS = 2
+    # Azure storage account Gen2 with hierarchical namespaces
     STORAGE_TYPE_AZURE_ADLS_V2 = 3
+    # Azure storage account
     STORAGE_TYPE_AZURE_BLOB = 4
+    # AWS S3 storage
     STORAGE_TYPE_S3 = 5
 
 
@@ -51,13 +69,6 @@ class DeltaReference(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
-class ListingReference(betterproto.Message):
-    path: str = betterproto.string_field(1)
-    format: "FileFormat" = betterproto.enum_field(2)
-    partition_columns: List[str] = betterproto.string_field(3)
-
-
-@dataclass(eq=False, repr=False)
 class FileReference(betterproto.Message):
     path: str = betterproto.string_field(1)
     format: "FileFormat" = betterproto.enum_field(2)
@@ -66,7 +77,6 @@ class FileReference(betterproto.Message):
 @dataclass(eq=False, repr=False)
 class TableReference(betterproto.Message):
     delta: "DeltaReference" = betterproto.message_field(1, group="table")
-    listing: "ListingReference" = betterproto.message_field(2, group="table")
     file: "FileReference" = betterproto.message_field(3, group="table")
 
 
@@ -296,6 +306,17 @@ class FlightActionRequest(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
+class DoPutUpdateResult(betterproto.Message):
+    """
+    Returned from the RPC call DoPut when a CommandStatementUpdate
+    CommandPreparedStatementUpdate was in the request, containing results from
+    the update.
+    """
+
+    statistics: "BatchStatistics" = betterproto.message_field(1)
+
+
+@dataclass(eq=False, repr=False)
 class AreaSourceMetadata(betterproto.Message):
     """Metadata associated with an area source"""
 
@@ -310,17 +331,6 @@ class AreaSourceMetadata(betterproto.Message):
     properties: Dict[str, str] = betterproto.map_field(
         10, betterproto.TYPE_STRING, betterproto.TYPE_STRING
     )
-
-
-@dataclass(eq=False, repr=False)
-class DoPutUpdateResult(betterproto.Message):
-    """
-    Returned from the RPC call DoPut when a CommandStatementUpdate
-    CommandPreparedStatementUpdate was in the request, containing results from
-    the update.
-    """
-
-    statistics: "BatchStatistics" = betterproto.message_field(1)
 
 
 @dataclass(eq=False, repr=False)

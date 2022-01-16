@@ -6,15 +6,6 @@ pub struct DeltaReference {
     pub location: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ListingReference {
-    #[prost(string, tag="1")]
-    pub path: ::prost::alloc::string::String,
-    #[prost(enumeration="FileFormat", tag="2")]
-    pub format: i32,
-    #[prost(string, repeated, tag="3")]
-    pub partition_columns: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileReference {
     #[prost(string, tag="1")]
     pub path: ::prost::alloc::string::String,
@@ -23,7 +14,7 @@ pub struct FileReference {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TableReference {
-    #[prost(oneof="table_reference::Table", tags="1, 2, 3")]
+    #[prost(oneof="table_reference::Table", tags="1, 3")]
     pub table: ::core::option::Option<table_reference::Table>,
 }
 /// Nested message and enum types in `TableReference`.
@@ -32,8 +23,6 @@ pub mod table_reference {
     pub enum Table {
         #[prost(message, tag="1")]
         Delta(super::DeltaReference),
-        #[prost(message, tag="2")]
-        Listing(super::ListingReference),
         #[prost(message, tag="3")]
         File(super::FileReference),
     }
@@ -79,19 +68,30 @@ pub struct Tag {
     #[prost(string, tag="2")]
     pub value: ::prost::alloc::string::String,
 }
+// Constants
+
+/// File format for a file stroed on disk
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum FileFormat {
+    /// Undefined file format
     Unspecified = 0,
+    /// Stored in parquet
     Parquet = 1,
+    /// Avro
     Avro = 2,
+    /// Csv
     Csv = 3,
 }
+/// Logical format for a dataset stored on disk
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum DatasetFormat {
+    /// A single file
     File = 0,
+    /// A directory or directory hierarchy (when partitioned)
     Dataset = 1,
+    /// Table stored in teh delta lake format (delta.io)
     Delta = 2,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
@@ -102,14 +102,20 @@ pub enum SaveMode {
     Overwrite = 2,
     ErrorIfExists = 3,
 }
+/// Type of storage
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum StorageType {
     Unspecified = 0,
+    /// Local filesystem storage
     Local = 1,
+    /// Hadoop file system
     Hdfs = 2,
+    /// Azure storage account Gen2 with hierarchical namespaces
     AzureAdlsV2 = 3,
+    /// Azure storage account
     AzureBlob = 4,
+    /// AWS S3 storage
     S3 = 5,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -392,6 +398,15 @@ pub mod flight_action_request {
         Drop(super::CommandDropDataset),
     }
 }
+///
+/// Returned from the RPC call DoPut when a CommandStatementUpdate
+/// CommandPreparedStatementUpdate was in the request, containing
+/// results from the update.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DoPutUpdateResult {
+    #[prost(message, optional, tag="1")]
+    pub statistics: ::core::option::Option<BatchStatistics>,
+}
 // Metadata
 
 /// Metadata associated with an area source
@@ -410,15 +425,6 @@ pub struct AreaSourceMetadata {
     /// user defined properties
     #[prost(map="string, string", tag="10")]
     pub properties: ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
-}
-///
-/// Returned from the RPC call DoPut when a CommandStatementUpdate
-/// CommandPreparedStatementUpdate was in the request, containing
-/// results from the update.
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DoPutUpdateResult {
-    #[prost(message, optional, tag="1")]
-    pub statistics: ::core::option::Option<BatchStatistics>,
 }
 ///
 /// Statistics for a physical plan node

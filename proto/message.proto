@@ -125,6 +125,15 @@ message FlightActionRequest {
   }
 }
 
+/*
+ * Returned from the RPC call DoPut when a CommandStatementUpdate
+ * CommandPreparedStatementUpdate was in the request, containing
+ * results from the update.
+ */
+ message DoPutUpdateResult {
+  BatchStatistics statistics = 1;
+}
+
 // Metadata
 
 // Metadata associated with an area source
@@ -141,15 +150,6 @@ message AreaSourceMetadata {
 
   // user defined properties
   map<string, string> properties = 10;
-}
-
-/*
- * Returned from the RPC call DoPut when a CommandStatementUpdate
- * CommandPreparedStatementUpdate was in the request, containing
- * results from the update.
- */
-message DoPutUpdateResult {
-  BatchStatistics statistics = 1;
 }
 
 /*

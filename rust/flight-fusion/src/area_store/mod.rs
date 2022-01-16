@@ -1,4 +1,9 @@
 //! Abstractions and implementations for writing data to delta tables
+pub mod error;
+mod stats;
+pub mod utils;
+pub mod writer;
+
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -17,11 +22,6 @@ use futures::{stream, StreamExt, TryStreamExt};
 use object_store::{path::ObjectStorePath, ObjectStoreApi};
 pub use utils::*;
 pub use writer::*;
-
-pub mod error;
-mod stats;
-pub mod utils;
-pub mod writer;
 
 const DATA_FOLDER_NAME: &str = "data";
 const DEFAULT_READ_BATCH_SIZE: usize = 1024;

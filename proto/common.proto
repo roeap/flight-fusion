@@ -1,16 +1,32 @@
 syntax = "proto3";
 package flight_fusion.ipc.v1alpha1;
 
+// Constants
+
+// File format for a file stroed on disk
 enum FileFormat {
+  // Undefined file format
   FILE_FORMAT_UNSPECIFIED = 0;
+
+  // Stored in parquet
   FILE_FORMAT_PARQUET = 1;
+
+  // Avro
   FILE_FORMAT_AVRO = 2;
+
+  // Csv
   FILE_FORMAT_CSV = 3;
 }
 
+// Logical format for a dataset stored on disk
 enum DatasetFormat {
+  // A single file
   DATASET_FORMAT_FILE = 0;
+
+  // A directory or directory hierarchy (when partitioned)
   DATASET_FORMAT_DATASET = 1;
+
+  // Table stored in teh delta lake format (delta.io)
   DATASET_FORMAT_DELTA = 2;
 }
 
@@ -21,23 +37,28 @@ enum SaveMode {
   SAVE_MODE_ERROR_IF_EXISTS = 3;
 }
 
+// Type of storage
 enum StorageType {
   STORAGE_TYPE_UNSPECIFIED = 0;
+
+  // Local filesystem storage
   STORAGE_TYPE_LOCAL = 1;
+
+  // Hadoop file system
   STORAGE_TYPE_HDFS = 2;
+
+  // Azure storage account Gen2 with hierarchical namespaces
   STORAGE_TYPE_AZURE_ADLS_V2 = 3;
+
+  // Azure storage account
   STORAGE_TYPE_AZURE_BLOB = 4;
+
+  // AWS S3 storage
   STORAGE_TYPE_S3 = 5;
 }
 
 message DeltaReference {
   string location = 1;
-}
-
-message ListingReference {
-  string path = 1;
-  FileFormat format = 2;
-  repeated string partition_columns = 3;
 }
 
 message FileReference {
@@ -48,7 +69,6 @@ message FileReference {
 message TableReference {
   oneof table {
     DeltaReference delta = 1;
-    ListingReference listing = 2;
     FileReference file = 3;
   }
 }
