@@ -1,16 +1,18 @@
+use crate::area_store::AreaStore;
 use crate::{
     area_store::InMemoryAreaStore,
     catalog::{AreaCatalog, FileAreaCatalog},
     error::{to_fusion_err, Result},
     stream::*,
 };
+use arrow_deps::arrow::ipc::writer::IpcWriteOptions;
 use arrow_deps::datafusion::{
     catalog::{catalog::MemoryCatalogProvider, schema::MemorySchemaProvider},
     physical_plan::ExecutionPlan,
 };
 use arrow_flight::{
     flight_descriptor::DescriptorType, FlightData, FlightDescriptor, FlightEndpoint, FlightInfo,
-    PutResult, SchemaResult,
+    PutResult, SchemaAsIpc, SchemaResult,
 };
 use async_trait::async_trait;
 use flight_fusion_ipc::{
@@ -91,19 +93,24 @@ impl FusionActionHandler {
                 .list_area_sources(command.root)
                 .await
                 .map_err(to_fusion_err)?
-                .map(move |meta| meta_to_flight_info(meta)),
+                .map(meta_to_flight_info),
         ))
     }
 
     pub async fn get_schema(&self, request: FlightGetSchemaRequest) -> FusionResult<SchemaResult> {
         if let Some(source) = request.source {
-            let _meta = self
-                .area_catalog
-                .get_source_metadata(source)
-                .await
-                .map_err(to_fusion_err)?;
+            // let _meta = self
+            //     .area_catalog
+            //     .get_source_metadata(source)
+            //     .await
+            //     .map_err(to_fusion_err)?;
+            // TODO this is horrible!! - we need async reader support to only read schema
+            let location = self.area_store.get_table_location(&source).unwrap();
+            let batches = self.area_store.get_batches(&location).await.unwrap();
+            let schema = batches[0].schema();
+            let schema_result = SchemaAsIpc::new(&schema, &IpcWriteOptions::default()).into();
 
-            todo!()
+            Ok(schema_result)
         } else {
             todo!()
         }

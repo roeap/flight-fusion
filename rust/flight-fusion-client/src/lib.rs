@@ -1,6 +1,8 @@
 use arrow::{
-    datatypes::Schema as ArrowSchema, ipc::writer::IpcWriteOptions, record_batch::RecordBatch,
+    datatypes::Schema as ArrowSchema, ipc::convert::schema_from_bytes,
+    ipc::writer::IpcWriteOptions, record_batch::RecordBatch,
 };
+use arrow_flight::flight_descriptor::DescriptorType;
 use arrow_flight::{
     flight_descriptor, flight_service_client::FlightServiceClient, Action, FlightData,
     FlightDescriptor, SchemaAsIpc, Ticket,
@@ -9,9 +11,10 @@ use error::FusionClientError;
 use flight_fusion_ipc::{
     flight_action_request::Action as FusionAction, flight_do_get_request::Command as DoGetCommand,
     flight_do_put_request::Command as DoPutCommand, utils::serialize_message, CommandDropSource,
-    CommandReadDataset, CommandRegisterSource, CommandWriteIntoDataset, DatasetFormat,
-    FlightActionRequest, FlightDoGetRequest, FlightDoPutRequest, FlightFusionError,
-    PutMemoryTableRequest, RequestFor, ResultActionStatus, ResultDoPutUpdate,
+    CommandGetSchema, CommandReadDataset, CommandRegisterSource, CommandSetMetadata,
+    CommandWriteIntoDataset, DatasetFormat, FlightActionRequest, FlightDoGetRequest,
+    FlightDoPutRequest, FlightFusionError, PutMemoryTableRequest, RequestFor, ResultActionStatus,
+    ResultDoPutUpdate,
 };
 use observability_deps::instrument;
 use observability_deps::tracing;
@@ -85,9 +88,22 @@ impl FlightFusionClient {
                 command: Some(DoGetCommand::Read(command)),
             }),
         };
-        // TODO Don't panic
-        let response = self.client.clone().do_get(ticket).await?;
-        collect_response_stream(response.into_inner()).await
+        let response = self.client.clone().do_get(ticket).await?.into_inner();
+        collect_response_stream(response).await
+    }
+
+    #[instrument(skip(self))]
+    pub async fn get_schema(
+        &self,
+        command: CommandGetSchema,
+    ) -> Result<ArrowSchema, FusionClientError> {
+        let ticket = FlightDescriptor {
+            r#type: DescriptorType::Cmd.into(),
+            cmd: serialize_message(command),
+            ..FlightDescriptor::default()
+        };
+        let response = self.client.clone().get_schema(ticket).await?.into_inner();
+        Ok(schema_from_bytes(response.schema.as_ref())?)
     }
 
     #[instrument(skip(self, batches))]
@@ -154,6 +170,20 @@ impl FlightFusionClient {
         Ok(result)
     }
 
+    #[instrument(skip(self))]
+    pub async fn set_metadata(
+        &self,
+        command: CommandSetMetadata,
+    ) -> Result<ResultActionStatus, FusionClientError> {
+        let action_request = FlightActionRequest {
+            action: Some(FusionAction::SetMeta(command)),
+        };
+        let result = self
+            .do_action::<CommandSetMetadata, ResultActionStatus>(action_request)
+            .await?;
+        Ok(result)
+    }
+
     pub async fn do_put<R>(
         &self,
         batches: Vec<RecordBatch>,
@@ -198,7 +228,6 @@ impl FlightFusionClient {
         }
     }
 
-    // #[tracing::instrument(level = "debug", skip(self, v))]
     pub(crate) async fn do_action<T, R>(
         &self,
         request: FlightActionRequest,

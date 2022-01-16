@@ -1,16 +1,16 @@
 name: Python
 
 on:
+  #   push:
+  #     tags: ["python-v*"]
   push:
-    tags: ["python-v*"]
-#   push:
-#     branches: [main]
-#   pull_request:
-#     branches: [main]
+    branches: [main]
+  pull_request:
+    branches: [main]
 
-defaults:
-  run:
-    working-directory: ./python
+# defaults:
+#   run:
+#     working-directory: ./python
 
 jobs:
   lint:

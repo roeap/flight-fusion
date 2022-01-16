@@ -1,3 +1,5 @@
+use arrow::error::ArrowError;
+
 #[derive(thiserror::Error, Debug)]
 pub enum FusionClientError {
     /// Error returned when the table to be created already exists
@@ -23,4 +25,7 @@ pub enum FusionClientError {
         #[from]
         source: prost::DecodeError,
     },
+
+    #[error(transparent)]
+    ArrowError(#[from] ArrowError),
 }
