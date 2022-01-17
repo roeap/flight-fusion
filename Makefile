@@ -51,7 +51,7 @@ python-check: ## Run check on Python
 	$(info Check Python black)
 	black --check
 	$(info Check Python pyright)
-	pyright
+	pyright python/
 
 .PHONY: python-build
 python-build: ## Build Python binding of flight fusion
