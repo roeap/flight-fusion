@@ -4,7 +4,15 @@ url = "0.0.0.0"
 service_name = "flight-fusion"
 
 [service]
+storage = "file"
+
+[service.local]
 area_root = "./.tmp"
+
+[service.azure]
+account = ""
+key = ""
+file_system = ""
 
 [log]
 level = "info"

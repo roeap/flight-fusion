@@ -77,6 +77,20 @@ impl InMemoryAreaStore {
         let object_store = Arc::new(object_store::ObjectStore::new_file(root));
         Self { object_store }
     }
+
+    pub fn new_azure(
+        account: impl Into<String>,
+        access_key: impl Into<String>,
+        container_name: impl Into<String>,
+    ) -> Result<Self> {
+        let object_store = Arc::new(object_store::ObjectStore::new_microsoft_azure(
+            account,
+            access_key,
+            container_name,
+            false,
+        )?);
+        Ok(Self { object_store })
+    }
 }
 
 #[async_trait]
@@ -123,6 +137,7 @@ impl AreaStore for InMemoryAreaStore {
                 }
                 writer.flush(location).await
             }
+            // TODO actually check if exists
             SaveMode::ErrorIfExists => Err(AreaStoreError::TableAlreadyExists(location.to_raw())),
             _ => writer.flush(location).await,
         }

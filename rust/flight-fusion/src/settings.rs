@@ -15,8 +15,22 @@ pub struct Server {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct Service {
+pub struct Azure {
+    pub account: String,
+    pub key: String,
+    pub file_system: String,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Local {
     pub area_root: String,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Service {
+    pub storage: String,
+    pub local: Local,
+    pub azure: Azure,
 }
 
 #[derive(Debug, Deserialize, Clone)]

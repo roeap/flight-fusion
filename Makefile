@@ -48,8 +48,6 @@ python-develop: ## Run check on Python
 
 .PHONY: python-check
 python-check: ## Run check on Python
-	$(info Check Python isort)
-	isort --diff --check-only .
 	$(info Check Python black)
 	black --check
 	$(info Check Python pyright)
@@ -67,6 +65,13 @@ python-proto:
 	python -m grpc_tools.protoc -I proto --python_betterproto_out=tmp-proto proto/common.proto proto/message.proto proto/signals.proto proto/flight.proto
 	mv -f ./tmp-proto/flight_fusion/ipc/v1alpha1/* ./python/flight-fusion/flight_fusion/ipc/v1alpha1/
 	rm -rf ./tmp-proto
+
+.PHONY: python-test
+python-test: ## Run check on Rust
+	$(info --- Check Rust clippy ---)
+	cargo clippy
+	$(info --- Check Rust format ---)
+	cargo fmt -- --check
 
 .PHONY: rust-check
 rust-check: ## Run check on Rust
