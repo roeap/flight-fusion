@@ -13,6 +13,17 @@ repos:
       - id: mixed-line-ending
       - id: trailing-whitespace
 
+  - repo: local
+    hooks:
+      - id: pyright
+        name: pyright
+        entry: pyright
+        language: node
+        pass_filenames: false
+        types: [python]
+        # Replace the version below with the latest pyright version
+        additional_dependencies: ["pyright@1.1.210"]
+
   # - repo: https://github.com/doublify/pre-commit-rust
   #   rev: v1.0
   #   hooks:
