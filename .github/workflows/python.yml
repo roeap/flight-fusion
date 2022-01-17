@@ -24,7 +24,7 @@ jobs:
       - name: Check Python
         run: |
           pip install black isort
-          make check-python
+          make python-check
       - name: Install minimal stable with clippy and rustfmt
         uses: actions-rs/toolchain@v1
         with:
