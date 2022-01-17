@@ -26,8 +26,13 @@ message CommandGetSchema {
   AreaSourceReference source = 1;
 }
 
+// List all sources defined under an area node
 message CommandListSources {
+  // reference to root area to traverse from
   optional AreaReference root = 1;
+
+  // If true, all sources in child nodes are listed as well
+  bool recursive = 2;
 }
 
 // Read entire table from storage
@@ -36,6 +41,7 @@ message CommandReadDataset {
   AreaSourceReference source = 1;
 }
 
+// Drop a source (e.g. a Table) from the service
 message CommandDropSource {
   // source identifier
   AreaSourceReference source = 1;
@@ -45,6 +51,7 @@ message CommandDropSource {
 message CommandSetMetadata {
   // source identifier
   AreaSourceReference source = 1;
+
   // metadata to be written to source
   AreaSourceMetadata meta = 2;
 }
@@ -53,6 +60,7 @@ message CommandSetMetadata {
 message CommandWriteIntoDataset {
   // source identifier
   AreaSourceReference source = 1;
+
   // denotes how to beahve for existing data - defaults to overwrite
   SaveMode save_mode = 3;
 }
@@ -62,6 +70,15 @@ message CommandRegisterSource {
   DatasetFormat format = 1;
   string path = 2;
   string name = 3;
+}
+
+// Execute a query against a given context
+message CommandExecuteQuery {
+  string query = 1;
+  oneof context {
+    AreaSourceReference source = 10;
+    SignalFrame frame = 11;
+  }
 }
 
 // Results

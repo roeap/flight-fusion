@@ -11,10 +11,10 @@ use error::FusionClientError;
 use flight_fusion_ipc::{
     flight_action_request::Action as FusionAction, flight_do_get_request::Command as DoGetCommand,
     flight_do_put_request::Command as DoPutCommand, utils::serialize_message, CommandDropSource,
-    CommandGetSchema, CommandReadDataset, CommandRegisterSource, CommandSetMetadata,
-    CommandWriteIntoDataset, DatasetFormat, FlightActionRequest, FlightDoGetRequest,
-    FlightDoPutRequest, FlightFusionError, PutMemoryTableRequest, RequestFor, ResultActionStatus,
-    ResultDoPutUpdate,
+    CommandExecuteQuery, CommandGetSchema, CommandReadDataset, CommandRegisterSource,
+    CommandSetMetadata, CommandWriteIntoDataset, DatasetFormat, FlightActionRequest,
+    FlightDoGetRequest, FlightDoPutRequest, FlightFusionError, PutMemoryTableRequest, RequestFor,
+    ResultActionStatus, ResultDoPutUpdate,
 };
 use observability_deps::instrument;
 use observability_deps::tracing;
@@ -141,9 +141,15 @@ impl FlightFusionClient {
     #[instrument(skip(self))]
     pub async fn execute_query(
         &self,
-        query: String,
+        command: CommandExecuteQuery,
     ) -> Result<Vec<RecordBatch>, FusionClientError> {
-        todo!()
+        let ticket = Ticket {
+            ticket: serialize_message(FlightDoGetRequest {
+                command: Some(DoGetCommand::Query(command)),
+            }),
+        };
+        let response = self.client.clone().do_get(ticket).await?.into_inner();
+        collect_response_stream(response).await
     }
 
     pub async fn register_dataset<S, T, P>(

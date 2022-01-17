@@ -279,10 +279,15 @@ pub struct CommandGetSchema {
     #[prost(message, optional, tag="1")]
     pub source: ::core::option::Option<AreaSourceReference>,
 }
+/// List all sources defined under an area node
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CommandListSources {
+    /// reference to root area to traverse from
     #[prost(message, optional, tag="1")]
     pub root: ::core::option::Option<AreaReference>,
+    /// If true, all sources in child nodes are listed as well
+    #[prost(bool, tag="2")]
+    pub recursive: bool,
 }
 /// Read entire table from storage
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -291,6 +296,7 @@ pub struct CommandReadDataset {
     #[prost(message, optional, tag="1")]
     pub source: ::core::option::Option<AreaSourceReference>,
 }
+/// Drop a source (e.g. a Table) from the service
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CommandDropSource {
     /// source identifier
@@ -326,6 +332,24 @@ pub struct CommandRegisterSource {
     pub path: ::prost::alloc::string::String,
     #[prost(string, tag="3")]
     pub name: ::prost::alloc::string::String,
+}
+/// Execute a query against a given context
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CommandExecuteQuery {
+    #[prost(string, tag="1")]
+    pub query: ::prost::alloc::string::String,
+    #[prost(oneof="command_execute_query::Context", tags="10, 11")]
+    pub context: ::core::option::Option<command_execute_query::Context>,
+}
+/// Nested message and enum types in `CommandExecuteQuery`.
+pub mod command_execute_query {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Context {
+        #[prost(message, tag="10")]
+        Source(super::AreaSourceReference),
+        #[prost(message, tag="11")]
+        Frame(super::SignalFrame),
+    }
 }
 /// result when a source is dropped
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -572,7 +596,7 @@ pub struct FlightGetSchemaRequest {
 /// Requests submitted against the `do_get` endpoint
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightDoGetRequest {
-    #[prost(oneof="flight_do_get_request::Command", tags="1, 2, 3, 4")]
+    #[prost(oneof="flight_do_get_request::Command", tags="1, 2, 3, 4, 5")]
     pub command: ::core::option::Option<flight_do_get_request::Command>,
 }
 /// Nested message and enum types in `FlightDoGetRequest`.
@@ -588,6 +612,9 @@ pub mod flight_do_get_request {
         /// Read data from a registered source
         #[prost(message, tag="4")]
         Read(super::CommandReadDataset),
+        /// Execute a query against a pre-defined context
+        #[prost(message, tag="5")]
+        Query(super::CommandExecuteQuery),
     }
 }
 /// Requests submitted against the `do_put` endpoint

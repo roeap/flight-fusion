@@ -231,9 +231,14 @@ class CommandGetSchema(betterproto.Message):
 
 @dataclass(eq=False, repr=False)
 class CommandListSources(betterproto.Message):
+    """List all sources defined under an area node"""
+
+    # reference to root area to traverse from
     root: Optional["AreaReference"] = betterproto.message_field(
         1, optional=True, group="_root"
     )
+    # If true, all sources in child nodes are listed as well
+    recursive: bool = betterproto.bool_field(2)
 
 
 @dataclass(eq=False, repr=False)
@@ -246,6 +251,8 @@ class CommandReadDataset(betterproto.Message):
 
 @dataclass(eq=False, repr=False)
 class CommandDropSource(betterproto.Message):
+    """Drop a source (e.g. a Table) from the service"""
+
     # source identifier
     source: "AreaSourceReference" = betterproto.message_field(1)
 
@@ -277,6 +284,15 @@ class CommandRegisterSource(betterproto.Message):
     format: "DatasetFormat" = betterproto.enum_field(1)
     path: str = betterproto.string_field(2)
     name: str = betterproto.string_field(3)
+
+
+@dataclass(eq=False, repr=False)
+class CommandExecuteQuery(betterproto.Message):
+    """Execute a query against a given context"""
+
+    query: str = betterproto.string_field(1)
+    source: "AreaSourceReference" = betterproto.message_field(10, group="context")
+    frame: "SignalFrame" = betterproto.message_field(11, group="context")
 
 
 @dataclass(eq=False, repr=False)
@@ -413,6 +429,8 @@ class FlightDoGetRequest(betterproto.Message):
     frame: "SignalFrameOperation" = betterproto.message_field(3, group="command")
     # Read data from a registered source
     read: "CommandReadDataset" = betterproto.message_field(4, group="command")
+    # Execute a query against a pre-defined context
+    query: "CommandExecuteQuery" = betterproto.message_field(5, group="command")
 
 
 @dataclass(eq=False, repr=False)

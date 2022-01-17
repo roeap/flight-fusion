@@ -15,6 +15,7 @@ from flight_fusion.ipc.v1alpha1 import (
     AreaSourceReference,
     AreaTableLocation,
     CommandDropSource,
+    CommandExecuteQuery,
     CommandGetSchema,
     CommandReadDataset,
     CommandWriteIntoDataset,
@@ -89,7 +90,9 @@ class DatasetClient:
         return pa.Table.from_batches(batches)
 
     def query(self, query: str) -> pa.Table:
-        ...
+        command = CommandExecuteQuery(query=query, source=self._reference)
+        batches = self._client.fusion.execute_query(command=command.SerializeToString())
+        return pa.Table.from_batches(batches)
 
     def drop(self) -> ResultActionStatus:
         command = CommandDropSource(source=self._reference)
