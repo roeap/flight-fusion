@@ -216,7 +216,7 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 [[package]]
 name = "azure_core"
 version = "0.1.0"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=datalake-ops#1877225e2df1ec7e2d0c1b3dd1a0c49e25f9f4dd"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381#294eec8bd2b2dc1fc231902c8979110ee79a6381"
 dependencies = [
  "async-trait",
  "base64",
@@ -242,7 +242,7 @@ dependencies = [
 [[package]]
 name = "azure_core"
 version = "0.1.0"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381#294eec8bd2b2dc1fc231902c8979110ee79a6381"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=datalake-ops#1877225e2df1ec7e2d0c1b3dd1a0c49e25f9f4dd"
 dependencies = [
  "async-trait",
  "base64",
@@ -268,11 +268,11 @@ dependencies = [
 [[package]]
 name = "azure_identity"
 version = "0.1.0"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=datalake-ops#1877225e2df1ec7e2d0c1b3dd1a0c49e25f9f4dd"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381#294eec8bd2b2dc1fc231902c8979110ee79a6381"
 dependencies = [
  "async-timer",
  "async-trait",
- "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?branch=datalake-ops)",
+ "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381)",
  "chrono",
  "futures",
  "log",
@@ -287,11 +287,11 @@ dependencies = [
 [[package]]
 name = "azure_identity"
 version = "0.1.0"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381#294eec8bd2b2dc1fc231902c8979110ee79a6381"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=datalake-ops#1877225e2df1ec7e2d0c1b3dd1a0c49e25f9f4dd"
 dependencies = [
  "async-timer",
  "async-trait",
- "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381)",
+ "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?branch=datalake-ops)",
  "chrono",
  "futures",
  "log",
@@ -2994,9 +2994,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.74"
+version = "1.0.75"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee2bb9cd061c5865d345bb02ca49fcef1391741b672b54a0bf7b679badec3142"
+checksum = "c059c05b48c5c0067d4b4b2b4f0732dd65feb52daf7e0ea09cd87e7dadc1af79"
 dependencies = [
  "indexmap",
  "itoa 1.0.1",
