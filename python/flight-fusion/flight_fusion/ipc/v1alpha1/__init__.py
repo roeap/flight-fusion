@@ -429,6 +429,8 @@ class FlightDoGetRequest(betterproto.Message):
     frame: "SignalFrameOperation" = betterproto.message_field(3, group="command")
     # Read data from a registered source
     read: "CommandReadDataset" = betterproto.message_field(4, group="command")
+    # Execute a query against a pre-defined context
+    query: "CommandExecuteQuery" = betterproto.message_field(5, group="command")
 
 
 @dataclass(eq=False, repr=False)

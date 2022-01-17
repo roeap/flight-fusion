@@ -143,7 +143,13 @@ impl FlightFusionClient {
         &self,
         command: CommandExecuteQuery,
     ) -> Result<Vec<RecordBatch>, FusionClientError> {
-        todo!()
+        let ticket = Ticket {
+            ticket: serialize_message(FlightDoGetRequest {
+                command: Some(DoGetCommand::Query(command)),
+            }),
+        };
+        let response = self.client.clone().do_get(ticket).await?.into_inner();
+        collect_response_stream(response).await
     }
 
     pub async fn register_dataset<S, T, P>(

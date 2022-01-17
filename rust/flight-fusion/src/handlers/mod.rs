@@ -198,6 +198,7 @@ impl FusionActionHandler {
                     todo!()
                 }
                 DoGetCommand::Read(read) => self.handle_do_get(read).await,
+                DoGetCommand::Query(query) => self.handle_do_get(query).await,
             },
             None => Err(FlightFusionError::UnknownAction(
                 "No operation data passed".to_string(),

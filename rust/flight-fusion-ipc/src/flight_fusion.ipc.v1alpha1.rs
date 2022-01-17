@@ -596,7 +596,7 @@ pub struct FlightGetSchemaRequest {
 /// Requests submitted against the `do_get` endpoint
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightDoGetRequest {
-    #[prost(oneof="flight_do_get_request::Command", tags="1, 2, 3, 4")]
+    #[prost(oneof="flight_do_get_request::Command", tags="1, 2, 3, 4, 5")]
     pub command: ::core::option::Option<flight_do_get_request::Command>,
 }
 /// Nested message and enum types in `FlightDoGetRequest`.
@@ -612,6 +612,9 @@ pub mod flight_do_get_request {
         /// Read data from a registered source
         #[prost(message, tag="4")]
         Read(super::CommandReadDataset),
+        /// Execute a query against a pre-defined context
+        #[prost(message, tag="5")]
+        Query(super::CommandExecuteQuery),
     }
 }
 /// Requests submitted against the `do_put` endpoint

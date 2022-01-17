@@ -24,6 +24,9 @@ message FlightDoGetRequest {
 
     // Read data from a registered source
     CommandReadDataset read = 4;
+
+    // Execute a query against a pre-defined context
+    CommandExecuteQuery query = 5;
   }
 }
 

@@ -11,6 +11,9 @@ pub enum FusionServiceError {
     /// Error returned when a table to be created already exists
     #[error("Table: '{0}' already exists")]
     TableAlreadyExists(String),
+
+    #[error(transparent)]
+    StorageError(#[from] crate::area_store::AreaStoreError),
 }
 
 /// Result type for fallible operations defined in this crate
