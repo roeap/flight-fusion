@@ -242,7 +242,7 @@ dependencies = [
 [[package]]
 name = "azure_core"
 version = "0.1.0"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=b823f07543f1a240f16e3ff1861f60a72ca55637#b823f07543f1a240f16e3ff1861f60a72ca55637"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381#294eec8bd2b2dc1fc231902c8979110ee79a6381"
 dependencies = [
  "async-trait",
  "base64",
@@ -287,11 +287,11 @@ dependencies = [
 [[package]]
 name = "azure_identity"
 version = "0.1.0"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=b823f07543f1a240f16e3ff1861f60a72ca55637#b823f07543f1a240f16e3ff1861f60a72ca55637"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381#294eec8bd2b2dc1fc231902c8979110ee79a6381"
 dependencies = [
  "async-timer",
  "async-trait",
- "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=b823f07543f1a240f16e3ff1861f60a72ca55637)",
+ "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381)",
  "chrono",
  "futures",
  "log",
@@ -306,11 +306,11 @@ dependencies = [
 [[package]]
 name = "azure_storage"
 version = "0.1.0"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=b823f07543f1a240f16e3ff1861f60a72ca55637#b823f07543f1a240f16e3ff1861f60a72ca55637"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381#294eec8bd2b2dc1fc231902c8979110ee79a6381"
 dependencies = [
  "RustyXML",
  "async-trait",
- "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=b823f07543f1a240f16e3ff1861f60a72ca55637)",
+ "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381)",
  "base64",
  "bytes",
  "chrono",
@@ -331,10 +331,10 @@ dependencies = [
 [[package]]
 name = "azure_storage_blobs"
 version = "0.1.0"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=b823f07543f1a240f16e3ff1861f60a72ca55637#b823f07543f1a240f16e3ff1861f60a72ca55637"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381#294eec8bd2b2dc1fc231902c8979110ee79a6381"
 dependencies = [
  "RustyXML",
- "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=b823f07543f1a240f16e3ff1861f60a72ca55637)",
+ "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381)",
  "azure_storage",
  "base64",
  "bytes",
@@ -355,10 +355,10 @@ dependencies = [
 [[package]]
 name = "azure_storage_datalake"
 version = "0.1.0"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=b823f07543f1a240f16e3ff1861f60a72ca55637#b823f07543f1a240f16e3ff1861f60a72ca55637"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381#294eec8bd2b2dc1fc231902c8979110ee79a6381"
 dependencies = [
  "async-trait",
- "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=b823f07543f1a240f16e3ff1861f60a72ca55637)",
+ "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381)",
  "azure_storage",
  "base64",
  "bytes",
@@ -2066,8 +2066,8 @@ name = "object-store"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=b823f07543f1a240f16e3ff1861f60a72ca55637)",
- "azure_identity 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=b823f07543f1a240f16e3ff1861f60a72ca55637)",
+ "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381)",
+ "azure_identity 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381)",
  "azure_storage",
  "azure_storage_blobs",
  "azure_storage_datalake",
