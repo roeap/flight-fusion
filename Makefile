@@ -48,8 +48,6 @@ python-develop: ## Run check on Python
 
 .PHONY: python-check
 python-check: ## Run check on Python
-	$(info Check Python isort)
-	isort --diff --check-only .
 	$(info Check Python black)
 	black --check
 	$(info Check Python pyright)
