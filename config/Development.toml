@@ -4,3 +4,9 @@ level = "debug"
 [server]
 port = "50051"
 url = "0.0.0.0"
+
+[service]
+storage = "azure"
+
+[service.azure]
+file_system = "fusion"

@@ -84,6 +84,27 @@ impl FusionActionHandler {
         }
     }
 
+    pub fn new_azure(
+        account: impl Into<String>,
+        access_key: impl Into<String>,
+        container_name: impl Into<String>,
+    ) -> Result<Self> {
+        let schema_provider = MemorySchemaProvider::new();
+        let catalog = Arc::new(MemoryCatalogProvider::new());
+        catalog.register_schema("schema".to_string(), Arc::new(schema_provider));
+
+        // TODO Don't Panic
+        let area_store =
+            Arc::new(InMemoryAreaStore::new_azure(account, access_key, container_name).unwrap());
+        let area_catalog = Arc::new(FileAreaCatalog::new(area_store.clone()));
+
+        Ok(Self {
+            catalog,
+            area_store,
+            area_catalog,
+        })
+    }
+
     pub async fn list_flights(
         &self,
         command: CommandListSources,

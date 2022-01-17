@@ -47,6 +47,13 @@ pub enum AreaStoreError {
         #[from]
         source: std::io::Error,
     },
+
+    #[error("object_store::Error: {source}")]
+    ObjectStore {
+        /// The wrapped [`object_store::Error`]
+        #[from]
+        source: object_store::Error,
+    },
 }
 
 pub type Result<T> = std::result::Result<T, AreaStoreError>;

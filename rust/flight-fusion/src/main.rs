@@ -18,6 +18,7 @@ use observability_deps::{
     tracing_opentelemetry,
     tracing_subscriber::{self, layer::SubscriberExt, prelude::*},
 };
+use service::FlightFusionService;
 use tonic::transport::Server;
 
 lazy_static! {
@@ -42,7 +43,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .try_init()?;
 
     let addr = format!("{}:{}", CONFIG.server.url, CONFIG.server.port).parse()?;
-    let service = service::FlightFusionService::new_default(CONFIG.service.area_root.clone());
+
+    let service = match CONFIG.service.storage.as_str() {
+        "file" => Ok(FlightFusionService::new_default(
+            CONFIG.service.local.area_root.clone(),
+        )),
+        "azure" => Ok(FlightFusionService::new_azure(
+            &CONFIG.service.azure.account,
+            &CONFIG.service.azure.key,
+            &CONFIG.service.azure.file_system,
+        )),
+        _ => Err("unrecognized storage service"),
+    }?;
 
     let svc = FlightServiceServer::new(service);
     info!(

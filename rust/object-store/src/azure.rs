@@ -1,14 +1,14 @@
 //! This module contains the IOx implementation for using Azure Blob storage as
 //! the object store.
-use crate::{
-    path::{cloud::CloudPath, DELIMITER},
-    GetResult, ListResult, ObjectMeta, ObjectStoreApi, ObjectStorePath,
-};
+use crate::{path::cloud::CloudPath, GetResult, ListResult, ObjectStoreApi, ObjectStorePath};
 use async_trait::async_trait;
 use azure_core::ClientOptions;
+use azure_storage::core::clients::{AsStorageClient, StorageAccountClient};
 use azure_storage::storage_shared_key_credential::StorageSharedKeyCredential;
+use azure_storage_blobs::prelude::{AsContainerClient, ContainerClient};
 use azure_storage_datalake::clients::{DataLakeClient, FileSystemClient};
 use bytes::Bytes;
+use futures::stream;
 use futures::{stream::BoxStream, FutureExt, StreamExt};
 use std::sync::Arc;
 
@@ -50,7 +50,9 @@ pub enum Error {
 /// Configuration for connecting to [Microsoft Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/).
 #[derive(Debug)]
 pub struct MicrosoftAzure {
-    container_client: Arc<FileSystemClient>,
+    // TODO migrate to using only fs client
+    container_client: Arc<ContainerClient>,
+    fs_client: Arc<FileSystemClient>,
     #[allow(dead_code)]
     container_name: String,
 }
@@ -74,7 +76,7 @@ impl ObjectStoreApi for MicrosoftAzure {
         let bytes = bytes::BytesMut::from(&*bytes);
         let data_len = bytes.len();
 
-        let file_client = self.container_client.get_file_client(&location);
+        let file_client = self.fs_client.get_file_client(&location);
         file_client
             .create()
             .into_future()
@@ -106,7 +108,7 @@ impl ObjectStoreApi for MicrosoftAzure {
 
     async fn get(&self, location: &Self::Path) -> Result<GetResult<Error>> {
         let location = location.to_raw();
-        let file_client = self.container_client.get_file_client(&location);
+        let file_client = self.fs_client.get_file_client(&location);
 
         let s = async move {
             file_client
@@ -127,7 +129,7 @@ impl ObjectStoreApi for MicrosoftAzure {
 
     async fn delete(&self, location: &Self::Path) -> Result<()> {
         let location = location.to_raw();
-        let file_client = self.container_client.get_file_client(&location);
+        let file_client = self.fs_client.get_file_client(&location);
 
         file_client
             .delete()
@@ -143,7 +145,7 @@ impl ObjectStoreApi for MicrosoftAzure {
 
     async fn delete_dir(&self, location: &Self::Path) -> Result<()> {
         let location = location.to_raw();
-        let directory_client = self.container_client.get_directory_client(&location);
+        let directory_client = self.fs_client.get_directory_client(&location);
         directory_client
             .delete(true)
             .into_future()
@@ -159,23 +161,104 @@ impl ObjectStoreApi for MicrosoftAzure {
         &'a self,
         prefix: Option<&'a Self::Path>,
     ) -> Result<BoxStream<'a, Result<Vec<Self::Path>>>> {
-        //let prefix_is_dir = prefix.map(|path| path.is_dir()).unwrap_or(true);
-        //
-        //let list_dir = self.container_client.list_paths();
-        //
-        //let prefix_raw = prefix.map(|p| p.to_raw());
-        //if let Some(ref p) = prefix_raw {
-        //    list_dir = list_dir.directory(p as &str);
-        //}
-        //
-        //let stream = list_dir.into_stream();
-        //while let Some(response) = stream.next().await {
-        //    let paths = response.unwrap();
-        //    println!("list file system response == {:?}\n", list_fs_response);
-        //}
+        let prefix_is_dir = prefix.map(|path| path.is_dir()).unwrap_or(true);
 
-        todo!()
+        #[derive(Clone)]
+        enum ListState {
+            Start,
+            HasMore(String),
+            Done,
+        }
+
+        Ok(stream::unfold(ListState::Start, move |state| async move {
+            let mut request = self.container_client.list_blobs();
+
+            let prefix_raw = prefix.map(|p| p.to_raw());
+            if let Some(ref p) = prefix_raw {
+                request = request.prefix(p as &str);
+            }
+
+            match state {
+                ListState::HasMore(ref marker) => {
+                    request = request.next_marker(marker as &str);
+                }
+                ListState::Done => {
+                    return None;
+                }
+                ListState::Start => {}
+            }
+
+            let resp = request.execute().await.unwrap();
+
+            let next_state = if let Some(marker) = resp.next_marker {
+                ListState::HasMore(marker.as_str().to_string())
+            } else {
+                ListState::Done
+            };
+
+            let names = resp
+                .blobs
+                .blobs
+                .into_iter()
+                .map(|blob| CloudPath::raw(blob.name))
+                .filter(move |path| {
+                    prefix_is_dir || prefix.map(|prefix| prefix == path).unwrap_or_default()
+                })
+                .collect();
+
+            Some((Ok(names), next_state))
+        })
+        .boxed())
     }
+
+    //async fn list<'a>(
+    //    &'a self,
+    //    prefix: Option<&'a Self::Path>,
+    //) -> Result<BoxStream<'a, Result<Vec<Self::Path>>>> {
+    //    println!("list --> {:?}", prefix);
+    //    let prefix_is_dir = prefix.map(|path| path.is_dir()).unwrap_or(true);
+    //
+    //    let list_dir = self.container_client.clone().list_paths();
+    //
+    //    let prefix_raw = prefix.map(|p| p.to_raw());
+    //    if let Some(ref p) = prefix_raw {
+    //        list_dir = list_dir.directory(p as &str);
+    //    }
+    //
+    //    let stream = list_dir
+    //        .clone()
+    //        .into_stream()
+    //        .map(move |res| {
+    //            Ok(res
+    //                .unwrap()
+    //                .paths
+    //                .into_iter()
+    //                .map(|blob| CloudPath::raw(blob.name))
+    //                .filter(move |path| {
+    //                    prefix_is_dir || prefix.map(|prefix| prefix == path).unwrap_or_default()
+    //                })
+    //                .collect::<Vec<_>>())
+    //        })
+    //        .collect::<Vec<_>>()
+    //        .await;
+    //    // let mut results = Vec::new();
+    //    // while let Some(response) = stream.next().await {
+    //    //     let paths = response.unwrap();
+    //    //     let mut cloud_paths = paths
+    //    //         .paths
+    //    //         .iter()
+    //    //         .map(|blob| CloudPath::raw(blob.name))
+    //    //         .filter(move |path| {
+    //    //             prefix_is_dir || prefix.map(|prefix| prefix == path).unwrap_or_default()
+    //    //         })
+    //    //         .collect::<Vec<_>>();
+    //    //     results.append(&mut cloud_paths)
+    //    // }
+    //
+    //    // let asd = Box::pin(futures::stream::iter(vec![Ok(results.clone())]));
+    //    let asd = Box::pin(futures::stream::iter(stream));
+    //    Ok(asd)
+    //}
 
     async fn list_with_delimiter(&self, prefix: &Self::Path) -> Result<ListResult<Self::Path>> {
         todo!()
@@ -205,6 +288,13 @@ pub fn new_azure(
 ) -> Result<MicrosoftAzure> {
     let account = account.into();
     let access_key = access_key.into();
+    let container_name = container_name.into();
+    let http_client = azure_core::new_http_client();
+
+    let storage_client =
+        StorageAccountClient::new_access_key(http_client.clone(), &account, &access_key)
+            .as_storage_client();
+    let container_client = storage_client.as_container_client(&container_name);
 
     let options = ClientOptions::default();
     let dl_client = DataLakeClient::new_with_options(
@@ -212,11 +302,12 @@ pub fn new_azure(
         None,
         options,
     );
-    let container_name = container_name.into();
-    let container_client = Arc::new(dl_client.into_file_system_client(&container_name));
+
+    let fs_client = Arc::new(dl_client.into_file_system_client(&container_name));
 
     Ok(MicrosoftAzure {
         container_client,
+        fs_client,
         container_name,
     })
 }

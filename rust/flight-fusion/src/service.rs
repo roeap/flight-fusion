@@ -51,6 +51,16 @@ impl FlightFusionService {
         let action_handler = Arc::new(FusionActionHandler::new(root));
         Self { action_handler }
     }
+
+    pub fn new_azure(
+        account: impl Into<String>,
+        access_key: impl Into<String>,
+        container_name: impl Into<String>,
+    ) -> Self {
+        let action_handler =
+            Arc::new(FusionActionHandler::new_azure(account, access_key, container_name).unwrap());
+        Self { action_handler }
+    }
 }
 
 impl std::fmt::Debug for FlightFusionService {
