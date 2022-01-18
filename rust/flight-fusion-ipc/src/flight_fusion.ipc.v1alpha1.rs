@@ -94,6 +94,13 @@ pub mod area_source_reference {
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SourceCollection {
+    #[prost(message, repeated, tag="1")]
+    pub areas: ::prost::alloc::vec::Vec<AreaReference>,
+    #[prost(message, repeated, tag="2")]
+    pub sources: ::prost::alloc::vec::Vec<AreaSourceReference>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Tag {
     #[prost(string, tag="1")]
     pub key: ::prost::alloc::string::String,
@@ -338,7 +345,7 @@ pub struct CommandRegisterSource {
 pub struct CommandExecuteQuery {
     #[prost(string, tag="1")]
     pub query: ::prost::alloc::string::String,
-    #[prost(oneof="command_execute_query::Context", tags="10, 11")]
+    #[prost(oneof="command_execute_query::Context", tags="10, 11, 12")]
     pub context: ::core::option::Option<command_execute_query::Context>,
 }
 /// Nested message and enum types in `CommandExecuteQuery`.
@@ -349,6 +356,8 @@ pub mod command_execute_query {
         Source(super::AreaSourceReference),
         #[prost(message, tag="11")]
         Frame(super::SignalFrame),
+        #[prost(message, tag="12")]
+        Collection(super::SourceCollection),
     }
 }
 /// result when a source is dropped

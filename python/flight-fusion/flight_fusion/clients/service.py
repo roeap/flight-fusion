@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Union
+from typing import TYPE_CHECKING, Iterable, List, Tuple, Union
 
 import pandas as pd
 import pyarrow as pa
@@ -15,7 +15,7 @@ from flight_fusion.ipc.v1alpha1 import (
 )
 
 if TYPE_CHECKING:
-    from flight_fusion.clients import AreaClient, DatasetClient
+    from flight_fusion.clients import AreaClient, ContextClient, DatasetClient
 
 
 class FlightActions:
@@ -43,10 +43,21 @@ class FlightFusionClient:
         """Native flight fusion service client"""
         return self._raw
 
+    def get_source_reference(self, name: str, areas: List[str]) -> AreaSourceReference:
+        return AreaSourceReference(location=AreaTableLocation(name=name, areas=areas))
+
     def get_area_client(self, areas: List[str]) -> AreaClient:
         from flight_fusion.clients.area import AreaClient
 
         return AreaClient(self, areas)
+
+    def get_context(self, refs: Iterable[Tuple[str, List[str]]]) -> ContextClient:
+        from flight_fusion.clients.context import ContextClient
+
+        return ContextClient(
+            client=self,
+            sources=[self.get_source_reference(name, areas) for name, areas in refs],
+        )
 
     def get_dataset_client(self, name: str, areas: List[str]) -> DatasetClient:
         from flight_fusion.clients.dataset import TableClient

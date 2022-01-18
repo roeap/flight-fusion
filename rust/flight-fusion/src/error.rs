@@ -1,3 +1,4 @@
+use arrow_deps::datafusion::error::DataFusionError;
 use flight_fusion_ipc::FlightFusionError;
 use futures::Stream;
 use std::pin::Pin;
@@ -14,6 +15,9 @@ pub enum FusionServiceError {
 
     #[error(transparent)]
     StorageError(#[from] crate::area_store::AreaStoreError),
+
+    #[error(transparent)]
+    QueryError(#[from] DataFusionError),
 }
 
 /// Result type for fallible operations defined in this crate

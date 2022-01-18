@@ -132,6 +132,12 @@ class AreaSourceReference(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
+class SourceCollection(betterproto.Message):
+    areas: List["AreaReference"] = betterproto.message_field(1)
+    sources: List["AreaSourceReference"] = betterproto.message_field(2)
+
+
+@dataclass(eq=False, repr=False)
 class Tag(betterproto.Message):
     key: str = betterproto.string_field(1)
     value: str = betterproto.string_field(2)
@@ -293,6 +299,7 @@ class CommandExecuteQuery(betterproto.Message):
     query: str = betterproto.string_field(1)
     source: "AreaSourceReference" = betterproto.message_field(10, group="context")
     frame: "SignalFrame" = betterproto.message_field(11, group="context")
+    collection: "SourceCollection" = betterproto.message_field(12, group="context")
 
 
 @dataclass(eq=False, repr=False)

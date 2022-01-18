@@ -78,6 +78,7 @@ message CommandExecuteQuery {
   oneof context {
     AreaSourceReference source = 10;
     SignalFrame frame = 11;
+    SourceCollection collection = 12;
   }
 }
 
