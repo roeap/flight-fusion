@@ -114,6 +114,11 @@ message AreaSourceReference {
   }
 }
 
+message SourceCollection {
+  repeated AreaReference areas = 1;
+  repeated AreaSourceReference sources = 2;
+}
+
 message Tag {
   string key = 1;
   string value = 2;

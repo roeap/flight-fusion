@@ -2,17 +2,13 @@ use super::*;
 use crate::area_store::AreaStore;
 use arrow_deps::{
     arrow::{ipc::writer::IpcWriteOptions, record_batch::RecordBatch},
-    datafusion::{
-        datasource::MemTable,
-        prelude::{ExecutionConfig, ExecutionContext},
-    },
+    datafusion::prelude::{ExecutionConfig, ExecutionContext},
 };
 use arrow_flight::{FlightData, SchemaAsIpc};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
-    area_source_reference::Table, command_execute_query::Context as QueryContext,
-    to_flight_fusion_err, AreaSourceReference, CommandExecuteQuery, CommandReadDataset,
-    CommandSqlOperation, FlightFusionError, Result as FusionResult,
+    command_execute_query::Context as QueryContext, to_flight_fusion_err, CommandExecuteQuery,
+    CommandReadDataset, CommandSqlOperation, FlightFusionError, Result as FusionResult,
 };
 use tonic::Status;
 
@@ -61,31 +57,19 @@ impl DoGetHandler<CommandExecuteQuery> for FusionActionHandler {
         &self,
         ticket: CommandExecuteQuery,
     ) -> FusionResult<BoxedFlightStream<FlightData>> {
-        let mut ctx = match ticket.context {
+        let mut ctx = ExecutionContext::new();
+        match ticket.context {
             Some(QueryContext::Source(source)) => {
-                let name = match &source {
-                    AreaSourceReference {
-                        table: Some(Table::Location(tbl)),
-                    } => tbl.name.clone(),
-                    _ => todo!(),
-                };
-                let location = self
-                    .area_store
-                    .get_table_location(&source.clone())
-                    .map_err(to_flight_fusion_err)?;
-                let batches = self
-                    .area_store
-                    .get_batches(&location)
+                self.register_source(&mut ctx, &source)
                     .await
                     .map_err(to_flight_fusion_err)?;
-                let mut ctx = ExecutionContext::new();
-                let table_provider = Arc::new(
-                    MemTable::try_new(batches[0].schema().clone(), vec![batches])
-                        .map_err(to_flight_fusion_err)?,
-                );
-                ctx.register_table(&*name, table_provider)
-                    .map_err(to_flight_fusion_err)?;
-                ctx
+            }
+            Some(QueryContext::Collection(collection)) => {
+                for source in collection.sources {
+                    self.register_source(&mut ctx, &source)
+                        .await
+                        .map_err(to_flight_fusion_err)?
+                }
             }
             _ => todo!(),
         };

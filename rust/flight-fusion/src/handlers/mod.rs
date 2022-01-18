@@ -8,6 +8,8 @@ use crate::{
 use arrow_deps::arrow::ipc::writer::IpcWriteOptions;
 use arrow_deps::datafusion::{
     catalog::{catalog::MemoryCatalogProvider, schema::MemorySchemaProvider},
+    datasource::MemTable,
+    execution::context::ExecutionContext,
     physical_plan::ExecutionPlan,
 };
 use arrow_flight::{
@@ -15,11 +17,13 @@ use arrow_flight::{
     PutResult, SchemaAsIpc, SchemaResult,
 };
 use async_trait::async_trait;
+use flight_fusion_ipc::AreaSourceReference;
 use flight_fusion_ipc::{
-    flight_action_request::Action as FusionAction, flight_do_get_request::Command as DoGetCommand,
-    serialize_message, AreaSourceDetails, AreaSourceMetadata, CommandListSources,
-    FlightActionRequest, FlightDoGetRequest, FlightFusionError, FlightGetFlightInfoRequest,
-    FlightGetSchemaRequest, RequestFor, Result as FusionResult,
+    area_source_reference::Table, flight_action_request::Action as FusionAction,
+    flight_do_get_request::Command as DoGetCommand, serialize_message, AreaSourceDetails,
+    AreaSourceMetadata, CommandListSources, FlightActionRequest, FlightDoGetRequest,
+    FlightFusionError, FlightGetFlightInfoRequest, FlightGetSchemaRequest, RequestFor,
+    Result as FusionResult,
 };
 use futures::{Stream, StreamExt};
 pub use object_store::{path::ObjectStorePath, ObjectStoreApi};
@@ -103,6 +107,27 @@ impl FusionActionHandler {
             area_store,
             area_catalog,
         })
+    }
+
+    pub async fn register_source(
+        &self,
+        ctx: &mut ExecutionContext,
+        source: &AreaSourceReference,
+    ) -> Result<()> {
+        let location = self.area_store.get_table_location(&source.clone())?;
+        let batches = self.area_store.get_batches(&location).await?;
+        let table_provider = Arc::new(MemTable::try_new(
+            batches[0].schema().clone(),
+            vec![batches],
+        )?);
+        let name = match &source {
+            AreaSourceReference {
+                table: Some(Table::Location(tbl)),
+            } => tbl.name.clone(),
+            _ => todo!(),
+        };
+        ctx.register_table(&*name, table_provider)?;
+        Ok(())
     }
 
     pub async fn list_flights(
