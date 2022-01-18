@@ -23,7 +23,7 @@ use object_store::{path::ObjectStorePath, ObjectStoreApi};
 pub use utils::*;
 pub use writer::*;
 
-const DATA_FOLDER_NAME: &str = "data";
+const DATA_FOLDER_NAME: &str = "_ff_data";
 const DEFAULT_READ_BATCH_SIZE: usize = 1024;
 
 type AuxError = Box<dyn std::error::Error + Send + Sync + 'static>;
@@ -103,7 +103,8 @@ impl AreaStore for InMemoryAreaStore {
         match source {
             AreaSourceReference { table: Some(tbl) } => match tbl {
                 TableReference::Location(loc) => {
-                    let mut location = self.object_store().path_from_raw(&loc.areas.join("/"));
+                    let mut location = self.object_store().new_path();
+                    loc.areas.iter().for_each(|p| location.push_dir(p));
                     location.push_dir(DATA_FOLDER_NAME);
                     location.push_dir(&loc.name);
                     Ok(location)
