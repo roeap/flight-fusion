@@ -49,7 +49,7 @@ python-develop: ## Run check on Python
 .PHONY: python-check
 python-check: ## Run check on Python
 	$(info Check Python black)
-	black --check
+	black --check .
 	$(info Check Python pyright)
 	pyright python/
 
