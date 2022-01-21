@@ -947,6 +947,7 @@ dependencies = [
  "async-trait",
  "filetime",
  "heapsize",
+ "observability_deps",
  "ritelinked",
  "tempfile",
  "walkdir",
@@ -1278,6 +1279,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "803ff7635f1ab4e2c064b68a0c60da917d3d18dc8d086130f689d62ce4f1c33e"
 dependencies = [
  "regex",
+]
+
+[[package]]
+name = "griddle"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6bb81d22191b89b117cd12d6549544bfcba0da741efdcec7c7d2fd06a0f56363"
+dependencies = [
+ "ahash",
+ "hashbrown",
 ]
 
 [[package]]
@@ -2860,6 +2871,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "98f2771d255fd99f0294f13249fecd0cae6e074f86b4197ec1f1689d537b44d3"
 dependencies = [
  "ahash",
+ "griddle",
  "hashbrown",
 ]
 

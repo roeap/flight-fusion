@@ -1,0 +1,30 @@
+[package]
+name = "file-cache"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# Workspace dependencies
+observability_deps = { path = "../observability-deps" }
+
+# Crates.io dependencies
+async-trait = "0.1.52"
+filetime = "0.2.15"
+ritelinked = { version = "0.3.2", default-features = false, features = [
+  "ahash",
+  "inline-more",
+] }
+walkdir = "2.3.2"
+
+[target.'cfg(not(target_os = "macos"))'.dependencies]
+heapsize_ = { package = "heapsize", version = "0.4.2", optional = true }
+
+[features]
+heapsize = ["heapsize_"]
+amortized = ["ritelinked/ahash-amortized", "ritelinked/inline-more-amortized"]
+
+[dev-dependencies]
+tempfile = "3.2.0"
