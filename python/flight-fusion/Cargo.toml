@@ -1,6 +1,6 @@
 [package]
 name = "flight-fusion-python"
-version = "0.1.0"
+version = "0.1.1"
 license = "Apache-2.0"
 description = "Client to filight fusion serice"
 readme = "README.md"
