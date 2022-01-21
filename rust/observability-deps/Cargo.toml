@@ -3,6 +3,7 @@ name = "observability_deps"
 version = "0.1.0"
 edition = "2021"
 description = "Observability ecosystem dependencies for Flight Fusion, to ensure consistent versions and unified updates"
+publish = false
 
 [dependencies]
 opentelemetry = { version = "0.16", features = ["rt-tokio"] }
