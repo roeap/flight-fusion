@@ -47,9 +47,7 @@ class AreaClient:
 
         return DatasetClient(
             client=self,
-            reference=AreaSourceReference(
-                location=AreaTableLocation(name=name, areas=self.areas)
-            ),
+            reference=AreaSourceReference(location=AreaTableLocation(name=name, areas=self.areas)),
         )
 
     def list_sources(self, recursive: bool = False) -> List[AreaSourceMetadata]:

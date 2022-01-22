@@ -4,14 +4,14 @@
   "title": "AddLineageRequest",
   "description": "Add lineage details between two entities",
   "type": "object",
-  "properties" : {
+  "properties": {
     "description": {
       "description": "User provided description of the lineage details.",
       "type": "string"
     },
-    "edge" : {
+    "edge": {
       "description": "Lineage edge details.",
-      "$ref" : "../../type/entityLineage.json#/definitions/entitiesEdge"
+      "$ref": "../../type/entityLineage.json#/definitions/entitiesEdge"
     }
   },
   "required": ["edge"]

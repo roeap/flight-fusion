@@ -12,6 +12,7 @@
 // }
 
 extern crate serde_derive;
+use std::collections::HashMap;
 
 pub type Filters = Option<serde_json::Value>;
 pub type Basic = Option<serde_json::Value>;
@@ -29,6 +30,10 @@ pub struct Pipeline {
     /// Concurrency of the Pipeline.
     #[serde(rename = "concurrency")]
     pub concurrency: Option<i64>,
+
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
 
     /// Description of this Pipeline.
     #[serde(rename = "description")]
@@ -91,7 +96,8 @@ pub struct Pipeline {
     #[serde(rename = "tasks")]
     pub tasks: Option<Vec<Task>>,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -172,6 +178,8 @@ pub struct PurpleFieldChange {
 ///
 /// Performance Dashboard URL to track metric evolution.
 ///
+/// Description of the Data Source (e.g., a Table)
+///
 /// Owner of this ML Model.
 ///
 /// Reference to the Location that contains this database.
@@ -196,11 +204,13 @@ pub struct PurpleFieldChange {
 ///
 /// Link to service where this report is hosted in.
 ///
+/// Policy that is attached to this role.
+///
 /// Primary entity for which this lineage graph is created.
 ///
 /// Entity for which usage is returned.
 ///
-/// Owner of this Ingestion.
+/// Owner of this Pipeline.
 ///
 /// Link to the database service where this database is hosted in.
 ///
@@ -342,6 +352,10 @@ pub struct Table {
     #[serde(rename = "dataModel")]
     pub data_model: Option<DataModel>,
 
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
+
     /// Description of a table.
     #[serde(rename = "description")]
     pub description: Option<String>,
@@ -414,7 +428,8 @@ pub struct Table {
     #[serde(rename = "tags")]
     pub tags: Option<Vec<TagElement>>,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -612,21 +627,37 @@ pub struct TableProfile {
 /// This schema defines the type to capture the table's column profile.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ColumnProfile {
+    /// Number of values that contain distinct values.
+    #[serde(rename = "distinctCount")]
+    pub distinct_count: Option<f64>,
+
+    /// No.of Rows that contain duplicates in a column.
+    #[serde(rename = "duplicateCount")]
+    pub duplicate_count: Option<f64>,
+
+    /// Histogram of a column
+    #[serde(rename = "histogram")]
+    pub histogram: Option<HistogramUnion>,
+
     /// Maximum value in a column.
     #[serde(rename = "max")]
-    pub max: Option<String>,
+    pub max: Option<f64>,
 
     /// Avg value in a column.
     #[serde(rename = "mean")]
-    pub mean: Option<String>,
-
-    /// Median value in a column.
-    #[serde(rename = "median")]
-    pub median: Option<String>,
+    pub mean: Option<f64>,
 
     /// Minimum value in a column.
     #[serde(rename = "min")]
-    pub min: Option<String>,
+    pub min: Option<f64>,
+
+    /// Missing count is calculated by subtracting valuesCount - validCount.
+    #[serde(rename = "missingCount")]
+    pub missing_count: Option<f64>,
+
+    /// Missing Percentage is calculated by taking percentage of validCount/valuesCount.
+    #[serde(rename = "missingPercentage")]
+    pub missing_percentage: Option<f64>,
 
     /// Column Name.
     #[serde(rename = "name")]
@@ -644,6 +675,10 @@ pub struct ColumnProfile {
     #[serde(rename = "stddev")]
     pub stddev: Option<f64>,
 
+    /// Median value in a column.
+    #[serde(rename = "sum")]
+    pub sum: Option<f64>,
+
     /// No. of unique values in the column.
     #[serde(rename = "uniqueCount")]
     pub unique_count: Option<f64>,
@@ -651,6 +686,33 @@ pub struct ColumnProfile {
     /// Proportion of number of unique values in a column.
     #[serde(rename = "uniqueProportion")]
     pub unique_proportion: Option<f64>,
+
+    /// Total count of valid values in this column.
+    #[serde(rename = "validCount")]
+    pub valid_count: Option<f64>,
+
+    /// Total count of the values in this column.
+    #[serde(rename = "valuesCount")]
+    pub values_count: Option<f64>,
+
+    /// Percentage of values in this column with respect to rowcount.
+    #[serde(rename = "valuesPercentage")]
+    pub values_percentage: Option<f64>,
+
+    /// Variance of a column
+    #[serde(rename = "variance")]
+    pub variance: Option<f64>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct HistogramClass {
+    /// Boundaries of Histogram
+    #[serde(rename = "boundaries")]
+    pub boundaries: Option<Vec<Option<serde_json::Value>>>,
+
+    /// Frequencies of Histogram
+    #[serde(rename = "frequencies")]
+    pub frequencies: Option<Vec<Option<serde_json::Value>>>,
 }
 
 /// This schema defines the type to capture the table's sql queries.
@@ -742,6 +804,10 @@ pub struct MlModel {
     #[serde(rename = "dashboard")]
     pub dashboard: Option<ServiceElement>,
 
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
+
     /// Description of the ML Model, what it is, and how to use it.
     #[serde(rename = "description")]
     pub description: Option<String>,
@@ -795,7 +861,12 @@ pub struct MlModel {
     #[serde(rename = "tags")]
     pub tags: Option<Vec<TagElement>>,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// For supervised ML Models, the value to estimate.
+    #[serde(rename = "target")]
+    pub target: Option<String>,
+
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -845,6 +916,10 @@ pub struct MlFeature {
 /// This schema defines the sources of a ML Feature.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FeatureSource {
+    /// Description of the Data Source (e.g., a Table)
+    #[serde(rename = "dataSource")]
+    pub data_source: Option<ServiceElement>,
+
     /// Data type of the source (int, date etc.).
     #[serde(rename = "dataType")]
     pub data_type: Option<FeatureSourceDataType>,
@@ -900,6 +975,10 @@ pub struct Database {
     #[serde(rename = "changeDescription")]
     pub change_description: Option<PipelineChangeDescription>,
 
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
+
     /// Description of the database instance.
     #[serde(rename = "description")]
     pub description: Option<String>,
@@ -944,7 +1023,8 @@ pub struct Database {
     #[serde(rename = "tables")]
     pub tables: Option<Vec<ServiceElement>>,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -977,6 +1057,10 @@ pub struct Dashboard {
     /// Dashboard URL.
     #[serde(rename = "dashboardUrl")]
     pub dashboard_url: Option<String>,
+
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
 
     /// Description of the dashboard, what it is, and how to use it.
     #[serde(rename = "description")]
@@ -1023,7 +1107,8 @@ pub struct Dashboard {
     #[serde(rename = "tags")]
     pub tags: Option<Vec<TagElement>>,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -1054,6 +1139,10 @@ pub struct Chart {
     /// Chart URL, pointing to its own Service URL.
     #[serde(rename = "chartUrl")]
     pub chart_url: Option<String>,
+
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
 
     /// Description of the dashboard, what it is, and how to use it.
     #[serde(rename = "description")]
@@ -1104,7 +1193,8 @@ pub struct Chart {
     #[serde(rename = "tags")]
     pub tags: Option<Vec<TagElement>>,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -1130,6 +1220,10 @@ pub struct Metrics {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
     pub change_description: Option<PipelineChangeDescription>,
+
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
 
     /// Description of metrics instance, what it is, and how to use it.
     #[serde(rename = "description")]
@@ -1167,7 +1261,8 @@ pub struct Metrics {
     #[serde(rename = "tags")]
     pub tags: Option<Vec<TagElement>>,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -1195,6 +1290,10 @@ pub struct Topic {
     /// Topic clean up policies. For Kafka - `cleanup.policy` configuration.
     #[serde(rename = "cleanupPolicies")]
     pub cleanup_policies: Option<Vec<CleanupPolicy>>,
+
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
 
     /// Description of the topic instance.
     #[serde(rename = "description")]
@@ -1249,11 +1348,11 @@ pub struct Topic {
     /// Maximum size of a partition in bytes before old data is discarded. For Kafka -
     /// `retention.bytes` configuration.
     #[serde(rename = "retentionSize")]
-    pub retention_size: Option<f64>,
+    pub retention_size: Option<i64>,
 
     /// Retention time in milliseconds. For Kafka - `retention.ms` configuration.
     #[serde(rename = "retentionTime")]
-    pub retention_time: Option<f64>,
+    pub retention_time: Option<i64>,
 
     /// Schema used for message serialization. Optional as some topics may not have associated
     /// schemas.
@@ -1276,7 +1375,8 @@ pub struct Topic {
     #[serde(rename = "tags")]
     pub tags: Option<Vec<TagElement>>,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -1296,6 +1396,10 @@ pub struct Report {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
     pub change_description: Option<PipelineChangeDescription>,
+
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
 
     /// Description of this report instance.
     #[serde(rename = "description")]
@@ -1330,7 +1434,8 @@ pub struct Report {
     #[serde(rename = "service")]
     pub service: ServiceElement,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -1357,6 +1462,10 @@ pub struct MessagingService {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
     pub change_description: Option<PipelineChangeDescription>,
+
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
 
     /// Description of a messaging service instance.
     #[serde(rename = "description")]
@@ -1391,7 +1500,8 @@ pub struct MessagingService {
     #[serde(rename = "serviceType")]
     pub service_type: MessagingServiceType,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -1432,6 +1542,13 @@ pub struct DatabaseService {
     #[serde(rename = "changeDescription")]
     pub change_description: Option<PipelineChangeDescription>,
 
+    #[serde(rename = "databaseConnection")]
+    pub database_connection: DatabaseConnection,
+
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
+
     /// Description of a database service instance.
     #[serde(rename = "description")]
     pub description: Option<String>,
@@ -1448,14 +1565,6 @@ pub struct DatabaseService {
     #[serde(rename = "id")]
     pub id: String,
 
-    /// Schedule for running metadata ingestion jobs.
-    #[serde(rename = "ingestionSchedule")]
-    pub ingestion_schedule: Option<Schedule>,
-
-    /// JDBC connection information.
-    #[serde(rename = "jdbc")]
-    pub jdbc: JdbcInfo,
-
     /// Name that identifies this database service.
     #[serde(rename = "name")]
     pub name: String,
@@ -1464,7 +1573,8 @@ pub struct DatabaseService {
     #[serde(rename = "serviceType")]
     pub service_type: DatabaseServiceType,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -1477,16 +1587,33 @@ pub struct DatabaseService {
     pub version: Option<f64>,
 }
 
-/// JDBC connection information.
-///
-/// Type for capturing JDBC connector information.
+/// Database Connection.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct JdbcInfo {
-    #[serde(rename = "connectionUrl")]
-    pub connection_url: String,
+pub struct DatabaseConnection {
+    /// Additional connection arguments such as security or protocol configs that can be sent to
+    /// service during connection.
+    #[serde(rename = "connectionArguments")]
+    pub connection_arguments: Option<HashMap<String, Option<serde_json::Value>>>,
 
-    #[serde(rename = "driverClass")]
-    pub driver_class: String,
+    /// Additional connection options that can be sent to service during the connection.
+    #[serde(rename = "connectionOptions")]
+    pub connection_options: Option<HashMap<String, Option<serde_json::Value>>>,
+
+    /// Database of the data source.
+    #[serde(rename = "database")]
+    pub database: Option<String>,
+
+    /// Host and port of the data source.
+    #[serde(rename = "hostPort")]
+    pub host_port: Option<String>,
+
+    /// password to connect  to the data source.
+    #[serde(rename = "password")]
+    pub password: Option<String>,
+
+    /// username to connect  to the data source.
+    #[serde(rename = "username")]
+    pub username: Option<String>,
 }
 
 /// This schema defines the Dashboard Service entity, such as Looker and Superset.
@@ -1499,6 +1626,10 @@ pub struct DashboardService {
     /// Dashboard Service URL. This will be used to make REST API calls to Dashboard Service.
     #[serde(rename = "dashboardUrl")]
     pub dashboard_url: String,
+
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
 
     /// Description of a dashboard service instance.
     #[serde(rename = "description")]
@@ -1532,7 +1663,8 @@ pub struct DashboardService {
     #[serde(rename = "serviceType")]
     pub service_type: DashboardServiceType,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -1611,10 +1743,9 @@ pub struct User {
     #[serde(rename = "changeDescription")]
     pub change_description: Option<PipelineChangeDescription>,
 
-    /// When true indicates the user has been deactivated. Users are deactivated instead of
-    /// deleted.
-    #[serde(rename = "deactivated")]
-    pub deactivated: Option<bool>,
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
 
     /// Used for user biography.
     #[serde(rename = "description")]
@@ -1659,6 +1790,10 @@ pub struct User {
     #[serde(rename = "profile")]
     pub profile: Option<ProfileClass>,
 
+    /// Roles that the user has been assigned.
+    #[serde(rename = "roles")]
+    pub roles: Option<Vec<ServiceElement>>,
+
     /// Teams that the user belongs to.
     #[serde(rename = "teams")]
     pub teams: Option<Vec<ServiceElement>>,
@@ -1667,7 +1802,8 @@ pub struct User {
     #[serde(rename = "timezone")]
     pub timezone: Option<String>,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -1716,6 +1852,57 @@ pub struct ImageList {
     pub image72: Option<String>,
 }
 
+/// This schema defines the Role entity. A Role has access to zero or more data assets
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Role {
+    /// Change that lead to this version of the entity.
+    #[serde(rename = "changeDescription")]
+    pub change_description: Option<PipelineChangeDescription>,
+
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
+
+    /// Description of the role.
+    #[serde(rename = "description")]
+    pub description: Option<String>,
+
+    /// Name used for display purposes. Example 'Data Consumer'.
+    #[serde(rename = "displayName")]
+    pub display_name: Option<String>,
+
+    /// Link to the resource corresponding to this entity.
+    #[serde(rename = "href")]
+    pub href: Option<String>,
+
+    #[serde(rename = "id")]
+    pub id: String,
+
+    #[serde(rename = "name")]
+    pub name: String,
+
+    /// Policy that is attached to this role.
+    #[serde(rename = "policy")]
+    pub policy: Option<ServiceElement>,
+
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
+    #[serde(rename = "updatedAt")]
+    pub updated_at: Option<i64>,
+
+    /// User who made the update.
+    #[serde(rename = "updatedBy")]
+    pub updated_by: Option<String>,
+
+    /// Users that have this role assigned.
+    #[serde(rename = "users")]
+    pub users: Option<Vec<ServiceElement>>,
+
+    /// Metadata version of the entity.
+    #[serde(rename = "version")]
+    pub version: Option<f64>,
+}
+
 /// This schema defines the Team entity. A Team is a group of zero or more users. Teams can
 /// own zero or more data assets.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -1724,7 +1911,7 @@ pub struct Team {
     #[serde(rename = "changeDescription")]
     pub change_description: Option<PipelineChangeDescription>,
 
-    /// When true the team has been deleted.
+    /// When `true` indicates the entity has been soft deleted.
     #[serde(rename = "deleted")]
     pub deleted: Option<bool>,
 
@@ -1754,7 +1941,8 @@ pub struct Team {
     #[serde(rename = "profile")]
     pub profile: Option<ProfileClass>,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -1779,6 +1967,10 @@ pub struct Bot {
     #[serde(rename = "changeDescription")]
     pub change_description: Option<PipelineChangeDescription>,
 
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
+
     /// Description of the bot.
     #[serde(rename = "description")]
     pub description: Option<String>,
@@ -1799,7 +1991,8 @@ pub struct Bot {
     #[serde(rename = "name")]
     pub name: Option<String>,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -1911,9 +2104,11 @@ pub struct TagClass {
     pub version: Option<f64>,
 }
 
-/// A Thread is a collection of posts made by the users. The first post that starts a thread
-/// is **about** a data asset **from** a user. Other users can respond to this post by
-/// creating new posts in the thread.
+/// This schema defines the Thread entity. A Thread is a collection of posts made by the
+/// users. The first post that starts a thread is **about** a data asset **from** a user.
+/// Other users can respond to this post by creating new posts in the thread. Note that bot
+/// users can also interact with a thread. A post can contains links that mention Users or
+/// other Data Assets.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Thread {
     /// Data asset about which this thread is created for with format
@@ -1937,9 +2132,9 @@ pub struct Thread {
     #[serde(rename = "posts")]
     pub posts: Vec<Post>,
 
-    /// Timestamp of the when the first post created the thread.
+    /// Timestamp of the when the first post created the thread in Unix epoch time milliseconds.
     #[serde(rename = "threadTs")]
-    pub thread_ts: Option<String>,
+    pub thread_ts: Option<i64>,
 }
 
 /// Post within a feed.
@@ -1953,9 +2148,167 @@ pub struct Post {
     #[serde(rename = "message")]
     pub message: String,
 
-    /// Timestamp of the post.
+    /// Timestamp of the post in Unix epoch time milliseconds.
     #[serde(rename = "postTs")]
-    pub post_ts: Option<String>,
+    pub post_ts: Option<i64>,
+}
+
+/// This schema defines webhook for receiving events from OpenMetadata
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Webhook {
+    /// Maximum number of events sent in a batch (Default 10).
+    #[serde(rename = "batchSize")]
+    pub batch_size: Option<i64>,
+
+    /// Change that lead to this version of the entity.
+    #[serde(rename = "changeDescription")]
+    pub change_description: Option<WebhookChangeDescription>,
+
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
+
+    /// Description of the application
+    #[serde(rename = "description")]
+    pub description: Option<String>,
+
+    /// When set to `true`, the webhook event notification is enabled. Set it to `false` to
+    /// disable the subscription. (Default `true`)
+    #[serde(rename = "enabled")]
+    pub enabled: Option<bool>,
+
+    /// Endpoint to receive the webhook events over POST requests.
+    #[serde(rename = "endpoint")]
+    pub endpoint: String,
+
+    /// Endpoint to receive the webhook events over POST requests.
+    #[serde(rename = "eventFilters")]
+    pub event_filters: Vec<EventFilter>,
+
+    /// Failure details are set only when `status` is not `success`
+    #[serde(rename = "failureDetails")]
+    pub failure_details: Option<FailureDetails>,
+
+    /// Link to this webhook resource.
+    #[serde(rename = "href")]
+    pub href: Option<String>,
+
+    /// Unique ID associated with a webhook subscription.
+    #[serde(rename = "id")]
+    pub id: String,
+
+    /// Unique name of the application receiving webhook events.
+    #[serde(rename = "name")]
+    pub name: String,
+
+    /// Secret set by the webhook client used for computing HMAC SHA256 signature of webhook
+    /// payload and sent in `X-OM-Signature` header in POST requests to publish the events.
+    #[serde(rename = "secretKey")]
+    pub secret_key: Option<String>,
+
+    /// Status is `notStarted`, when webhook was created with `enabled` set to false and it never
+    /// started publishing events. Status is `started` when webhook is normally functioning and
+    /// 200 OK response was received for callback notification. Status is `failed` on bad
+    /// callback URL, connection failures, `1xx`, and `3xx` response was received for callback
+    /// notification. Status is `awaitingRetry` when previous attempt at callback timed out or
+    /// received `4xx`, `5xx` response. Status is `retryLimitReached` after all retries fail.
+    #[serde(rename = "status")]
+    pub status: Option<Status>,
+
+    /// Connection timeout in seconds. (Default 10s)
+    #[serde(rename = "timeout")]
+    pub timeout: Option<i64>,
+
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
+    #[serde(rename = "updatedAt")]
+    pub updated_at: Option<i64>,
+
+    /// User who made the update.
+    #[serde(rename = "updatedBy")]
+    pub updated_by: Option<String>,
+
+    /// Metadata version of the entity.
+    #[serde(rename = "version")]
+    pub version: Option<f64>,
+}
+
+/// Change that lead to this version of the entity.
+///
+/// Description of the change.
+///
+/// Change that led to this version of the Policy.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct WebhookChangeDescription {
+    /// Names of fields added during the version changes.
+    #[serde(rename = "fieldsAdded")]
+    pub fields_added: Option<Vec<FluffyFieldChange>>,
+
+    /// Fields deleted during the version changes with old value before deleted.
+    #[serde(rename = "fieldsDeleted")]
+    pub fields_deleted: Option<Vec<FluffyFieldChange>>,
+
+    /// Fields modified during the version changes with old and new values.
+    #[serde(rename = "fieldsUpdated")]
+    pub fields_updated: Option<Vec<FluffyFieldChange>>,
+
+    /// When a change did not result in change, this could be same as the current version.
+    #[serde(rename = "previousVersion")]
+    pub previous_version: Option<f64>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct FluffyFieldChange {
+    /// Name of the entity field that changed.
+    #[serde(rename = "name")]
+    pub name: Option<String>,
+
+    /// New value of the field. Note that this is a JSON string and use the corresponding field
+    /// type to deserialize it.
+    #[serde(rename = "newValue")]
+    pub new_value: Option<serde_json::Value>,
+
+    /// Previous value of the field. Note that this is a JSON string and use the corresponding
+    /// field type to deserialize it.
+    #[serde(rename = "oldValue")]
+    pub old_value: Option<serde_json::Value>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct EventFilter {
+    /// Entities for which the events are needed. Example - `table`, `topic`, etc. **When not
+    /// set, events for all the entities will be provided**.
+    #[serde(rename = "entities")]
+    pub entities: Option<Vec<String>>,
+
+    /// Event type that is being requested.
+    #[serde(rename = "eventType")]
+    pub event_type: EventType,
+}
+
+/// Failure details are set only when `status` is not `success`
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct FailureDetails {
+    /// Last non-successful callback time in UNIX UTC epoch time in milliseconds
+    #[serde(rename = "lastFailedAt")]
+    pub last_failed_at: Option<i64>,
+
+    /// Last non-successful activity response reason received during callback
+    #[serde(rename = "lastFailedReason")]
+    pub last_failed_reason: Option<String>,
+
+    /// Last non-successful activity response code received during callback
+    #[serde(rename = "lastFailedStatusCode")]
+    pub last_failed_status_code: Option<i64>,
+
+    /// Last non-successful callback time in UNIX UTC epoch time in milliseconds
+    #[serde(rename = "lastSuccessfulAt")]
+    pub last_successful_at: Option<i64>,
+
+    /// Next retry will be done at this time in Unix epoch time milliseconds. Only valid is
+    /// `status` is `awaitingRetry`.
+    #[serde(rename = "nextAttempt")]
+    pub next_attempt: Option<i64>,
 }
 
 /// Describes an entity Lifecycle Rule used within a Policy.
@@ -1963,18 +2316,24 @@ pub struct Post {
 pub struct LifecycleRule {
     /// A set of actions to take on the entities.
     #[serde(rename = "actions")]
-    pub actions: Vec<ActionElement>,
+    pub actions: Vec<LifecycleEAction>,
 
     /// Is the rule enabled.
     #[serde(rename = "enabled")]
     pub enabled: Option<bool>,
 
-    #[serde(rename = "filters")]
-    pub filters: Vec<Filter>,
-
     /// Name that identifies this Rule.
     #[serde(rename = "name")]
     pub name: Option<String>,
+
+    #[serde(rename = "prefixFilter")]
+    pub prefix_filter: Option<String>,
+
+    #[serde(rename = "regexFilter")]
+    pub regex_filter: Option<String>,
+
+    #[serde(rename = "tagsFilter")]
+    pub tags_filter: Option<Vec<String>>,
 }
 
 /// An action to delete or expire the entity.
@@ -1982,7 +2341,7 @@ pub struct LifecycleRule {
 /// An action to move the entity to a different location. For eg: Move from Standard storage
 /// tier to Archive storage tier.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ActionElement {
+pub struct LifecycleEAction {
     /// Number of days after creation of the entity that the deletion should be triggered.
     ///
     /// Number of days after creation of the entity that the move should be triggered.
@@ -2026,6 +2385,10 @@ pub struct Location {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
     pub change_description: Option<PipelineChangeDescription>,
+
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
 
     /// Description of a location.
     #[serde(rename = "description")]
@@ -2075,7 +2438,8 @@ pub struct Location {
     #[serde(rename = "tags")]
     pub tags: Option<Vec<TagElement>>,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -2096,6 +2460,10 @@ pub struct StorageService {
     /// Change that lead to this version of the entity.
     #[serde(rename = "changeDescription")]
     pub change_description: Option<PipelineChangeDescription>,
+
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
 
     /// Description of a storage service instance.
     #[serde(rename = "description")]
@@ -2121,7 +2489,8 @@ pub struct StorageService {
     #[serde(rename = "serviceType")]
     pub service_type: StorageServiceType,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -2132,36 +2501,6 @@ pub struct StorageService {
     /// Metadata version of the entity.
     #[serde(rename = "version")]
     pub version: Option<f64>,
-}
-
-/// Entity tags to match on.
-///
-/// This schema defines the type for labeling an entity with a Tag.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct TagLabel {
-    /// Unique name of the tag category.
-    #[serde(rename = "description")]
-    pub description: Option<String>,
-
-    /// Link to the tag resource.
-    #[serde(rename = "href")]
-    pub href: Option<String>,
-
-    /// Label type describes how a tag label was applied. 'Manual' indicates the tag label was
-    /// applied by a person. 'Derived' indicates a tag label was derived using the associated tag
-    /// relationship (see TagCategory.json for more details). 'Propagated` indicates a tag label
-    /// was propagated from upstream based on lineage. 'Automated' is used when a tool was used
-    /// to determine the tag label.
-    #[serde(rename = "labelType")]
-    pub label_type: LabelType,
-
-    /// 'Suggested' state is used when a tag label is suggested by users or tools. Owner of the
-    /// entity must confirm the suggested labels before it is marked as 'Confirmed'.
-    #[serde(rename = "state")]
-    pub state: State,
-
-    #[serde(rename = "tagFQN")]
-    pub tag_fqn: String,
 }
 
 /// An action to move the entity to a different location. For eg: Move from Standard storage
@@ -2210,146 +2549,41 @@ pub struct LifecycleDeleteAction {
     pub days_after_modification: Option<i64>,
 }
 
-/// Describes an entity Access Control Rule used within a Policy.
+/// Describes an Access Control Rule for OpenMetadata Metadata Operations. All non-null user
+/// (subject) and entity (object) attributes are evaluated with logical AND.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AccessControlRule {
-    /// A set of access control enforcements to take on the entities.
-    #[serde(rename = "actions")]
-    pub actions: Vec<AccessControlRuleAction>,
+    /// Allow or Deny operation on the entity.
+    #[serde(rename = "allow")]
+    pub allow: Option<bool>,
 
     /// Is the rule enabled.
     #[serde(rename = "enabled")]
     pub enabled: Option<bool>,
 
-    #[serde(rename = "filters")]
-    pub filters: Vec<Filter>,
+    /// Entity tag that the rule should match on
+    #[serde(rename = "entityTagAttr")]
+    pub entity_tag_attr: Option<String>,
 
-    /// Name that identifies this Rule.
-    #[serde(rename = "name")]
-    pub name: Option<String>,
-}
+    /// Entity type that the rule should match on
+    #[serde(rename = "entityTypeAttr")]
+    pub entity_type_attr: Option<String>,
 
-/// Describes an Access Control Rule to selectively grant access to Teams/Users to tagged
-/// entities.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct AccessControlRuleAction {
-    /// Teams and Users who are able to access the tagged entities.
-    #[serde(rename = "allow")]
-    pub allow: Vec<AllowElement>,
-
-    /// Tags that are associated with the entities.
-    #[serde(rename = "tags")]
-    pub tags: Vec<TagLabel>,
-}
-
-/// This schema defines the Team entity. A Team is a group of zero or more users. Teams can
-/// own zero or more data assets.
-///
-/// This schema defines the User entity. A user can be part of 0 or more teams. A special
-/// type of user called Bot is used for automation. A user can be an owner of zero or more
-/// data assets. A user can also follow zero or more data assets.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct AllowElement {
-    /// Change that lead to this version of the entity.
-    #[serde(rename = "changeDescription")]
-    pub change_description: Option<PipelineChangeDescription>,
-
-    /// When true the team has been deleted.
-    #[serde(rename = "deleted")]
-    pub deleted: Option<bool>,
-
-    /// Description of the team.
-    ///
-    /// Used for user biography.
-    #[serde(rename = "description")]
-    pub description: Option<String>,
-
-    /// Name used for display purposes. Example 'Data Science team'.
-    ///
-    /// Name used for display purposes. Example 'FirstName LastName'.
-    #[serde(rename = "displayName")]
-    pub display_name: Option<String>,
-
-    /// Link to the resource corresponding to this entity.
-    #[serde(rename = "href")]
-    pub href: String,
-
-    /// Unique identifier that identifies a user entity instance.
-    #[serde(rename = "id")]
-    pub id: String,
-
+    /// Name for this Rule.
     #[serde(rename = "name")]
     pub name: String,
 
-    /// List of entities owned by the team.
-    ///
-    /// List of entities owned by the user.
-    #[serde(rename = "owns")]
-    pub owns: Option<Vec<ServiceElement>>,
+    /// Operation on the entity.
+    #[serde(rename = "operation")]
+    pub operation: Option<Operation>,
 
-    /// Team profile information.
-    ///
-    /// Profile of the user.
-    #[serde(rename = "profile")]
-    pub profile: Option<ProfileClass>,
+    /// Priority of this rule among all rules across all policies.
+    #[serde(rename = "priority")]
+    pub priority: Option<i64>,
 
-    /// Last update time corresponding to the new version of the entity.
-    #[serde(rename = "updatedAt")]
-    pub updated_at: Option<i64>,
-
-    /// User who made the update.
-    #[serde(rename = "updatedBy")]
-    pub updated_by: Option<String>,
-
-    /// Users that are part of the team.
-    #[serde(rename = "users")]
-    pub users: Option<Vec<ServiceElement>>,
-
-    /// Metadata version of the entity.
-    #[serde(rename = "version")]
-    pub version: Option<f64>,
-
-    /// When true indicates the user has been deactivated. Users are deactivated instead of
-    /// deleted.
-    #[serde(rename = "deactivated")]
-    pub deactivated: Option<bool>,
-
-    /// Email address of the user.
-    #[serde(rename = "email")]
-    pub email: Option<String>,
-
-    /// List of entities followed by the user.
-    #[serde(rename = "follows")]
-    pub follows: Option<Vec<ServiceElement>>,
-
-    /// When true indicates user is an administrator for the system with superuser privileges.
-    #[serde(rename = "isAdmin")]
-    pub is_admin: Option<bool>,
-
-    /// When true indicates a special type of user called Bot.
-    #[serde(rename = "isBot")]
-    pub is_bot: Option<bool>,
-
-    /// Teams that the user belongs to.
-    #[serde(rename = "teams")]
-    pub teams: Option<Vec<ServiceElement>>,
-
-    /// Timezone of the user.
-    #[serde(rename = "timezone")]
-    pub timezone: Option<String>,
-}
-
-/// Describes an Access Control Rule to selectively grant access to Teams/Users to tagged
-/// entities.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct TagBased {
-    /// Teams and Users who are able to access the tagged entities.
-    #[serde(rename = "allow")]
-    pub allow: Vec<AllowElement>,
-
-    /// Tags that are associated with the entities.
-    #[serde(rename = "tags")]
-    pub tags: Vec<TagLabel>,
+    /// Role of the user that the rule should match on
+    #[serde(rename = "userRoleAttr")]
+    pub user_role_attr: Option<String>,
 }
 
 /// This schema defines the Policy entity. A Policy defines lifecycle or access control that
@@ -2358,7 +2592,11 @@ pub struct TagBased {
 pub struct Policy {
     /// Change that led to this version of the Policy.
     #[serde(rename = "changeDescription")]
-    pub change_description: Option<PolicyChangeDescription>,
+    pub change_description: Option<WebhookChangeDescription>,
+
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
 
     /// A short description of the Policy, comprehensible to regular users.
     #[serde(rename = "description")]
@@ -2384,7 +2622,10 @@ pub struct Policy {
     #[serde(rename = "id")]
     pub id: String,
 
-    /// Name that identifies this Policy.
+    #[serde(rename = "location")]
+    pub location: Option<EntityReference>,
+
+    /// Name that uniquely identifies this Policy.
     #[serde(rename = "name")]
     pub name: String,
 
@@ -2402,7 +2643,8 @@ pub struct Policy {
     #[serde(rename = "rules")]
     pub rules: Option<Vec<PolicyRule>>,
 
-    /// Last update time corresponding to the new version of the Policy.
+    /// Last update time corresponding to the new version of the Policy in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -2415,51 +2657,12 @@ pub struct Policy {
     pub version: Option<f64>,
 }
 
-/// Change that led to this version of the Policy.
-///
-/// Description of the change.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct PolicyChangeDescription {
-    /// Names of fields added during the version changes.
-    #[serde(rename = "fieldsAdded")]
-    pub fields_added: Option<Vec<FluffyFieldChange>>,
-
-    /// Fields deleted during the version changes with old value before deleted.
-    #[serde(rename = "fieldsDeleted")]
-    pub fields_deleted: Option<Vec<FluffyFieldChange>>,
-
-    /// Fields modified during the version changes with old and new values.
-    #[serde(rename = "fieldsUpdated")]
-    pub fields_updated: Option<Vec<FluffyFieldChange>>,
-
-    /// When a change did not result in change, this could be same as the current version.
-    #[serde(rename = "previousVersion")]
-    pub previous_version: Option<f64>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct FluffyFieldChange {
-    /// Name of the entity field that changed.
-    #[serde(rename = "name")]
-    pub name: Option<String>,
-
-    /// New value of the field. Note that this is a JSON string and use the corresponding field
-    /// type to deserialize it.
-    #[serde(rename = "newValue")]
-    pub new_value: Option<serde_json::Value>,
-
-    /// Previous value of the field. Note that this is a JSON string and use the corresponding
-    /// field type to deserialize it.
-    #[serde(rename = "oldValue")]
-    pub old_value: Option<serde_json::Value>,
-}
-
-/// Owner of this Policy.
-///
 /// This schema defines the EntityReference type used for referencing an entity.
 /// EntityReference is used for capturing relationships from one entity to another. For
 /// example, a table has an attribute called database of type EntityReference that captures
 /// the relationship of a table `belongs to a` database.
+///
+/// Owner of this Policy.
 ///
 /// Owner of this database
 ///
@@ -2501,62 +2704,58 @@ pub struct EntityReference {
 
 /// A set of rules associated with the Policy.
 ///
-/// Describes an entity Access Control Rule used within a Policy.
+/// Describes an Access Control Rule for OpenMetadata Metadata Operations. All non-null user
+/// (subject) and entity (object) attributes are evaluated with logical AND.
 ///
 /// Describes an entity Lifecycle Rule used within a Policy.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PolicyRule {
-    /// A set of access control enforcements to take on the entities.
-    ///
-    /// A set of actions to take on the entities.
-    #[serde(rename = "actions")]
-    pub actions: Vec<RuleAction>,
+    /// Allow or Deny operation on the entity.
+    #[serde(rename = "allow")]
+    pub allow: Option<bool>,
 
     /// Is the rule enabled.
     #[serde(rename = "enabled")]
     pub enabled: Option<bool>,
 
-    #[serde(rename = "filters")]
-    pub filters: Vec<Filter>,
+    /// Entity tag that the rule should match on
+    #[serde(rename = "entityTagAttr")]
+    pub entity_tag_attr: Option<String>,
 
+    /// Entity type that the rule should match on
+    #[serde(rename = "entityTypeAttr")]
+    pub entity_type_attr: Option<String>,
+
+    /// Name for this Rule.
+    ///
     /// Name that identifies this Rule.
     #[serde(rename = "name")]
     pub name: Option<String>,
-}
 
-/// Describes an Access Control Rule to selectively grant access to Teams/Users to tagged
-/// entities.
-///
-/// An action to delete or expire the entity.
-///
-/// An action to move the entity to a different location. For eg: Move from Standard storage
-/// tier to Archive storage tier.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct RuleAction {
-    /// Teams and Users who are able to access the tagged entities.
-    #[serde(rename = "allow")]
-    pub allow: Option<Vec<AllowElement>>,
+    /// Operation on the entity.
+    #[serde(rename = "operation")]
+    pub operation: Option<Operation>,
 
-    /// Tags that are associated with the entities.
-    #[serde(rename = "tags")]
-    pub tags: Option<Vec<TagLabel>>,
+    /// Priority of this rule among all rules across all policies.
+    #[serde(rename = "priority")]
+    pub priority: Option<i64>,
 
-    /// Number of days after creation of the entity that the deletion should be triggered.
-    ///
-    /// Number of days after creation of the entity that the move should be triggered.
-    #[serde(rename = "daysAfterCreation")]
-    pub days_after_creation: Option<i64>,
+    /// Role of the user that the rule should match on
+    #[serde(rename = "userRoleAttr")]
+    pub user_role_attr: Option<String>,
 
-    /// Number of days after last modification of the entity that the deletion should be
-    /// triggered.
-    ///
-    /// Number of days after last modification of the entity that the move should be triggered.
-    #[serde(rename = "daysAfterModification")]
-    pub days_after_modification: Option<i64>,
+    /// A set of actions to take on the entities.
+    #[serde(rename = "actions")]
+    pub actions: Option<Vec<LifecycleEAction>>,
 
-    /// Location where this entity needs to be moved to.
-    #[serde(rename = "destination")]
-    pub destination: Option<ActionDestination>,
+    #[serde(rename = "prefixFilter")]
+    pub prefix_filter: Option<String>,
+
+    #[serde(rename = "regexFilter")]
+    pub regex_filter: Option<String>,
+
+    #[serde(rename = "tagsFilter")]
+    pub tags_filter: Option<Vec<String>>,
 }
 
 /// This schema defines the type used for lineage of an entity.
@@ -2605,7 +2804,7 @@ pub struct DailyCountOfSomeMeasurement {
 
 /// This schema defines the type used for capturing usage details of an entity.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct UsageDetailsOfAnEntity {
+pub struct EntityUsage {
     /// Entity for which usage is returned.
     #[serde(rename = "entity")]
     pub entity: ServiceElement,
@@ -2714,14 +2913,14 @@ pub struct ChangeEvent {
     #[serde(rename = "currentVersion")]
     pub current_version: Option<f64>,
 
-    /// Date and time when the change was made.
-    #[serde(rename = "dateTime")]
-    pub date_time: String,
-
     /// For `eventType` `entityCreated`, this field captures JSON coded string of the entity
     /// using the schema corresponding to `entityType`.
     #[serde(rename = "entity")]
     pub entity: Option<serde_json::Value>,
+
+    /// Fully Qualified Name of entity that was modified by the operation.
+    #[serde(rename = "entityFullyQualifiedName")]
+    pub entity_fully_qualified_name: Option<String>,
 
     /// Identifier of entity that was modified by the operation.
     #[serde(rename = "entityId")]
@@ -2740,9 +2939,53 @@ pub struct ChangeEvent {
     #[serde(rename = "previousVersion")]
     pub previous_version: Option<f64>,
 
+    /// Timestamp when the change was made in Unix epoch time milliseconds.
+    #[serde(rename = "timestamp")]
+    pub timestamp: i64,
+
     /// Name of the user whose activity resulted in the change.
     #[serde(rename = "userName")]
     pub user_name: Option<String>,
+}
+
+/// This schema defines the EntityRelationship type used for establishing relationship
+/// between two entities. EntityRelationship is used for capturing relationships from one
+/// entity to another. For example, a database contains tables.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct EntityRelationship {
+    /// `true` indicates the relationship has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
+
+    /// Type of the entity from which the relationship originates. Examples: `database`, `table`,
+    /// `metrics` ...
+    #[serde(rename = "fromEntity")]
+    pub from_entity: String,
+
+    /// Fully qualified name of the entity from which the relationship originates.
+    #[serde(rename = "fromFQN")]
+    pub from_fqn: Option<String>,
+
+    /// Unique identifier that identifies the entity from which the relationship originates.
+    #[serde(rename = "fromId")]
+    pub from_id: Option<String>,
+
+    /// Describes relationship between the two entities.
+    #[serde(rename = "relation")]
+    pub relation: String,
+
+    /// Type of the entity towards which the relationship refers to. Examples: `database`,
+    /// `table`, `metrics` ...
+    #[serde(rename = "toEntity")]
+    pub to_entity: String,
+
+    /// Fully qualified name of the entity towards which the relationship refers to.
+    #[serde(rename = "toFQN")]
+    pub to_fqn: Option<String>,
+
+    /// Unique identifier that identifies the entity towards which the relationship refers to.
+    #[serde(rename = "toId")]
+    pub to_id: Option<String>,
 }
 
 /// Type used for cursor based pagination information in GET list responses.
@@ -2765,10 +3008,6 @@ pub struct Paging {
 /// API operations.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AuditLog {
-    /// Date when the API call is made.
-    #[serde(rename = "dateTime")]
-    pub date_time: Option<String>,
-
     /// Identifier of entity that was modified by the operation.
     #[serde(rename = "entityId")]
     pub entity_id: String,
@@ -2789,9 +3028,66 @@ pub struct AuditLog {
     #[serde(rename = "responseCode")]
     pub response_code: i64,
 
+    /// Timestamp when the API call is made in Unix epoch time milliseconds in Unix epoch time
+    /// milliseconds.
+    #[serde(rename = "timestamp")]
+    pub timestamp: Option<i64>,
+
     /// Name of the user who made the API request.
     #[serde(rename = "userName")]
     pub user_name: String,
+}
+
+/// Database Connection Config to capture connection details to a database service.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct DatabaseConnectionConfig {
+    /// Database of the data source.
+    #[serde(rename = "database")]
+    pub database: Option<String>,
+
+    /// Run data profiler as part of ingestion to get table profile data.
+    #[serde(rename = "enableDataProfiler")]
+    pub enable_data_profiler: Option<bool>,
+
+    /// Regex exclude tables or databases that matches the pattern.
+    #[serde(rename = "excludeFilterPattern")]
+    pub exclude_filter_pattern: Option<Vec<String>>,
+
+    /// Turn on/off collecting sample data.
+    #[serde(rename = "generateSampleData")]
+    pub generate_sample_data: Option<bool>,
+
+    /// Host and port of the data source.
+    #[serde(rename = "hostPort")]
+    pub host_port: Option<String>,
+
+    /// Regex to only fetch tables or databases that matches the pattern.
+    #[serde(rename = "includeFilterPattern")]
+    pub include_filter_pattern: Option<Vec<String>>,
+
+    /// Optional configuration to turn off fetching metadata for tables.
+    #[serde(rename = "includeTables")]
+    pub include_tables: Option<bool>,
+
+    /// optional configuration to turn off fetching metadata for views.
+    #[serde(rename = "includeViews")]
+    pub include_views: Option<bool>,
+
+    /// password to connect  to the data source.
+    #[serde(rename = "password")]
+    pub password: Option<String>,
+
+    /// query to generate sample data.
+    #[serde(rename = "sampleDataQuery")]
+    pub sample_data_query: Option<String>,
+
+    /// schema of the data source.
+    #[serde(rename = "schema")]
+    pub schema: Option<String>,
+
+    /// username to connect  to the data source.
+    #[serde(rename = "username")]
+    pub username: Option<String>,
 }
 
 /// This schema defines the type used for the schedule. The schedule has a start time and
@@ -2807,9 +3103,22 @@ pub struct Schedule {
     pub start_date: Option<String>,
 }
 
-/// Ingestion Config is used to setup a Airflow Ingestion pipeline.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Ingestion {
+pub struct DatabaseServiceQueryUsagePipelineClass {
+    /// Configuration to tune how far we want to look back in query logs to process usage data.
+    #[serde(rename = "queryLogDuration")]
+    pub query_log_duration: Option<i64>,
+
+    /// Temporary file name to store the query logs before processing. Absolute file path
+    /// required.
+    #[serde(rename = "stageFileLocation")]
+    pub stage_file_location: Option<String>,
+}
+
+/// Airflow Pipeline is used to setup a DAG and deploy. This entity is used to setup
+/// metadata/quality pipelines on Apache Airflow.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AirflowPipeline {
     /// Change that led to this version of the entity.
     #[serde(rename = "changeDescription")]
     pub change_description: Option<PipelineChangeDescription>,
@@ -2818,61 +3127,77 @@ pub struct Ingestion {
     #[serde(rename = "concurrency")]
     pub concurrency: Option<i64>,
 
-    #[serde(rename = "connectorConfig")]
-    pub connector_config: ConnectorConfig,
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
 
-    /// Description of the workflow.
+    /// Description of the Pipeline.
     #[serde(rename = "description")]
     pub description: Option<String>,
 
-    /// Display Name that identifies this Ingestion.
+    /// Display Name that identifies this Pipeline.
     #[serde(rename = "displayName")]
     pub display_name: Option<String>,
 
-    /// End Date of the workflow.
+    /// End Date of the pipeline.
     #[serde(rename = "endDate")]
     pub end_date: Option<String>,
 
-    /// Deploy the workflow by overwriting existing workflow with the same name.
+    /// Deploy the pipeline by overwriting existing pipeline with the same name.
     #[serde(rename = "forceDeploy")]
     pub force_deploy: Option<bool>,
 
-    /// Name that uniquely identifies a Ingestion.
+    /// Name that uniquely identifies a Pipeline.
     #[serde(rename = "fullyQualifiedName")]
     pub fully_qualified_name: Option<String>,
 
-    /// Link to this ingestion resource.
+    /// Link to this pipeline resource.
     #[serde(rename = "href")]
     pub href: Option<String>,
 
-    /// Unique identifier that identifies this Ingestion.
+    /// Unique identifier that identifies this pipeline.
     #[serde(rename = "id")]
     pub id: Option<String>,
 
-    /// List of executions and status for the Ingestion Pipeline.
-    #[serde(rename = "ingestionStatuses")]
-    pub ingestion_statuses: Option<Vec<IngestionStatus>>,
-
-    #[serde(rename = "ingestionType")]
-    pub ingestion_type: Option<IngestionType>,
-
-    /// Name that identifies this ingestion instance uniquely.
+    /// Name that identifies this pipeline instance uniquely.
     #[serde(rename = "name")]
     pub name: String,
 
-    /// Next execution date from the underlying workflow platform once the ingestion scheduled.
+    /// Next execution date from the underlying pipeline platform once the pipeline scheduled.
     #[serde(rename = "nextExecutionDate")]
     pub next_execution_date: Option<String>,
 
-    /// Owner of this Ingestion.
+    /// Owner of this Pipeline.
     #[serde(rename = "owner")]
     pub owner: Option<ServiceElement>,
 
-    /// pause the workflow from running once the deploy is finished successfully.
-    #[serde(rename = "pauseWorkflow")]
-    pub pause_workflow: Option<bool>,
+    /// pause the pipeline from running once the deploy is finished successfully.
+    #[serde(rename = "pausePipeline")]
+    pub pause_pipeline: Option<bool>,
 
-    /// Retry workflow in case of failure.
+    /// Run past executions if the start date is in the past.
+    #[serde(rename = "pipelineCatchup")]
+    pub pipeline_catchup: Option<bool>,
+
+    #[serde(rename = "pipelineConfig")]
+    pub pipeline_config: PipelineConfig,
+
+    /// List of executions and status for the Pipeline.
+    #[serde(rename = "pipelineStatuses")]
+    pub pipeline_statuses: Option<Vec<PipelineStatus>>,
+
+    /// Timeout for the pipeline in seconds.
+    #[serde(rename = "pipelineTimeout")]
+    pub pipeline_timeout: Option<i64>,
+
+    /// Timezone in which pipeline going to be scheduled.
+    #[serde(rename = "pipelineTimezone")]
+    pub pipeline_timezone: Option<String>,
+
+    #[serde(rename = "pipelineType")]
+    pub pipeline_type: PipelineType,
+
+    /// Retry pipeline in case of failure.
     #[serde(rename = "retries")]
     pub retries: Option<i64>,
 
@@ -2880,7 +3205,7 @@ pub struct Ingestion {
     #[serde(rename = "retryDelay")]
     pub retry_delay: Option<i64>,
 
-    /// Scheduler Interval for the Workflow in cron format.
+    /// Scheduler Interval for the pipeline in cron format.
     #[serde(rename = "scheduleInterval")]
     pub schedule_interval: Option<String>,
 
@@ -2888,15 +3213,12 @@ pub struct Ingestion {
     #[serde(rename = "service")]
     pub service: ServiceElement,
 
-    /// Start date of the workflow.
+    /// Start date of the pipeline.
     #[serde(rename = "startDate")]
     pub start_date: String,
 
-    /// Tags associated with the Ingestion.
-    #[serde(rename = "tags")]
-    pub tags: Option<Vec<TagElement>>,
-
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -2907,70 +3229,135 @@ pub struct Ingestion {
     /// Metadata version of the entity.
     #[serde(rename = "version")]
     pub version: Option<f64>,
-
-    /// Run past executions if the start date is in the past.
-    #[serde(rename = "workflowCatchup")]
-    pub workflow_catchup: Option<bool>,
-
-    /// Timeout for the workflow in seconds.
-    #[serde(rename = "workflowTimeout")]
-    pub workflow_timeout: Option<i64>,
-
-    /// Timezone in which workflow going to be scheduled.
-    #[serde(rename = "workflowTimezone")]
-    pub workflow_timezone: Option<String>,
 }
 
-/// This defines the configuration for connector.
+/// OpenMetadata Pipeline Config.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ConnectorConfig {
-    /// Database of the data source.
-    #[serde(rename = "database")]
-    pub database: Option<String>,
+pub struct PipelineConfig {
+    #[serde(rename = "config")]
+    pub config: Option<ConfigUnion>,
 
-    /// Run data profiler as part of ingestion to get table profile data.
+    #[serde(rename = "schema")]
+    pub schema: Option<Schema>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ConfigClass {
+    /// DBT catalog file to extract dbt models with their column schemas.
+    #[serde(rename = "dbtCatalogFilePath")]
+    pub dbt_catalog_file_path: Option<String>,
+
+    /// DBT manifest file path to extract dbt models and associate with tables.
+    #[serde(rename = "dbtManifestFilePath")]
+    pub dbt_manifest_file_path: Option<String>,
+
+    /// Run data profiler as part of this metadata ingestion to get table profile data.
     #[serde(rename = "enableDataProfiler")]
     pub enable_data_profiler: Option<bool>,
 
-    /// Regex exclude tables or databases that matches the pattern.
-    #[serde(rename = "excludeFilterPattern")]
-    pub exclude_filter_pattern: Option<Vec<String>>,
+    /// Option to turn on/off generating sample data during metadata extraction.
+    #[serde(rename = "generateSampleData")]
+    pub generate_sample_data: Option<bool>,
 
-    /// Host and port of the data source.
-    #[serde(rename = "host")]
-    pub host: Option<String>,
-
-    /// Regex to only fetch tables or databases that matches the pattern.
-    #[serde(rename = "includeFilterPattern")]
-    pub include_filter_pattern: Option<Vec<String>>,
-
-    /// optional configuration to turn off fetching metadata for views.
+    /// Optional configuration to turn off fetching metadata for views.
     #[serde(rename = "includeViews")]
     pub include_views: Option<bool>,
 
-    /// password to connect  to the data source.
-    #[serde(rename = "password")]
-    pub password: Option<String>,
+    /// Optional configuration to soft delete tables in OpenMetadata if the source tables are
+    /// deleted.
+    #[serde(rename = "markDeletedTables")]
+    pub mark_deleted_tables: Option<bool>,
 
-    /// username to connect  to the data source.
-    #[serde(rename = "username")]
-    pub username: Option<String>,
+    /// Sample data extraction query.
+    #[serde(rename = "sampleDataQuery")]
+    pub sample_data_query: Option<String>,
+
+    /// Regex to only fetch tables or databases that matches the pattern.
+    #[serde(rename = "schemaFilterPattern")]
+    pub schema_filter_pattern: Option<FilterPattern>,
+
+    /// Regex exclude tables or databases that matches the pattern.
+    #[serde(rename = "tableFilterPattern")]
+    pub table_filter_pattern: Option<FilterPattern>,
+
+    /// Configuration to tune how far we want to look back in query logs to process usage data.
+    #[serde(rename = "queryLogDuration")]
+    pub query_log_duration: Option<i64>,
+
+    /// Temporary file name to store the query logs before processing. Absolute file path
+    /// required.
+    #[serde(rename = "stageFileLocation")]
+    pub stage_file_location: Option<String>,
 }
 
-/// This defines the runtime status of Ingestion.
+/// Regex to only fetch tables or databases that matches the pattern.
+///
+/// Regex exclude tables or databases that matches the pattern.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct IngestionStatus {
-    /// endDate of the Ingestion pipeline run for this particular execution.
+pub struct FilterPattern {
+    /// List of strings/regex patterns to match and exclude only database entities that match.
+    #[serde(rename = "excludes")]
+    pub excludes: Option<Vec<String>>,
+
+    /// List of strings/regex patterns to match and include only database entities that match.
+    #[serde(rename = "includes")]
+    pub includes: Option<Vec<String>>,
+}
+
+/// This defines the runtime status of Pipeline.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PipelineStatus {
+    /// endDate of the pipeline run for this particular execution.
     #[serde(rename = "endDate")]
     pub end_date: Option<String>,
 
-    /// startDate of the Ingestion Pipeline run for this particular execution.
+    /// startDate of the Pipeline run for this particular execution.
     #[serde(rename = "startDate")]
     pub start_date: Option<String>,
 
-    /// Workflow status denotes if its failed or succeeded.
+    /// Pipeline status denotes if its failed or succeeded.
     #[serde(rename = "state")]
     pub state: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct DatabaseServiceMetadataPipelineClass {
+    /// DBT catalog file to extract dbt models with their column schemas.
+    #[serde(rename = "dbtCatalogFilePath")]
+    pub dbt_catalog_file_path: Option<String>,
+
+    /// DBT manifest file path to extract dbt models and associate with tables.
+    #[serde(rename = "dbtManifestFilePath")]
+    pub dbt_manifest_file_path: Option<String>,
+
+    /// Run data profiler as part of this metadata ingestion to get table profile data.
+    #[serde(rename = "enableDataProfiler")]
+    pub enable_data_profiler: Option<bool>,
+
+    /// Option to turn on/off generating sample data during metadata extraction.
+    #[serde(rename = "generateSampleData")]
+    pub generate_sample_data: Option<bool>,
+
+    /// Optional configuration to turn off fetching metadata for views.
+    #[serde(rename = "includeViews")]
+    pub include_views: Option<bool>,
+
+    /// Optional configuration to soft delete tables in OpenMetadata if the source tables are
+    /// deleted.
+    #[serde(rename = "markDeletedTables")]
+    pub mark_deleted_tables: Option<bool>,
+
+    /// Sample data extraction query.
+    #[serde(rename = "sampleDataQuery")]
+    pub sample_data_query: Option<String>,
+
+    /// Regex to only fetch tables or databases that matches the pattern.
+    #[serde(rename = "schemaFilterPattern")]
+    pub schema_filter_pattern: Option<FilterPattern>,
+
+    /// Regex exclude tables or databases that matches the pattern.
+    #[serde(rename = "tableFilterPattern")]
+    pub table_filter_pattern: Option<FilterPattern>,
 }
 
 /// Create Chart entity request
@@ -3118,6 +3505,10 @@ pub struct CreateMlModelRequest {
     /// Tags for this ML Model
     #[serde(rename = "tags")]
     pub tags: Option<Vec<TagElement>>,
+
+    /// For supervised ML Models, the value to estimate.
+    #[serde(rename = "target")]
+    pub target: Option<String>,
 }
 
 /// Schema corresponding to a table that belongs to a database
@@ -3210,6 +3601,34 @@ pub struct CreateTableRequestColumn {
     /// Tags associated with the column.
     #[serde(rename = "tags")]
     pub tags: Option<Vec<TagLabel>>,
+}
+
+/// This schema defines the type for labeling an entity with a Tag.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct TagLabel {
+    /// Unique name of the tag category.
+    #[serde(rename = "description")]
+    pub description: Option<String>,
+
+    /// Link to the tag resource.
+    #[serde(rename = "href")]
+    pub href: Option<String>,
+
+    /// Label type describes how a tag label was applied. 'Manual' indicates the tag label was
+    /// applied by a person. 'Derived' indicates a tag label was derived using the associated tag
+    /// relationship (see TagCategory.json for more details). 'Propagated` indicates a tag label
+    /// was propagated from upstream based on lineage. 'Automated' is used when a tool was used
+    /// to determine the tag label.
+    #[serde(rename = "labelType")]
+    pub label_type: LabelType,
+
+    /// 'Suggested' state is used when a tag label is suggested by users or tools. Owner of the
+    /// entity must confirm the suggested labels before it is marked as 'Confirmed'.
+    #[serde(rename = "state")]
+    pub state: State,
+
+    #[serde(rename = "tagFQN")]
+    pub tag_fqn: String,
 }
 
 /// This enum defines the type for table constraint.
@@ -3311,11 +3730,11 @@ pub struct CreateTopicRequest {
     /// Maximum size of a partition in bytes before old data is discarded. For Kafka -
     /// `retention.bytes` configuration.
     #[serde(rename = "retentionSize")]
-    pub retention_size: Option<f64>,
+    pub retention_size: Option<i64>,
 
     /// Retention time in milliseconds. For Kafka - `retention.ms` configuration.
     #[serde(rename = "retentionTime")]
-    pub retention_time: Option<f64>,
+    pub retention_time: Option<i64>,
 
     /// Schema used for message serialization. Optional as some topics may not have associated
     /// schemas.
@@ -3461,16 +3880,12 @@ pub struct CreatePipelineServiceRequest {
 /// Create Database service entity request
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateDatabaseServiceRequest {
+    #[serde(rename = "databaseConnection")]
+    pub database_connection: DatabaseConnection,
+
     /// Description of Database entity.
     #[serde(rename = "description")]
     pub description: Option<String>,
-
-    /// Schedule for running metadata ingestion jobs
-    #[serde(rename = "ingestionSchedule")]
-    pub ingestion_schedule: Option<Schedule>,
-
-    #[serde(rename = "jdbc")]
-    pub jdbc: JdbcInfo,
 
     /// Name that identifies the this entity instance uniquely
     #[serde(rename = "name")]
@@ -3540,6 +3955,10 @@ pub struct CreateUserRequest {
     #[serde(rename = "profile")]
     pub profile: Option<Profile>,
 
+    /// Roles that the user has been assigned
+    #[serde(rename = "roles")]
+    pub roles: Option<Vec<String>>,
+
     /// Teams that the user belongs to
     #[serde(rename = "teams")]
     pub teams: Option<Vec<String>>,
@@ -3547,6 +3966,21 @@ pub struct CreateUserRequest {
     /// Timezone of the user
     #[serde(rename = "timezone")]
     pub timezone: Option<String>,
+}
+
+/// Request for creating a Role entity
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CreateRoleRequest {
+    /// Optional description of the role
+    #[serde(rename = "description")]
+    pub description: Option<String>,
+
+    /// Optional name used for display purposes. Example 'Data Consumer'
+    #[serde(rename = "displayName")]
+    pub display_name: Option<String>,
+
+    #[serde(rename = "name")]
+    pub name: String,
 }
 
 /// Create tag API request
@@ -3578,48 +4012,60 @@ pub struct CreateTagCategoryRequest {
     pub name: String,
 }
 
-/// Ingestion Config is used to setup a Airflow Ingestion pipeline.
+/// Pipeline Config is used to setup a Airflow DAG.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CreateIngestionRequest {
+pub struct CreateAirflowPipelineRequest {
     /// Concurrency of the Pipeline.
     #[serde(rename = "concurrency")]
     pub concurrency: Option<i64>,
 
-    #[serde(rename = "connectorConfig")]
-    pub connector_config: ConnectorConfig,
-
-    /// Description of the workflow.
+    /// Description of the pipeline.
     #[serde(rename = "description")]
     pub description: Option<String>,
 
-    /// Display Name that identifies this Ingestion.
+    /// Display Name that identifies this pipeline.
     #[serde(rename = "displayName")]
     pub display_name: Option<String>,
 
-    /// End Date of the workflow.
+    /// End Date of the pipeline.
     #[serde(rename = "endDate")]
     pub end_date: Option<String>,
 
-    /// Deploy the workflow by overwriting existing workflow with the same name.
+    /// Deploy the pipeline by overwriting existing pipeline with the same name.
     #[serde(rename = "forceDeploy")]
     pub force_deploy: Option<bool>,
 
-    #[serde(rename = "ingestionType")]
-    pub ingestion_type: Option<IngestionType>,
-
-    /// Name that identifies this ingestion instance uniquely.
+    /// Name that identifies this pipeline instance uniquely.
     #[serde(rename = "name")]
     pub name: String,
 
-    /// Owner of this Ingestion.
+    /// Owner of this Pipeline.
     #[serde(rename = "owner")]
     pub owner: Option<ServiceElement>,
 
-    /// pause the workflow from running once the deploy is finished successfully.
-    #[serde(rename = "pauseWorkflow")]
-    pub pause_workflow: Option<bool>,
+    /// pause the pipeline from running once the deploy is finished successfully.
+    #[serde(rename = "pausePipeline")]
+    pub pause_pipeline: Option<bool>,
 
-    /// Retry workflow in case of failure
+    /// pipeline catchup for past executions.
+    #[serde(rename = "pipelineCatchup")]
+    pub pipeline_catchup: Option<bool>,
+
+    #[serde(rename = "pipelineConfig")]
+    pub pipeline_config: PipelineConfig,
+
+    /// Timeout for the pipeline in seconds.
+    #[serde(rename = "pipelineTimeout")]
+    pub pipeline_timeout: Option<i64>,
+
+    /// Timezone in which pipeline going to be scheduled.
+    #[serde(rename = "pipelineTimezone")]
+    pub pipeline_timezone: Option<String>,
+
+    #[serde(rename = "pipelineType")]
+    pub pipeline_type: Option<PipelineType>,
+
+    /// Retry pipeline in case of failure
     #[serde(rename = "retries")]
     pub retries: Option<i64>,
 
@@ -3627,7 +4073,7 @@ pub struct CreateIngestionRequest {
     #[serde(rename = "retryDelay")]
     pub retry_delay: Option<i64>,
 
-    /// Scheduler Interval for the Workflow in cron format.
+    /// Scheduler Interval for the pipeline in cron format.
     #[serde(rename = "scheduleInterval")]
     pub schedule_interval: Option<String>,
 
@@ -3635,25 +4081,9 @@ pub struct CreateIngestionRequest {
     #[serde(rename = "service")]
     pub service: ServiceElement,
 
-    /// Start date of the workflow.
+    /// Start date of the pipeline.
     #[serde(rename = "startDate")]
     pub start_date: String,
-
-    /// Tags associated with the Ingestion.
-    #[serde(rename = "tags")]
-    pub tags: Option<Vec<TagElement>>,
-
-    /// Workflow catchup for past executions.
-    #[serde(rename = "workflowCatchup")]
-    pub workflow_catchup: Option<bool>,
-
-    /// Timeout for the workflow in seconds.
-    #[serde(rename = "workflowTimeout")]
-    pub workflow_timeout: Option<i64>,
-
-    /// Timezone in which workflow going to be scheduled.
-    #[serde(rename = "workflowTimezone")]
-    pub workflow_timezone: Option<String>,
 }
 
 /// Catalog application software version
@@ -3665,7 +4095,7 @@ pub struct CatalogVersion {
 
     /// Build timestamp
     #[serde(rename = "timestamp")]
-    pub timestamp: Option<String>,
+    pub timestamp: Option<i64>,
 
     /// Software version of the catalog
     #[serde(rename = "version")]
@@ -3699,6 +4129,44 @@ pub struct CreateThreadRequest {
     /// Message
     #[serde(rename = "message")]
     pub message: String,
+}
+
+/// This schema defines webhook for receiving events from OpenMetadata
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CreateWebhookRequest {
+    /// Maximum number of events sent in a batch (Default 10).
+    #[serde(rename = "batchSize")]
+    pub batch_size: Option<i64>,
+
+    /// Description of the application
+    #[serde(rename = "description")]
+    pub description: Option<String>,
+
+    /// When set to `true`, the webhook event notification is enabled. Set it to `false` to
+    /// disable the subscription. (Default `true`)
+    #[serde(rename = "enabled")]
+    pub enabled: Option<bool>,
+
+    /// Endpoint to receive the webhook events over POST requests.
+    #[serde(rename = "endpoint")]
+    pub endpoint: String,
+
+    /// Event filters to filter for desired events.
+    #[serde(rename = "eventFilters")]
+    pub event_filters: Vec<EventFilter>,
+
+    /// Unique name of the application receiving webhook events.
+    #[serde(rename = "name")]
+    pub name: String,
+
+    /// Secret set by the webhook client used for computing HMAC SHA256 signature of webhook
+    /// payload and sent in `X-OM-Signature` header in POST requests to publish the events.
+    #[serde(rename = "secretKey")]
+    pub secret_key: Option<String>,
+
+    /// Connection timeout in seconds. (Default = 10s)
+    #[serde(rename = "timeout")]
+    pub timeout: Option<i64>,
 }
 
 /// Add lineage details between two entities
@@ -3741,6 +4209,14 @@ pub struct CreatePolicyRequest {
     #[serde(rename = "displayName")]
     pub display_name: Option<String>,
 
+    /// Is the policy enabled.
+    #[serde(rename = "enabled")]
+    pub enabled: Option<bool>,
+
+    /// UUID of Location where this policy is applied
+    #[serde(rename = "location")]
+    pub location: Option<String>,
+
     /// Name that identifies this Policy.
     #[serde(rename = "name")]
     pub name: String,
@@ -3762,27 +4238,75 @@ pub struct CreatePolicyRequest {
 
 /// A set of rules associated with the Policy.
 ///
-/// Describes an entity Access Control Rule used within a Policy.
+/// Describes an Access Control Rule for OpenMetadata Metadata Operations. All non-null user
+/// (subject) and entity (object) attributes are evaluated with logical AND.
 ///
 /// Describes an entity Lifecycle Rule used within a Policy.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreatePolicyRequestRule {
-    /// A set of access control enforcements to take on the entities.
-    ///
-    /// A set of actions to take on the entities.
-    #[serde(rename = "actions")]
-    pub actions: Vec<RuleAction>,
+    /// Allow or Deny operation on the entity.
+    #[serde(rename = "allow")]
+    pub allow: Option<bool>,
 
     /// Is the rule enabled.
     #[serde(rename = "enabled")]
     pub enabled: Option<bool>,
 
-    #[serde(rename = "filters")]
-    pub filters: Vec<Filter>,
+    /// Entity tag that the rule should match on
+    #[serde(rename = "entityTagAttr")]
+    pub entity_tag_attr: Option<String>,
 
+    /// Entity type that the rule should match on
+    #[serde(rename = "entityTypeAttr")]
+    pub entity_type_attr: Option<String>,
+
+    /// Name for this Rule.
+    ///
     /// Name that identifies this Rule.
     #[serde(rename = "name")]
     pub name: Option<String>,
+
+    /// Operation on the entity.
+    #[serde(rename = "operation")]
+    pub operation: Option<Operation>,
+
+    /// Priority of this rule among all rules across all policies.
+    #[serde(rename = "priority")]
+    pub priority: Option<i64>,
+
+    /// Role of the user that the rule should match on
+    #[serde(rename = "userRoleAttr")]
+    pub user_role_attr: Option<String>,
+
+    /// A set of actions to take on the entities.
+    #[serde(rename = "actions")]
+    pub actions: Option<Vec<LifecycleEAction>>,
+
+    #[serde(rename = "prefixFilter")]
+    pub prefix_filter: Option<String>,
+
+    #[serde(rename = "regexFilter")]
+    pub regex_filter: Option<String>,
+
+    #[serde(rename = "tagsFilter")]
+    pub tags_filter: Option<Vec<String>>,
+}
+
+/// Histogram of a column
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum HistogramUnion {
+    AnythingArray(Vec<Option<serde_json::Value>>),
+
+    Bool(bool),
+
+    Double(f64),
+
+    HistogramClass(HistogramClass),
+
+    Integer(i64),
+
+    String(String),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -3801,14 +4325,52 @@ pub enum Tag {
     TagClass(TagClass),
 }
 
-/// The set of filters that are used to match on entities. A logical AND operation is applied
-/// across all filters.
+/// DatabaseService Query Usage Pipeline Configuration.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum Filter {
-    String(String),
+pub enum DatabaseServiceQueryUsagePipeline {
+    AnythingArray(Vec<Option<serde_json::Value>>),
 
-    TagLabel(TagLabel),
+    Bool(bool),
+
+    DatabaseServiceQueryUsagePipelineClass(DatabaseServiceQueryUsagePipelineClass),
+
+    Double(f64),
+
+    Integer(i64),
+
+    String(String),
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ConfigUnion {
+    AnythingArray(Vec<Option<serde_json::Value>>),
+
+    Bool(bool),
+
+    ConfigClass(ConfigClass),
+
+    Double(f64),
+
+    String(String),
+}
+
+/// DatabaseService Metadata Pipeline Configuration.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum DatabaseServiceMetadataPipeline {
+    AnythingArray(Vec<Option<serde_json::Value>>),
+
+    Bool(bool),
+
+    DatabaseServiceMetadataPipelineClass(DatabaseServiceMetadataPipelineClass),
+
+    Double(f64),
+
+    Integer(i64),
+
+    String(String),
 }
 
 /// Service type where this pipeline is hosted in.
@@ -4234,6 +4796,45 @@ pub enum TagCategoryType {
     Descriptive,
 }
 
+/// Event type that is being requested.
+///
+/// Type of event.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum EventType {
+    #[serde(rename = "entityCreated")]
+    EntityCreated,
+
+    #[serde(rename = "entityDeleted")]
+    EntityDeleted,
+
+    #[serde(rename = "entityUpdated")]
+    EntityUpdated,
+}
+
+/// Status is `notStarted`, when webhook was created with `enabled` set to false and it never
+/// started publishing events. Status is `started` when webhook is normally functioning and
+/// 200 OK response was received for callback notification. Status is `failed` on bad
+/// callback URL, connection failures, `1xx`, and `3xx` response was received for callback
+/// notification. Status is `awaitingRetry` when previous attempt at callback timed out or
+/// received `4xx`, `5xx` response. Status is `retryLimitReached` after all retries fail.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum Status {
+    #[serde(rename = "awaitingRetry")]
+    AwaitingRetry,
+
+    #[serde(rename = "failed")]
+    Failed,
+
+    #[serde(rename = "notStarted")]
+    NotStarted,
+
+    #[serde(rename = "retryLimitReached")]
+    RetryLimitReached,
+
+    #[serde(rename = "started")]
+    Started,
+}
+
 /// This schema defines the type used for describing different types of Location.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum LocationType {
@@ -4313,7 +4914,7 @@ pub enum StorageServiceType {
 ///
 /// Link to the resource corresponding to the tag category.
 ///
-/// Link to this ingestion resource.
+/// Link to this pipeline resource.
 ///
 /// Unique identifier that identifies an entity instance.
 ///
@@ -4361,21 +4962,21 @@ pub enum StorageServiceType {
 ///
 /// Identifier of entity that was modified by the operation.
 ///
-/// Unique identifier that identifies this Ingestion.
+/// Unique identifier that identifies the entity from which the relationship originates.
+///
+/// Unique identifier that identifies the entity towards which the relationship refers to.
+///
+/// Unique identifier that identifies this pipeline.
+///
+/// UUID of Location where this policy is applied
 ///
 /// Start date of the workflow.
 ///
 /// Date and time in ISO 8601 format. Example - '2018-11-13T20:20:39+00:00'.
 ///
-/// Last update time corresponding to the new version of the entity.
-///
 /// Start date and time of the schedule.
 ///
-/// Timestamp of the when the first post created the thread.
-///
-/// Date and time when the change was made.
-///
-/// Date when the API call is made.
+/// Last update time corresponding to the new version of the entity.
 ///
 /// Start date of the workflow
 ///
@@ -4401,9 +5002,11 @@ pub enum StorageServiceType {
 ///
 /// Date in UTC.
 ///
-/// End Date of the workflow.
+/// End Date of the pipeline.
 ///
-/// Next execution date from the underlying workflow platform once the ingestion scheduled.
+/// Next execution date from the underlying pipeline platform once the pipeline scheduled.
+///
+/// Start date of the pipeline.
 ///
 /// Multiple bootstrap addresses for Kafka. Single proxy address for Pulsar.
 ///
@@ -4411,18 +5014,9 @@ pub enum StorageServiceType {
 ///
 /// Duration in ISO 8601 format in UTC. Example - 'P23DT23H'.
 ///
-/// Type used for JDBC connection URL of format
-/// `url_scheme://<username>:<password>@<host>:<port>/<db_name>`.
+/// Link to this webhook resource.
 ///
-/// JDBC connection URL.
-///
-/// Type used for JDBC driver class.
-///
-/// JDBC driver class.
-///
-/// Prefix path of the entity.
-///
-/// Regex that matches the entity.
+/// Unique ID associated with a webhook subscription.
 ///
 /// Unique identifier that identifies this Policy.
 ///
@@ -4432,13 +5026,20 @@ pub enum StorageServiceType {
 ///
 /// ID of User (regular user or bot) posting the message
 ///
-/// Last update time corresponding to the new version of the Policy.
+/// Prefix path of the entity.
+///
+/// Regex that matches the entity.
+///
+/// JDBC connection URL.
+///
+/// Type used for JDBC connection URL of format
+/// `url_scheme://<username>:<password>@<host>:<port>/<db_name>`.
+///
+/// JDBC driver class.
+///
+/// Type used for JDBC driver class.
 ///
 /// View Definition in SQL. Applies to TableType.View only
-///
-/// Build timestamp
-///
-/// Timestamp in unixTimeMillis.
 ///
 /// Type of storage class offered by S3
 ///
@@ -4496,6 +5097,27 @@ pub enum StorageClassType {
     StandardIa,
 }
 
+/// Operation on the entity.
+///
+/// This schema defines all possible operations on metadata of data entities
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum Operation {
+    #[serde(rename = "SuggestDescription")]
+    SuggestDescription,
+
+    #[serde(rename = "SuggestTags")]
+    SuggestTags,
+
+    #[serde(rename = "UpdateDescription")]
+    UpdateDescription,
+
+    #[serde(rename = "UpdateOwner")]
+    UpdateOwner,
+
+    #[serde(rename = "UpdateTags")]
+    UpdateTags,
+}
+
 /// This schema defines the type used for describing different types of policies.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum PolicyType {
@@ -4506,17 +5128,18 @@ pub enum PolicyType {
     Lifecycle,
 }
 
-/// Type of event.
+/// GET entity by id, GET entity by name, and LIST entities can include deleted or
+/// non-deleted entities using the parameter include
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum EventType {
-    #[serde(rename = "entityCreated")]
-    EntityCreated,
+pub enum Include {
+    #[serde(rename = "all")]
+    All,
 
-    #[serde(rename = "entityDeleted")]
-    EntityDeleted,
+    #[serde(rename = "deleted")]
+    Deleted,
 
-    #[serde(rename = "entityUpdated")]
-    EntityUpdated,
+    #[serde(rename = "non-deleted")]
+    NonDeleted,
 }
 
 /// HTTP Method used in a call.
@@ -4535,45 +5158,21 @@ pub enum Method {
     Put,
 }
 
-/// Type of Ingestion - Bigquery, Redshift, Snowflake etc...
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum IngestionType {
-    #[serde(rename = "bigquery")]
-    Bigquery,
+pub enum Schema {
+    #[serde(rename = "databaseServiceMetadataPipeline")]
+    DatabaseServiceMetadataPipeline,
 
-    #[serde(rename = "bigquery-usage")]
-    BigqueryUsage,
+    #[serde(rename = "databaseServiceQueryUsagePipeline")]
+    DatabaseServiceQueryUsagePipeline,
+}
 
-    #[serde(rename = "hive")]
-    Hive,
+/// Type of Pipeline - metadata, query-usage
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum PipelineType {
+    #[serde(rename = "metadata")]
+    Metadata,
 
-    #[serde(rename = "mssql")]
-    Mssql,
-
-    #[serde(rename = "mysql")]
-    Mysql,
-
-    #[serde(rename = "postgres")]
-    Postgres,
-
-    #[serde(rename = "presto")]
-    Presto,
-
-    #[serde(rename = "redshift")]
-    Redshift,
-
-    #[serde(rename = "redshift-usage")]
-    RedshiftUsage,
-
-    #[serde(rename = "snowflake")]
-    Snowflake,
-
-    #[serde(rename = "snowflake-usage")]
-    SnowflakeUsage,
-
-    #[serde(rename = "trino")]
-    Trino,
-
-    #[serde(rename = "vertica")]
-    Vertica,
+    #[serde(rename = "queryUsage")]
+    QueryUsage,
 }

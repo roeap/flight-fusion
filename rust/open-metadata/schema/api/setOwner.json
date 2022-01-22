@@ -4,7 +4,8 @@
   "title": "SetOwnershipRequest",
   "description": "Set ownership for a given entity",
   "type": "object",
-  "properties" : {
+
+  "properties": {
     "id": {
       "description": "Id of the owner of the entity",
       "$ref": "../type/basic.json#/definitions/uuid"

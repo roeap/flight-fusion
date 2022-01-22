@@ -4,18 +4,18 @@
   "title": "CreateThreadRequest",
   "description": "Create thread request",
   "type": "object",
-  "properties" : {
-    "message" : {
+  "properties": {
+    "message": {
       "description": "Message",
-      "type" : "string"
+      "type": "string"
     },
-    "from" : {
+    "from": {
       "description": "ID of User (regular user or bot) posting the message",
       "$ref": "../../type/basic.json#/definitions/uuid"
     },
     "about": {
       "description": "Data asset about which this thread is created for with format <#E/{entities}/{entityName}/{field}/{fieldValue}",
-      "$ref" : "../../type/basic.json#/definitions/entityLink"
+      "$ref": "../../type/basic.json#/definitions/entityLink"
     }
   },
   "required": ["message", "from", "about"]

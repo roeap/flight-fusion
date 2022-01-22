@@ -26,6 +26,8 @@ lazy_static! {
         settings::Settings::new().expect("config can be loaded");
 }
 
+pub const MB_TO_BYTES: i64 = 1_048_576;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();

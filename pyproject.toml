@@ -18,13 +18,14 @@ dagster-fusion = { path = "python/dagster-fusion/", develop = true }
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"
-black = "^21.12b0"
+black = { version = "^21.12b0", extras = ["jupyter"] }
 flake8 = "^3.9.2"
 isort = "^5.9.3"
-ipykernel = "^6.4.2"
+ipykernel = ">=6.4.2"
 maturin = "^0.12"
 pre-commit = "^2.15.0"
 pytest = "^6.2.5"
+ipython = ">=8.0.1"
 
 [tool.black]
 line-length = 100

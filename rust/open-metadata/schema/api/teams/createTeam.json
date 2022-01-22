@@ -5,7 +5,7 @@
   "description": "Team entity",
   "type": "object",
 
-  "properties" : {
+  "properties": {
     "name": {
       "$ref": "../../entity/teams/team.json#/definitions/teamName"
     },
@@ -21,13 +21,13 @@
       "description": "Optional team profile information",
       "$ref": "../../type/profile.json"
     },
-    "users" : {
+    "users": {
       "description": "Optional IDs of users that are part of the team",
-      "type" : "array",
-      "items" : {
+      "type": "array",
+      "items": {
         "$ref": "../../type/basic.json#/definitions/uuid"
       },
-      "default" : null
+      "default": null
     }
   },
   "required": ["name"]

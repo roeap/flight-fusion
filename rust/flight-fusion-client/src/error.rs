@@ -28,4 +28,7 @@ pub enum FusionClientError {
 
     #[error(transparent)]
     ArrowError(#[from] ArrowError),
+
+    #[error(transparent)]
+    InvalidUri(#[from] http::uri::InvalidUri),
 }

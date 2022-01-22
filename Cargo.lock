@@ -216,33 +216,7 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 [[package]]
 name = "azure_core"
 version = "0.1.0"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=datalake-ops#1877225e2df1ec7e2d0c1b3dd1a0c49e25f9f4dd"
-dependencies = [
- "async-trait",
- "base64",
- "bytes",
- "chrono",
- "dyn-clone",
- "futures",
- "getrandom",
- "http",
- "log",
- "oauth2",
- "rand",
- "reqwest",
- "rustc_version",
- "serde 1.0.133",
- "serde_derive",
- "serde_json",
- "thiserror",
- "url",
- "uuid",
-]
-
-[[package]]
-name = "azure_core"
-version = "0.1.0"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381#294eec8bd2b2dc1fc231902c8979110ee79a6381"
+source = "git+https://github.com/Azure/azure-sdk-for-rust?rev=1512a35cc6d56132bba6ab0b7a6b83893d5499ae#1512a35cc6d56132bba6ab0b7a6b83893d5499ae"
 dependencies = [
  "async-trait",
  "base64",
@@ -268,30 +242,11 @@ dependencies = [
 [[package]]
 name = "azure_identity"
 version = "0.1.0"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=datalake-ops#1877225e2df1ec7e2d0c1b3dd1a0c49e25f9f4dd"
+source = "git+https://github.com/Azure/azure-sdk-for-rust?rev=1512a35cc6d56132bba6ab0b7a6b83893d5499ae#1512a35cc6d56132bba6ab0b7a6b83893d5499ae"
 dependencies = [
  "async-timer",
  "async-trait",
- "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?branch=datalake-ops)",
- "chrono",
- "futures",
- "log",
- "oauth2",
- "reqwest",
- "serde 1.0.133",
- "serde_json",
- "thiserror",
- "url",
-]
-
-[[package]]
-name = "azure_identity"
-version = "0.1.0"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381#294eec8bd2b2dc1fc231902c8979110ee79a6381"
-dependencies = [
- "async-timer",
- "async-trait",
- "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381)",
+ "azure_core",
  "chrono",
  "futures",
  "log",
@@ -306,11 +261,11 @@ dependencies = [
 [[package]]
 name = "azure_storage"
 version = "0.1.0"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381#294eec8bd2b2dc1fc231902c8979110ee79a6381"
+source = "git+https://github.com/Azure/azure-sdk-for-rust?rev=1512a35cc6d56132bba6ab0b7a6b83893d5499ae#1512a35cc6d56132bba6ab0b7a6b83893d5499ae"
 dependencies = [
  "RustyXML",
  "async-trait",
- "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381)",
+ "azure_core",
  "base64",
  "bytes",
  "chrono",
@@ -331,10 +286,10 @@ dependencies = [
 [[package]]
 name = "azure_storage_blobs"
 version = "0.1.0"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381#294eec8bd2b2dc1fc231902c8979110ee79a6381"
+source = "git+https://github.com/Azure/azure-sdk-for-rust?rev=1512a35cc6d56132bba6ab0b7a6b83893d5499ae#1512a35cc6d56132bba6ab0b7a6b83893d5499ae"
 dependencies = [
  "RustyXML",
- "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381)",
+ "azure_core",
  "azure_storage",
  "base64",
  "bytes",
@@ -355,10 +310,10 @@ dependencies = [
 [[package]]
 name = "azure_storage_datalake"
 version = "0.1.0"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381#294eec8bd2b2dc1fc231902c8979110ee79a6381"
+source = "git+https://github.com/Azure/azure-sdk-for-rust?rev=1512a35cc6d56132bba6ab0b7a6b83893d5499ae#1512a35cc6d56132bba6ab0b7a6b83893d5499ae"
 dependencies = [
  "async-trait",
- "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381)",
+ "azure_core",
  "azure_storage",
  "base64",
  "bytes",
@@ -941,6 +896,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "file-cache"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "filetime",
+ "observability_deps",
+ "ritelinked",
+ "tempfile",
+ "thiserror",
+ "walkdir",
+]
+
+[[package]]
 name = "filetime"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -998,6 +966,7 @@ dependencies = [
  "chrono",
  "config",
  "dotenv",
+ "file-cache",
  "flight-fusion-ipc",
  "futures",
  "lazy_static",
@@ -1033,6 +1002,7 @@ dependencies = [
  "async-trait",
  "flight-fusion-ipc",
  "futures",
+ "http",
  "observability_deps",
  "prost 0.9.0",
  "rand",
@@ -1266,6 +1236,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "803ff7635f1ab4e2c064b68a0c60da917d3d18dc8d086130f689d62ce4f1c33e"
 dependencies = [
  "regex",
+]
+
+[[package]]
+name = "griddle"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6bb81d22191b89b117cd12d6549544bfcba0da741efdcec7c7d2fd06a0f56363"
+dependencies = [
+ "ahash",
+ "hashbrown",
 ]
 
 [[package]]
@@ -1534,8 +1514,8 @@ version = "0.1.0"
 dependencies = [
  "arrow-deps",
  "async-trait",
- "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?branch=datalake-ops)",
- "azure_identity 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?branch=datalake-ops)",
+ "azure_core",
+ "azure_identity",
  "bytes",
  "chrono",
  "dotenv",
@@ -2066,8 +2046,8 @@ name = "object-store"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "azure_core 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381)",
- "azure_identity 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?rev=294eec8bd2b2dc1fc231902c8979110ee79a6381)",
+ "azure_core",
+ "azure_identity",
  "azure_storage",
  "azure_storage_blobs",
  "azure_storage_datalake",
@@ -2830,6 +2810,17 @@ dependencies = [
  "untrusted",
  "web-sys",
  "winapi",
+]
+
+[[package]]
+name = "ritelinked"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "98f2771d255fd99f0294f13249fecd0cae6e074f86b4197ec1f1689d537b44d3"
+dependencies = [
+ "ahash",
+ "griddle",
+ "hashbrown",
 ]
 
 [[package]]

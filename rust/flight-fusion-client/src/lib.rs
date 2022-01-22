@@ -56,7 +56,7 @@ impl FlightFusionClient {
         H: Into<String>,
     {
         let address = format!("http://{}:{}", host.into(), port);
-        let channel = Endpoint::from_str(&address).unwrap().connect().await?;
+        let channel = Endpoint::from_str(&address)?.connect().await?;
         let interceptor = interceptor::TracingInterceptor {};
         let intercepted_client = FlightServiceClient::with_interceptor(channel, interceptor);
         // let intercepted_client = FlightServiceClient::new(channel);

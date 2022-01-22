@@ -5,8 +5,8 @@ edition = "2021"
 
 [dependencies]
 # git dependencies
-azure_core = { git = "https://github.com/roeap/azure-sdk-for-rust", branch = "datalake-ops" }
-azure_identity = { git = "https://github.com/roeap/azure-sdk-for-rust", branch = "datalake-ops" }
+azure_core = { git = "https://github.com/Azure/azure-sdk-for-rust", rev = "1512a35cc6d56132bba6ab0b7a6b83893d5499ae" }
+azure_identity = { git = "https://github.com/Azure/azure-sdk-for-rust", rev = "1512a35cc6d56132bba6ab0b7a6b83893d5499ae" }
 
 # crates.io dependencies
 async-trait = "0.1"

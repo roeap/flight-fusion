@@ -5,6 +5,7 @@ dictionaries: []
 words: []
 ignoreWords:
   - Datetime
+  - Hasher
   - Introspector
   - Kubernetes
   - Kusto
@@ -19,6 +20,7 @@ ignoreWords:
   - datasource
   - deps
   - dotenv
+  - filetime
   - hmac
   - itertools
   - jdbc
@@ -35,6 +37,7 @@ ignoreWords:
   - pymodule
   - quicktype
   - reqwest
+  - ritelinked
   - rustfmt
   - schemafy
   - seekable

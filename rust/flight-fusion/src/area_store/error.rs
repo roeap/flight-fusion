@@ -52,7 +52,7 @@ pub enum AreaStoreError {
     ObjectStore {
         /// The wrapped [`object_store::Error`]
         #[from]
-        source: object_store::Error,
+        source: object_store::error::Error,
     },
 }
 

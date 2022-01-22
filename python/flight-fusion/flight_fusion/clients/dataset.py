@@ -33,9 +33,7 @@ class DatasetClient:
 
     @classmethod
     @abstractmethod
-    def from_options(
-        cls, name: str, areas: List[str], options: ClientOptions
-    ) -> DatasetClient:
+    def from_options(cls, name: str, areas: List[str], options: ClientOptions) -> DatasetClient:
         """Create a new DatasetClient instance from service options
 
         Args:
@@ -65,9 +63,7 @@ class DatasetClient:
     def schema(self) -> pa.Schema:
         if self._schema is None:
             command = CommandGetSchema(source=self._reference)
-            self._schema = self._client.fusion.get_schema(
-                command=command.SerializeToString()
-            )
+            self._schema = self._client.fusion.get_schema(command=command.SerializeToString())
         return self._schema
 
     def write_into(
@@ -111,12 +107,8 @@ class TableClient(DatasetClient):
         super().__init__(client, reference)
 
     @classmethod
-    def from_options(
-        cls, name: str, areas: List[str], options: ClientOptions
-    ) -> TableClient:
+    def from_options(cls, name: str, areas: List[str], options: ClientOptions) -> TableClient:
         return cls(
             client=AreaClient.from_options(areas=areas, options=options),
-            reference=AreaSourceReference(
-                location=AreaTableLocation(name=name, areas=areas)
-            ),
+            reference=AreaSourceReference(location=AreaTableLocation(name=name, areas=areas)),
         )
