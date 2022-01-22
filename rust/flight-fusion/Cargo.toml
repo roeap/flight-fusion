@@ -14,7 +14,7 @@ observability_deps = { path = "../observability-deps" }
 # datafusion = { path = "../../../arrow-datafusion/datafusion" }
 
 # Crates.io dependencies
-arrow-flight = "6"
+arrow-flight = "7"
 async-trait = "0.1"
 bytes = "1"
 chrono = "^0.4"

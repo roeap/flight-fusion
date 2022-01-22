@@ -114,6 +114,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "arrow"
+version = "7.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "66ec0a5964feebf378e2fc6db9530e712657b8edf72aa17b1b277b0f52a48e2d"
+dependencies = [
+ "bitflags",
+ "chrono",
+ "csv",
+ "flatbuffers",
+ "half",
+ "hex",
+ "indexmap",
+ "lazy_static",
+ "lexical-core 0.8.2",
+ "multiversion",
+ "num",
+ "rand",
+ "regex",
+ "serde 1.0.133",
+ "serde_derive",
+ "serde_json",
+]
+
+[[package]]
 name = "arrow-deps"
 version = "0.1.0"
 dependencies = [
@@ -124,19 +148,19 @@ dependencies = [
 
 [[package]]
 name = "arrow-flight"
-version = "6.4.0"
+version = "7.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b630a6684e9405fbce5c5e596a0eaaac675643d2045bb43c88d27a7555c52228"
+checksum = "76c02bce74a675af058d1fb7d810a015769f2a01aad2aea505c4c913394dd4e8"
 dependencies = [
- "arrow",
+ "arrow 7.0.0",
  "base64",
  "bytes",
  "proc-macro2",
- "prost 0.8.0",
- "prost-derive 0.8.0",
+ "prost 0.9.0",
+ "prost-derive 0.9.0",
  "tokio",
- "tonic",
- "tonic-build",
+ "tonic 0.6.2",
+ "tonic-build 0.6.2",
 ]
 
 [[package]]
@@ -649,7 +673,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "79e4a8a1f1ee057b2c27a01f050b9dffe56e8d43605d0201234b353a3cc1eb2f"
 dependencies = [
  "ahash",
- "arrow",
+ "arrow 6.5.0",
  "async-trait",
  "blake2",
  "blake3",
@@ -680,7 +704,7 @@ version = "6.0.0"
 source = "git+https://github.com/apache/arrow-datafusion?rev=06d147aace7a923752cef2fcf98f4732de31a6a6#06d147aace7a923752cef2fcf98f4732de31a6a6"
 dependencies = [
  "ahash",
- "arrow",
+ "arrow 6.5.0",
  "async-trait",
  "blake2",
  "blake3",
@@ -711,7 +735,7 @@ version = "0.4.1"
 source = "git+https://github.com/roeap/delta-rs?branch=high-level-writer#989e2181facf231735a623c0db2643ce8fbcf524"
 dependencies = [
  "anyhow",
- "arrow",
+ "arrow 6.5.0",
  "async-trait",
  "bytes",
  "cfg-if",
@@ -985,8 +1009,8 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "tokio-util",
- "tonic",
- "tonic-build",
+ "tonic 0.5.2",
+ "tonic-build 0.5.2",
  "tract-onnx",
  "url",
  "utime",
@@ -997,7 +1021,7 @@ dependencies = [
 name = "flight-fusion-client"
 version = "0.1.0"
 dependencies = [
- "arrow",
+ "arrow 6.5.0",
  "arrow-flight",
  "async-trait",
  "flight-fusion-ipc",
@@ -1009,7 +1033,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-stream",
- "tonic",
+ "tonic 0.5.2",
 ]
 
 [[package]]
@@ -1024,8 +1048,8 @@ dependencies = [
  "ring",
  "thiserror",
  "tokio",
- "tonic",
- "tonic-build",
+ "tonic 0.5.2",
+ "tonic-build 0.5.2",
 ]
 
 [[package]]
@@ -2272,7 +2296,7 @@ version = "6.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "788d9953f4cfbe9db1beff7bebd54299d105e34680d78b82b1ddc85d432cac9d"
 dependencies = [
- "arrow",
+ "arrow 6.5.0",
  "base64",
  "brotli",
  "byteorder",
@@ -2454,9 +2478,9 @@ checksum = "dbf0c48bc1d91375ae5c3cd81e3722dff1abcf81a30960240640d223f59fe0e5"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.27"
+version = "1.0.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0d8caf72986c1a598726adc988bb5984792ef84f5ee5aa50209145ee8077038"
+checksum = "c7342d5883fbccae1cc37a2353b09c87c9b0f3afd73f5fb9bba687a1f733b029"
 dependencies = [
  "unicode-xid",
 ]
@@ -3432,6 +3456,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "tonic"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff08f4649d10a70ffa3522ca559031285d8e421d727ac85c60825761818f5d0a"
+dependencies = [
+ "async-stream",
+ "async-trait",
+ "base64",
+ "bytes",
+ "futures-core",
+ "futures-util",
+ "h2",
+ "http",
+ "http-body",
+ "hyper",
+ "hyper-timeout",
+ "percent-encoding",
+ "pin-project",
+ "prost 0.9.0",
+ "prost-derive 0.9.0",
+ "tokio",
+ "tokio-stream",
+ "tokio-util",
+ "tower",
+ "tower-layer",
+ "tower-service",
+ "tracing",
+ "tracing-futures",
+]
+
+[[package]]
 name = "tonic-build"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3439,6 +3494,18 @@ checksum = "12b52d07035516c2b74337d2ac7746075e7dcae7643816c1b12c5ff8a7484c08"
 dependencies = [
  "proc-macro2",
  "prost-build 0.8.0",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "tonic-build"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9403f1bafde247186684b230dc6f38b5cd514584e8bec1dd32514be4745fa757"
+dependencies = [
+ "proc-macro2",
+ "prost-build 0.9.0",
  "quote",
  "syn",
 ]
