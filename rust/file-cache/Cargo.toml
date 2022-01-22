@@ -19,11 +19,7 @@ ritelinked = { version = "0.3.2", default-features = false, features = [
 ] }
 walkdir = "2.3.2"
 
-[target.'cfg(not(target_os = "macos"))'.dependencies]
-heapsize_ = { package = "heapsize", version = "0.4.2", optional = true }
-
 [features]
-heapsize = ["heapsize_"]
 amortized = ["ritelinked/ahash-amortized", "ritelinked/inline-more-amortized"]
 
 [dev-dependencies]
