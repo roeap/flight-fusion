@@ -726,7 +726,7 @@ dependencies = [
  "libc",
  "log",
  "parquet",
- "parquet-format",
+ "parquet-format 2.6.1",
  "percent-encoding",
  "regex",
  "serde 1.0.133",
@@ -973,7 +973,7 @@ dependencies = [
  "log",
  "object-store",
  "observability_deps",
- "parquet-format",
+ "parquet-format 4.0.0",
  "pretty_assertions",
  "prost 0.9.0",
  "rand",
@@ -2280,7 +2280,7 @@ dependencies = [
  "flate2",
  "lz4",
  "num-bigint",
- "parquet-format",
+ "parquet-format 2.6.1",
  "rand",
  "snap",
  "thrift",
@@ -2292,6 +2292,15 @@ name = "parquet-format"
 version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a5bc6b23543b5dedc8f6cce50758a35e5582e148e0cfa26bd0cacd569cda5b71"
+dependencies = [
+ "thrift",
+]
+
+[[package]]
+name = "parquet-format"
+version = "4.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1f0c06cdcd5460967c485f9c40a821746f5955ad81990533c7fae95dbd9bc0b5"
 dependencies = [
  "thrift",
 ]
