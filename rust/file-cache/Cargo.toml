@@ -17,6 +17,7 @@ ritelinked = { version = "0.3.2", default-features = false, features = [
   "ahash",
   "inline-more",
 ] }
+thiserror = "1"
 walkdir = "2.3.2"
 
 [features]
