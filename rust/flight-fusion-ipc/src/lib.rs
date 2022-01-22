@@ -1,4 +1,4 @@
-pub mod errors;
+pub mod error;
 mod macros;
 #[rustfmt::skip]
 mod gen {
@@ -7,7 +7,7 @@ mod gen {
 pub mod passport;
 pub mod utils;
 
-pub use errors::*;
+pub use error::*;
 pub use gen::*;
 pub use utils::*;
 

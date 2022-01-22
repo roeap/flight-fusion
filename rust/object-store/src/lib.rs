@@ -11,6 +11,7 @@ pub mod path;
 
 pub mod cache;
 pub mod dummy;
+pub mod error;
 
 // #[cfg(not(feature = "aws"))]
 // use dummy as aws;
@@ -33,6 +34,7 @@ use crate::{
 use async_trait::async_trait;
 use bytes::Bytes;
 use chrono::{DateTime, Utc};
+use error::*;
 use futures::{stream::BoxStream, StreamExt, TryFutureExt, TryStreamExt};
 use std::fmt::Formatter;
 use std::{path::PathBuf, sync::Arc};
@@ -90,6 +92,8 @@ pub trait ObjectStoreApi: Send + Sync + 'static {
 pub struct ObjectStore {
     /// The object store
     pub integration: ObjectStoreIntegration,
+
+    /// File cache used for remote object stores
     cache: Option<ObjectStoreFileCache>,
 }
 
@@ -584,51 +588,6 @@ impl<E: 'static> GetResult<E> {
             Self::Stream(s) => GetResult::Stream(s.err_into().boxed()),
         }
     }
-}
-
-/// A specialized `Result` for object store-related errors
-pub type Result<T, E = Error> = std::result::Result<T, E>;
-
-/// A specialized `Error` for object store-related errors
-#[derive(Debug, thiserror::Error)]
-#[allow(missing_docs)]
-pub enum Error {
-    #[error("File-based Object Store error: {}", source)]
-    FileObjectStoreError {
-        #[from]
-        source: disk::Error,
-    },
-
-    // #[error("Google Cloud Storage-based Object Store error: {}", source)]
-    // GcsObjectStoreError {
-    //     #[from]
-    //     source: gcp::Error,
-    // },
-    //
-    // #[error("AWS S3-based Object Store error: {}", source)]
-    // AwsObjectStoreError {
-    //     #[from]
-    //     source: aws::Error,
-    // },
-    #[error("Azure Blob storage-based Object Store error: {}", source)]
-    AzureObjectStoreError {
-        #[from]
-        source: azure::Error,
-    },
-
-    #[error("In-memory-based Object Store error: {}", source)]
-    InMemoryObjectStoreError {
-        #[from]
-        source: memory::Error,
-    },
-
-    // #[error("{}", source)]
-    // DummyObjectStoreError { source: dummy::Error },
-    #[error("Object at location {} not found: {}", location, source)]
-    NotFound {
-        location: String,
-        source: Box<dyn std::error::Error + Send + Sync + 'static>,
-    },
 }
 
 #[cfg(test)]
