@@ -15,7 +15,7 @@ async-trait = "0.1"
 futures = "0.3"
 prost = "0.9"
 thiserror = "1"
-tonic = { version = "0.5.2", features = [
+tonic = { version = "0.6.2", features = [
   "transport",
   "codegen",
   "prost",
