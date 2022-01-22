@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 # Workspace dependencies
 arrow-deps = { path = "../arrow-deps/", features = ["delta"] }
+file-cache = { path = "../file-cache" }
 flight-fusion-ipc = { path = "../flight-fusion-ipc" }
 object-store = { path = "../object-store" }
 observability_deps = { path = "../observability-deps" }

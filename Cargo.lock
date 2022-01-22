@@ -966,6 +966,7 @@ dependencies = [
  "chrono",
  "config",
  "dotenv",
+ "file-cache",
  "flight-fusion-ipc",
  "futures",
  "lazy_static",
