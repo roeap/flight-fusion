@@ -4,7 +4,7 @@
   "title": "CreateStorageServiceRequest",
   "description": "Create Storage service entity request",
   "type": "object",
-  "properties" : {
+  "properties": {
     "name": {
       "description": "Name that identifies the this entity instance uniquely",
       "type": "string",

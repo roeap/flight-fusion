@@ -1,31 +1,30 @@
 {
-  "$id": "https://open-metadata.org/schema/entity/services/storageService.json",
+  "$id": "https://open-metadata.org/schema/entity/teams/role.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Storage Service",
-  "description": "This schema defines the Storage Service entity, such as S3, GCS, HDFS.",
+  "title": "Role",
+  "description": "This schema defines the Role entity. A Role has access to zero or more data assets",
   "type": "object",
-  "javaType": "org.openmetadata.catalog.entity.services.StorageService",
-  "properties": {
-    "id": {
-      "description": "Unique identifier of this storage service instance.",
-      "$ref": "../../type/basic.json#/definitions/uuid"
-    },
-    "name": {
-      "description": "Name that identifies this storage service.",
+  "definitions": {
+    "roleName": {
+      "description": "A unique name of the role.",
       "type": "string",
       "minLength": 1,
       "maxLength": 128
+    }
+  },
+  "properties": {
+    "id": {
+      "$ref": "../../type/basic.json#/definitions/uuid"
+    },
+    "name": {
+      "$ref": "#/definitions/roleName"
     },
     "displayName": {
-      "description": "Display Name that identifies this storage service.",
+      "description": "Name used for display purposes. Example 'Data Consumer'.",
       "type": "string"
     },
-    "serviceType": {
-      "description": "Type of storage service such as S3, GCS, HDFS...",
-      "$ref": "../../type/storage.json#/definitions/storageServiceType"
-    },
     "description": {
-      "description": "Description of a storage service instance.",
+      "description": "Description of the role.",
       "type": "string"
     },
     "version": {
@@ -41,7 +40,7 @@
       "type": "string"
     },
     "href": {
-      "description": "Link to the resource corresponding to this storage service.",
+      "description": "Link to the resource corresponding to this entity.",
       "$ref": "../../type/basic.json#/definitions/href"
     },
     "changeDescription": {
@@ -52,8 +51,16 @@
       "description": "When `true` indicates the entity has been soft deleted.",
       "type": "boolean",
       "default": false
+    },
+    "policy": {
+      "description": "Policy that is attached to this role.",
+      "$ref": "../../type/entityReference.json"
+    },
+    "users": {
+      "description": "Users that have this role assigned.",
+      "$ref": "../../type/entityReference.json#/definitions/entityReferenceList"
     }
   },
-  "required": ["id", "name", "serviceType", "href"],
+  "required": ["id", "name"],
   "additionalProperties": false
 }

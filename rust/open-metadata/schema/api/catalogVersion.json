@@ -5,18 +5,18 @@
   "description": "Catalog application software version",
   "type": "object",
 
-  "properties" : {
-    "version" : {
+  "properties": {
+    "version": {
       "description": "Software version of the catalog",
-      "type" : "string"
+      "type": "string"
     },
-    "revision" : {
+    "revision": {
       "description": "Software revision of the catalog",
-      "type" : "string"
+      "type": "string"
     },
-    "timestamp" : {
+    "timestamp": {
       "description": "Build timestamp",
-      "$ref" : "../type/basic.json#/definitions/timestamp"
+      "$ref": "../type/basic.json#/definitions/timestamp"
     }
   }
 }

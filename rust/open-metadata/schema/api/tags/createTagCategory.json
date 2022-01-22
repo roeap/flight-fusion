@@ -6,16 +6,16 @@
   "type": "object",
   "javaType": "org.openmetadata.catalog.type.CreateTagCategory",
   "properties": {
-    "name" : {
+    "name": {
       "$ref": "../../entity/tags/tagCategory.json#/definitions/tagName"
     },
-    "description" : {
+    "description": {
       "description": "Description of the tag category",
       "type": "string"
     },
-    "categoryType" : {
+    "categoryType": {
       "$ref": "../../entity/tags/tagCategory.json#/definitions/tagCategoryType"
     }
   },
-  "required" : ["name", "description", "categoryType"]
+  "required": ["name", "description", "categoryType"]
 }

@@ -28,9 +28,5 @@
       "$ref": "../../type/schedule.json"
     }
   },
-  "required": [
-    "name",
-    "serviceType",
-    "pipelineUrl"
-  ]
+  "required": ["name", "serviceType", "pipelineUrl"]
 }

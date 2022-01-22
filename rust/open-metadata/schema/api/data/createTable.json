@@ -22,24 +22,24 @@
       "items": {
         "$ref": "../../entity/data/table.json#/definitions/column"
       },
-      "default" : null
+      "default": null
     },
     "tableConstraints": {
       "type": "array",
       "items": {
         "$ref": "../../entity/data/table.json#/definitions/tableConstraint"
       },
-      "default" : null
+      "default": null
     },
     "owner": {
       "description": "Owner of this entity",
       "$ref": "../../type/entityReference.json",
-      "default" : null
+      "default": null
     },
     "database": {
       "description": "Database corresponding to this table",
       "$ref": "../../type/basic.json#/definitions/uuid",
-      "default" : null
+      "default": null
     },
     "tags": {
       "description": "Tags for this table",
@@ -52,8 +52,8 @@
     "viewDefinition": {
       "description": "View Definition in SQL. Applies to TableType.View only",
       "$ref": "../../type/basic.json#/definitions/sqlQuery",
-      "default" : null
+      "default": null
     }
   },
-  "required": ["name","columns","database"]
+  "required": ["name", "columns", "database"]
 }

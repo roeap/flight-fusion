@@ -5,7 +5,7 @@
   "description": "Request to create User entity",
   "type": "object",
 
-  "properties" : {
+  "properties": {
     "name": {
       "$ref": "../../entity/teams/user.json#/definitions/userName"
     },
@@ -25,11 +25,11 @@
       "type": "string",
       "format": "timezone"
     },
-    "isBot" : {
+    "isBot": {
       "description": "When true indicates user is a bot with appropriate privileges",
       "type": "boolean"
     },
-    "isAdmin" : {
+    "isAdmin": {
       "description": "When true indicates user is an administrator for the system with superuser privileges",
       "type": "boolean",
       "default": false
@@ -38,13 +38,21 @@
       "$ref": "../../type/profile.json",
       "default": null
     },
-    "teams" : {
+    "teams": {
       "description": "Teams that the user belongs to",
       "type": "array",
-      "items" :{
+      "items": {
         "$ref": "../../type/basic.json#/definitions/uuid"
       },
-      "default" : null
+      "default": null
+    },
+    "roles": {
+      "description": "Roles that the user has been assigned",
+      "type": "array",
+      "items": {
+        "$ref": "../../type/basic.json#/definitions/uuid"
+      },
+      "default": null
     }
   },
   "required": ["name", "email"],
