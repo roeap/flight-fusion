@@ -32,5 +32,5 @@ flight-fusion-client = { path = "../../rust/flight-fusion-client", features = [
 observability_deps = { path = "../../rust/observability-deps" }
 
 [dependencies.pyo3]
-version = "0.14"
+version = "0.15"
 features = ["extension-module", "abi3", "abi3-py36"]
