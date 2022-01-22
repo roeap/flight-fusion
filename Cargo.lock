@@ -105,7 +105,32 @@ dependencies = [
  "lexical-core 0.8.2",
  "multiversion",
  "num",
- "pyo3",
+ "rand",
+ "regex",
+ "serde 1.0.133",
+ "serde_derive",
+ "serde_json",
+]
+
+[[package]]
+name = "arrow"
+version = "7.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "66ec0a5964feebf378e2fc6db9530e712657b8edf72aa17b1b277b0f52a48e2d"
+dependencies = [
+ "bitflags",
+ "chrono",
+ "comfy-table",
+ "csv",
+ "flatbuffers",
+ "half",
+ "hex",
+ "indexmap",
+ "lazy_static",
+ "lexical-core 0.8.2",
+ "multiversion",
+ "num",
+ "pyo3 0.15.1",
  "rand",
  "regex",
  "serde 1.0.133",
@@ -128,7 +153,7 @@ version = "6.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b630a6684e9405fbce5c5e596a0eaaac675643d2045bb43c88d27a7555c52228"
 dependencies = [
- "arrow",
+ "arrow 6.5.0",
  "base64",
  "bytes",
  "proc-macro2",
@@ -649,7 +674,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "79e4a8a1f1ee057b2c27a01f050b9dffe56e8d43605d0201234b353a3cc1eb2f"
 dependencies = [
  "ahash",
- "arrow",
+ "arrow 6.5.0",
  "async-trait",
  "blake2",
  "blake3",
@@ -680,7 +705,7 @@ version = "6.0.0"
 source = "git+https://github.com/apache/arrow-datafusion?rev=06d147aace7a923752cef2fcf98f4732de31a6a6#06d147aace7a923752cef2fcf98f4732de31a6a6"
 dependencies = [
  "ahash",
- "arrow",
+ "arrow 6.5.0",
  "async-trait",
  "blake2",
  "blake3",
@@ -711,7 +736,7 @@ version = "0.4.1"
 source = "git+https://github.com/roeap/delta-rs?branch=high-level-writer#989e2181facf231735a623c0db2643ce8fbcf524"
 dependencies = [
  "anyhow",
- "arrow",
+ "arrow 6.5.0",
  "async-trait",
  "bytes",
  "cfg-if",
@@ -997,7 +1022,7 @@ dependencies = [
 name = "flight-fusion-client"
 version = "0.1.0"
 dependencies = [
- "arrow",
+ "arrow 7.0.0",
  "arrow-flight",
  "async-trait",
  "flight-fusion-ipc",
@@ -1037,7 +1062,7 @@ dependencies = [
  "flight-fusion-client",
  "observability_deps",
  "prost 0.9.0",
- "pyo3",
+ "pyo3 0.14.5",
  "reqwest",
  "serde_json",
  "thiserror",
@@ -2272,7 +2297,7 @@ version = "6.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "788d9953f4cfbe9db1beff7bebd54299d105e34680d78b82b1ddc85d432cac9d"
 dependencies = [
- "arrow",
+ "arrow 6.5.0",
  "base64",
  "brotli",
  "byteorder",
@@ -2600,8 +2625,24 @@ dependencies = [
  "libc",
  "parking_lot",
  "paste 0.1.18",
- "pyo3-build-config",
- "pyo3-macros",
+ "pyo3-build-config 0.14.5",
+ "pyo3-macros 0.14.5",
+ "unindent",
+]
+
+[[package]]
+name = "pyo3"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7cf01dbf1c05af0a14c7779ed6f3aa9deac9c3419606ac9de537a2d649005720"
+dependencies = [
+ "cfg-if",
+ "indoc",
+ "libc",
+ "parking_lot",
+ "paste 0.1.18",
+ "pyo3-build-config 0.15.1",
+ "pyo3-macros 0.15.1",
  "unindent",
 ]
 
@@ -2615,12 +2656,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "pyo3-build-config"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dbf9e4d128bfbddc898ad3409900080d8d5095c379632fbbfbb9c8cfb1fb852b"
+dependencies = [
+ "once_cell",
+]
+
+[[package]]
 name = "pyo3-macros"
 version = "0.14.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc0bc5215d704824dfddddc03f93cb572e1155c68b6761c37005e1c288808ea8"
 dependencies = [
- "pyo3-macros-backend",
+ "pyo3-macros-backend 0.14.5",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "pyo3-macros"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67701eb32b1f9a9722b4bc54b548ff9d7ebfded011c12daece7b9063be1fd755"
+dependencies = [
+ "pyo3-macros-backend 0.15.1",
  "quote",
  "syn",
 ]
@@ -2632,7 +2693,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71623fc593224afaab918aa3afcaf86ed2f43d34f6afde7f3922608f253240df"
 dependencies = [
  "proc-macro2",
- "pyo3-build-config",
+ "pyo3-build-config 0.14.5",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "pyo3-macros-backend"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f44f09e825ee49a105f2c7b23ebee50886a9aee0746f4dd5a704138a64b0218a"
+dependencies = [
+ "proc-macro2",
+ "pyo3-build-config 0.15.1",
  "quote",
  "syn",
 ]
