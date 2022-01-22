@@ -83,7 +83,7 @@ where
     /// than `size` bytes will be removed.
     ///
     /// The cache is not observant of changes to files under `path` from external sources, it
-    /// expects to have sole maintence of the contents.
+    /// expects to have sole maintenance of the contents.
     pub fn new<T>(path: T, size: u64) -> Result<Self>
     where
         PathBuf: From<T>,
