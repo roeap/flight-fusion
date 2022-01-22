@@ -13,9 +13,7 @@ from flight_fusion.ipc.v1alpha1 import (
 
 
 class ContextClient:
-    def __init__(
-        self, client: FlightFusionClient, sources: List[AreaSourceReference]
-    ) -> None:
+    def __init__(self, client: FlightFusionClient, sources: List[AreaSourceReference]) -> None:
         self._sources = sources
         self._client = client
 

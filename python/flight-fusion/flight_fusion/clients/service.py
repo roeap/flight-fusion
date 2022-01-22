@@ -64,9 +64,7 @@ class FlightFusionClient:
 
         return TableClient(
             client=self.get_area_client(areas),
-            reference=AreaSourceReference(
-                location=AreaTableLocation(name=name, areas=areas)
-            ),
+            reference=AreaSourceReference(location=AreaTableLocation(name=name, areas=areas)),
         )
 
     def put_memory_table(

@@ -166,9 +166,7 @@ class Signal(betterproto.Message):
 class SignalTrait(betterproto.Message):
     sensitive: "SensitiveDataTrait" = betterproto.message_field(1, group="trait")
     time_series: "TimeSeriesTrait" = betterproto.message_field(2, group="trait")
-    entity_reference: "EntityReferenceTrait" = betterproto.message_field(
-        3, group="trait"
-    )
+    entity_reference: "EntityReferenceTrait" = betterproto.message_field(3, group="trait")
 
 
 @dataclass(eq=False, repr=False)
@@ -240,9 +238,7 @@ class CommandListSources(betterproto.Message):
     """List all sources defined under an area node"""
 
     # reference to root area to traverse from
-    root: Optional["AreaReference"] = betterproto.message_field(
-        1, optional=True, group="_root"
-    )
+    root: Optional["AreaReference"] = betterproto.message_field(1, optional=True, group="_root")
     # If true, all sources in child nodes are listed as well
     recursive: bool = betterproto.bool_field(2)
 
