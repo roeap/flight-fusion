@@ -3,8 +3,8 @@ requires = ["maturin>=0.11.5"]
 build-backend = "maturin"
 
 [project]
-name = "flight-fusion"
-description = "Client to filight fusion service"
+name = "flight-fusion-server"
+description = "Flight fusion sevrver"
 readme = "README.md"
 license = { file = "LICENSE.txt" }
 requires-python = ">=3.6"
@@ -26,25 +26,26 @@ classifier = [
   "Programming Language :: Python",
   "Programming Language :: Rust",
 ]
-dependencies = [
-  "pyarrow>=4",
-  "pydantic[dotenv]>=1",
-  "pandas>=1",
-  "betterproto==2.0.0b4",
-  "SQLAlchemy>=1.4",
-]
+dependencies = ["typer>=0.4"]
 
 [project.optional-dependencies]
-devel = ["black", "isort", "pytest", "pytest-mock", "pytest-cov"]
+devel = ["pytest", "pytest-mock", "pytest-cov"]
 
 [project.urls]
 repository = "https://github.com/roeap/flight-fusion"
+
+[tool.poetry]
+name = "flight-fusion"
+version = "0.1.0"
+description = ""
+authors = ["Robert Pack <robstar.pack@gmail.com>"]
+license = "MIT"
 
 [tool.isort]
 profile = "black"
 
 [tool.pytest.ini_options]
-addopts = "--cov=flight_fusion -v -m 'not integration'"
+addopts = "--cov=flight_fusion_server -v -m 'not integration'"
 testpaths = ["tests"]
 markers = [
   "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",

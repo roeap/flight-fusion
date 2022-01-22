@@ -41,10 +41,18 @@ build-docker-fusion:
 	$(info Build flight fusion container)
 	docker build -f rust/flight-fusion/Dockerfile -t flight-fusion .
 
-.PHONY: python-develop
-python-develop: ## Run check on Python
+.PHONY: python-develop-client
+python-develop-client: ## Run check on Python
 	$(info Dev build for python bindings)
 	cd python/flight-fusion && maturin develop --extras=devel $(MATURIN_EXTRA_ARGS)
+
+.PHONY: python-develop-server
+python-develop-server: ## Run check on Python
+	$(info Dev build for python bindings)
+	cd python/flight-fusion-server && maturin develop --extras=devel $(MATURIN_EXTRA_ARGS)
+
+.PHONY: python-develop
+python-develop: python-develop-client python-develop-server
 
 .PHONY: python-check
 python-check: ## Run check on Python

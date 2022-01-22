@@ -6,7 +6,7 @@ port = "50051"
 url = "0.0.0.0"
 
 [service]
-storage = "azure"
+storage = "file"
 
 [service.azure]
 file_system = "fusion"
