@@ -26,11 +26,11 @@ tokio-util = { version = "0.6", features = ["codec", "io"] }
 walkdir = "2"
 
 # git dependencies
-azure_core = { git = "https://github.com/roeap/azure-sdk-for-rust", rev = "294eec8bd2b2dc1fc231902c8979110ee79a6381", optional = true }
-azure_identity = { git = "https://github.com/roeap/azure-sdk-for-rust", rev = "294eec8bd2b2dc1fc231902c8979110ee79a6381", optional = true }
-azure_storage = { git = "https://github.com/roeap/azure-sdk-for-rust", rev = "294eec8bd2b2dc1fc231902c8979110ee79a6381", optional = true }
-azure_storage_blobs = { git = "https://github.com/roeap/azure-sdk-for-rust", rev = "294eec8bd2b2dc1fc231902c8979110ee79a6381", optional = true }
-azure_storage_datalake = { git = "https://github.com/roeap/azure-sdk-for-rust", rev = "294eec8bd2b2dc1fc231902c8979110ee79a6381", optional = true }
+azure_core = { git = "https://github.com/Azure/azure-sdk-for-rust", rev = "1512a35cc6d56132bba6ab0b7a6b83893d5499ae", optional = true }
+azure_identity = { git = "https://github.com/Azure/azure-sdk-for-rust", rev = "1512a35cc6d56132bba6ab0b7a6b83893d5499ae", optional = true }
+azure_storage = { git = "https://github.com/Azure/azure-sdk-for-rust", rev = "1512a35cc6d56132bba6ab0b7a6b83893d5499ae", optional = true }
+azure_storage_blobs = { git = "https://github.com/Azure/azure-sdk-for-rust", rev = "1512a35cc6d56132bba6ab0b7a6b83893d5499ae", optional = true }
+azure_storage_datalake = { git = "https://github.com/Azure/azure-sdk-for-rust", rev = "1512a35cc6d56132bba6ab0b7a6b83893d5499ae", optional = true }
 
 # azure_core = { path = "../../../azure-sdk-for-rust/sdk/core", optional = true }
 # azure_identity = { path = "../../../azure-sdk-for-rust/sdk/identity", optional = true }

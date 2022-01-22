@@ -49,9 +49,9 @@ impl TokenCredential for AutoRefreshingCredential {
                     *guard = Some(res);
                 }
                 Some(Err(_)) => {
-                    return Err(AzureError::GetTokenError(Box::new(
-                        KustoRsError::ExternalError("Error fetching token".to_string()),
-                    )));
+                    return Err(AzureError::GetToken(Box::new(KustoRsError::ExternalError(
+                        "Error fetching token".to_string(),
+                    ))));
                 }
                 Some(Ok(token)) => {
                     if is_expired(token.clone()) {
