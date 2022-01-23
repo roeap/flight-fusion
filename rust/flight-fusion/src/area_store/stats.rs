@@ -156,7 +156,7 @@ pub(crate) fn apply_null_counts(
 
                     match col_struct {
                         ColumnCountStat::Column(map) => {
-                            apply_null_counts(as_struct_array(column), map, nest_level + 1);
+                            apply_null_counts(as_struct_array(column.clone()), map, nest_level + 1);
                         }
                         _ => unreachable!(),
                     }

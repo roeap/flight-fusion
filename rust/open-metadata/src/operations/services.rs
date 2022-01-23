@@ -3,7 +3,7 @@ use crate::{
     clients::OpenMetadataClient,
     generated::{
         CollectionDescriptor, CreateDatabaseServiceRequest, CreateStorageServiceRequest,
-        DatabaseService, DatabaseServiceType, JdbcInfo, Schedule, StorageService,
+        DatabaseConnection, DatabaseService, DatabaseServiceType, StorageService,
         StorageServiceType,
     },
 };
@@ -119,9 +119,8 @@ pub struct CreateDatabaseServiceBuilder {
     context: Context,
     name: String,
     service_type: DatabaseServiceType,
-    jdbc: JdbcInfo,
+    database_connection: DatabaseConnection,
     description: Option<String>,
-    ingestion_schedule: Option<Schedule>,
 }
 
 impl CreateDatabaseServiceBuilder {
@@ -129,7 +128,7 @@ impl CreateDatabaseServiceBuilder {
         client: OpenMetadataClient,
         name: String,
         service_type: DatabaseServiceType,
-        jdbc: JdbcInfo,
+        database_connection: DatabaseConnection,
     ) -> Self {
         let mut context = Context::new();
         context.insert(get_headers());
@@ -139,15 +138,13 @@ impl CreateDatabaseServiceBuilder {
             context,
             name,
             service_type,
-            jdbc,
+            database_connection,
             description: None,
-            ingestion_schedule: None,
         }
     }
 
     setters! {
         description: String => Some(description),
-        ingestion_schedule: Schedule => Some(ingestion_schedule),
     }
 
     pub fn into_future(self) -> CreateDatabaseService {
@@ -167,8 +164,7 @@ impl CreateDatabaseServiceBuilder {
                 name: self.name.clone(),
                 description: self.description.clone(),
                 service_type: self.service_type.clone(),
-                jdbc: self.jdbc.clone(),
-                ingestion_schedule: self.ingestion_schedule.clone(),
+                database_connection: self.database_connection.clone(),
             };
             request.set_body(Bytes::from(serde_json::to_string(&body)?).into());
 

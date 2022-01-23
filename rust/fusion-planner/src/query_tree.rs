@@ -212,7 +212,7 @@ impl FrameQueryPlanner {
 mod tests {
     use super::*;
     use arrow_deps::arrow::util::pretty;
-    use arrow_deps::datafusion::physical_plan::collect;
+    use arrow_deps::datafusion::{execution::runtime_env::RuntimeEnv, physical_plan::collect};
     use flight_fusion_ipc::{ExpressionReference, Signal};
 
     #[tokio::test]
@@ -248,7 +248,9 @@ mod tests {
 
         let plan = planner.create_physical_plan().await.unwrap();
 
-        let results = collect(plan.clone()).await.unwrap();
+        let results = collect(plan.clone(), Arc::new(RuntimeEnv::default()))
+            .await
+            .unwrap();
         println!("{:?}", results[0])
     }
 
@@ -291,7 +293,9 @@ mod tests {
 
         let plan = planner.create_physical_plan().await.unwrap();
 
-        let results = collect(plan.clone()).await.unwrap();
+        let results = collect(plan.clone(), Arc::new(RuntimeEnv::default()))
+            .await
+            .unwrap();
         pretty::print_batches(&results).unwrap();
     }
 }
