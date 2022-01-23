@@ -36,20 +36,9 @@ uuid = "*"
 thiserror = "1"
 log = "0.4"
 
-tract-onnx = { version = "*", optional = true }
-rand = { version = "*", optional = true }
-
-[features]
-onnx = ["tract-onnx", "rand"]
-
 [dev-dependencies]
 utime = "0.3"
 serial_test = "0"
-pretty_assertions = "1.0.0"
+pretty_assertions = "1"
 tempfile = "3"
-tonic-build = "0.5.2"
 rand = "*"
-
-[[example]]
-name = "onnx"
-required-features = ["onnx"]

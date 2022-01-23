@@ -19,13 +19,6 @@ use rand::distributions::Standard;
 use rand::prelude::*;
 use std::{path::PathBuf, sync::Arc};
 
-pub fn get_test_object_store() -> object_store::ObjectStore {
-    let ws_root = crate::test_utils::workspace_root().unwrap();
-    let ws_root = std::path::Path::new(&ws_root);
-    let ws_root = ws_root.join("test");
-    object_store::ObjectStore::new_file(ws_root)
-}
-
 pub fn workspace_test_data_folder() -> PathBuf {
     let ws_root = crate::test_utils::workspace_root().unwrap();
     let ws_root = std::path::Path::new(&ws_root);

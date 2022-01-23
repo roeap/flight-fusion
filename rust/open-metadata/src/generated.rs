@@ -1688,6 +1688,10 @@ pub struct PipelineService {
     #[serde(rename = "changeDescription")]
     pub change_description: Option<PipelineChangeDescription>,
 
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
+
     /// Description of a pipeline service instance.
     #[serde(rename = "description")]
     pub description: Option<String>,
@@ -1721,7 +1725,8 @@ pub struct PipelineService {
     #[serde(rename = "serviceType")]
     pub service_type: Option<PipelineServiceType>,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -2021,6 +2026,10 @@ pub struct TagCategory {
     #[serde(rename = "children")]
     pub children: Option<Vec<Option<Tag>>>,
 
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
+
     /// Description of the tag category.
     #[serde(rename = "description")]
     pub description: String,
@@ -2036,7 +2045,8 @@ pub struct TagCategory {
     #[serde(rename = "name")]
     pub name: String,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -2067,6 +2077,10 @@ pub struct TagClass {
     #[serde(rename = "children")]
     pub children: Option<Vec<Option<Tag>>>,
 
+    /// When `true` indicates the entity has been soft deleted.
+    #[serde(rename = "deleted")]
+    pub deleted: Option<bool>,
+
     /// If the tag is deprecated.
     #[serde(rename = "deprecated")]
     pub deprecated: Option<bool>,
@@ -2087,7 +2101,8 @@ pub struct TagClass {
     #[serde(rename = "name")]
     pub name: String,
 
-    /// Last update time corresponding to the new version of the entity.
+    /// Last update time corresponding to the new version of the entity in Unix epoch time
+    /// milliseconds.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<i64>,
 
@@ -4975,8 +4990,6 @@ pub enum StorageServiceType {
 /// Date and time in ISO 8601 format. Example - '2018-11-13T20:20:39+00:00'.
 ///
 /// Start date and time of the schedule.
-///
-/// Last update time corresponding to the new version of the entity.
 ///
 /// Start date of the workflow
 ///

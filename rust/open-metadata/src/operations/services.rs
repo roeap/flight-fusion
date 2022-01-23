@@ -3,7 +3,7 @@ use crate::{
     clients::OpenMetadataClient,
     generated::{
         CollectionDescriptor, CreateDatabaseServiceRequest, CreateStorageServiceRequest,
-        DatabaseConnection, DatabaseService, DatabaseServiceType, Schedule, StorageService,
+        DatabaseConnection, DatabaseService, DatabaseServiceType, StorageService,
         StorageServiceType,
     },
 };
@@ -145,7 +145,6 @@ impl CreateDatabaseServiceBuilder {
 
     setters! {
         description: String => Some(description),
-        ingestion_schedule: Schedule => Some(ingestion_schedule),
     }
 
     pub fn into_future(self) -> CreateDatabaseService {
