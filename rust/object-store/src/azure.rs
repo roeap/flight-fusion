@@ -260,19 +260,9 @@ impl ObjectStoreApi for MicrosoftAzure {
     //    Ok(asd)
     //}
 
-    async fn list_with_delimiter(&self, prefix: &Self::Path) -> Result<ListResult<Self::Path>> {
+    async fn list_with_delimiter(&self, _prefix: &Self::Path) -> Result<ListResult<Self::Path>> {
         todo!()
     }
-}
-
-#[cfg(feature = "azure_test")]
-fn check_if_emulator_works() -> Result<()> {
-    Ok(())
-}
-
-#[cfg(not(feature = "azure_test"))]
-fn check_if_emulator_works() -> Result<()> {
-    Err(Error::NoEmulatorFeature)
 }
 
 /// Configure a connection to container with given name on Microsoft Azure
