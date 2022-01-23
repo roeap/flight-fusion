@@ -15,20 +15,22 @@ crate-type = ["cdylib"]
 name = "flight_fusion._internal"
 
 [dependencies]
-env_logger = "0"
-prost = "0.9"
-# reqwest is pulled in by azure sdk, but not used by python binding itself
-# for binary wheel best practice, statically link openssl
-reqwest = { version = "*", features = ["native-tls-vendored"] }
-thiserror = "1"
-tokio = { version = "1", features = ["rt-multi-thread"] }
-
 # workspace dependencies
 flight-fusion-client = { path = "../../rust/flight-fusion-client", features = [
   "pyarrow",
 ] }
 observability_deps = { path = "../../rust/observability-deps" }
 
-[dependencies.pyo3]
-version = "0.14"
-features = ["extension-module", "abi3", "abi3-py36"]
+# Crates.io dependencies
+env_logger = "0"
+prost = "0.9"
+pyo3 = { version = "0.15", features = [
+  "extension-module",
+  "abi3",
+  "abi3-py36",
+] }
+# reqwest is pulled in by azure sdk, but not used by python binding itself
+# for binary wheel best practice, statically link openssl
+reqwest = { version = "*", features = ["native-tls-vendored"] }
+thiserror = "1"
+tokio = { version = "1", features = ["rt-multi-thread"] }
