@@ -10,11 +10,9 @@ file-cache = { path = "../file-cache" }
 flight-fusion-ipc = { path = "../flight-fusion-ipc" }
 object-store = { path = "../object-store" }
 observability_deps = { path = "../observability-deps" }
-# deltalake = { path = "../../../delta-rs/rust" }
-# datafusion = { path = "../../../arrow-datafusion/datafusion" }
 
 # Crates.io dependencies
-arrow-flight = "6"
+arrow-flight = "7"
 async-trait = "0.1"
 bytes = "1"
 chrono = "^0.4"
@@ -25,13 +23,13 @@ lazy_static = "1.4.0"
 # libc = "0.2.103"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
-parquet-format = "~2.6.1"
+parquet-format = "4"
 prost = "0.9"
 # tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
 tokio = { version = "1", features = ["full"] }
 tokio-stream = { version = "*", features = ["fs"] }
 tokio-util = { version = "0.6.9", features = ["compat"] }
-tonic = "0.5.2"
+tonic = "0.6"
 url = "^2.2"
 uuid = "*"
 # tonic-health = "0.5.0"

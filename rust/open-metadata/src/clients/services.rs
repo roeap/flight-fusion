@@ -1,6 +1,6 @@
 use super::OpenMetadataClient;
 use crate::{
-    generated::{DatabaseServiceType, JdbcInfo},
+    generated::{DatabaseConnection, DatabaseServiceType},
     operations::{CreateDatabaseServiceBuilder, CreateStorageServiceBuilder, ListServicesBuilder},
 };
 
@@ -21,12 +21,17 @@ impl ServicesClient {
         &self,
         name: T,
         service_type: DatabaseServiceType,
-        jdbc: JdbcInfo,
+        database_connection: DatabaseConnection,
     ) -> CreateDatabaseServiceBuilder
     where
         T: Into<String>,
     {
-        CreateDatabaseServiceBuilder::new(self.client.clone(), name.into(), service_type, jdbc)
+        CreateDatabaseServiceBuilder::new(
+            self.client.clone(),
+            name.into(),
+            service_type,
+            database_connection,
+        )
     }
 
     pub fn create_storage_service<T>(&self, name: T) -> CreateStorageServiceBuilder

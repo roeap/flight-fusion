@@ -46,6 +46,7 @@ ignoreWords:
   - tempdir
   - tempfile
   - toposort
+  - typer
   - unpartitioned
   - walkdir
 import: []

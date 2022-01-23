@@ -1,8 +1,18 @@
 use flight_fusion::start_server;
 use pyo3::prelude::*;
+use std::future::Future;
 use tokio::runtime::Runtime;
 
 mod error;
+
+pub(crate) fn wait_for_future<F: Future>(_py: Python, f: F) -> F::Output
+where
+    F: Send,
+    F::Output: Send,
+{
+    let rt = Runtime::new().unwrap();
+    rt.block_on(f)
+}
 
 #[pyclass(module = "flight_fusion_server")]
 struct FusionServer {}
@@ -14,10 +24,8 @@ impl FusionServer {
         Ok(Self {})
     }
 
-    fn run(&self) -> PyResult<()> {
-        let rt = Runtime::new().unwrap();
-        rt.block_on(start_server()).unwrap();
-        Ok(())
+    fn run<'py>(&self, py: Python<'py>) -> PyResult<()> {
+        Ok(wait_for_future(py, start_server()).map_err(error::FlightFusionServerError::from)?)
     }
 }
 

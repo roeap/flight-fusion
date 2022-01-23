@@ -12,7 +12,11 @@ use arrow_deps::datafusion::{
         error::{ArrowError, Result as ArrowResult},
         record_batch::RecordBatch,
     },
-    physical_plan::RecordBatchStream,
+    execution::runtime_env::RuntimeEnv,
+    physical_plan::{
+        metrics::{BaselineMetrics, ExecutionPlanMetricsSet},
+        RecordBatchStream,
+    },
 };
 use arrow_flight::{flight_descriptor::DescriptorType, FlightData};
 use async_trait::async_trait;
@@ -35,6 +39,8 @@ pub struct FlightReceiverPlan {
     schema: ArrowSchemaRef,
     /// the requests object
     ticket: FlightDoPutRequest,
+    /// Execution metrics
+    metrics: ExecutionPlanMetricsSet,
 }
 
 impl FlightReceiverPlan {
@@ -94,6 +100,7 @@ impl FlightReceiverPlan {
             inner: batches,
             schema,
             ticket,
+            metrics: ExecutionPlanMetricsSet::new(),
         })
     }
 
@@ -139,8 +146,17 @@ impl ExecutionPlan for FlightReceiverPlan {
         todo!()
     }
 
-    async fn execute(&self, _partition: usize) -> DataFusionResult<SendableRecordBatchStream> {
-        let stream = SizedRecordBatchStream::new(self.schema(), self.inner.clone());
+    async fn execute(
+        &self,
+        partition: usize,
+        _runtime: Arc<RuntimeEnv>,
+    ) -> DataFusionResult<SendableRecordBatchStream> {
+        let baseline_metrics = BaselineMetrics::new(&self.metrics, partition);
+        let elapsed_compute = baseline_metrics.elapsed_compute().clone();
+        let _timer = elapsed_compute.timer(); // record on drop
+
+        let stream =
+            SizedRecordBatchStream::new(self.schema(), self.inner.clone(), baseline_metrics);
         Ok(Box::pin(stream))
     }
 

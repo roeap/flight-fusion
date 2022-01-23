@@ -28,7 +28,7 @@ lazy_static! {
 
 pub const MB_TO_BYTES: i64 = 1_048_576;
 
-pub async fn start_server() -> Result<(), Box<dyn std::error::Error>> {
+pub async fn start_server() -> crate::error::Result<()> {
     dotenv().ok();
     // install global collector configured based on RUST_LOG env var.
     let stdout_log = tracing_subscriber::fmt::layer().pretty();
@@ -36,14 +36,18 @@ pub async fn start_server() -> Result<(), Box<dyn std::error::Error>> {
     global::set_text_map_propagator(TraceContextPropagator::new());
     let tracer = opentelemetry_jaeger::new_pipeline()
         .with_service_name("grpc-server")
-        .install_batch(Tokio)?;
+        .install_batch(Tokio)
+        .unwrap();
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(CONFIG.log.level.clone()))
         .with(tracing_opentelemetry::layer().with_tracer(tracer))
         .with(stdout_log)
-        .try_init()?;
+        .try_init()
+        .unwrap();
 
-    let addr = format!("{}:{}", CONFIG.server.url, CONFIG.server.port).parse()?;
+    let addr = format!("{}:{}", CONFIG.server.url, CONFIG.server.port)
+        .parse()
+        .unwrap();
 
     let service = match CONFIG.service.storage.as_str() {
         "file" => Ok(FlightFusionService::new_default(
@@ -55,7 +59,8 @@ pub async fn start_server() -> Result<(), Box<dyn std::error::Error>> {
             &CONFIG.service.azure.file_system,
         )),
         _ => Err("unrecognized storage service"),
-    }?;
+    }
+    .unwrap();
 
     let svc = FlightServiceServer::new(service);
     info!(
@@ -63,7 +68,11 @@ pub async fn start_server() -> Result<(), Box<dyn std::error::Error>> {
         CONFIG.server.url, CONFIG.server.port, CONFIG.env
     );
 
-    Server::builder().add_service(svc).serve(addr).await?;
+    Server::builder()
+        .add_service(svc)
+        .serve(addr)
+        .await
+        .unwrap();
 
     global::shutdown_tracer_provider();
 

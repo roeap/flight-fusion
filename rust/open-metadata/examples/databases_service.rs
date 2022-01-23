@@ -1,5 +1,5 @@
 use open_metadata::{
-    generated::{DatabaseServiceType, JdbcInfo, StorageServiceType},
+    generated::{DatabaseConnection, DatabaseServiceType},
     prelude::*,
 };
 use std::result::Result;
@@ -18,9 +18,13 @@ async fn main() -> Result<(), std::io::Error> {
         .create_database_service(
             "db_service2",
             DatabaseServiceType::Druid,
-            JdbcInfo {
-                connection_url: "asd:pwd@host:port".to_string(),
-                driver_class: "jdbc".to_string(),
+            DatabaseConnection {
+                connection_arguments: None,
+                connection_options: None,
+                database: Some("db".to_string()),
+                host_port: Some("1000".to_string()),
+                password: Some("pwd".to_string()),
+                username: Some("user".to_string()),
             },
         )
         .into_future()

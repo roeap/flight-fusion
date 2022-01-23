@@ -28,6 +28,9 @@ classifier = [
 ]
 dependencies = ["typer>=0.4"]
 
+[project.scripts]
+fusion = "flight_fusion_server.cli:app"
+
 [project.optional-dependencies]
 devel = ["pytest", "pytest-mock", "pytest-cov"]
 

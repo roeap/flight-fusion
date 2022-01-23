@@ -90,22 +90,23 @@ checksum = "8da52d66c7071e2e3fa2a1e5c6d088fec47b593032b254f5e980de8ea54454d6"
 
 [[package]]
 name = "arrow"
-version = "6.5.0"
+version = "7.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "216c6846a292bdd93c2b93c1baab58c32ff50e2ab5e8d50db333ab518535dd8b"
+checksum = "66ec0a5964feebf378e2fc6db9530e712657b8edf72aa17b1b277b0f52a48e2d"
 dependencies = [
  "bitflags",
  "chrono",
  "comfy-table",
  "csv",
  "flatbuffers",
+ "half",
  "hex",
  "indexmap",
  "lazy_static",
  "lexical-core 0.8.2",
  "multiversion",
  "num",
- "pyo3",
+ "pyo3 0.15.1",
  "rand",
  "regex",
  "serde 1.0.133",
@@ -118,25 +119,25 @@ name = "arrow-deps"
 version = "0.1.0"
 dependencies = [
  "arrow-flight",
- "datafusion 6.0.0 (git+https://github.com/apache/arrow-datafusion?rev=06d147aace7a923752cef2fcf98f4732de31a6a6)",
+ "datafusion",
  "deltalake",
 ]
 
 [[package]]
 name = "arrow-flight"
-version = "6.4.0"
+version = "7.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b630a6684e9405fbce5c5e596a0eaaac675643d2045bb43c88d27a7555c52228"
+checksum = "76c02bce74a675af058d1fb7d810a015769f2a01aad2aea505c4c913394dd4e8"
 dependencies = [
  "arrow",
  "base64",
  "bytes",
  "proc-macro2",
- "prost 0.8.0",
- "prost-derive 0.8.0",
+ "prost 0.9.0",
+ "prost-derive 0.9.0",
  "tokio",
  "tonic",
- "tonic-build",
+ "tonic-build 0.6.2",
 ]
 
 [[package]]
@@ -645,8 +646,7 @@ dependencies = [
 [[package]]
 name = "datafusion"
 version = "6.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79e4a8a1f1ee057b2c27a01f050b9dffe56e8d43605d0201234b353a3cc1eb2f"
+source = "git+https://github.com/apache/arrow-datafusion?rev=15af24ab3d21c6baa3a7fff191ceecafce20dd35#15af24ab3d21c6baa3a7fff191ceecafce20dd35"
 dependencies = [
  "ahash",
  "arrow",
@@ -655,7 +655,7 @@ dependencies = [
  "blake3",
  "chrono",
  "futures",
- "hashbrown",
+ "hashbrown 0.12.0",
  "lazy_static",
  "log",
  "md-5",
@@ -668,38 +668,8 @@ dependencies = [
  "regex",
  "sha2",
  "smallvec",
- "sqlparser 0.12.0",
- "tokio",
- "tokio-stream",
- "unicode-segmentation",
-]
-
-[[package]]
-name = "datafusion"
-version = "6.0.0"
-source = "git+https://github.com/apache/arrow-datafusion?rev=06d147aace7a923752cef2fcf98f4732de31a6a6#06d147aace7a923752cef2fcf98f4732de31a6a6"
-dependencies = [
- "ahash",
- "arrow",
- "async-trait",
- "blake2",
- "blake3",
- "chrono",
- "futures",
- "hashbrown",
- "lazy_static",
- "log",
- "md-5",
- "num_cpus",
- "ordered-float 2.10.0",
- "parquet",
- "paste 1.0.6",
- "pin-project-lite",
- "rand",
- "regex",
- "sha2",
- "smallvec",
- "sqlparser 0.13.0",
+ "sqlparser",
+ "tempfile",
  "tokio",
  "tokio-stream",
  "unicode-segmentation",
@@ -708,7 +678,6 @@ dependencies = [
 [[package]]
 name = "deltalake"
 version = "0.4.1"
-source = "git+https://github.com/roeap/delta-rs?branch=high-level-writer#989e2181facf231735a623c0db2643ce8fbcf524"
 dependencies = [
  "anyhow",
  "arrow",
@@ -717,7 +686,7 @@ dependencies = [
  "cfg-if",
  "chrono",
  "clap",
- "datafusion 6.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "datafusion",
  "env_logger",
  "errno",
  "futures",
@@ -986,7 +955,7 @@ dependencies = [
  "tokio-stream",
  "tokio-util",
  "tonic",
- "tonic-build",
+ "tonic-build 0.5.2",
  "tract-onnx",
  "url",
  "utime",
@@ -1025,7 +994,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tonic",
- "tonic-build",
+ "tonic-build 0.5.2",
 ]
 
 [[package]]
@@ -1036,7 +1005,7 @@ dependencies = [
  "flight-fusion-client",
  "observability_deps",
  "prost 0.9.0",
- "pyo3",
+ "pyo3 0.14.5",
  "reqwest",
  "thiserror",
  "tokio",
@@ -1044,11 +1013,11 @@ dependencies = [
 
 [[package]]
 name = "flight-fusion-server"
-version = "0.1.1"
+version = "0.1.0"
 dependencies = [
  "env_logger",
  "flight-fusion",
- "pyo3",
+ "pyo3 0.14.5",
  "reqwest",
  "thiserror",
  "tokio",
@@ -1096,7 +1065,7 @@ dependencies = [
  "observability_deps",
  "petgraph 0.6.0",
  "prost 0.9.0",
- "sqlparser 0.13.0",
+ "sqlparser",
  "thiserror",
  "tokio",
 ]
@@ -1255,7 +1224,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6bb81d22191b89b117cd12d6549544bfcba0da741efdcec7c7d2fd06a0f56363"
 dependencies = [
  "ahash",
- "hashbrown",
+ "hashbrown 0.11.2",
 ]
 
 [[package]]
@@ -1288,6 +1257,15 @@ name = "hashbrown"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
+dependencies = [
+ "ahash",
+]
+
+[[package]]
+name = "hashbrown"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8c21d40587b92fa6a6c6e3c1bdbf87d75511db5672f9c93175574b3a00df1758"
 dependencies = [
  "ahash",
 ]
@@ -1423,7 +1401,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc633605454125dec4b66843673f01c7df2b89479b32e0ed634e43a91cff62a5"
 dependencies = [
  "autocfg",
- "hashbrown",
+ "hashbrown 0.11.2",
 ]
 
 [[package]]
@@ -2278,9 +2256,9 @@ dependencies = [
 
 [[package]]
 name = "parquet"
-version = "6.5.0"
+version = "7.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "788d9953f4cfbe9db1beff7bebd54299d105e34680d78b82b1ddc85d432cac9d"
+checksum = "5c718575b34e488fa78d4f0286356abb8466573cb17ae8faa96ffd871ca6e8c6"
 dependencies = [
  "arrow",
  "base64",
@@ -2299,9 +2277,9 @@ dependencies = [
 
 [[package]]
 name = "parquet-format"
-version = "2.6.1"
+version = "4.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5bc6b23543b5dedc8f6cce50758a35e5582e148e0cfa26bd0cacd569cda5b71"
+checksum = "1f0c06cdcd5460967c485f9c40a821746f5955ad81990533c7fae95dbd9bc0b5"
 dependencies = [
  "thrift",
 ]
@@ -2464,9 +2442,9 @@ checksum = "dbf0c48bc1d91375ae5c3cd81e3722dff1abcf81a30960240640d223f59fe0e5"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.27"
+version = "1.0.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0d8caf72986c1a598726adc988bb5984792ef84f5ee5aa50209145ee8077038"
+checksum = "c7342d5883fbccae1cc37a2353b09c87c9b0f3afd73f5fb9bba687a1f733b029"
 dependencies = [
  "unicode-xid",
 ]
@@ -2610,8 +2588,24 @@ dependencies = [
  "libc",
  "parking_lot",
  "paste 0.1.18",
- "pyo3-build-config",
- "pyo3-macros",
+ "pyo3-build-config 0.14.5",
+ "pyo3-macros 0.14.5",
+ "unindent",
+]
+
+[[package]]
+name = "pyo3"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7cf01dbf1c05af0a14c7779ed6f3aa9deac9c3419606ac9de537a2d649005720"
+dependencies = [
+ "cfg-if",
+ "indoc",
+ "libc",
+ "parking_lot",
+ "paste 0.1.18",
+ "pyo3-build-config 0.15.1",
+ "pyo3-macros 0.15.1",
  "unindent",
 ]
 
@@ -2625,12 +2619,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "pyo3-build-config"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dbf9e4d128bfbddc898ad3409900080d8d5095c379632fbbfbb9c8cfb1fb852b"
+dependencies = [
+ "once_cell",
+]
+
+[[package]]
 name = "pyo3-macros"
 version = "0.14.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc0bc5215d704824dfddddc03f93cb572e1155c68b6761c37005e1c288808ea8"
 dependencies = [
- "pyo3-macros-backend",
+ "pyo3-macros-backend 0.14.5",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "pyo3-macros"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67701eb32b1f9a9722b4bc54b548ff9d7ebfded011c12daece7b9063be1fd755"
+dependencies = [
+ "pyo3-macros-backend 0.15.1",
  "quote",
  "syn",
 ]
@@ -2642,7 +2656,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71623fc593224afaab918aa3afcaf86ed2f43d34f6afde7f3922608f253240df"
 dependencies = [
  "proc-macro2",
- "pyo3-build-config",
+ "pyo3-build-config 0.14.5",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "pyo3-macros-backend"
+version = "0.15.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f44f09e825ee49a105f2c7b23ebee50886a9aee0746f4dd5a704138a64b0218a"
+dependencies = [
+ "proc-macro2",
+ "pyo3-build-config 0.15.1",
  "quote",
  "syn",
 ]
@@ -2830,7 +2856,7 @@ checksum = "98f2771d255fd99f0294f13249fecd0cae6e074f86b4197ec1f1689d537b44d3"
 dependencies = [
  "ahash",
  "griddle",
- "hashbrown",
+ "hashbrown 0.11.2",
 ]
 
 [[package]]
@@ -3127,15 +3153,6 @@ checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 
 [[package]]
 name = "sqlparser"
-version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "760e624412a15d5838ae04fad01037beeff1047781431d74360cddd6b3c1c784"
-dependencies = [
- "log",
-]
-
-[[package]]
-name = "sqlparser"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b9907f54bd0f7b6ce72c2be1e570a614819ee08e3deb66d90480df341d8a12a8"
@@ -3410,9 +3427,9 @@ dependencies = [
 
 [[package]]
 name = "tonic"
-version = "0.5.2"
+version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "796c5e1cd49905e65dd8e700d4cb1dffcbfdb4fc9d017de08c1a537afd83627c"
+checksum = "ff08f4649d10a70ffa3522ca559031285d8e421d727ac85c60825761818f5d0a"
 dependencies = [
  "async-stream",
  "async-trait",
@@ -3427,8 +3444,8 @@ dependencies = [
  "hyper-timeout",
  "percent-encoding",
  "pin-project",
- "prost 0.8.0",
- "prost-derive 0.8.0",
+ "prost 0.9.0",
+ "prost-derive 0.9.0",
  "rustls-native-certs",
  "tokio",
  "tokio-rustls",
@@ -3449,6 +3466,18 @@ checksum = "12b52d07035516c2b74337d2ac7746075e7dcae7643816c1b12c5ff8a7484c08"
 dependencies = [
  "proc-macro2",
  "prost-build 0.8.0",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "tonic-build"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9403f1bafde247186684b230dc6f38b5cd514584e8bec1dd32514be4745fa757"
+dependencies = [
+ "proc-macro2",
+ "prost-build 0.9.0",
  "quote",
  "syn",
 ]

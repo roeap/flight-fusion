@@ -74,15 +74,6 @@ To generate proto definitions for use in python client.
 make python-proto
 ```
 
-## Known issues
-
-Right now the current release of the `quote` crate breaks the build. Until the dependent crates have addressed
-the underlying issue, the version of the quote crate has to be manually pinned.
-
-```sh
-cargo update --package quote --precise 1.0.10
-```
-
 #### License
 
 <sup>

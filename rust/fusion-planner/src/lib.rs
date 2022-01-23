@@ -98,7 +98,8 @@ impl FrameGraph {
 mod tests {
     use super::*;
     use arrow_deps::arrow::util::pretty;
-    use arrow_deps::datafusion::physical_plan::collect;
+    use arrow_deps::datafusion::{execution::runtime_env::RuntimeEnv, physical_plan::collect};
+    use std::sync::Arc;
 
     #[tokio::test]
     async fn create_catalog() {
@@ -112,7 +113,9 @@ mod tests {
 
         let planner = fg.into_frame_query_planner().await.unwrap();
         let plan = planner.create_physical_plan().await.unwrap();
-        let results = collect(plan.clone()).await.unwrap();
+        let results = collect(plan.clone(), Arc::new(RuntimeEnv::default()))
+            .await
+            .unwrap();
 
         pretty::print_batches(&results).unwrap();
     }

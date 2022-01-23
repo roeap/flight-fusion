@@ -10,7 +10,7 @@ base64 = "0.13"
 prost = "0.9"
 ring = "0.16"
 thiserror = "1"
-tonic = { version = "0.5.2", features = [
+tonic = { version = "0.6", features = [
   "transport",
   "codegen",
   "prost",

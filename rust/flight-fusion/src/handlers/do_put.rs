@@ -3,6 +3,7 @@ use crate::area_store::AreaStore;
 use arrow_deps::datafusion::{
     catalog::catalog::CatalogProvider,
     datasource::MemTable,
+    execution::runtime_env::RuntimeEnv,
     physical_plan::{collect, ExecutionPlan},
 };
 use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, commands::DeltaCommands};
@@ -54,7 +55,9 @@ impl DoPutHandler<PutMemoryTableRequest> for FusionActionHandler {
         input: Arc<dyn ExecutionPlan>,
     ) -> FusionResult<ResultDoPutUpdate> {
         let schema_ref = input.schema();
-        let batches = collect(input).await.unwrap();
+        let batches = collect(input, Arc::new(RuntimeEnv::default()))
+            .await
+            .unwrap();
 
         // register received schema
         let table_provider = MemTable::try_new(schema_ref.clone(), vec![batches]).unwrap();
@@ -82,7 +85,9 @@ impl DoPutHandler<CommandWriteIntoDataset> for FusionActionHandler {
         if let Some(source) = ticket.source {
             // TODO remove panic
             let location = self.area_store.get_table_location(&source).unwrap();
-            let batches = collect(input).await.unwrap();
+            let batches = collect(input, Arc::new(RuntimeEnv::default()))
+                .await
+                .unwrap();
             // TODO remove panic
             let _adds = self
                 .area_store
@@ -112,7 +117,9 @@ impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
         let mut delta_cmd = DeltaCommands::try_from_uri(table_uri.location)
             .await
             .unwrap();
-        let batches = collect(input).await.unwrap();
+        let batches = collect(input, Arc::new(RuntimeEnv::default()))
+            .await
+            .unwrap();
 
         match ticket.operation {
             Some(delta_operation_request::Operation::Write(req)) => {
