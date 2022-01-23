@@ -893,18 +893,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "flight-fusion-server"
-version = "0.1.0"
-dependencies = [
- "env_logger",
- "flight-fusion",
- "pyo3",
- "reqwest",
- "thiserror",
- "tokio",
-]
-
-[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
