@@ -4,3 +4,7 @@ class FlightFusionError(Exception):
 
 class TableSource(FlightFusionError):
     pass
+
+
+class ConfigError(FlightFusionError):
+    pass

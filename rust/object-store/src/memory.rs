@@ -70,7 +70,7 @@ impl ObjectStoreApi for InMemory {
         Ok(())
     }
 
-    async fn delete_dir(&self, location: &Self::Path) -> Result<()> {
+    async fn delete_dir(&self, _location: &Self::Path) -> Result<()> {
         todo!()
     }
 
@@ -157,13 +157,9 @@ impl InMemory {
 #[cfg(test)]
 mod tests {
     use super::*;
-
     use crate::{
-        tests::{
-            get_nonexistent_object, list_uses_directories_correctly, list_with_delimiter,
-            put_get_delete_list,
-        },
-        Error as ObjectStoreError, ObjectStore, ObjectStoreApi, ObjectStorePath,
+        tests::{list_uses_directories_correctly, list_with_delimiter, put_get_delete_list},
+        ObjectStore, ObjectStoreApi, ObjectStorePath,
     };
 
     #[tokio::test]

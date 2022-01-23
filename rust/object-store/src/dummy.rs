@@ -1,7 +1,5 @@
 //! Crate that mimics the interface of the the various object stores
 //! but does nothing if they are not enabled.
-use std::num::NonZeroUsize;
-
 use async_trait::async_trait;
 use bytes::Bytes;
 
