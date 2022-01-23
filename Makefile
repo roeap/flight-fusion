@@ -44,7 +44,7 @@ build-docker-fusion:
 .PHONY: python-develop
 python-develop: ## Run check on Python
 	$(info Dev build for python bindings)
-	cd python/flight-fusion && maturin develop --extras=devel $(MATURIN_EXTRA_ARGS)
+	cd python/flight-fusion && maturin develop --extras=devel,docker $(MATURIN_EXTRA_ARGS)
 
 .PHONY: python-check
 python-check: ## Run check on Python
