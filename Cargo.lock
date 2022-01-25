@@ -65,6 +65,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "84450d0b4a8bd1ba4144ce8ce718fbc5d071358b1e5384bace6536b3d1f2d5b3"
 
 [[package]]
+name = "area-store"
+version = "0.1.0"
+dependencies = [
+ "arrow-deps",
+ "async-trait",
+ "bytes",
+ "flight-fusion-ipc",
+ "futures",
+ "object-store",
+ "parquet-format",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "arrayref"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -630,6 +648,7 @@ dependencies = [
 [[package]]
 name = "deltalake"
 version = "0.4.1"
+source = "git+https://github.com/roeap/delta-rs?branch=wb#43c33be6773f192a5d802a32d98225b84a27e049"
 dependencies = [
  "anyhow",
  "arrow",
@@ -811,6 +830,7 @@ dependencies = [
 name = "flight-fusion"
 version = "0.1.0"
 dependencies = [
+ "area-store",
  "arrow-deps",
  "arrow-flight",
  "async-trait",

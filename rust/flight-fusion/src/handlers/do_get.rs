@@ -1,5 +1,5 @@
 use super::*;
-use crate::area_store::AreaStore;
+use area_store::store::AreaStore;
 use arrow_deps::{
     arrow::{ipc::writer::IpcWriteOptions, record_batch::RecordBatch},
     datafusion::prelude::{ExecutionConfig, ExecutionContext},

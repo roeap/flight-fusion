@@ -1,5 +1,5 @@
 use super::*;
-use crate::area_store::AreaStore;
+use area_store::store::AreaStore;
 use arrow_deps::datafusion::{
     catalog::catalog::CatalogProvider,
     datasource::MemTable,
@@ -144,10 +144,10 @@ impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::area_store::flatten_list_stream;
     use crate::test_utils::{
         generate_random_batch, get_fusion_handler, get_input_plan, get_record_batch,
     };
+    use area_store::store::flatten_list_stream;
     use arrow_deps::datafusion::{
         arrow::datatypes::{DataType, Field, Schema as ArrowSchema},
         physical_plan::memory::MemoryExec,

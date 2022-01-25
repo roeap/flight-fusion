@@ -21,3 +21,10 @@ def start():
 def stop():
     root = get_app_directory()
     typer.echo(f"{root}")
+
+
+@app.command()
+def install():
+    subprocess.run(  # nosec cargo is a trusted application
+        ["cargo", "install", "--git", "https://github.com/roeap/flight-fusion", "flight-fusion"]
+    )

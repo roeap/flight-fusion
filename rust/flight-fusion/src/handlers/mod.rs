@@ -1,9 +1,10 @@
-use crate::area_store::AreaStore;
 use crate::{
-    area_store::InMemoryAreaStore,
-    catalog::{AreaCatalog, FileAreaCatalog},
     error::{to_fusion_err, Result},
     stream::*,
+};
+use area_store::{
+    catalog::{AreaCatalog, FileAreaCatalog},
+    store::{AreaStore, InMemoryAreaStore},
 };
 use arrow_deps::arrow::ipc::writer::IpcWriteOptions;
 use arrow_deps::datafusion::{
@@ -134,13 +135,15 @@ impl FusionActionHandler {
         &self,
         command: CommandListSources,
     ) -> FusionResult<BoxedFlightStream<FlightInfo>> {
-        Ok(Box::pin(
-            self.area_catalog
-                .list_area_sources(command.root)
-                .await
-                .map_err(to_fusion_err)?
-                .map(meta_to_flight_info),
-        ))
+        // let _ = Ok(Box::pin(
+        //     self.area_catalog
+        //         .list_area_sources(command.root)
+        //         .await
+        //         .map_err(to_fusion_err)?
+        //         .map(meta_to_flight_info),
+        // ));
+
+        todo!()
     }
 
     pub async fn get_schema(&self, request: FlightGetSchemaRequest) -> FusionResult<SchemaResult> {
