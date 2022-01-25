@@ -7,7 +7,7 @@ publish = false
 
 [dependencies]
 opentelemetry = { version = "0.16", features = ["rt-tokio"] }
-opentelemetry-jaeger = { version = "0.15", features = ["rt-tokio"] }
+opentelemetry-jaeger = { version = "0.16", features = ["rt-tokio"] }
 tracing = { version = "0.1", features = [
   "max_level_trace",
   "release_max_level_debug",
