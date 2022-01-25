@@ -1,8 +1,5 @@
+pub mod catalog;
+pub mod error;
+pub mod store;
 #[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}
+pub mod test_utils;

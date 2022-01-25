@@ -1,4 +1,3 @@
-use arrow_deps::datafusion::error::DataFusionError;
 use flight_fusion_ipc::FlightFusionError;
 use futures::Stream;
 use std::pin::Pin;
@@ -9,15 +8,8 @@ pub enum FusionServiceError {
     #[error("Malformed input {0}")]
     InputError(String),
 
-    /// Error returned when a table to be created already exists
-    #[error("Table: '{0}' already exists")]
-    TableAlreadyExists(String),
-
     #[error(transparent)]
-    StorageError(#[from] area_store::store::error::AreaStoreError),
-
-    #[error(transparent)]
-    QueryError(#[from] DataFusionError),
+    StorageError(#[from] crate::store::AreaStoreError),
 }
 
 /// Result type for fallible operations defined in this crate

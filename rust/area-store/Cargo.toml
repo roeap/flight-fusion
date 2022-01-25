@@ -4,3 +4,20 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+# Workspace dependencies
+arrow-deps = { path = "../arrow-deps/", features = ["delta"] }
+flight-fusion-ipc = { path = "../flight-fusion-ipc" }
+object-store = { path = "../object-store" }
+
+# Crates.io dependencies
+async-trait = "0.1"
+bytes = "1"
+futures = "^0.3"
+parquet-format = "4"
+serde_json = "1"
+thiserror = "1"
+uuid = "*"
+
+[dev-dependencies]
+tempfile = "3"
+tokio = { version = "1", features = ["full"] }

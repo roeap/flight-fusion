@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 # Workspace dependencies
+area-store = { path = "../area-store/" }
 arrow-deps = { path = "../arrow-deps/", features = ["delta"] }
 file-cache = { path = "../file-cache" }
 flight-fusion-ipc = { path = "../flight-fusion-ipc" }

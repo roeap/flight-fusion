@@ -1,5 +1,3 @@
-mod area_store;
-mod catalog;
 mod error;
 mod handlers;
 mod service;

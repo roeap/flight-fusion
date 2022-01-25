@@ -1,8 +1,8 @@
 //! File based AreaCatalog implementation stored on disk.
 use super::AreaCatalog;
 use crate::{
-    area_store::AreaStore,
     error::{Result, ResultStream},
+    store::AreaStore,
 };
 use async_trait::async_trait;
 use flight_fusion_ipc::{

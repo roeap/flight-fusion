@@ -1,8 +1,8 @@
 use super::{ActionHandler, FusionActionHandler};
-use crate::{
-    area_store::{flatten_list_stream, AreaStore},
+use area_store::{
     catalog::AreaCatalog,
     error::to_fusion_err,
+    store::{flatten_list_stream, AreaStore},
 };
 use flight_fusion_ipc::{
     ActionStatus, CommandDropSource, CommandSetMetadata, FlightFusionError, Result as FusionResult,
@@ -107,7 +107,7 @@ impl ActionHandler<CommandSetMetadata> for FusionActionHandler {
 
 #[cfg(test)]
 mod tests {
-    use crate::area_store::BytesReader;
+    use area_store::store::BytesReader;
     use arrow_deps::datafusion::parquet::{
         arrow::{ArrowReader, ParquetFileArrowReader},
         file::serialized_reader::SerializedFileReader,
