@@ -127,6 +127,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "arrow"
+version = "8.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ce240772a007c63658c1d335bb424fd1019b87895dee899b7bf70e85b2d24e5f"
+dependencies = [
+ "bitflags",
+ "chrono",
+ "csv",
+ "flatbuffers",
+ "half",
+ "hex",
+ "indexmap",
+ "lazy_static",
+ "lexical-core 0.8.2",
+ "multiversion",
+ "num",
+ "rand",
+ "regex",
+ "serde 1.0.133",
+ "serde_derive",
+ "serde_json",
+]
+
+[[package]]
 name = "arrow-deps"
 version = "0.1.0"
 dependencies = [
@@ -137,11 +161,11 @@ dependencies = [
 
 [[package]]
 name = "arrow-flight"
-version = "7.0.0"
+version = "8.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76c02bce74a675af058d1fb7d810a015769f2a01aad2aea505c4c913394dd4e8"
+checksum = "8ec7c637d2edd6969eeb63793584e0a3d17f99559b872ab73f47aea186aef50a"
 dependencies = [
- "arrow",
+ "arrow 8.0.0",
  "base64",
  "bytes",
  "proc-macro2",
@@ -619,7 +643,7 @@ version = "6.0.0"
 source = "git+https://github.com/apache/arrow-datafusion?rev=15af24ab3d21c6baa3a7fff191ceecafce20dd35#15af24ab3d21c6baa3a7fff191ceecafce20dd35"
 dependencies = [
  "ahash",
- "arrow",
+ "arrow 7.0.0",
  "async-trait",
  "blake2",
  "blake3",
@@ -651,7 +675,7 @@ version = "0.4.1"
 source = "git+https://github.com/roeap/delta-rs?branch=wb#43c33be6773f192a5d802a32d98225b84a27e049"
 dependencies = [
  "anyhow",
- "arrow",
+ "arrow 7.0.0",
  "async-trait",
  "bytes",
  "cfg-if",
@@ -867,7 +891,7 @@ dependencies = [
 name = "flight-fusion-client"
 version = "0.1.0"
 dependencies = [
- "arrow",
+ "arrow 7.0.0",
  "arrow-flight",
  "async-trait",
  "flight-fusion-ipc",
@@ -2012,7 +2036,7 @@ version = "7.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5c718575b34e488fa78d4f0286356abb8466573cb17ae8faa96ffd871ca6e8c6"
 dependencies = [
- "arrow",
+ "arrow 7.0.0",
  "base64",
  "brotli",
  "byteorder",
