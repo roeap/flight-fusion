@@ -10,12 +10,12 @@ arrow-flight = "7"
 
 # Git dependencies
 datafusion = { git = "https://github.com/apache/arrow-datafusion", rev = "15af24ab3d21c6baa3a7fff191ceecafce20dd35" }
-# deltalake = { git = "https://github.com/roeap/delta-rs", branch = "wb", features = [
-#   "datafusion-ext",
-# ], optional = true }
-deltalake = { path = "../../../delta-rs/rust", optional = true, default-features = false, features = [
+deltalake = { git = "https://github.com/roeap/delta-rs", branch = "wb", features = [
   "datafusion-ext",
-] }
+], optional = true }
+# deltalake = { path = "../../../delta-rs/rust", optional = true, default-features = false, features = [
+#   "datafusion-ext",
+# ] }
 
 [features]
 delta = ["deltalake"]
