@@ -117,10 +117,7 @@ impl FusionActionHandler {
     ) -> Result<()> {
         let location = self.area_store.get_table_location(&source.clone())?;
         let batches = self.area_store.get_batches(&location).await?;
-        let table_provider = Arc::new(MemTable::try_new(
-            batches[0].schema().clone(),
-            vec![batches],
-        )?);
+        let table_provider = Arc::new(MemTable::try_new(batches[0].schema(), vec![batches])?);
         let name = match &source {
             AreaSourceReference {
                 table: Some(Table::Location(tbl)),
