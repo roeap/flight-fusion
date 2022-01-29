@@ -261,7 +261,7 @@ async fn collect_response_stream(
     let flight_data = stream
         .message()
         .await?
-        .ok_or_else(|| FusionClientError::MissingResultSchema)?;
+        .ok_or(FusionClientError::MissingResultSchema)?;
     let schema = Arc::new(ArrowSchema::try_from(&flight_data)?);
 
     let to_batch = |flight_data| {

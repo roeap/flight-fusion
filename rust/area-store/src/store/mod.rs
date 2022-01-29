@@ -1,19 +1,20 @@
 //! Abstractions and implementations for writing data to delta tables
+mod basic;
 mod cache;
 pub mod error;
 mod stats;
-mod store;
 pub mod utils;
 pub mod writer;
 
 use std::sync::Arc;
 
-use arrow_deps::arrow::{datatypes::*, record_batch::*};
+use arrow_deps::arrow::{datatypes::*, record_batch::RecordBatch};
 use arrow_deps::datafusion::parquet::{arrow::ParquetFileArrowReader, basic::LogicalType};
 use async_trait::async_trait;
+pub use basic::DefaultAreaStore;
+pub use cache::CachedAreaStore;
 pub use error::*;
 use flight_fusion_ipc::{AreaSourceReference, SaveMode};
-pub use store::DefaultAreaStore;
 pub use utils::*;
 pub use writer::*;
 

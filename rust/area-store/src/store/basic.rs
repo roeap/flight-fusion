@@ -57,7 +57,12 @@ impl AreaStore for DefaultAreaStore {
                     location.push_dir(&loc.name);
                     Ok(location)
                 }
-                _ => todo!(),
+                TableReference::Uri(_uri) => {
+                    todo!()
+                }
+                TableReference::Id(_id) => {
+                    todo!()
+                }
             },
             _ => todo!(),
         }
