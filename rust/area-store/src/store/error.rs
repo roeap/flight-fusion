@@ -2,6 +2,7 @@ use arrow_deps::{
     arrow::{datatypes::SchemaRef, error::ArrowError},
     datafusion::parquet::errors::ParquetError,
 };
+use file_cache::DiskCacheError;
 use std::sync::Arc;
 
 /// Enum representing an error when calling [`DeltaWriter`].
@@ -53,6 +54,13 @@ pub enum AreaStoreError {
         /// The wrapped [`object_store::Error`]
         #[from]
         source: object_store::error::Error,
+    },
+
+    #[error("Error in file cache: {source}")]
+    Cache {
+        /// The wrapped [`DiskCacheError`]
+        #[from]
+        source: DiskCacheError,
     },
 }
 

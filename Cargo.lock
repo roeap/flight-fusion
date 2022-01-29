@@ -71,6 +71,7 @@ dependencies = [
  "arrow-deps",
  "async-trait",
  "bytes",
+ "file-cache",
  "flight-fusion-ipc",
  "futures",
  "object-store",

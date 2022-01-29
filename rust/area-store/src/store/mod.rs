@@ -6,8 +6,6 @@ mod stats;
 pub mod utils;
 pub mod writer;
 
-use std::sync::Arc;
-
 use arrow_deps::arrow::{datatypes::*, record_batch::RecordBatch};
 use arrow_deps::datafusion::parquet::{arrow::ParquetFileArrowReader, basic::LogicalType};
 use async_trait::async_trait;
@@ -15,8 +13,13 @@ pub use basic::DefaultAreaStore;
 pub use cache::CachedAreaStore;
 pub use error::*;
 use flight_fusion_ipc::{AreaSourceReference, SaveMode};
+use object_store::path::Path;
+use std::sync::Arc;
 pub use utils::*;
 pub use writer::*;
+
+const DATA_FOLDER_NAME: &str = "_ff_data";
+const DEFAULT_READ_BATCH_SIZE: usize = 1024;
 
 #[async_trait]
 pub trait AreaStore: Send + Sync {
@@ -28,18 +31,25 @@ pub trait AreaStore: Send + Sync {
     async fn put_batches(
         &self,
         batches: Vec<RecordBatch>,
-        location: &object_store::path::Path,
+        location: &Path,
         save_mode: SaveMode,
     ) -> Result<Vec<stats::Add>>;
 
     /// Read batches from location
-    async fn get_batches(&self, location: &object_store::path::Path) -> Result<Vec<RecordBatch>>;
+    async fn get_batches(&self, location: &Path) -> Result<Vec<RecordBatch>>;
 
-    async fn get_arrow_reader(
-        &self,
-        location: &object_store::path::Path,
-    ) -> Result<ParquetFileArrowReader>;
+    async fn get_arrow_reader(&self, location: &Path) -> Result<ParquetFileArrowReader>;
 
     /// Resolve an [`AreaSourceReference`] to a storage location
-    fn get_table_location(&self, source: &AreaSourceReference) -> Result<object_store::path::Path>;
+    fn get_table_location(&self, source: &AreaSourceReference) -> Result<Path>;
+
+    /// Resolve an [`AreaSourceReference`] to the files relevant for source reference
+    async fn get_source_files(&self, source: &AreaSourceReference) -> Result<Vec<Path>> {
+        let location = self.get_table_location(source)?;
+        flatten_list_stream(&self.object_store(), Some(&location)).await
+    }
+
+    async fn get_location_files(&self, location: &Path) -> Result<Vec<Path>> {
+        flatten_list_stream(&self.object_store(), Some(location)).await
+    }
 }

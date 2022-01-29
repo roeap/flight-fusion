@@ -1,7 +1,6 @@
-use std::path::PathBuf;
-use std::sync::Arc;
-
-use super::{error::*, stats, utils::*, writer::*, AreaStore};
+use super::{
+    error::*, stats, utils::*, writer::*, AreaStore, DATA_FOLDER_NAME, DEFAULT_READ_BATCH_SIZE,
+};
 use arrow_deps::arrow::record_batch::*;
 use arrow_deps::datafusion::parquet::{
     arrow::{ArrowReader, ParquetFileArrowReader},
@@ -12,9 +11,8 @@ use flight_fusion_ipc::{
     area_source_reference::Table as TableReference, AreaSourceReference, SaveMode,
 };
 use object_store::{path::ObjectStorePath, ObjectStoreApi};
-
-const DATA_FOLDER_NAME: &str = "_ff_data";
-const DEFAULT_READ_BATCH_SIZE: usize = 1024;
+use std::path::PathBuf;
+use std::sync::Arc;
 
 pub struct DefaultAreaStore {
     object_store: Arc<object_store::ObjectStore>,
@@ -78,9 +76,9 @@ impl AreaStore for DefaultAreaStore {
         let schema = batches[0].schema();
         let partition_cols = vec![];
         let mut writer = DeltaWriter::new(self.object_store(), schema, Some(partition_cols));
-        // TODO Don't panic
-        batches.iter().for_each(|b| writer.write(b).unwrap());
-
+        for batch in batches.iter() {
+            writer.write(batch)?
+        }
         match save_mode {
             SaveMode::Overwrite => {
                 let files = flatten_list_stream(&self.object_store(), Some(location)).await?;
@@ -97,9 +95,7 @@ impl AreaStore for DefaultAreaStore {
 
     /// Read batches from location
     async fn get_batches(&self, location: &object_store::path::Path) -> Result<Vec<RecordBatch>> {
-        let files = flatten_list_stream(&self.object_store(), Some(location))
-            .await
-            .unwrap();
+        let files = self.get_location_files(location).await?;
         let mut batches = Vec::new();
         for file in files {
             let mut reader = self.get_arrow_reader(&file).await?;
