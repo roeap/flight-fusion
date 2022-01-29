@@ -1,3 +1,4 @@
+use super::error::Result;
 use arrow_deps::{
     arrow::temporal_conversions,
     datafusion::parquet::{
@@ -5,6 +6,8 @@ use arrow_deps::{
         file::reader::{ChunkReader, Length},
     },
 };
+use futures::{stream, StreamExt, TryStreamExt};
+use object_store::ObjectStoreApi;
 use parquet_format::TimeUnit;
 use std::io::Read;
 
@@ -41,4 +44,17 @@ pub fn timestamp_to_delta_stats_string(n: i64, time_unit: &TimeUnit) -> String {
     };
 
     format!("{}", dt.format("%Y-%m-%dT%H:%M:%S%.3fZ"))
+}
+
+pub async fn flatten_list_stream(
+    storage: &object_store::ObjectStore,
+    prefix: Option<&object_store::path::Path>,
+) -> Result<Vec<object_store::path::Path>> {
+    storage
+        .list(prefix)
+        .await?
+        .map_ok(|v| stream::iter(v).map(Ok))
+        .try_flatten()
+        .try_collect()
+        .await
 }
