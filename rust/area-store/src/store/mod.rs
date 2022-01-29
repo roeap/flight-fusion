@@ -26,13 +26,10 @@ pub use writer::*;
 const DATA_FOLDER_NAME: &str = "_ff_data";
 const DEFAULT_READ_BATCH_SIZE: usize = 1024;
 
-type AuxError = Box<dyn std::error::Error + Send + Sync + 'static>;
-type AuxResult<T, E = AuxError> = std::result::Result<T, E>;
-
 pub async fn flatten_list_stream(
     storage: &object_store::ObjectStore,
     prefix: Option<&object_store::path::Path>,
-) -> AuxResult<Vec<object_store::path::Path>> {
+) -> Result<Vec<object_store::path::Path>> {
     storage
         .list(prefix)
         .await?
@@ -129,12 +126,9 @@ impl AreaStore for InMemoryAreaStore {
 
         match save_mode {
             SaveMode::Overwrite => {
-                let files = flatten_list_stream(&self.object_store(), Some(location))
-                    .await
-                    .unwrap();
+                let files = flatten_list_stream(&self.object_store(), Some(location)).await?;
                 for file in files {
-                    // TODO remove panic
-                    self.object_store().delete(&file).await.unwrap();
+                    self.object_store().delete(&file).await?;
                 }
                 writer.flush(location).await
             }
@@ -151,13 +145,11 @@ impl AreaStore for InMemoryAreaStore {
             .unwrap();
         let mut batches = Vec::new();
         for file in files {
-            // TODO remove panic
             let mut reader = self.get_arrow_reader(&file).await?;
             let batch_reader = reader.get_record_reader(DEFAULT_READ_BATCH_SIZE).unwrap();
             let mut file_batches = batch_reader
                 .into_iter()
-                .map(|batch| batch.unwrap())
-                .collect::<Vec<_>>();
+                .collect::<std::result::Result<Vec<_>, _>>()?;
             batches.append(&mut file_batches);
         }
         Ok(batches)
@@ -167,16 +159,8 @@ impl AreaStore for InMemoryAreaStore {
         &self,
         location: &object_store::path::Path,
     ) -> Result<ParquetFileArrowReader> {
-        let bytes = self
-            .object_store()
-            .get(location)
-            .await
-            .unwrap()
-            .bytes()
-            .await
-            .unwrap();
+        let bytes = self.object_store().get(location).await?.bytes().await?;
         let cursor = SliceableCursor::new(Arc::new(bytes));
-        // TODO remove panic and return result
         let file_reader = Arc::new(SerializedFileReader::new(cursor)?);
         Ok(ParquetFileArrowReader::new(file_reader))
     }

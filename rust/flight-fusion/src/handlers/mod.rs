@@ -1,5 +1,5 @@
 use crate::{
-    error::{to_fusion_err, Result},
+    error::{FusionServiceError, Result},
     stream::*,
 };
 use area_store::{
@@ -23,10 +23,9 @@ use flight_fusion_ipc::{
     area_source_reference::Table, flight_action_request::Action as FusionAction,
     flight_do_get_request::Command as DoGetCommand, serialize_message, AreaSourceDetails,
     AreaSourceMetadata, CommandListSources, FlightActionRequest, FlightDoGetRequest,
-    FlightFusionError, FlightGetFlightInfoRequest, FlightGetSchemaRequest, RequestFor,
-    Result as FusionResult,
+    FlightGetFlightInfoRequest, FlightGetSchemaRequest, RequestFor,
 };
-use futures::{Stream, StreamExt};
+use futures::Stream;
 pub use object_store::{path::ObjectStorePath, ObjectStoreApi};
 use std::sync::Arc;
 use std::{path::PathBuf, pin::Pin};
@@ -39,16 +38,12 @@ pub mod do_put;
 pub type BoxedFlightStream<T> =
     Pin<Box<dyn Stream<Item = std::result::Result<T, Status>> + Send + Sync + 'static>>;
 
-fn to_flight_fusion_err(e: arrow_deps::datafusion::error::DataFusionError) -> FlightFusionError {
-    FlightFusionError::ExternalError(format!("{:?}", e))
-}
-
 #[async_trait]
 pub trait ActionHandler<T>: Sync + Send
 where
     T: RequestFor,
 {
-    async fn handle_do_action(&self, req: T) -> FusionResult<T::Reply>;
+    async fn handle_do_action(&self, req: T) -> Result<T::Reply>;
 }
 
 #[async_trait]
@@ -56,7 +51,7 @@ pub trait DoGetHandler<T>: Sync + Send
 where
     T: prost::Message,
 {
-    async fn handle_do_get(&self, req: T) -> FusionResult<BoxedFlightStream<FlightData>>;
+    async fn handle_do_get(&self, req: T) -> Result<BoxedFlightStream<FlightData>>;
 }
 
 #[async_trait]
@@ -64,7 +59,7 @@ pub trait DoPutHandler<T>: Sync + Send
 where
     T: RequestFor,
 {
-    async fn handle_do_put(&self, req: T, input: Arc<dyn ExecutionPlan>) -> FusionResult<T::Reply>;
+    async fn handle_do_put(&self, req: T, input: Arc<dyn ExecutionPlan>) -> Result<T::Reply>;
 }
 
 pub struct FusionActionHandler {
@@ -98,9 +93,11 @@ impl FusionActionHandler {
         let catalog = Arc::new(MemoryCatalogProvider::new());
         catalog.register_schema("schema".to_string(), Arc::new(schema_provider));
 
-        // TODO Don't Panic
-        let area_store =
-            Arc::new(InMemoryAreaStore::new_azure(account, access_key, container_name).unwrap());
+        let area_store = Arc::new(InMemoryAreaStore::new_azure(
+            account,
+            access_key,
+            container_name,
+        )?);
         let area_catalog = Arc::new(FileAreaCatalog::new(area_store.clone()));
 
         Ok(Self {
@@ -117,10 +114,7 @@ impl FusionActionHandler {
     ) -> Result<()> {
         let location = self.area_store.get_table_location(&source.clone())?;
         let batches = self.area_store.get_batches(&location).await?;
-        let table_provider = Arc::new(MemTable::try_new(
-            batches[0].schema().clone(),
-            vec![batches],
-        )?);
+        let table_provider = Arc::new(MemTable::try_new(batches[0].schema(), vec![batches])?);
         let name = match &source {
             AreaSourceReference {
                 table: Some(Table::Location(tbl)),
@@ -134,7 +128,7 @@ impl FusionActionHandler {
     pub async fn list_flights(
         &self,
         command: CommandListSources,
-    ) -> FusionResult<BoxedFlightStream<FlightInfo>> {
+    ) -> Result<BoxedFlightStream<FlightInfo>> {
         // let _ = Ok(Box::pin(
         //     self.area_catalog
         //         .list_area_sources(command.root)
@@ -146,7 +140,7 @@ impl FusionActionHandler {
         todo!()
     }
 
-    pub async fn get_schema(&self, request: FlightGetSchemaRequest) -> FusionResult<SchemaResult> {
+    pub async fn get_schema(&self, request: FlightGetSchemaRequest) -> Result<SchemaResult> {
         if let Some(source) = request.source {
             // let _meta = self
             //     .area_catalog
@@ -154,8 +148,8 @@ impl FusionActionHandler {
             //     .await
             //     .map_err(to_fusion_err)?;
             // TODO this is horrible!! - we need async reader support to only read schema
-            let location = self.area_store.get_table_location(&source).unwrap();
-            let batches = self.area_store.get_batches(&location).await.unwrap();
+            let location = self.area_store.get_table_location(&source)?;
+            let batches = self.area_store.get_batches(&location).await?;
             let schema = batches[0].schema();
             let schema_result = SchemaAsIpc::new(&schema, &IpcWriteOptions::default()).into();
 
@@ -165,16 +159,9 @@ impl FusionActionHandler {
         }
     }
 
-    pub async fn get_flight_info(
-        &self,
-        request: FlightGetFlightInfoRequest,
-    ) -> FusionResult<FlightInfo> {
+    pub async fn get_flight_info(&self, request: FlightGetFlightInfoRequest) -> Result<FlightInfo> {
         if let Some(source) = request.source {
-            let details = self
-                .area_catalog
-                .get_source_details(source)
-                .await
-                .map_err(to_fusion_err)?;
+            let details = self.area_catalog.get_source_details(source).await?;
 
             Ok(details_to_flight_info(details))
         } else {
@@ -185,7 +172,7 @@ impl FusionActionHandler {
     pub async fn execute_action(
         &self,
         request_data: FlightActionRequest,
-    ) -> FusionResult<BoxedFlightStream<arrow_flight::Result>> {
+    ) -> Result<BoxedFlightStream<arrow_flight::Result>> {
         let body = match request_data.action {
             Some(action) => {
                 let result_body = match action {
@@ -203,9 +190,7 @@ impl FusionActionHandler {
 
                 Ok(result_body)
             }
-            None => Err(FlightFusionError::UnknownAction(
-                "No action data passed".to_string(),
-            )),
+            None => Err(FusionServiceError::unknown_action("No action data passed")),
         }?;
 
         let result = vec![Ok(arrow_flight::Result { body })];
@@ -215,7 +200,7 @@ impl FusionActionHandler {
     pub async fn execute_do_get(
         &self,
         request_data: FlightDoGetRequest,
-    ) -> FusionResult<BoxedFlightStream<FlightData>> {
+    ) -> Result<BoxedFlightStream<FlightData>> {
         match request_data.command {
             Some(op) => match op {
                 DoGetCommand::Sql(sql) => self.handle_do_get(sql).await,
@@ -228,8 +213,8 @@ impl FusionActionHandler {
                 DoGetCommand::Read(read) => self.handle_do_get(read).await,
                 DoGetCommand::Query(query) => self.handle_do_get(query).await,
             },
-            None => Err(FlightFusionError::UnknownAction(
-                "No operation data passed".to_string(),
+            None => Err(FusionServiceError::unknown_action(
+                "No operation data passed",
             )),
         }
     }

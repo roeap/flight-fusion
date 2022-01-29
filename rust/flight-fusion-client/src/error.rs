@@ -6,6 +6,10 @@ pub enum FusionClientError {
     #[error("Table: '{0}' already exists")]
     TableAlreadyExists(String),
 
+    /// Error returned when schema info is missing in return data set
+    #[error("Missing Schema in returned data stream")]
+    MissingResultSchema,
+
     /// Errors during communication with flight server
     #[error("Table: already exists")]
     TransportError {

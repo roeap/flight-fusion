@@ -1,3 +1,4 @@
+use crate::error::{FusionServiceError, Result};
 use arrow_deps::datafusion::{
     arrow::datatypes::SchemaRef,
     error::Result as DataFusionResult,
@@ -21,9 +22,7 @@ use arrow_deps::datafusion::{
 use arrow_flight::{flight_descriptor::DescriptorType, FlightData};
 use async_trait::async_trait;
 use core::any::Any;
-use flight_fusion_ipc::{
-    to_flight_fusion_err, FlightDoPutRequest, FlightFusionError, Result as FusionResult,
-};
+use flight_fusion_ipc::FlightDoPutRequest;
 use futures::{stream::Stream, StreamExt, TryStreamExt};
 use prost::Message;
 use std::pin::Pin;
@@ -44,36 +43,35 @@ pub struct FlightReceiverPlan {
 }
 
 impl FlightReceiverPlan {
-    pub async fn try_new(mut stream: Streaming<FlightData>) -> FusionResult<Self> {
+    pub async fn try_new(mut stream: Streaming<FlightData>) -> Result<Self> {
         let flight_data = stream
             .message()
-            .await
-            .map_err(to_flight_fusion_err)?
-            .ok_or_else(|| FlightFusionError::generic("Must send some FlightData"))?;
+            .await?
+            .ok_or_else(|| FusionServiceError::input("Must send some FlightData"))?;
 
         let descriptor = flight_data
             .flight_descriptor
             .clone()
-            .ok_or_else(|| FlightFusionError::generic("Must have a descriptor"))?;
+            .ok_or_else(|| FusionServiceError::input("Must have a flight descriptor"))?;
 
         let ticket = match DescriptorType::from_i32(descriptor.r#type) {
             Some(DescriptorType::Cmd) => {
                 let request_data = FlightDoPutRequest::decode(&mut descriptor.cmd.as_ref())
-                    .map_err(|e| FlightFusionError::external(e.to_string()))?;
+                    .map_err(|e| FusionServiceError::input(e.to_string()))?;
                 Ok(request_data)
             }
-            Some(DescriptorType::Path) => Err(FlightFusionError::input(
+            Some(DescriptorType::Path) => Err(FusionServiceError::input(
                 "Put operation not implemented for path",
             )),
-            _ => Err(FlightFusionError::input(
+            _ => Err(FusionServiceError::input(
                 "Proper descriptor must be provided",
             )),
         }?;
 
-        let schema =
-            Arc::new(ArrowSchema::try_from(&flight_data).map_err(|e| {
-                FlightFusionError::ExternalError(format!("Invalid schema: {:?}", e))
-            })?);
+        let schema = Arc::new(
+            ArrowSchema::try_from(&flight_data)
+                .map_err(|e| FusionServiceError::input(format!("Invalid schema: {:?}", e)))?,
+        );
 
         let to_batch = |flight_data| {
             let dictionaries_by_field = vec![None; schema.fields().len()];
@@ -174,7 +172,7 @@ pub struct FlightTonicRecordBatchStream {
 
 impl FlightTonicRecordBatchStream {
     /// Create an empty RecordBatchStream
-    pub async fn _new(schema: ArrowSchemaRef, stream: Streaming<FlightData>) -> FusionResult<Self> {
+    pub async fn _new(schema: ArrowSchemaRef, stream: Streaming<FlightData>) -> Result<Self> {
         Ok(Self {
             inner: stream,
             schema,
