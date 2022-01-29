@@ -33,6 +33,7 @@ pub fn get_fusion_handler(root: impl Into<PathBuf>) -> FusionActionHandler {
 pub fn workspace_root() -> Result<String, Box<dyn std::error::Error>> {
     let output = std::process::Command::new("cargo")
         .arg("metadata")
+        .arg("--no-deps")
         .output()?;
     let output = String::from_utf8_lossy(&output.stdout);
 
