@@ -154,7 +154,9 @@ mod tests {
         let root = tempfile::tempdir().unwrap();
         let plan = get_input_plan(None, false);
         let handler = get_fusion_handler(root.path());
-        let table_dir = root.path().join("data/new_table");
+        let table_dir = root.path().join("_ff_data/new_table");
+
+        println!("{:?}", table_dir);
 
         let table = TableReference::Location(AreaTableLocation {
             name: "new_table".to_string(),
@@ -180,7 +182,7 @@ mod tests {
         let root = tempfile::tempdir().unwrap();
         let plan = get_input_plan(None, false);
         let handler = get_fusion_handler(root.path());
-        let table_dir = root.path().join("data/new_table");
+        let table_dir = root.path().join("_ff_data/new_table");
 
         let table_ref = AreaSourceReference {
             table: Some(TableReference::Location(AreaTableLocation {
