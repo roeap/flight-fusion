@@ -1,8 +1,7 @@
 use super::*;
+use crate::error::{FusionServiceError, Result};
 use area_store::store::AreaStore;
 use arrow_deps::datafusion::{
-    catalog::catalog::CatalogProvider,
-    datasource::MemTable,
     execution::runtime_env::RuntimeEnv,
     physical_plan::{collect, ExecutionPlan},
 };
@@ -10,8 +9,8 @@ use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, commands::DeltaCo
 use async_trait::async_trait;
 use flight_fusion_ipc::{
     delta_operation_request, flight_do_put_request::Command as DoPutCommand,
-    CommandWriteIntoDataset, DeltaOperationRequest, DeltaOperationResponse, FlightFusionError,
-    PutMemoryTableRequest, Result as FusionResult, ResultDoPutUpdate, SaveMode,
+    CommandWriteIntoDataset, DeltaOperationRequest, DeltaOperationResponse, ResultDoPutUpdate,
+    SaveMode,
 };
 use std::sync::Arc;
 
@@ -19,13 +18,14 @@ impl FusionActionHandler {
     pub async fn execute_do_put(
         &self,
         stream: Arc<FlightReceiverPlan>,
-    ) -> FusionResult<BoxedFlightStream<PutResult>> {
+    ) -> Result<BoxedFlightStream<PutResult>> {
         let request_data = stream.ticket();
         let body = match &request_data.command {
             Some(action) => {
                 let result_body = match action {
-                    DoPutCommand::Memory(memory) => {
-                        serialize_message(self.handle_do_put(memory.clone(), stream).await?)
+                    DoPutCommand::Memory(_memory) => {
+                        todo!()
+                        // serialize_message(self.handle_do_put(memory.clone(), stream).await?)
                     }
                     DoPutCommand::Storage(storage) => {
                         serialize_message(self.handle_do_put(storage.clone(), stream).await?)
@@ -37,9 +37,7 @@ impl FusionActionHandler {
 
                 Ok(result_body)
             }
-            None => Err(FlightFusionError::UnknownAction(
-                "No action data passed".to_string(),
-            )),
+            None => Err(FusionServiceError::unknown_action("No action data passed")),
         }?;
 
         let result = vec![Ok(PutResult { app_metadata: body })];
@@ -47,33 +45,29 @@ impl FusionActionHandler {
     }
 }
 
-#[async_trait]
-impl DoPutHandler<PutMemoryTableRequest> for FusionActionHandler {
-    async fn handle_do_put(
-        &self,
-        ticket: PutMemoryTableRequest,
-        input: Arc<dyn ExecutionPlan>,
-    ) -> FusionResult<ResultDoPutUpdate> {
-        let schema_ref = input.schema();
-        let batches = collect(input, Arc::new(RuntimeEnv::default()))
-            .await
-            .unwrap();
-
-        // register received schema
-        let table_provider = MemTable::try_new(schema_ref.clone(), vec![batches]).unwrap();
-        let schema_provider = self.catalog.schema("schema").unwrap();
-        schema_provider
-            .register_table(ticket.name, Arc::new(table_provider))
-            .unwrap();
-
-        self.catalog
-            .register_schema("schema".to_string(), schema_provider);
-
-        // TODO generate messages in channel
-        // https://github.com/jorgecarleitao/arrow2/blob/main/integration-testing/src/flight_server_scenarios/integration_test.rs
-        Ok(ResultDoPutUpdate { statistics: None })
-    }
-}
+// #[async_trait]
+// impl DoPutHandler<PutMemoryTableRequest> for FusionActionHandler {
+//     async fn handle_do_put(
+//         &self,
+//         ticket: PutMemoryTableRequest,
+//         input: Arc<dyn ExecutionPlan>,
+//     ) -> Result<ResultDoPutUpdate> {
+//         let schema_ref = input.schema();
+//         let batches = collect(input, Arc::new(RuntimeEnv::default())).await?;
+//
+//         // register received schema
+//         let table_provider = MemTable::try_new(schema_ref.clone(), vec![batches])?;
+//         let schema_provider = self.catalog.schema("schema");
+//         schema_provider.register_table(ticket.name, Arc::new(table_provider))?;
+//
+//         self.catalog
+//             .register_schema("schema".to_string(), schema_provider);
+//
+//         // TODO generate messages in channel
+//         // https://github.com/jorgecarleitao/arrow2/blob/main/integration-testing/src/flight_server_scenarios/integration_test.rs
+//         Ok(ResultDoPutUpdate { statistics: None })
+//     }
+// }
 
 #[async_trait]
 impl DoPutHandler<CommandWriteIntoDataset> for FusionActionHandler {
@@ -81,14 +75,10 @@ impl DoPutHandler<CommandWriteIntoDataset> for FusionActionHandler {
         &self,
         ticket: CommandWriteIntoDataset,
         input: Arc<dyn ExecutionPlan>,
-    ) -> FusionResult<ResultDoPutUpdate> {
+    ) -> Result<ResultDoPutUpdate> {
         if let Some(source) = ticket.source {
-            // TODO remove panic
-            let location = self.area_store.get_table_location(&source).unwrap();
-            let batches = collect(input, Arc::new(RuntimeEnv::default()))
-                .await
-                .unwrap();
-            // TODO remove panic
+            let location = self.area_store.get_table_location(&source)?;
+            let batches = collect(input, Arc::new(RuntimeEnv::default())).await?;
             let _adds = self
                 .area_store
                 .put_batches(
@@ -96,12 +86,11 @@ impl DoPutHandler<CommandWriteIntoDataset> for FusionActionHandler {
                     &location,
                     SaveMode::from_i32(ticket.save_mode).unwrap_or(SaveMode::Overwrite),
                 )
-                .await
-                .unwrap();
+                .await?;
             Ok(ResultDoPutUpdate { statistics: None })
         } else {
             // TODO migrate errors and raise something more meaningful
-            Err(FlightFusionError::generic("Source not found"))
+            Err(FusionServiceError::generic("Source not found"))
         }
     }
 }
@@ -112,14 +101,13 @@ impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
         &self,
         ticket: DeltaOperationRequest,
         input: Arc<dyn ExecutionPlan>,
-    ) -> FusionResult<DeltaOperationResponse> {
+    ) -> Result<DeltaOperationResponse> {
         let table_uri = ticket.table.expect("Table reference must be defined");
+        // TODO remove panic
         let mut delta_cmd = DeltaCommands::try_from_uri(table_uri.location)
             .await
             .unwrap();
-        let batches = collect(input, Arc::new(RuntimeEnv::default()))
-            .await
-            .unwrap();
+        let batches = collect(input, Arc::new(RuntimeEnv::default())).await?;
 
         match ticket.operation {
             Some(delta_operation_request::Operation::Write(req)) => {
@@ -129,6 +117,7 @@ impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
                     Some(SaveMode::ErrorIfExists) => DeltaSaveMode::ErrorIfExists,
                     _ => todo!(),
                 };
+                // TODO remove panic
                 delta_cmd
                     .write(batches, Some(mode), Some(req.partition_columns))
                     .await

@@ -1,7 +1,8 @@
 //! The area catalog provides meta data for all data sources registered in the service.
 mod disk;
+pub mod error;
 
-use crate::error::{Result, ResultStream};
+use crate::catalog::error::{AreaCatalogResult, AreaCatalogResultStream};
 use async_trait::async_trait;
 pub use disk::*;
 use flight_fusion_ipc::{
@@ -14,27 +15,27 @@ pub trait AreaCatalog: Send + Sync {
     async fn get_source_metadata(
         &self,
         reference: AreaSourceReference,
-    ) -> Result<AreaSourceMetadata>;
+    ) -> AreaCatalogResult<AreaSourceMetadata>;
 
     /// Set metadata for a registered data source
     async fn set_source_metadata(
         &self,
         reference: AreaSourceReference,
         metadata: AreaSourceMetadata,
-    ) -> Result<()>;
+    ) -> AreaCatalogResult<()>;
 
     /// Register a new data source in the catalog
-    async fn register_source(&self, reference: AreaSourceReference) -> Result<()>;
+    async fn register_source(&self, reference: AreaSourceReference) -> AreaCatalogResult<()>;
 
-    /// List all data sources registered in teh catalog
+    /// List all data sources registered in the catalog
     async fn list_area_sources(
         &self,
         root: Option<AreaReference>,
-    ) -> ResultStream<AreaSourceMetadata>;
+    ) -> AreaCatalogResultStream<AreaSourceMetadata>;
 
     /// Get detailed metadata and statistics about data source
     async fn get_source_details(
         &self,
-        _reference: AreaSourceReference,
-    ) -> Result<AreaSourceDetails>;
+        reference: AreaSourceReference,
+    ) -> AreaCatalogResult<AreaSourceDetails>;
 }

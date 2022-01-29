@@ -13,8 +13,8 @@ use flight_fusion_ipc::{
     flight_do_put_request::Command as DoPutCommand, utils::serialize_message, CommandDropSource,
     CommandExecuteQuery, CommandGetSchema, CommandReadDataset, CommandRegisterSource,
     CommandSetMetadata, CommandWriteIntoDataset, DatasetFormat, FlightActionRequest,
-    FlightDoGetRequest, FlightDoPutRequest, FlightFusionError, PutMemoryTableRequest, RequestFor,
-    ResultActionStatus, ResultDoPutUpdate,
+    FlightDoGetRequest, FlightDoPutRequest, PutMemoryTableRequest, RequestFor, ResultActionStatus,
+    ResultDoPutUpdate,
 };
 use observability_deps::instrument;
 use observability_deps::tracing;
@@ -258,13 +258,11 @@ impl FlightFusionClient {
 async fn collect_response_stream(
     mut stream: tonic::Streaming<FlightData>,
 ) -> Result<Vec<RecordBatch>, FusionClientError> {
-    // TODO get rid of all the panics
-    let flight_data = stream.message().await.unwrap().unwrap();
-    let schema = Arc::new(
-        ArrowSchema::try_from(&flight_data)
-            .map_err(|e| FlightFusionError::ExternalError(format!("Invalid schema: {:?}", e)))
-            .unwrap(),
-    );
+    let flight_data = stream
+        .message()
+        .await?
+        .ok_or_else(|| FusionClientError::MissingResultSchema)?;
+    let schema = Arc::new(ArrowSchema::try_from(&flight_data)?);
 
     let to_batch = |flight_data| {
         let dictionaries_by_field = vec![None; schema.fields().len()];
@@ -273,13 +271,13 @@ async fn collect_response_stream(
             schema.clone(),
             &dictionaries_by_field,
         )
+        // TODO Don't panic
         .unwrap()
     };
 
     Ok(stream
         .try_collect::<Vec<_>>()
-        .await
-        .unwrap()
+        .await?
         .into_iter()
         .map(to_batch)
         .collect::<Vec<_>>())

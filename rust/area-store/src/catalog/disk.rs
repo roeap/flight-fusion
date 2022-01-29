@@ -1,7 +1,7 @@
 //! File based AreaCatalog implementation stored on disk.
 use super::AreaCatalog;
 use crate::{
-    error::{Result, ResultStream},
+    catalog::error::{AreaCatalogResult, AreaCatalogResultStream},
     store::AreaStore,
 };
 use async_trait::async_trait;
@@ -25,7 +25,7 @@ impl AreaCatalog for FileAreaCatalog {
     async fn get_source_metadata(
         &self,
         _reference: AreaSourceReference,
-    ) -> Result<AreaSourceMetadata> {
+    ) -> AreaCatalogResult<AreaSourceMetadata> {
         todo!()
     }
 
@@ -33,25 +33,25 @@ impl AreaCatalog for FileAreaCatalog {
         &self,
         _reference: AreaSourceReference,
         metadata: AreaSourceMetadata,
-    ) -> Result<()> {
+    ) -> AreaCatalogResult<()> {
         todo!()
     }
 
-    async fn register_source(&self, _reference: AreaSourceReference) -> Result<()> {
+    async fn register_source(&self, _reference: AreaSourceReference) -> AreaCatalogResult<()> {
         todo!()
     }
 
     async fn list_area_sources(
         &self,
         _root: Option<AreaReference>,
-    ) -> ResultStream<AreaSourceMetadata> {
+    ) -> AreaCatalogResultStream<AreaSourceMetadata> {
         todo!()
     }
 
     async fn get_source_details(
         &self,
         _reference: AreaSourceReference,
-    ) -> Result<AreaSourceDetails> {
+    ) -> AreaCatalogResult<AreaSourceDetails> {
         todo!()
     }
 }

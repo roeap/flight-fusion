@@ -1,4 +1,5 @@
 use super::*;
+use crate::error::{FusionServiceError, Result};
 use area_store::store::AreaStore;
 use arrow_deps::{
     arrow::{ipc::writer::IpcWriteOptions, record_batch::RecordBatch},
@@ -7,8 +8,8 @@ use arrow_deps::{
 use arrow_flight::{FlightData, SchemaAsIpc};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
-    command_execute_query::Context as QueryContext, to_flight_fusion_err, CommandExecuteQuery,
-    CommandReadDataset, CommandSqlOperation, FlightFusionError, Result as FusionResult,
+    command_execute_query::Context as QueryContext, CommandExecuteQuery, CommandReadDataset,
+    CommandSqlOperation,
 };
 use tonic::Status;
 
@@ -17,17 +18,14 @@ impl DoGetHandler<CommandSqlOperation> for FusionActionHandler {
     async fn handle_do_get(
         &self,
         ticket: CommandSqlOperation,
-    ) -> FusionResult<BoxedFlightStream<FlightData>> {
+    ) -> Result<BoxedFlightStream<FlightData>> {
         let config = ExecutionConfig::new().with_information_schema(true);
         let mut ctx = ExecutionContext::with_config(config);
         ctx.register_catalog("catalog", self.catalog.clone());
 
         // execute the query
-        let df = ctx
-            .sql(ticket.query.as_str())
-            .await
-            .map_err(to_flight_fusion_err)?;
-        let results = df.collect().await.map_err(to_flight_fusion_err)?;
+        let df = ctx.sql(ticket.query.as_str()).await?;
+        let results = df.collect().await?;
         create_response_stream(results).await
     }
 }
@@ -37,14 +35,13 @@ impl DoGetHandler<CommandReadDataset> for FusionActionHandler {
     async fn handle_do_get(
         &self,
         ticket: CommandReadDataset,
-    ) -> FusionResult<BoxedFlightStream<FlightData>> {
+    ) -> Result<BoxedFlightStream<FlightData>> {
         if let Some(table) = ticket.source {
-            // TODO remove panics
-            let location = self.area_store.get_table_location(&table).unwrap();
-            let batches = self.area_store.get_batches(&location).await.unwrap();
+            let location = self.area_store.get_table_location(&table)?;
+            let batches = self.area_store.get_batches(&location).await?;
             create_response_stream(batches).await
         } else {
-            Err(FlightFusionError::InputError(
+            Err(FusionServiceError::InputError(
                 "missing table reference".to_string(),
             ))
         }
@@ -56,40 +53,28 @@ impl DoGetHandler<CommandExecuteQuery> for FusionActionHandler {
     async fn handle_do_get(
         &self,
         ticket: CommandExecuteQuery,
-    ) -> FusionResult<BoxedFlightStream<FlightData>> {
+    ) -> Result<BoxedFlightStream<FlightData>> {
         let mut ctx = ExecutionContext::new();
         match ticket.context {
             Some(QueryContext::Source(source)) => {
-                self.register_source(&mut ctx, &source)
-                    .await
-                    .map_err(to_flight_fusion_err)?;
+                self.register_source(&mut ctx, &source).await?;
             }
             Some(QueryContext::Collection(collection)) => {
                 for source in collection.sources {
-                    self.register_source(&mut ctx, &source)
-                        .await
-                        .map_err(to_flight_fusion_err)?
+                    self.register_source(&mut ctx, &source).await?
                 }
             }
             _ => todo!(),
         };
-        create_response_stream(
-            ctx.sql(&ticket.query)
-                .await
-                .map_err(to_flight_fusion_err)?
-                .collect()
-                .await
-                .map_err(to_flight_fusion_err)?,
-        )
-        .await
+        create_response_stream(ctx.sql(&ticket.query).await?.collect().await?).await
     }
 }
 
 async fn create_response_stream(
     results: Vec<RecordBatch>,
-) -> FusionResult<BoxedFlightStream<FlightData>> {
+) -> Result<BoxedFlightStream<FlightData>> {
     if results.is_empty() {
-        return Err(FlightFusionError::NoReturnData(
+        return Err(FusionServiceError::NoReturnData(
             "There were no results from ticket".to_string(),
         ));
     }
