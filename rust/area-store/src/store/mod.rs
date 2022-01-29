@@ -133,8 +133,7 @@ impl AreaStore for InMemoryAreaStore {
                     .await
                     .unwrap();
                 for file in files {
-                    // TODO remove panic
-                    self.object_store().delete(&file).await.unwrap();
+                    self.object_store().delete(&file).await?;
                 }
                 writer.flush(location).await
             }
@@ -151,13 +150,11 @@ impl AreaStore for InMemoryAreaStore {
             .unwrap();
         let mut batches = Vec::new();
         for file in files {
-            // TODO remove panic
             let mut reader = self.get_arrow_reader(&file).await?;
             let batch_reader = reader.get_record_reader(DEFAULT_READ_BATCH_SIZE).unwrap();
             let mut file_batches = batch_reader
                 .into_iter()
-                .map(|batch| batch.unwrap())
-                .collect::<Vec<_>>();
+                .collect::<std::result::Result<Vec<_>, _>>()?;
             batches.append(&mut file_batches);
         }
         Ok(batches)
