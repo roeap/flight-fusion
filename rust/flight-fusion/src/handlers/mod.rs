@@ -4,7 +4,7 @@ use crate::{
 };
 use area_store::{
     catalog::{AreaCatalog, FileAreaCatalog},
-    store::{AreaStore, InMemoryAreaStore},
+    store::{AreaStore, DefaultAreaStore},
 };
 use arrow_deps::arrow::ipc::writer::IpcWriteOptions;
 use arrow_deps::datafusion::{
@@ -64,7 +64,7 @@ where
 
 pub struct FusionActionHandler {
     catalog: Arc<MemoryCatalogProvider>,
-    area_store: Arc<InMemoryAreaStore>,
+    area_store: Arc<DefaultAreaStore>,
     area_catalog: Arc<FileAreaCatalog>,
 }
 
@@ -74,7 +74,7 @@ impl FusionActionHandler {
         let catalog = Arc::new(MemoryCatalogProvider::new());
         catalog.register_schema("schema".to_string(), Arc::new(schema_provider));
 
-        let area_store = Arc::new(InMemoryAreaStore::new(root));
+        let area_store = Arc::new(DefaultAreaStore::new(root));
         let area_catalog = Arc::new(FileAreaCatalog::new(area_store.clone()));
 
         Self {
@@ -93,7 +93,7 @@ impl FusionActionHandler {
         let catalog = Arc::new(MemoryCatalogProvider::new());
         catalog.register_schema("schema".to_string(), Arc::new(schema_provider));
 
-        let area_store = Arc::new(InMemoryAreaStore::new_azure(
+        let area_store = Arc::new(DefaultAreaStore::new_azure(
             account,
             access_key,
             container_name,

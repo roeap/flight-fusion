@@ -65,11 +65,11 @@ pub trait AreaStore: Send + Sync {
     fn get_table_location(&self, source: &AreaSourceReference) -> Result<object_store::path::Path>;
 }
 
-pub struct InMemoryAreaStore {
+pub struct DefaultAreaStore {
     object_store: Arc<object_store::ObjectStore>,
 }
 
-impl InMemoryAreaStore {
+impl DefaultAreaStore {
     pub fn new(root: impl Into<PathBuf>) -> Self {
         let object_store = Arc::new(object_store::ObjectStore::new_file(root));
         Self { object_store }
@@ -91,7 +91,7 @@ impl InMemoryAreaStore {
 }
 
 #[async_trait]
-impl AreaStore for InMemoryAreaStore {
+impl AreaStore for DefaultAreaStore {
     fn object_store(&self) -> Arc<object_store::ObjectStore> {
         self.object_store.clone()
     }
@@ -122,6 +122,7 @@ impl AreaStore for InMemoryAreaStore {
         let schema = batches[0].schema();
         let partition_cols = vec![];
         let mut writer = DeltaWriter::new(self.object_store(), schema, Some(partition_cols));
+        // TODO Don't panic
         batches.iter().for_each(|b| writer.write(b).unwrap());
 
         match save_mode {
@@ -173,7 +174,7 @@ mod tests {
     #[tokio::test]
     async fn test_put_get_batches() {
         let root = tempfile::tempdir().unwrap();
-        let area_store = InMemoryAreaStore::new(root.path());
+        let area_store = DefaultAreaStore::new(root.path());
         let location = area_store.object_store().new_path();
 
         let batch = crate::test_utils::get_record_batch(None, false);
