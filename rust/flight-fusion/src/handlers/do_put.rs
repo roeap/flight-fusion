@@ -156,8 +156,6 @@ mod tests {
         let handler = get_fusion_handler(root.path());
         let table_dir = root.path().join("_ff_data/new_table");
 
-        println!("{:?}", table_dir);
-
         let table = TableReference::Location(AreaTableLocation {
             name: "new_table".to_string(),
             areas: vec![],
