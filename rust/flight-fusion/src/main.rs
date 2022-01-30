@@ -42,6 +42,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with(stdout_log)
         .try_init()?;
 
+    let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
+    health_reporter
+        .set_serving::<FlightServiceServer<FlightFusionService>>()
+        .await;
+
     let addr = format!("{}:{}", CONFIG.server.url, CONFIG.server.port).parse()?;
 
     let service = match CONFIG.service.storage.as_str() {
@@ -62,7 +67,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         CONFIG.server.url, CONFIG.server.port, CONFIG.env
     );
 
-    Server::builder().add_service(svc).serve(addr).await?;
+    Server::builder()
+        .add_service(health_service)
+        .add_service(svc)
+        .serve(addr)
+        .await?;
 
     global::shutdown_tracer_provider();
 
