@@ -10,7 +10,9 @@ ignoreWords:
   - Kubernetes
   - Kusto
   - Pageable
+  - Popen
   - Timespan
+  - addinivalue
   - betterproto
   - chrono
   - clippy

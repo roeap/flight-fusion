@@ -38,3 +38,11 @@ exclude = [
   "src/typestubs",
 ]
 # stubPath = "python/flight-fusion/stubs"
+
+[tool.pytest.ini_options]
+addopts = "--cov=dagster_fusion -v"
+testpaths = ["tests"]
+markers = [
+  "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+  "azure: marks tests as integration tests with Azure (deselect with '-m \"not azure\"')",
+]

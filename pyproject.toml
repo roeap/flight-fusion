@@ -43,3 +43,8 @@ exclude = [
   "src/experimental",
   "src/typestubs",
 ]
+
+[tool.pytest.ini_options]
+markers = [
+  "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+]
