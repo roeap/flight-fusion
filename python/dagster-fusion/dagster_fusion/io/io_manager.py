@@ -1,4 +1,4 @@
-from typing import List, Optional, Set, TypedDict, Union
+from typing import List, Optional, Protocol, Set, TypedDict, Union
 
 import pandas as pd
 import pyarrow as pa
@@ -18,28 +18,6 @@ from flight_fusion import AreaClient, DatasetClient, FlightFusionClient
 from flight_fusion.ipc.v1alpha1 import AreaSourceReference, AreaTableLocation, SaveMode
 
 _INPUT_CONFIG_SCHEMA = {
-    "location": Field(
-        Selector(
-            {
-                "key": Field(String, is_required=False),
-                # TODO find a better name then `source`
-                "source": Field(
-                    Shape(
-                        fields={
-                            "name": Field(
-                                String,
-                                is_required=True,
-                                description="Table / location name where data is loaded from",
-                            ),
-                            "areas": Field(Array(String)),
-                        }
-                    ),
-                    is_required=False,
-                ),
-            }
-        ),
-        is_required=True,
-    ),
     "columns": Field(
         # HACK this should be an Array(String) but somehow we run into trouble with
         # list vs frozenlist type checks
@@ -75,7 +53,7 @@ _OUTPUT_CONFIG_SCHEMA = {
     "save_mode": Field(
         Enum.from_python_enum(SaveMode),
         is_required=False,
-        default_value=SaveMode.SAVE_MODE_OVERWRITE,
+        default_value="SAVE_MODE_OVERWRITE",
         description="Specifies behavior when saving data into a table location",
     ),
 }
@@ -91,7 +69,7 @@ class OutputConfig(TypedDict, total=False):
     columns: List[str]
 
 
-class IOManagerResources(TypedDict):
+class IOManagerResources(Protocol):
     fusion_client: FlightFusionClient
 
 
@@ -130,15 +108,18 @@ class FlightFusionIOManager(IOManager):
         context: TypedOutputContext[OutputConfig, IOManagerResources],
         obj: Union[pd.DataFrame, pa.Table],
     ) -> None:
+        print(context.resources)
         client = self._get_dataset_client(
-            client=context.resources["fusion_client"], config=context.config
+            client=context.resources.fusion_client, config=context.config
         )
         # TODO yield metadata
         client.write_into(obj)
 
     def load_input(self, context: TypedInputContext[InputConfig, IOManagerResources]) -> pa.Table:
+        if context.upstream_output is None or context.upstream_output.config is None:
+            raise ValueError
         client = self._get_dataset_client(
-            client=context.resources["fusion_client"], config=context.config
+            client=context.resources.fusion_client, config=context.upstream_output.config
         )
         return client.load()
 
@@ -162,10 +143,10 @@ class FlightFusionIOManager(IOManager):
 
 
 @io_manager(
-    required_resource_keys=["fusion_client"],
+    required_resource_keys={"fusion_client"},
     description="IO Manager for handling dagster assets within a flight fusion service.",
     input_config_schema=_INPUT_CONFIG_SCHEMA,
     output_config_schema=_OUTPUT_CONFIG_SCHEMA,
 )
-def my_io_manager(init_context):
+def flight_fusion_io_manager(init_context):
     return FlightFusionIOManager()
