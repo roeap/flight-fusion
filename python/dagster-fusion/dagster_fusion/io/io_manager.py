@@ -108,7 +108,6 @@ class FlightFusionIOManager(IOManager):
         context: TypedOutputContext[OutputConfig, IOManagerResources],
         obj: Union[pd.DataFrame, pa.Table],
     ) -> None:
-        print(context.resources)
         client = self._get_dataset_client(
             client=context.resources.fusion_client, config=context.config
         )
