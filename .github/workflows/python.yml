@@ -53,7 +53,7 @@ jobs:
         run: poetry install --no-interaction --no-root
 
       - name: Install rust backed packages
-        run: make python-develop
+        run: poetry run make python-develop
 
       - name: Install pyright
         run: npm install -g pyright
@@ -62,7 +62,7 @@ jobs:
         run: make rust-check
 
       - name: Check Python
-        run: make python-check
+        run: poetry run make python-check
 
   test:
     runs-on: ubuntu-latest
