@@ -62,10 +62,7 @@ python-proto:
 
 .PHONY: python-test
 python-test: ## Run check on Rust
-	$(info --- Check Rust clippy ---)
-	cargo clippy
-	$(info --- Check Rust format ---)
-	cargo fmt -- --check
+	pytest -m "not integration"
 
 .PHONY: rust-check
 rust-check: ## Run check on Rust
