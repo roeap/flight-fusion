@@ -24,8 +24,10 @@ ignoreWords:
   - dotenv
   - filetime
   - hmac
+  - isort
   - itertools
   - jdbc
+  - maturin
   - mkdocs
   - opentelemetry
   - petgraph
@@ -37,6 +39,7 @@ ignoreWords:
   - pyfunction
   - pymethods
   - pymodule
+  - pyright
   - quicktype
   - reqwest
   - ritelinked
@@ -50,5 +53,6 @@ ignoreWords:
   - toposort
   - typer
   - unpartitioned
+  - virtualenvs
   - walkdir
 import: []
