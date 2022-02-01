@@ -97,5 +97,8 @@ jobs:
       - name: Install rust backed packages
         run: poetry run make python-develop
 
+      - name: Build fusion server for testing
+        run: cargo build
+
       - name: Run tests
         run: poetry run make python-test

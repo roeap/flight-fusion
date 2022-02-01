@@ -62,7 +62,8 @@ python-proto:
 
 .PHONY: python-test
 python-test: ## Run check on Rust
-	pytest -m "not integration"
+	pytest python/flight-fusion/tests
+	pytest python/dagster-fusion/tests
 
 .PHONY: rust-check
 rust-check: ## Run check on Rust
