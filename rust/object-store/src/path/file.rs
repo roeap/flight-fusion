@@ -344,6 +344,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[cfg_attr(target_os = "windows", ignore)]
     fn path_buf_to_dirs_and_file_name_conversion() {
         // Last section ending in `.json` is a file name
         let path_buf: PathBuf = "/one/two/blah.json".into();
@@ -484,6 +485,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_os = "windows", ignore)]
     fn path_display() {
         let a_path_buf: PathBuf = "foo/bar/a.json".into();
         let expected_display = a_path_buf.display().to_string();
