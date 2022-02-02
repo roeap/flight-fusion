@@ -4,20 +4,14 @@ MATURIN_VERSION := $(shell awk -F '[ ="]+' '$$1 == "requires" { print $$4 }' pyp
 PY_PACKAGE_VERSION := $(shell cargo pkgid | cut -d\# -f2 | cut -d: -f2)
 PROTO_DEST := "python/flight-fusion/flight_fusion/proto"
 
+.PHONY: help
+help:
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
 .PHONY: init
 init: ## Initialize development envoronment
 	$(info --- initialize developmemnt environment ---)
 	poetry install --no-root
-
-.PHONY: build
-build: ## Build Python binding of arrow-azure-fs
-	echo $(MATURIN_VERSION)
-	$(info --- Build Python binding ---)
-	cd python/arrow-azure-fs && maturin build $(MATURIN_EXTRA_ARGS)
-
-.PHONY: help
-help:
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: gen-test-data
 gen-test-data:
@@ -68,10 +62,8 @@ python-proto:
 
 .PHONY: python-test
 python-test: ## Run check on Rust
-	$(info --- Check Rust clippy ---)
-	cargo clippy
-	$(info --- Check Rust format ---)
-	cargo fmt -- --check
+	pytest python/flight-fusion/tests
+	pytest python/dagster-fusion/tests
 
 .PHONY: rust-check
 rust-check: ## Run check on Rust
