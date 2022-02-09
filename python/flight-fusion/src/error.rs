@@ -12,7 +12,7 @@ pub enum FlightFusionClientError {
     TableAlreadyExists(String),
 
     /// Errors during communication with flight server
-    #[error("Table: already exists")]
+    #[error("Io Error: {source}")]
     IoError {
         #[from]
         source: tokio::io::Error,

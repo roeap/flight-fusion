@@ -15,8 +15,7 @@ use observability_deps::{
 use prost::Message;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
-use utils::wait_for_future;
-
+use utils::wait_for_future_blocking;
 mod error;
 mod utils;
 
@@ -45,7 +44,7 @@ impl FusionClient {
             let client = FlightFusionClient::try_new(&self.host, self.port).await?;
             client.write_into_table(command, batches).await
         };
-        let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
+        let response = wait_for_future_blocking(op).map_err(FlightFusionClientError::from)?;
         let obj = serialize_message(response).map_err(FlightFusionClientError::from)?;
         Ok(PyBytes::new(py, &obj))
     }
@@ -57,7 +56,7 @@ impl FusionClient {
             let client = FlightFusionClient::try_new(&self.host, self.port).await?;
             client.read_table(command).await
         };
-        let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
+        let response = wait_for_future_blocking(op).map_err(FlightFusionClientError::from)?;
         Ok(response)
     }
 
@@ -68,7 +67,7 @@ impl FusionClient {
             let client = FlightFusionClient::try_new(&self.host, self.port).await?;
             client.get_schema(command).await
         };
-        let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
+        let response = wait_for_future_blocking(op).map_err(FlightFusionClientError::from)?;
         Ok(response)
     }
 
@@ -79,7 +78,7 @@ impl FusionClient {
             let client = FlightFusionClient::try_new(&self.host, self.port).await?;
             client.execute_query(command).await
         };
-        let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
+        let response = wait_for_future_blocking(op).map_err(FlightFusionClientError::from)?;
         Ok(response)
     }
 
@@ -93,7 +92,7 @@ impl FusionClient {
             let client = FlightFusionClient::try_new(&self.host, self.port).await?;
             client.put_memory_table(table_ref, batches).await
         };
-        let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
+        let response = wait_for_future_blocking(op).map_err(FlightFusionClientError::from)?;
         let obj = serialize_message(response).map_err(FlightFusionClientError::from)?;
         Ok(PyBytes::new(py, &obj))
     }
@@ -105,7 +104,7 @@ impl FusionClient {
             let client = FlightFusionClient::try_new(&self.host, self.port).await?;
             client.drop_table(command).await
         };
-        let response = wait_for_future(py, op).map_err(FlightFusionClientError::from)?;
+        let response = wait_for_future_blocking(op).map_err(FlightFusionClientError::from)?;
         let obj = serialize_message(response).map_err(FlightFusionClientError::from)?;
         Ok(PyBytes::new(py, &obj))
     }
