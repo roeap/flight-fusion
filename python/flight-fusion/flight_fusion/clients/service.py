@@ -1,18 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable, List, Tuple, Union
+from typing import TYPE_CHECKING, Iterable, List, Tuple
 
-import pandas as pd
 import pyarrow as pa
+from betterproto import Message
+from pyarrow.flight import FlightDescriptor, Ticket, connect
 from pydantic import BaseSettings
 
-from flight_fusion._internal import FusionClient as RawFusionClient
-from flight_fusion.ipc.v1alpha1 import (
-    AreaSourceReference,
-    AreaTableLocation,
-    ResultActionStatus,
-    SaveMode,
-)
+from flight_fusion.ipc.v1alpha1 import AreaSourceReference, AreaTableLocation
 
 if TYPE_CHECKING:
     from flight_fusion.clients import AreaClient, ContextClient, DatasetClient
@@ -31,17 +26,26 @@ class ClientOptions(BaseSettings):
         env_prefix = "ff_"
 
 
-class FlightFusionClient:
+class FusionServiceClient:
     def __init__(
         self,
         options: ClientOptions,
     ) -> None:
-        self._raw = RawFusionClient(options.host, options.port)
+        self._client = connect(f"grpc://{options.host}:{options.port}")
 
-    @property
-    def fusion(self) -> RawFusionClient:
-        """Native flight fusion service client"""
-        return self._raw
+    def _do_put(self, table: pa.Table, command: Message) -> bytes:
+        descriptor = FlightDescriptor.for_command(command.SerializeToString())
+        writer, reader = self._client.do_put(descriptor, table.schema)
+        writer.write_table(table)
+        writer.done_writing()
+        response = reader.read()
+        return response
+
+    def _do_get(self, command: Message) -> pa.Table:
+        ticket = Ticket(ticket=command.SerializeToString())
+        reader = self._client.do_get(ticket)
+        table = reader.read_all()
+        return table
 
     def get_source_reference(self, name: str, areas: List[str]) -> AreaSourceReference:
         return AreaSourceReference(location=AreaTableLocation(name=name, areas=areas))
@@ -66,15 +70,3 @@ class FlightFusionClient:
             client=self.get_area_client(areas),
             reference=AreaSourceReference(location=AreaTableLocation(name=name, areas=areas)),
         )
-
-    def put_memory_table(
-        self,
-        table_ref: str,
-        data: Union[pd.DataFrame, pa.Table],
-        save_mode: SaveMode = SaveMode.SAVE_MODE_OVERWRITE,
-    ) -> ResultActionStatus:
-        if isinstance(data, pd.DataFrame):
-            data = pa.Table.from_pandas(data)
-        batches = data.to_batches()
-        raw_response = self._raw.put_memory_table(table_ref, batches)
-        return ResultActionStatus().parse(raw_response)

@@ -2,12 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, List
 
-from flight_fusion._internal import FusionClient as RawFusionClient
 from flight_fusion.clients.service import (
     AreaSourceReference,
     AreaTableLocation,
     ClientOptions,
-    FlightFusionClient,
+    FusionServiceClient,
 )
 from flight_fusion.ipc.v1alpha1 import AreaSourceMetadata
 
@@ -16,7 +15,7 @@ if TYPE_CHECKING:
 
 
 class AreaClient:
-    def __init__(self, client: FlightFusionClient, areas: List[str]) -> None:
+    def __init__(self, client: FusionServiceClient, areas: List[str]) -> None:
         self._areas = areas
         self._client = client
 
@@ -31,12 +30,12 @@ class AreaClient:
         Returns:
             AreaClient: the client instance
         """
-        return cls(FlightFusionClient(options), areas)
+        return cls(FusionServiceClient(options), areas)
 
     @property
-    def fusion(self) -> RawFusionClient:
+    def client(self) -> FusionServiceClient:
         """Native flight fusion service client"""
-        return self._client.fusion
+        return self._client
 
     @property
     def areas(self) -> List[str]:

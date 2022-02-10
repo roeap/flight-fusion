@@ -14,7 +14,7 @@ from dagster import (
     io_manager,
 )
 from dagster_fusion._types import TableReference, TypedInputContext, TypedOutputContext
-from flight_fusion import AreaClient, DatasetClient, FlightFusionClient
+from flight_fusion import AreaClient, DatasetClient, FusionServiceClient
 from flight_fusion.ipc.v1alpha1 import AreaSourceReference, AreaTableLocation, SaveMode
 
 _INPUT_CONFIG_SCHEMA = {
@@ -70,12 +70,12 @@ class OutputConfig(TypedDict, total=False):
 
 
 class IOManagerResources(Protocol):
-    fusion_client: FlightFusionClient
+    fusion_client: FusionServiceClient
 
 
 class FlightFusionIOManager(IOManager):
     def _get_dataset_client(
-        self, client: FlightFusionClient, config: Union[OutputConfig, InputConfig]
+        self, client: FusionServiceClient, config: Union[OutputConfig, InputConfig]
     ) -> DatasetClient:
         location = config.get("location")
         if location is None:
