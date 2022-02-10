@@ -902,7 +902,7 @@ dependencies = [
 
 [[package]]
 name = "flight-fusion-python"
-version = "0.1.4"
+version = "0.1.6"
 dependencies = [
  "env_logger",
  "flight-fusion-client",

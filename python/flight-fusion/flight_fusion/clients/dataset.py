@@ -14,11 +14,11 @@ from flight_fusion.ipc.v1alpha1 import (
     AreaSourceMetadata,
     AreaSourceReference,
     AreaTableLocation,
-    CommandDropSource,
     CommandExecuteQuery,
-    CommandGetSchema,
     CommandReadDataset,
     CommandWriteIntoDataset,
+    FlightDoGetRequest,
+    FlightDoPutRequest,
     ResultActionStatus,
     ResultDoPutUpdate,
     SaveMode,
@@ -26,7 +26,7 @@ from flight_fusion.ipc.v1alpha1 import (
 
 
 class DatasetClient:
-    def __init__(self, client: AreaClient, reference: AreaSourceReference) -> None:
+    def __init__(self, client: AreaClient, reference: AreaSourceReference):
         self._reference = reference
         self._client = client
         self._schema = None
@@ -62,8 +62,7 @@ class DatasetClient:
 
     def schema(self) -> pa.Schema:
         if self._schema is None:
-            command = CommandGetSchema(source=self._reference)
-            self._schema = self._client.fusion.get_schema(command=command.SerializeToString())
+            raise NotImplementedError
         return self._schema
 
     def write_into(
@@ -73,33 +72,29 @@ class DatasetClient:
     ) -> ResultDoPutUpdate:
         if isinstance(data, pd.DataFrame):
             data = pa.Table.from_pandas(data)
-        batches = data.to_batches()
-        command = CommandWriteIntoDataset(source=self._reference, save_mode=save_mode)
-        response = self._client.fusion.write_into_table(
-            command=command.SerializeToString(), batches=batches
+        data = data.replace_schema_metadata({})
+        command = FlightDoPutRequest(
+            storage=CommandWriteIntoDataset(source=self._reference, save_mode=save_mode)
         )
+        response = self._client.client._do_put(table=data, command=command)
         return ResultDoPutUpdate().parse(response)
 
     def load(self) -> pa.Table:
-        command = CommandReadDataset(source=self._reference)
-        batches = self._client.fusion.read_table(command=command.SerializeToString())
-        return pa.Table.from_batches(batches)
+        command = FlightDoGetRequest(read=CommandReadDataset(source=self._reference))
+        return self._client.client._do_get(command)
 
     def query(self, query: str) -> pa.Table:
-        command = CommandExecuteQuery(query=query, source=self._reference)
-        batches = self._client.fusion.execute_query(command=command.SerializeToString())
-        return pa.Table.from_batches(batches)
+        command = FlightDoGetRequest(query=CommandExecuteQuery(query=query, source=self._reference))
+        return self._client.client._do_get(command)
 
     def drop(self) -> ResultActionStatus:
-        command = CommandDropSource(source=self._reference)
-        response = self._client.fusion.drop_table(command=command.SerializeToString())
-        return ResultActionStatus().parse(response)
+        raise NotImplementedError
 
     def get_metadata(self) -> AreaSourceMetadata:
-        ...
+        raise NotImplementedError
 
     def set_metadata(self, metadata: AreaSourceMetadata = None) -> None:
-        ...
+        raise NotImplementedError
 
 
 class TableClient(DatasetClient):

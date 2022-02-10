@@ -6,7 +6,7 @@ from typing import Generator
 
 import pytest
 
-from flight_fusion import ClientOptions, FlightFusionClient
+from flight_fusion import ClientOptions, FusionServiceClient
 from flight_fusion.cli._utils import _find_git_root
 
 ENV_FF_EXECUTABLE = "FF_EXECUTABLE"
@@ -54,8 +54,8 @@ def ff_server():
 
 
 @pytest.fixture
-def ff_client(ff_server) -> Generator[FlightFusionClient, None, None]:
+def ff_client(ff_server) -> Generator[FusionServiceClient, None, None]:
     options = ClientOptions(host="localhost", port=50051)
-    client = FlightFusionClient(options)
+    client = FusionServiceClient(options)
 
     yield client

@@ -2,7 +2,7 @@ import pyarrow as pa
 import pytest
 from dagster import Out, ResourceDefinition, graph, op
 from dagster_fusion import flight_fusion_io_manager
-from flight_fusion import FlightFusionClient
+from flight_fusion import FusionServiceClient
 
 
 @pytest.fixture
@@ -40,7 +40,7 @@ run_config = {
 }
 
 
-def test_graph_in_out(test_graph, test_data, ff_client: FlightFusionClient):
+def test_graph_in_out(test_graph, test_data, ff_client: FusionServiceClient):
     fusion_client = ResourceDefinition.hardcoded_resource(ff_client)
     job = test_graph.to_job(
         resource_defs={"io_manager": flight_fusion_io_manager, "fusion_client": fusion_client},

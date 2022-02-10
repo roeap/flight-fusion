@@ -2,7 +2,7 @@ from .clients import (
     AreaClient,
     ClientOptions,
     DatasetClient,
-    FlightFusionClient,
+    FusionServiceClient,
     TableClient,
 )
 
@@ -17,6 +17,6 @@ __all__ = (
     "AreaClient",
     "ClientOptions",
     "DatasetClient",
-    "FlightFusionClient",
+    "FusionServiceClient",
     "TableClient",
 )
