@@ -639,7 +639,7 @@ dependencies = [
  "regex",
  "sha2",
  "smallvec",
- "sqlparser",
+ "sqlparser 0.13.0",
  "tempfile",
  "tokio",
  "tokio-stream",
@@ -956,7 +956,7 @@ dependencies = [
  "observability_deps",
  "petgraph",
  "prost",
- "sqlparser",
+ "sqlparser 0.14.0",
  "thiserror",
  "tokio",
 ]
@@ -2716,6 +2716,15 @@ name = "sqlparser"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b9907f54bd0f7b6ce72c2be1e570a614819ee08e3deb66d90480df341d8a12a8"
+dependencies = [
+ "log",
+]
+
+[[package]]
+name = "sqlparser"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b8f192f29f4aa49e57bebd0aa05858e0a1f32dd270af36efe49edb82cbfffab6"
 dependencies = [
  "log",
 ]
