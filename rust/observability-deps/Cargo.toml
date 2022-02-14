@@ -13,5 +13,5 @@ tracing = { version = "0.1", features = [
   "release_max_level_debug",
 ] }
 tracing-futures = "0.2"
-tracing-opentelemetry = "0.16"
+tracing-opentelemetry = "0.17"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
