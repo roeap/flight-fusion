@@ -32,6 +32,7 @@ class FusionServiceClient:
         options: ClientOptions,
     ) -> None:
         self._client = connect(f"grpc://{options.host}:{options.port}")
+        self._client.wait_for_available()
 
     def _do_put(self, table: pa.Table, command: Message) -> bytes:
         descriptor = FlightDescriptor.for_command(command.SerializeToString())

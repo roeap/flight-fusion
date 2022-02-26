@@ -136,8 +136,8 @@ impl FusionActionHandler {
         //         .map_err(to_fusion_err)?
         //         .map(meta_to_flight_info),
         // ));
-
-        todo!()
+        Ok(Box::pin(futures::stream::iter(vec![])) as BoxedFlightStream<FlightInfo>)
+        // todo!()
     }
 
     pub async fn get_schema(&self, request: FlightGetSchemaRequest) -> Result<SchemaResult> {

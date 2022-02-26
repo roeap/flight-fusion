@@ -8,7 +8,6 @@ RUN cargo build --package flight-fusion --release
 
 FROM gcr.io/distroless/cc
 COPY --from=build-env /app/target/release/flight-fusion /opt/fusion/
-COPY ./config/ /opt/fusion/config/
 
 WORKDIR /opt/fusion/
 
