@@ -1,0 +1,26 @@
+[package]
+name = "azure_data_kusto"
+version = "0.1.0"
+description = "Rust wrappers around Microsoft Azure REST APIs - Azure Data Explorer"
+readme = "README.md"
+license = "MIT"
+edition = "2021"
+
+[dependencies]
+azure_core = { git = "https://github.com/Azure/azure-sdk-for-rust", rev = "91a8936208deea8c018c63c402a525ffd3da6c0b" }
+azure_identity = { git = "https://github.com/Azure/azure-sdk-for-rust", rev = "91a8936208deea8c018c63c402a525ffd3da6c0b" }
+async-trait = "0.1"
+bytes = "1"
+futures = "0.3"
+http = "0.2"
+serde = "1"
+serde_derive = "1"
+serde_json = "1"
+thiserror = "1"
+
+[dev-dependencies]
+env_logger = "0.9"
+tokio = { version = "1", features = ["macros"] }
+
+[features]
+mock_transport_framework = ["azure_core/mock_transport_framework"]
