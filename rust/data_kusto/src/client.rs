@@ -1,25 +1,21 @@
-use crate::authorization_policy::{AuthorizationPolicy, AutoRefreshingCredential};
+use crate::authorization_policy::AuthorizationPolicy;
 use crate::connection_string::ConnectionString;
-use crate::error::{KustoRsError, Result};
-use crate::request::ExecuteQueryBuilder;
+use crate::error::Result;
+use crate::operations::query::ExecuteQueryBuilder;
 use azure_core::auth::TokenCredential;
-use azure_core::{ClientOptions, Pipeline, Request};
+use azure_core::{ClientOptions, Context, Pipeline, Request};
 use azure_identity::token_credentials::{
     AzureCliCredential, ClientSecretCredential, DefaultAzureCredential,
     ImdsManagedIdentityCredential, TokenCredentialOptions,
 };
-use http::{method::Method, request::Builder as RequestBuilder};
-use std::convert::{From, TryFrom};
+use std::convert::TryFrom;
 use std::fmt::Debug;
 use std::sync::Arc;
-use url::Url;
 
 /// Options for specifying how a OpenMetadata client will behave
 #[derive(Clone, Default)]
 pub struct KustoClientOptions {
     options: ClientOptions,
-    pub credential: Option<Arc<dyn TokenCredential>>,
-    pub resource: String,
 }
 
 impl KustoClientOptions {
@@ -37,15 +33,12 @@ impl KustoClientOptions {
     }
 }
 
-fn new_pipeline_from_options(options: KustoClientOptions) -> Pipeline {
-    let credential = if let Some(cred) = options.credential {
-        Arc::new(AutoRefreshingCredential::new(cred.clone()))
-    } else {
-        Arc::new(AutoRefreshingCredential::new(Arc::new(
-            DefaultAzureCredential::default(),
-        )))
-    };
-    let auth_policy = Arc::new(AuthorizationPolicy::new(credential, &options.resource));
+fn new_pipeline_from_options(
+    credential: Arc<dyn TokenCredential>,
+    resource: &str,
+    options: KustoClientOptions,
+) -> Pipeline {
+    let auth_policy = Arc::new(AuthorizationPolicy::new(credential, resource));
     // take care of adding the AuthorizationPolicy as **last** retry policy.
     let per_retry_policies: Vec<Arc<(dyn azure_core::Policy + 'static)>> = vec![auth_policy];
 
@@ -67,25 +60,38 @@ fn new_pipeline_from_options(options: KustoClientOptions) -> Pipeline {
 #[derive(Clone, Debug)]
 pub struct KustoClient {
     pipeline: Pipeline,
-    pub query_url: Url,
-    pub management_url: Url,
+    query_url: String,
+    management_url: String,
 }
 
 impl KustoClient {
-    pub fn new_with_options<T>(url: T, options: KustoClientOptions) -> Result<Self>
+    pub fn new_with_options<T>(
+        url: T,
+        credential: Arc<dyn TokenCredential>,
+        options: KustoClientOptions,
+    ) -> Result<Self>
     where
         T: Into<String>,
     {
-        let service_url = Url::parse(&url.into()).expect("A valid service url must ne provided");
-        let query_url = service_url.join("v2/rest/query").unwrap();
-        let management_url = service_url.join("v1/rest/mgmt").unwrap();
-        let pipeline = new_pipeline_from_options(options);
+        let service_url: String = url.into();
+        let service_url = service_url.trim_end_matches("/");
+        let query_url = format!("{}/v2/rest/query", service_url);
+        let management_url = format!("{}/v1/rest/mgmt", service_url);
+        let pipeline = new_pipeline_from_options(credential, service_url, options);
 
         Ok(Self {
             pipeline,
             query_url,
             management_url,
         })
+    }
+
+    pub fn query_url(&self) -> &str {
+        &self.query_url.as_str()
+    }
+
+    pub fn management_url(&self) -> &str {
+        &self.management_url.as_str()
     }
 
     /// Execute a KQL query.
@@ -96,16 +102,11 @@ impl KustoClient {
     /// * `database` - Database against query will be executed.
     /// * `query` - Query to be executed.
     pub fn execute_query(&self, database: &str, query: &str) -> ExecuteQueryBuilder {
-        ExecuteQueryBuilder::new(self.clone(), database.into(), query.into())
+        ExecuteQueryBuilder::new(self.clone(), database.into(), query.into(), Context::new())
     }
 
-    pub(crate) fn prepare_request(&self, url: &str, http_method: Method) -> Request {
-        RequestBuilder::new()
-            .method(http_method)
-            .uri(url)
-            .body(bytes::Bytes::new())
-            .unwrap()
-            .into()
+    pub(crate) fn prepare_request(&self, uri: &str, http_method: http::Method) -> Request {
+        Request::new(uri.parse().unwrap(), http_method)
     }
 
     pub(crate) fn pipeline(&self) -> &Pipeline {
@@ -114,17 +115,12 @@ impl KustoClient {
 }
 
 impl<'a> TryFrom<ConnectionString<'a>> for KustoClient {
-    type Error = KustoRsError;
+    type Error = crate::error::Error;
 
     fn try_from(value: ConnectionString) -> Result<Self> {
         let service_url = value
             .data_source
             .expect("A data source / service url must always be specified");
-        let resource = if service_url.ends_with('/') {
-            String::from(service_url)
-        } else {
-            format!("{}/", service_url)
-        };
 
         let credential: Arc<dyn TokenCredential> = match value {
             ConnectionString {
@@ -147,40 +143,15 @@ impl<'a> TryFrom<ConnectionString<'a>> for KustoClient {
             } => Arc::new(AzureCliCredential {}),
             _ => Arc::new(DefaultAzureCredential::default()),
         };
-        let mut options = KustoClientOptions::new();
-        options.credential = Some(credential);
-        options.resource = resource;
-
-        Self::new_with_options(service_url, options)
+        Self::new_with_options(service_url, credential, KustoClientOptions::new())
     }
 }
 
 impl TryFrom<String> for KustoClient {
-    type Error = KustoRsError;
+    type Error = crate::error::Error;
 
     fn try_from(value: String) -> Result<Self> {
         let connection_string = ConnectionString::new(value.as_str())?;
         Self::try_from(connection_string)
     }
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use dotenv::dotenv;
-//
-//     #[tokio::test]
-//     async fn test_query() {
-//         dotenv().ok();
-//         let options = KustoClientOptions::new();
-//         let client =
-//             KustoClient::new_with_options("https://chronos.kusto.windows.net", options).unwrap();
-//         let query = "signals | sample 10";
-//         let result = client
-//             .execute_query("argus-stage", query)
-//             .into_future()
-//             .await
-//             .unwrap();
-//         println!("{:#?}", result)
-//     }
-// }

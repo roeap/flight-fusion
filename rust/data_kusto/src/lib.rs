@@ -1,11 +1,11 @@
 #[macro_use]
 extern crate serde_derive;
 
-#[cfg(feature = "arrow")]
-pub mod arrow;
+mod operations;
+mod request_options;
+
 pub mod authorization_policy;
 pub mod client;
 pub mod connection_string;
 pub mod error;
 pub mod models;
-pub mod request;

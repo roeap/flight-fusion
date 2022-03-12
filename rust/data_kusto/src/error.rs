@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use thiserror;
 
 #[derive(thiserror::Error, Debug)]
-pub enum KustoRsError {
+pub enum Error {
     #[error("Error converting Kusto response for {0}")]
     ConversionError(String),
 
@@ -23,10 +23,6 @@ pub enum KustoRsError {
     #[error(transparent)]
     JsonError(#[from] serde_json::Error),
 
-    /// Error when sending or receiving data from service.
-    #[error(transparent)]
-    TransportError(#[from] reqwest::Error),
-
     /// Error occurring within core azure crates
     #[error(transparent)]
     AzureError(#[from] azure_core::Error),
@@ -36,4 +32,10 @@ pub enum KustoRsError {
     ConfigurationError(#[from] crate::connection_string::ConnectionStringError),
 }
 
-pub type Result<T> = std::result::Result<T, KustoRsError>;
+pub type Result<T> = std::result::Result<T, Error>;
+
+impl From<azure_core::error::Error> for Error {
+    fn from(err: azure_core::error::Error) -> Self {
+        Self::AzureError(err.into())
+    }
+}
