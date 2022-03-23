@@ -287,7 +287,7 @@ pub fn new_azure(
     let container_client = storage_client.as_container_client(&container_name);
 
     let options = ClientOptions::default();
-    let dl_client = DataLakeClient::new_with_options(
+    let dl_client = DataLakeClient::new_with_shared_key(
         StorageSharedKeyCredential::new(account, access_key),
         None,
         options,

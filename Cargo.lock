@@ -720,27 +720,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "datafusion-objectstore-azure"
-version = "0.1.0"
-dependencies = [
- "arrow 9.1.0",
- "async-trait",
- "azure_core",
- "azure_storage",
- "azure_storage_blobs",
- "azure_storage_datalake",
- "bytes",
- "datafusion",
- "futures",
- "http",
- "num_cpus",
- "tokio",
-]
-
-[[package]]
 name = "deltalake"
 version = "0.4.1"
-source = "git+https://github.com/roeap/delta-rs?branch=record-batch-writer#9c267eb46c7220844fdbda1b693105403d2f82b9"
+source = "git+https://github.com/roeap/delta-rs?branch=delta-commands#1338058f308cafa64876596dbf2c384a6729215d"
 dependencies = [
  "arrow 9.1.0",
  "async-trait",
@@ -938,7 +920,7 @@ version = "0.1.0"
 dependencies = [
  "area-store",
  "arrow-deps",
- "arrow-flight 7.0.0",
+ "arrow-flight 9.1.0",
  "async-trait",
  "bytes",
  "chrono",

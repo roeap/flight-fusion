@@ -10,7 +10,7 @@ arrow-flight = "9"
 
 # Git dependencies
 datafusion = "7"
-deltalake = { git = "https://github.com/roeap/delta-rs", branch = "record-batch-writer", features = [
+deltalake = { git = "https://github.com/roeap/delta-rs", branch = "delta-commands", features = [
   "datafusion-ext",
 ], optional = true }
 # deltalake = { path = "../../../delta-rs/rust", optional = true, default-features = false, features = [

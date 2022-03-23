@@ -5,7 +5,7 @@ use arrow_deps::datafusion::{
     execution::runtime_env::RuntimeEnv,
     physical_plan::{collect, ExecutionPlan},
 };
-use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, commands::DeltaCommands};
+use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, operations::DeltaCommands};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
     delta_operation_request, flight_do_put_request::Command as DoPutCommand,
@@ -263,7 +263,7 @@ mod tests {
             .unwrap();
         let mut dt = open_table(&table_uri).await.unwrap();
         assert_eq!(dt.version, 0);
-        assert_eq!(dt.get_file_uris().len(), 2);
+        assert_eq!(dt.get_file_uris().collect::<Vec<_>>().len(), 2);
 
         // Append data to table
         let _ = handler
@@ -272,7 +272,7 @@ mod tests {
             .unwrap();
         dt.update().await.unwrap();
         assert_eq!(dt.version, 1);
-        assert_eq!(dt.get_file_uris().len(), 4);
+        assert_eq!(dt.get_file_uris().collect::<Vec<_>>().len(), 4);
 
         // Overwrite table
         let request = DeltaOperationRequest {
@@ -288,7 +288,7 @@ mod tests {
         let _ = handler.handle_do_put(request, plan).await.unwrap();
         dt.update().await.unwrap();
         assert_eq!(dt.version, 2);
-        assert_eq!(dt.get_file_uris().len(), 2);
+        assert_eq!(dt.get_file_uris().collect::<Vec<_>>().len(), 2);
     }
 
     #[tokio::test]
