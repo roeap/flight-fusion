@@ -369,6 +369,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore]
     async fn azure_blob_test() {
         let config = maybe_skip_integration!();
         let integration = ObjectStore::new_microsoft_azure(

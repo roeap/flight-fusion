@@ -26,7 +26,7 @@ pub fn workspace_test_data_folder() -> PathBuf {
 }
 
 pub fn get_fusion_handler(root: impl Into<PathBuf>) -> FusionActionHandler {
-    FusionActionHandler::new(root)
+    FusionActionHandler::new(root).unwrap()
 }
 
 /// Run cargo to get the root of the workspace

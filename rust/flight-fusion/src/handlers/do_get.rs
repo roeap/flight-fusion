@@ -20,7 +20,7 @@ impl DoGetHandler<CommandSqlOperation> for FusionActionHandler {
         ticket: CommandSqlOperation,
     ) -> Result<BoxedFlightStream<FlightData>> {
         let config = SessionConfig::new().with_information_schema(true);
-        let mut ctx = SessionContext::with_config(config);
+        let ctx = SessionContext::with_config(config);
         ctx.register_catalog("catalog", self.catalog.clone());
 
         // execute the query

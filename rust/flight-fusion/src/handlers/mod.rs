@@ -71,19 +71,19 @@ pub struct FusionActionHandler {
 }
 
 impl FusionActionHandler {
-    pub fn new(root: impl Into<PathBuf>) -> Self {
+    pub fn new(root: impl Into<PathBuf>) -> Result<Self> {
         let schema_provider = MemorySchemaProvider::new();
         let catalog = Arc::new(MemoryCatalogProvider::new());
-        catalog.register_schema("schema", Arc::new(schema_provider));
+        catalog.register_schema("schema", Arc::new(schema_provider))?;
 
         let area_store = Arc::new(DefaultAreaStore::new(root));
         let area_catalog = Arc::new(FileAreaCatalog::new(area_store.clone()));
 
-        Self {
+        Ok(Self {
             catalog,
             area_store,
             area_catalog,
-        }
+        })
     }
 
     pub fn new_azure(
@@ -93,7 +93,7 @@ impl FusionActionHandler {
     ) -> Result<Self> {
         let schema_provider = MemorySchemaProvider::new();
         let catalog = Arc::new(MemoryCatalogProvider::new());
-        catalog.register_schema("schema", Arc::new(schema_provider));
+        catalog.register_schema("schema", Arc::new(schema_provider))?;
 
         let area_store = Arc::new(DefaultAreaStore::new_azure(
             account,
