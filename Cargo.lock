@@ -673,7 +673,7 @@ dependencies = [
  "pin-project-lite",
  "rand",
  "smallvec",
- "sqlparser 0.15.0",
+ "sqlparser",
  "tempfile",
  "tokio",
  "tokio-stream",
@@ -688,7 +688,7 @@ dependencies = [
  "arrow",
  "ordered-float 2.10.0",
  "parquet",
- "sqlparser 0.15.0",
+ "sqlparser",
 ]
 
 [[package]]
@@ -712,7 +712,7 @@ dependencies = [
  "ahash 0.7.6",
  "arrow",
  "datafusion-common",
- "sqlparser 0.15.0",
+ "sqlparser",
 ]
 
 [[package]]
@@ -1086,7 +1086,7 @@ dependencies = [
  "observability_deps",
  "petgraph",
  "prost",
- "sqlparser 0.13.0",
+ "sqlparser",
  "thiserror",
  "tokio",
 ]
@@ -2915,15 +2915,6 @@ name = "spin"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
-
-[[package]]
-name = "sqlparser"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b9907f54bd0f7b6ce72c2be1e570a614819ee08e3deb66d90480df341d8a12a8"
-dependencies = [
- "log",
-]
 
 [[package]]
 name = "sqlparser"
