@@ -24,10 +24,10 @@ observability_deps = { path = "../../rust/observability-deps" }
 # Crates.io dependencies
 env_logger = "0"
 prost = "0.9"
-pyo3 = { version = "0.15", features = [
+pyo3 = { version = "0.16", features = [
   "extension-module",
   "abi3",
-  "abi3-py36",
+  "abi3-py37",
 ] }
 # reqwest is pulled in by azure sdk, but not used by python binding itself
 # for binary wheel best practice, statically link openssl

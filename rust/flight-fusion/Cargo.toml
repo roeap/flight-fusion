@@ -13,11 +13,11 @@ object-store = { path = "../object-store" }
 observability_deps = { path = "../observability-deps" }
 
 # Crates.io dependencies
-arrow-flight = "9"
+arrow-flight = "11"
 async-trait = "0.1"
 bytes = "1"
 chrono = "^0.4"
-config = "0.11.0"
+config = "0.12"
 dotenv = "0.15"
 futures = "^0.3"
 lazy_static = "1.4.0"
