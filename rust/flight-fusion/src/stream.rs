@@ -13,9 +13,10 @@ use arrow_deps::datafusion::{
         error::{ArrowError, Result as ArrowResult},
         record_batch::RecordBatch,
     },
-    execution::runtime_env::RuntimeEnv,
+    execution::context::TaskContext,
     physical_plan::{
-        metrics::{BaselineMetrics, ExecutionPlanMetricsSet},
+        expressions::PhysicalSortExpr,
+        metrics::{ExecutionPlanMetricsSet, MemTrackingMetrics},
         RecordBatchStream,
     },
 };
@@ -38,8 +39,6 @@ pub struct FlightReceiverPlan {
     schema: ArrowSchemaRef,
     /// the requests object
     ticket: FlightDoPutRequest,
-    /// Execution metrics
-    metrics: ExecutionPlanMetricsSet,
 }
 
 impl FlightReceiverPlan {
@@ -98,7 +97,6 @@ impl FlightReceiverPlan {
             inner: batches,
             schema,
             ticket,
-            metrics: ExecutionPlanMetricsSet::new(),
         })
     }
 
@@ -132,6 +130,10 @@ impl ExecutionPlan for FlightReceiverPlan {
         Partitioning::UnknownPartitioning(1)
     }
 
+    fn output_ordering(&self) -> Option<&[PhysicalSortExpr]> {
+        None
+    }
+
     fn required_child_distribution(&self) -> Distribution {
         // TODO
         Distribution::SinglePartition
@@ -147,14 +149,12 @@ impl ExecutionPlan for FlightReceiverPlan {
     async fn execute(
         &self,
         partition: usize,
-        _runtime: Arc<RuntimeEnv>,
+        _context: Arc<TaskContext>,
     ) -> DataFusionResult<SendableRecordBatchStream> {
-        let baseline_metrics = BaselineMetrics::new(&self.metrics, partition);
-        let elapsed_compute = baseline_metrics.elapsed_compute().clone();
-        let _timer = elapsed_compute.timer(); // record on drop
-
+        let metrics = ExecutionPlanMetricsSet::new();
+        let tracking_metrics = MemTrackingMetrics::new(&metrics, partition);
         let stream =
-            SizedRecordBatchStream::new(self.schema(), self.inner.clone(), baseline_metrics);
+            SizedRecordBatchStream::new(self.schema(), self.inner.clone(), tracking_metrics);
         Ok(Box::pin(stream))
     }
 

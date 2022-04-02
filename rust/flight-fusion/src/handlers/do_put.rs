@@ -1,10 +1,7 @@
 use super::*;
 use crate::error::{FusionServiceError, Result};
 use area_store::store::AreaStore;
-use arrow_deps::datafusion::{
-    execution::runtime_env::RuntimeEnv,
-    physical_plan::{collect, ExecutionPlan},
-};
+use arrow_deps::datafusion::physical_plan::{collect, ExecutionPlan};
 use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, operations::DeltaCommands};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
@@ -78,7 +75,9 @@ impl DoPutHandler<CommandWriteIntoDataset> for FusionActionHandler {
     ) -> Result<ResultDoPutUpdate> {
         if let Some(source) = ticket.source {
             let location = self.area_store.get_table_location(&source)?;
-            let batches = collect(input, Arc::new(RuntimeEnv::default())).await?;
+            let session_ctx = SessionContext::new();
+            let task_ctx = session_ctx.task_ctx();
+            let batches = collect(input, task_ctx).await?;
             let _adds = self
                 .area_store
                 .put_batches(
@@ -107,7 +106,9 @@ impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
         let mut delta_cmd = DeltaCommands::try_from_uri(table_uri.location)
             .await
             .unwrap();
-        let batches = collect(input, Arc::new(RuntimeEnv::default())).await?;
+        let session_ctx = SessionContext::new();
+        let task_ctx = session_ctx.task_ctx();
+        let batches = collect(input, task_ctx).await?;
 
         match ticket.operation {
             Some(delta_operation_request::Operation::Write(req)) => {

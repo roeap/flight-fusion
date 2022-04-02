@@ -8,10 +8,12 @@ use area_store::{
 };
 use arrow_deps::arrow::ipc::writer::IpcWriteOptions;
 use arrow_deps::datafusion::{
-    catalog::{catalog::MemoryCatalogProvider, schema::MemorySchemaProvider},
+    catalog::{
+        catalog::CatalogProvider, catalog::MemoryCatalogProvider, schema::MemorySchemaProvider,
+    },
     datasource::MemTable,
-    execution::context::ExecutionContext,
     physical_plan::ExecutionPlan,
+    prelude::*,
 };
 use arrow_flight::{
     flight_descriptor::DescriptorType, FlightData, FlightDescriptor, FlightEndpoint, FlightInfo,
@@ -72,7 +74,7 @@ impl FusionActionHandler {
     pub fn new(root: impl Into<PathBuf>) -> Self {
         let schema_provider = MemorySchemaProvider::new();
         let catalog = Arc::new(MemoryCatalogProvider::new());
-        catalog.register_schema("schema".to_string(), Arc::new(schema_provider));
+        catalog.register_schema("schema", Arc::new(schema_provider));
 
         let area_store = Arc::new(DefaultAreaStore::new(root));
         let area_catalog = Arc::new(FileAreaCatalog::new(area_store.clone()));
@@ -91,7 +93,7 @@ impl FusionActionHandler {
     ) -> Result<Self> {
         let schema_provider = MemorySchemaProvider::new();
         let catalog = Arc::new(MemoryCatalogProvider::new());
-        catalog.register_schema("schema".to_string(), Arc::new(schema_provider));
+        catalog.register_schema("schema", Arc::new(schema_provider));
 
         let area_store = Arc::new(DefaultAreaStore::new_azure(
             account,
@@ -109,7 +111,7 @@ impl FusionActionHandler {
 
     pub async fn register_source(
         &self,
-        ctx: &mut ExecutionContext,
+        ctx: &mut SessionContext,
         source: &AreaSourceReference,
     ) -> Result<()> {
         let location = self.area_store.get_table_location(&source.clone())?;

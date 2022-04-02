@@ -3,7 +3,7 @@ use crate::error::{FusionServiceError, Result};
 use area_store::store::AreaStore;
 use arrow_deps::{
     arrow::{ipc::writer::IpcWriteOptions, record_batch::RecordBatch},
-    datafusion::prelude::{ExecutionConfig, ExecutionContext},
+    datafusion::prelude::{SessionConfig, SessionContext},
 };
 use arrow_flight::{FlightData, SchemaAsIpc};
 use async_trait::async_trait;
@@ -19,8 +19,8 @@ impl DoGetHandler<CommandSqlOperation> for FusionActionHandler {
         &self,
         ticket: CommandSqlOperation,
     ) -> Result<BoxedFlightStream<FlightData>> {
-        let config = ExecutionConfig::new().with_information_schema(true);
-        let mut ctx = ExecutionContext::with_config(config);
+        let config = SessionConfig::new().with_information_schema(true);
+        let mut ctx = SessionContext::with_config(config);
         ctx.register_catalog("catalog", self.catalog.clone());
 
         // execute the query
@@ -54,7 +54,7 @@ impl DoGetHandler<CommandExecuteQuery> for FusionActionHandler {
         &self,
         ticket: CommandExecuteQuery,
     ) -> Result<BoxedFlightStream<FlightData>> {
-        let mut ctx = ExecutionContext::new();
+        let mut ctx = SessionContext::new();
         match ticket.context {
             Some(QueryContext::Source(source)) => {
                 self.register_source(&mut ctx, &source).await?;

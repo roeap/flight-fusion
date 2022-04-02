@@ -1,24 +1,26 @@
 use crate::error::{FusionPlannerError, Result};
-use arrow_deps::datafusion::{
-    datasource::{
-        file_format::parquet::ParquetFormat,
-        listing::{ListingOptions, ListingTable},
-        object_store::local::LocalFileSystem,
-        TableProvider,
+use arrow_deps::{
+    datafusion::{
+        datasource::{
+            file_format::parquet::ParquetFormat,
+            listing::{ListingOptions, ListingTable, ListingTableConfig},
+            TableProvider,
+        },
+        logical_plan::{DFSchema, DFSchemaRef, Expr, JoinType, LogicalPlan, LogicalPlanBuilder},
+        physical_plan::ExecutionPlan,
+        prelude::SessionContext,
+        sql::{
+            parser::{DFParser, Statement},
+            planner::SqlToRel,
+        },
     },
-    logical_plan::{DFSchema, DFSchemaRef, Expr, JoinType, LogicalPlan, LogicalPlanBuilder},
-    physical_plan::ExecutionPlan,
-    prelude::ExecutionContext,
-    sql::{
-        parser::{DFParser, Statement},
-        planner::SqlToRel,
-    },
+    datafusion_data_access::object_store::local::LocalFileSystem,
 };
 use flight_fusion_ipc::{
     signal_provider::Source as ProviderSource, table_reference::Table as TableRef, SignalProvider,
 };
 use sqlparser::ast::{Query, Select, SelectItem, SetExpr, Statement as SQLStatement};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 pub enum ProviderNode {
     Table(Arc<dyn TableProvider>),
@@ -49,7 +51,7 @@ impl SourceTableInfo {
 }
 
 pub struct FrameQueryPlanner {
-    ctx: ExecutionContext,
+    ctx: SessionContext,
     plan: Option<LogicalPlan>,
 }
 
@@ -62,7 +64,7 @@ impl Default for FrameQueryPlanner {
 impl FrameQueryPlanner {
     pub fn new() -> Self {
         Self {
-            ctx: ExecutionContext::new(),
+            ctx: SessionContext::new(),
             plan: None,
         }
     }
@@ -120,12 +122,11 @@ impl FrameQueryPlanner {
                         .infer_schema(Arc::new(LocalFileSystem {}), &file.path)
                         .await
                         .expect("Infer schema");
-                    let table = ListingTable::new(
-                        Arc::new(LocalFileSystem {}),
-                        file.path.clone(),
-                        schema,
-                        opt,
-                    );
+                    let options =
+                        ListingTableConfig::new(Arc::new(LocalFileSystem {}), file.path.clone())
+                            .with_schema(schema)
+                            .with_listing_options(opt);
+                    let table = ListingTable::try_new(options)?;
                     Ok(ProviderNode::Table(Arc::new(table)))
                 }
                 _ => todo!(),
@@ -182,13 +183,13 @@ impl FrameQueryPlanner {
             ));
         };
 
-        let state = self.ctx.state.lock().unwrap().clone();
+        let state = self.ctx.state.read().clone();
         let query_planner = SqlToRel::new(&state);
 
         let expression = match &select_items[0] {
-            SelectItem::UnnamedExpr(expr) => Ok(query_planner.sql_to_rex(expr, schema)?),
+            SelectItem::UnnamedExpr(expr) => Ok(query_planner.sql_to_rex(expr.clone(), schema)?),
             SelectItem::ExprWithAlias { expr, alias } => Ok(Expr::Alias(
-                Box::new(query_planner.sql_to_rex(expr, schema)?),
+                Box::new(query_planner.sql_to_rex(expr.clone(), schema)?),
                 alias.value.clone(),
             )),
             _ => Err(FusionPlannerError::PlanningError(
@@ -201,8 +202,8 @@ impl FrameQueryPlanner {
 
     pub async fn create_physical_plan(&self) -> Result<Arc<dyn ExecutionPlan>> {
         let plan = self.ctx.optimize(&self.plan.clone().unwrap()).unwrap();
-        let state = self.ctx.state.lock().unwrap().clone();
-        let ctx = ExecutionContext::from(Arc::new(Mutex::new(state)));
+        let state = self.ctx.state.read().clone();
+        let ctx = SessionContext::with_state(state);
         let phys_plan = ctx.create_physical_plan(&plan).await?;
         Ok(phys_plan)
     }
@@ -212,7 +213,7 @@ impl FrameQueryPlanner {
 mod tests {
     use super::*;
     use arrow_deps::arrow::util::pretty;
-    use arrow_deps::datafusion::{execution::runtime_env::RuntimeEnv, physical_plan::collect};
+    use arrow_deps::datafusion::physical_plan::collect;
     use flight_fusion_ipc::{ExpressionReference, Signal};
 
     #[tokio::test]
@@ -247,10 +248,9 @@ mod tests {
             .unwrap();
 
         let plan = planner.create_physical_plan().await.unwrap();
-
-        let results = collect(plan.clone(), Arc::new(RuntimeEnv::default()))
-            .await
-            .unwrap();
+        let session_ctx = SessionContext::new();
+        let task_ctx = session_ctx.task_ctx();
+        let results = collect(plan.clone(), task_ctx).await.unwrap();
         println!("{:?}", results[0])
     }
 
@@ -292,10 +292,9 @@ mod tests {
             .unwrap();
 
         let plan = planner.create_physical_plan().await.unwrap();
-
-        let results = collect(plan.clone(), Arc::new(RuntimeEnv::default()))
-            .await
-            .unwrap();
+        let session_ctx = SessionContext::new();
+        let task_ctx = session_ctx.task_ctx();
+        let results = collect(plan.clone(), task_ctx).await.unwrap();
         pretty::print_batches(&results).unwrap();
     }
 }

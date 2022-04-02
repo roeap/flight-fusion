@@ -39,7 +39,7 @@ impl CachedAreaStore {
         // check if file can be loaded from cache
         if self.file_in_cache(location).await {
             let mut cache = self.cache.write().unwrap();
-            let file_reader = FileReader::try_new(cache.get(location.to_raw())?)?;
+            let file_reader = FileReader::try_new(cache.get(location.to_raw())?, None)?;
             let mut batches = Vec::new();
             for batch in file_reader.into_iter() {
                 batches.push(batch?.clone());
