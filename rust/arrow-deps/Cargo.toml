@@ -6,11 +6,11 @@ publish = false
 
 [dependencies]
 # Crates.io dependencies
-arrow-flight = "7"
+arrow-flight = "11"
 
 # Git dependencies
-datafusion = { git = "https://github.com/apache/arrow-datafusion", rev = "15af24ab3d21c6baa3a7fff191ceecafce20dd35" }
-deltalake = { git = "https://github.com/roeap/delta-rs", branch = "wb", features = [
+datafusion = { git = "https://github.com/apache/arrow-datafusion.git", rev = "f619d43494e182e260423f8333eed9ea789f0cb8" }
+deltalake = { git = "https://github.com/roeap/delta-rs", rev = "e96a6636d38c603211064225f7358420885dba18", features = [
   "datafusion-ext",
 ], optional = true }
 # deltalake = { path = "../../../delta-rs/rust", optional = true, default-features = false, features = [
