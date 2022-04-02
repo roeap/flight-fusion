@@ -101,6 +101,7 @@ mod tests {
     use arrow_deps::datafusion::{physical_plan::collect, prelude::SessionContext};
 
     #[tokio::test]
+    #[ignore]
     async fn create_catalog() {
         let frame = crate::test_utils::get_signal_frame();
         let mut fg = FrameGraph::new();

@@ -237,7 +237,7 @@ mod tests {
             }],
             inputs: vec![],
             source: Some(ProviderSource::Expression(ExpressionReference {
-                expression: "S2 * 2 + S5".to_string(),
+                expression: "\"S2\" * 2 + \"S5\"".to_string(),
                 ..ExpressionReference::default()
             })),
         };
@@ -281,7 +281,7 @@ mod tests {
             }],
             inputs: vec![],
             source: Some(ProviderSource::Expression(ExpressionReference {
-                expression: "S2 * 2 + S5 + S6".to_string(),
+                expression: "\"S2\" * 2 + \"S5\" + \"S6\"".to_string(),
                 ..ExpressionReference::default()
             })),
         };

@@ -712,7 +712,7 @@ dependencies = [
 [[package]]
 name = "deltalake"
 version = "0.4.1"
-source = "git+https://github.com/roeap/delta-rs?rev=9d2a979d7caffc6476fc204f8655c66717a9bfe7#9d2a979d7caffc6476fc204f8655c66717a9bfe7"
+source = "git+https://github.com/roeap/delta-rs?rev=c534f586a1a2cbc7792cec00840d4b8903f1f568#c534f586a1a2cbc7792cec00840d4b8903f1f568"
 dependencies = [
  "arrow",
  "async-trait",
@@ -1854,6 +1854,7 @@ dependencies = [
  "futures-test",
  "itertools",
  "percent-encoding",
+ "pretty_assertions",
  "reqwest",
  "tempfile",
  "thiserror",
