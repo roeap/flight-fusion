@@ -1,12 +1,10 @@
 import numpy as np
 import pandas as pd
-import pytest
 
 from flight_fusion import FusionServiceClient
 from flight_fusion.ipc.v1alpha1 import SaveMode
 
 
-@pytest.mark.integration
 def test_roundtrip(ff_client: FusionServiceClient):
     np.random.seed(42)
     df = pd.DataFrame(np.random.randn(5, 3), columns=["col1", "col2", "col3"])
@@ -19,7 +17,6 @@ def test_roundtrip(ff_client: FusionServiceClient):
     assert df.equals(df_loaded)
 
 
-@pytest.mark.integration
 def test_save_mode(ff_client: FusionServiceClient):
     np.random.seed(42)
     df = pd.DataFrame(np.random.randn(5, 3), columns=["col1", "col2", "col3"])
