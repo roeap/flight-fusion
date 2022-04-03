@@ -331,7 +331,7 @@ class DeltaWriteOperation(betterproto.Message):
 
 @dataclass(eq=False, repr=False)
 class DeltaOperationRequest(betterproto.Message):
-    table: "DeltaReference" = betterproto.message_field(1)
+    source: "AreaSourceReference" = betterproto.message_field(1)
     create: "DeltaCreateOperation" = betterproto.message_field(10, group="operation")
     write: "DeltaWriteOperation" = betterproto.message_field(11, group="operation")
 

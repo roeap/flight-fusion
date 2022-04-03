@@ -398,7 +398,7 @@ pub struct DeltaWriteOperation {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeltaOperationRequest {
     #[prost(message, optional, tag="1")]
-    pub table: ::core::option::Option<DeltaReference>,
+    pub source: ::core::option::Option<AreaSourceReference>,
     #[prost(oneof="delta_operation_request::Operation", tags="10, 11")]
     pub operation: ::core::option::Option<delta_operation_request::Operation>,
 }

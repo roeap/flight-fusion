@@ -11,7 +11,7 @@ arrow-flight = "11"
 # Git dependencies
 datafusion = { git = "https://github.com/apache/arrow-datafusion.git", rev = "f619d43494e182e260423f8333eed9ea789f0cb8" }
 datafusion-data-access = { git = "https://github.com/apache/arrow-datafusion.git", rev = "f619d43494e182e260423f8333eed9ea789f0cb8" }
-deltalake = { git = "https://github.com/roeap/delta-rs", rev = "c534f586a1a2cbc7792cec00840d4b8903f1f568", features = [
+deltalake = { git = "https://github.com/roeap/delta-rs", rev = "9ee0f22164f7ff01b489a378bc9bc0ef09bf14df", features = [
   "datafusion-ext",
 ], optional = true }
 # deltalake = { path = "../../../delta-rs/rust", optional = true, default-features = false, features = [

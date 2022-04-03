@@ -16,12 +16,17 @@ use std::sync::Arc;
 
 pub struct DefaultAreaStore {
     object_store: Arc<object_store::ObjectStore>,
+    root_path: String,
 }
 
 impl DefaultAreaStore {
     pub fn new(root: impl Into<PathBuf>) -> Self {
-        let object_store = Arc::new(object_store::ObjectStore::new_file(root));
-        Self { object_store }
+        let buf: PathBuf = root.into();
+        let object_store = Arc::new(object_store::ObjectStore::new_file(buf.clone()));
+        Self {
+            object_store,
+            root_path: format!("{}", buf.to_str().unwrap()),
+        }
     }
 
     pub fn new_azure(
@@ -29,13 +34,22 @@ impl DefaultAreaStore {
         access_key: impl Into<String>,
         container_name: impl Into<String>,
     ) -> Result<Self> {
+        let container: String = container_name.into();
         let object_store = Arc::new(object_store::ObjectStore::new_microsoft_azure(
             account,
             access_key,
-            container_name,
+            container.clone(),
             false,
         )?);
-        Ok(Self { object_store })
+        Ok(Self {
+            object_store,
+            root_path: format!("adls2://{}", container),
+        })
+    }
+
+    pub fn get_full_table_path(&self, source: &AreaSourceReference) -> Result<String> {
+        let location = self.get_table_location(source)?;
+        Ok(format!("{}/{}", self.root_path, location.to_raw()))
     }
 }
 

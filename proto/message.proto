@@ -119,7 +119,7 @@ message DeltaWriteOperation {
 }
 
 message DeltaOperationRequest {
-  DeltaReference table = 1;
+  AreaSourceReference source = 1;
   oneof operation {
     DeltaCreateOperation create = 10;
     DeltaWriteOperation write = 11;
