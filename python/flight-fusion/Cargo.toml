@@ -6,6 +6,7 @@ description = "Client to filight fusion serice"
 readme = "README.md"
 edition = "2021"
 keywords = ["datafusion", "datalake", "pandas", "arrow"]
+authors = ["Robert Pack <r.pack@outlook.com>"]
 
 [lib]
 name = "_internal"

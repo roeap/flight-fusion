@@ -7,7 +7,7 @@ name = "flight-fusion"
 description = "Client to filight fusion service"
 readme = "README.md"
 license = { file = "LICENSE.txt" }
-requires-python = ">=3.6"
+requires-python = ">=3.7"
 keywords = ["deltalake", "delta", "arrow", "datafusion", "arrow-flight"]
 classifier = [
   "Development Status :: 2 - Pre-Alpha",

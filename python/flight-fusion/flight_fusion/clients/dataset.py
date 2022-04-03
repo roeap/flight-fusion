@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import List, Union
+from typing import List, Optional, Union
 
 import pandas as pd
 import pyarrow as pa
@@ -93,7 +93,7 @@ class DatasetClient:
     def get_metadata(self) -> AreaSourceMetadata:
         raise NotImplementedError
 
-    def set_metadata(self, metadata: AreaSourceMetadata = None) -> None:
+    def set_metadata(self, metadata: Optional[AreaSourceMetadata] = None) -> None:
         raise NotImplementedError
 
 
