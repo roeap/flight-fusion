@@ -19,7 +19,7 @@ flight-fusion = { path = "python/flight-fusion/", develop = true }
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"
-black = { version = "^22.1.0", extras = ["jupyter"] }
+black = { version = "^22.3.0", extras = ["jupyter"] }
 flake8 = "^3.9.2"
 isort = "^5.9.3"
 ipykernel = ">=6.4.2"
