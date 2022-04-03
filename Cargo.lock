@@ -1008,20 +1008,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "flight-fusion-python"
-version = "0.1.7"
-dependencies = [
- "env_logger",
- "flight-fusion-client",
- "observability_deps",
- "prost",
- "pyo3",
- "reqwest",
- "thiserror",
- "tokio",
-]
-
-[[package]]
 name = "flight-fusion-server"
 version = "0.1.0"
 dependencies = [
@@ -1984,15 +1970,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "28988d872ab76095a6e6ac88d99b54fd267702734fd7ffe610ca27f533ddb95a"
 
 [[package]]
-name = "openssl-src"
-version = "111.18.0+1.1.1n"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7897a926e1e8d00219127dc020130eca4292e5ca666dd592480d72c3eca2ff6c"
-dependencies = [
- "cc",
-]
-
-[[package]]
 name = "openssl-sys"
 version = "0.9.72"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2001,7 +1978,6 @@ dependencies = [
  "autocfg",
  "cc",
  "libc",
- "openssl-src",
  "pkg-config",
  "vcpkg",
 ]

@@ -15,6 +15,7 @@ betterproto = { version = "2.0.0b4", extras = ["compiler"] }
 mkdocs-material = "^8.1.4"
 mkautodoc = "^0.1.0"
 dagster-fusion = { path = "python/dagster-fusion/", develop = true }
+flight-fusion = { path = "python/flight-fusion/", develop = true }
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"
