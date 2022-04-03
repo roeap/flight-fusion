@@ -1,4 +1,7 @@
+# flake8: noqa 401
 import subprocess  # nosec
+import sys
+from pathlib import Path
 
 import typer
 from loguru import logger
@@ -14,7 +17,14 @@ def start():
 
     settings = get_app_settings()
 
-    subprocess.run(str(settings.executable))  # nosec running our own executable
+    try:
+        import flight_fusion_server  # type: ignore
+    except ImportError:
+        logger.error("Install package 'flight-fusion-server' to tun server")
+        typer.Abort()
+
+    exec_path = Path(sys.executable).parent / "flight-fusion-server"
+    subprocess.run([exec_path, "--log-level", "info"])  # nosec running our own executable
 
 
 @app.command()
