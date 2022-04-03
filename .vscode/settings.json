@@ -9,5 +9,7 @@
       "source.organizeImports": true
     }
   },
-  "python.analysis.typeCheckingMode": "basic"
+  "python.analysis.typeCheckingMode": "basic",
+  "python.linting.banditEnabled": true,
+  "python.linting.banditArgs": ["--configfile", ".bandit"]
 }
