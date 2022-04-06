@@ -16,6 +16,8 @@ dagster-fusion = { path = "python/dagster-fusion/", develop = true }
 flight-fusion = { path = "python/flight-fusion/", develop = true, extras = [
   "docker",
 ] }
+pyspark = "^3.2.1"
+delta-spark = "^1.1.0"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"
