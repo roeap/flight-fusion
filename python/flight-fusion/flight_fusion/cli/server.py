@@ -23,8 +23,6 @@ def start(host: str = "127.0.0.1", port: int = 50051, log_level: LogLevel = LogL
     """Run a local instance of the flight-fusion server"""
     logger.info("Starting flight-fusion server")
 
-    settings = get_app_settings()
-
     exec_path = Path(sys.executable).parent / "flight-fusion-server"
     if not exec_path.exists():
         logger.error("Install package 'flight-fusion-server' to tun server")

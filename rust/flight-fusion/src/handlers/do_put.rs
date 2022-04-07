@@ -103,8 +103,7 @@ impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
     ) -> Result<DeltaOperationResponse> {
         if let Some(source) = ticket.source {
             let full_path = self.area_store.get_full_table_path(&source)?;
-            // TODO remove panic
-            let mut delta_cmd = DeltaCommands::try_from_uri(full_path).await.unwrap();
+            let mut delta_cmd = DeltaCommands::try_from_uri(full_path).await?;
             let session_ctx = SessionContext::new();
             let task_ctx = session_ctx.task_ctx();
             let batches = collect(input, task_ctx).await?;
@@ -117,11 +116,9 @@ impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
                         Some(SaveMode::ErrorIfExists) => DeltaSaveMode::ErrorIfExists,
                         _ => todo!(),
                     };
-                    // TODO remove panic
                     delta_cmd
                         .write(batches, Some(mode), Some(req.partition_columns))
-                        .await
-                        .unwrap();
+                        .await?;
                 }
                 _ => todo!(),
             };
@@ -137,21 +134,14 @@ impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{
-        generate_random_batch, get_fusion_handler, get_input_plan, get_record_batch,
-    };
+    use crate::test_utils::{get_fusion_handler, get_input_plan};
     use area_store::store::flatten_list_stream;
-    use arrow_deps::datafusion::{
-        arrow::datatypes::{DataType, Field, Schema as ArrowSchema},
-        physical_plan::memory::MemoryExec,
-    };
     use arrow_deps::deltalake::open_table;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, delta_operation_request::Operation,
-        AreaSourceReference, AreaTableLocation, DeltaOperationRequest, DeltaReference,
-        DeltaWriteOperation, SaveMode,
+        AreaSourceReference, AreaTableLocation, DeltaOperationRequest, DeltaWriteOperation,
+        SaveMode,
     };
-    use std::sync::Arc;
 
     #[tokio::test]
     async fn test_put_table() {
@@ -239,21 +229,20 @@ mod tests {
     #[tokio::test]
     async fn test_put_delta() {
         let root = tempfile::tempdir().unwrap();
-        // let root = std::path::Path::new("/home/robstar/github/flight-fusion/.fusion");
         let plan = get_input_plan(None, false);
         let handler = get_fusion_handler(root.path());
         let table_dir = root.path().join("_ff_data/new_table");
-        // let handler = get_fusion_handler(root.clone());
-        // let table_dir = root.join("_ff_data/new_table");
 
         let table = TableReference::Location(AreaTableLocation {
             name: "new_table".to_string(),
             areas: vec![],
         });
         let request = DeltaOperationRequest {
-            source: Some(AreaSourceReference { table: Some(table) }),
+            source: Some(AreaSourceReference {
+                table: Some(table.clone()),
+            }),
             operation: Some(Operation::Write(DeltaWriteOperation {
-                save_mode: SaveMode::Overwrite.into(),
+                save_mode: SaveMode::Append.into(),
                 partition_columns: vec!["modified".to_string()],
                 ..Default::default()
             })),
@@ -269,65 +258,26 @@ mod tests {
         assert_eq!(dt.get_file_uris().collect::<Vec<_>>().len(), 2);
 
         // Append data to table
-        // let _ = handler
-        //     .handle_do_put(request.clone(), plan.clone())
-        //     .await
-        //     .unwrap();
-        // dt.update().await.unwrap();
-        // assert_eq!(dt.version, 1);
-        // assert_eq!(dt.get_file_uris().collect::<Vec<_>>().len(), 4);
+        let _ = handler
+            .handle_do_put(request.clone(), plan.clone())
+            .await
+            .unwrap();
+        dt.update().await.unwrap();
+        assert_eq!(dt.version, 1);
+        assert_eq!(dt.get_file_uris().collect::<Vec<_>>().len(), 4);
 
         // Overwrite table
-        // let request = DeltaOperationRequest {
-        //     table: Some(DeltaReference {
-        //         location: table_uri.clone(),
-        //     }),
-        //     operation: Some(Operation::Write(DeltaWriteOperation {
-        //         save_mode: SaveMode::Overwrite.into(),
-        //         partition_columns: vec!["modified".to_string()],
-        //         ..Default::default()
-        //     })),
-        // };
-        // let _ = handler.handle_do_put(request, plan).await.unwrap();
-        // dt.update().await.unwrap();
-        // assert_eq!(dt.version, 2);
-        // assert_eq!(dt.get_file_uris().collect::<Vec<_>>().len(), 2);
+        let request = DeltaOperationRequest {
+            source: Some(AreaSourceReference { table: Some(table) }),
+            operation: Some(Operation::Write(DeltaWriteOperation {
+                save_mode: SaveMode::Overwrite.into(),
+                partition_columns: vec!["modified".to_string()],
+                ..Default::default()
+            })),
+        };
+        let _ = handler.handle_do_put(request, plan).await.unwrap();
+        dt.update().await.unwrap();
+        assert_eq!(dt.version, 2);
+        assert_eq!(dt.get_file_uris().collect::<Vec<_>>().len(), 2);
     }
-
-    // #[tokio::test]
-    // async fn asd() {
-    //     let schema = Arc::new(ArrowSchema::new(vec![
-    //         Field::new("col1", DataType::Float64, true),
-    //         Field::new("col2", DataType::Float64, true),
-    //         Field::new("col3", DataType::Float64, true),
-    //     ]));
-    //     let row_count = 4;
-    //
-    //     let batch = generate_random_batch(row_count, schema.clone());
-    //     let plan =
-    //         Arc::new(MemoryExec::try_new(&[vec![batch.clone()]], schema.clone(), None).unwrap());
-    //
-    //     let table_dir = tempfile::tempdir().unwrap();
-    //     let table_path = table_dir.path();
-    //     let table_uri = table_path.to_str().unwrap().to_string();
-    //
-    //     let request = DeltaOperationRequest {
-    //         table: Some(DeltaReference {
-    //             location: table_uri.clone(),
-    //         }),
-    //         operation: Some(Operation::Write(DeltaWriteOperation {
-    //             save_mode: SaveMode::Append.into(),
-    //             partition_columns: vec![],
-    //             ..Default::default()
-    //         })),
-    //     };
-    //
-    //     let handler = get_fusion_handler(table_uri.clone());
-    //     let _ = handler
-    //         .handle_do_put(request.clone(), plan.clone())
-    //         .await
-    //         .unwrap();
-    //     let dt = open_table(&table_uri).await.unwrap();
-    //     assert_eq!(dt.version, 0);
-    // }
 }
