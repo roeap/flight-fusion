@@ -132,8 +132,8 @@ name = "arrow-deps"
 version = "0.1.0"
 dependencies = [
  "arrow-flight",
- "datafusion",
- "datafusion-data-access",
+ "datafusion 7.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=f619d43494e182e260423f8333eed9ea789f0cb8)",
+ "datafusion-data-access 1.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=f619d43494e182e260423f8333eed9ea789f0cb8)",
  "deltalake",
 ]
 
@@ -652,16 +652,48 @@ dependencies = [
 [[package]]
 name = "datafusion"
 version = "7.0.0"
+source = "git+https://github.com/apache/arrow-datafusion.git?rev=d54ba4e648bdbe6f7d19f6bd66e5048a796690fc#d54ba4e648bdbe6f7d19f6bd66e5048a796690fc"
+dependencies = [
+ "ahash",
+ "arrow",
+ "async-trait",
+ "chrono",
+ "datafusion-common 7.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=d54ba4e648bdbe6f7d19f6bd66e5048a796690fc)",
+ "datafusion-data-access 1.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=d54ba4e648bdbe6f7d19f6bd66e5048a796690fc)",
+ "datafusion-expr 7.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=d54ba4e648bdbe6f7d19f6bd66e5048a796690fc)",
+ "datafusion-physical-expr 7.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=d54ba4e648bdbe6f7d19f6bd66e5048a796690fc)",
+ "futures",
+ "hashbrown 0.12.0",
+ "lazy_static",
+ "log",
+ "num_cpus",
+ "ordered-float 2.10.0",
+ "parking_lot 0.12.0",
+ "parquet",
+ "paste",
+ "pin-project-lite",
+ "rand",
+ "smallvec",
+ "sqlparser",
+ "tempfile",
+ "tokio",
+ "tokio-stream",
+ "uuid",
+]
+
+[[package]]
+name = "datafusion"
+version = "7.0.0"
 source = "git+https://github.com/apache/arrow-datafusion.git?rev=f619d43494e182e260423f8333eed9ea789f0cb8#f619d43494e182e260423f8333eed9ea789f0cb8"
 dependencies = [
  "ahash",
  "arrow",
  "async-trait",
  "chrono",
- "datafusion-common",
- "datafusion-data-access",
- "datafusion-expr",
- "datafusion-physical-expr",
+ "datafusion-common 7.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=f619d43494e182e260423f8333eed9ea789f0cb8)",
+ "datafusion-data-access 1.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=f619d43494e182e260423f8333eed9ea789f0cb8)",
+ "datafusion-expr 7.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=f619d43494e182e260423f8333eed9ea789f0cb8)",
+ "datafusion-physical-expr 7.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=f619d43494e182e260423f8333eed9ea789f0cb8)",
  "futures",
  "hashbrown 0.12.0",
  "lazy_static",
@@ -684,12 +716,36 @@ dependencies = [
 [[package]]
 name = "datafusion-common"
 version = "7.0.0"
+source = "git+https://github.com/apache/arrow-datafusion.git?rev=d54ba4e648bdbe6f7d19f6bd66e5048a796690fc#d54ba4e648bdbe6f7d19f6bd66e5048a796690fc"
+dependencies = [
+ "arrow",
+ "ordered-float 2.10.0",
+ "parquet",
+ "sqlparser",
+]
+
+[[package]]
+name = "datafusion-common"
+version = "7.0.0"
 source = "git+https://github.com/apache/arrow-datafusion.git?rev=f619d43494e182e260423f8333eed9ea789f0cb8#f619d43494e182e260423f8333eed9ea789f0cb8"
 dependencies = [
  "arrow",
  "ordered-float 2.10.0",
  "parquet",
  "sqlparser",
+]
+
+[[package]]
+name = "datafusion-data-access"
+version = "1.0.0"
+source = "git+https://github.com/apache/arrow-datafusion.git?rev=d54ba4e648bdbe6f7d19f6bd66e5048a796690fc#d54ba4e648bdbe6f7d19f6bd66e5048a796690fc"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "futures",
+ "parking_lot 0.12.0",
+ "tempfile",
+ "tokio",
 ]
 
 [[package]]
@@ -708,12 +764,46 @@ dependencies = [
 [[package]]
 name = "datafusion-expr"
 version = "7.0.0"
+source = "git+https://github.com/apache/arrow-datafusion.git?rev=d54ba4e648bdbe6f7d19f6bd66e5048a796690fc#d54ba4e648bdbe6f7d19f6bd66e5048a796690fc"
+dependencies = [
+ "ahash",
+ "arrow",
+ "datafusion-common 7.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=d54ba4e648bdbe6f7d19f6bd66e5048a796690fc)",
+ "sqlparser",
+]
+
+[[package]]
+name = "datafusion-expr"
+version = "7.0.0"
 source = "git+https://github.com/apache/arrow-datafusion.git?rev=f619d43494e182e260423f8333eed9ea789f0cb8#f619d43494e182e260423f8333eed9ea789f0cb8"
 dependencies = [
  "ahash",
  "arrow",
- "datafusion-common",
+ "datafusion-common 7.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=f619d43494e182e260423f8333eed9ea789f0cb8)",
  "sqlparser",
+]
+
+[[package]]
+name = "datafusion-physical-expr"
+version = "7.0.0"
+source = "git+https://github.com/apache/arrow-datafusion.git?rev=d54ba4e648bdbe6f7d19f6bd66e5048a796690fc#d54ba4e648bdbe6f7d19f6bd66e5048a796690fc"
+dependencies = [
+ "ahash",
+ "arrow",
+ "blake2",
+ "blake3",
+ "chrono",
+ "datafusion-common 7.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=d54ba4e648bdbe6f7d19f6bd66e5048a796690fc)",
+ "datafusion-expr 7.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=d54ba4e648bdbe6f7d19f6bd66e5048a796690fc)",
+ "hashbrown 0.12.0",
+ "lazy_static",
+ "md-5",
+ "ordered-float 2.10.0",
+ "paste",
+ "rand",
+ "regex",
+ "sha2 0.10.2",
+ "unicode-segmentation",
 ]
 
 [[package]]
@@ -726,8 +816,8 @@ dependencies = [
  "blake2",
  "blake3",
  "chrono",
- "datafusion-common",
- "datafusion-expr",
+ "datafusion-common 7.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=f619d43494e182e260423f8333eed9ea789f0cb8)",
+ "datafusion-expr 7.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=f619d43494e182e260423f8333eed9ea789f0cb8)",
  "hashbrown 0.12.0",
  "lazy_static",
  "md-5",
@@ -742,14 +832,14 @@ dependencies = [
 [[package]]
 name = "deltalake"
 version = "0.4.1"
-source = "git+https://github.com/roeap/delta-rs?rev=9ee0f22164f7ff01b489a378bc9bc0ef09bf14df#9ee0f22164f7ff01b489a378bc9bc0ef09bf14df"
+source = "git+https://github.com/roeap/delta-rs?rev=b92479bae08fd896cfd66d32c8d4cb1cdd5d2308#b92479bae08fd896cfd66d32c8d4cb1cdd5d2308"
 dependencies = [
  "arrow",
  "async-trait",
  "bytes",
  "cfg-if",
  "chrono",
- "datafusion",
+ "datafusion 7.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=d54ba4e648bdbe6f7d19f6bd66e5048a796690fc)",
  "errno",
  "futures",
  "glibc_version",

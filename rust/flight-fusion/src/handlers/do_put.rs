@@ -117,7 +117,7 @@ impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
                         _ => todo!(),
                     };
                     delta_cmd
-                        .write(batches, Some(mode), Some(req.partition_columns))
+                        .write(batches, mode, Some(req.partition_columns))
                         .await?;
                 }
                 _ => todo!(),

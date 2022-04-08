@@ -36,6 +36,7 @@ use tonic::Status;
 pub mod actions;
 pub mod do_get;
 pub mod do_put;
+mod utils;
 
 pub type BoxedFlightStream<T> =
     Pin<Box<dyn Stream<Item = std::result::Result<T, Status>> + Send + Sync + 'static>>;
@@ -129,7 +130,7 @@ impl FusionActionHandler {
 
     pub async fn list_flights(
         &self,
-        command: CommandListSources,
+        _command: CommandListSources,
     ) -> Result<BoxedFlightStream<FlightInfo>> {
         // let _ = Ok(Box::pin(
         //     self.area_catalog
@@ -219,34 +220,6 @@ impl FusionActionHandler {
                 "No operation data passed",
             )),
         }
-    }
-}
-
-fn meta_to_flight_info(
-    meta: Result<AreaSourceMetadata>,
-) -> std::result::Result<FlightInfo, tonic::Status> {
-    match meta {
-        Ok(_m) => {
-            // TODO populate with meaningful data
-            let descriptor = FlightDescriptor {
-                r#type: DescriptorType::Cmd.into(),
-                cmd: vec![],
-                ..FlightDescriptor::default()
-            };
-            let endpoint = FlightEndpoint {
-                ticket: None,
-                location: vec![],
-            };
-            let info = FlightInfo {
-                schema: vec![],
-                flight_descriptor: Some(descriptor),
-                endpoint: vec![endpoint],
-                total_records: -1,
-                total_bytes: -1,
-            };
-            Ok(info)
-        }
-        Err(e) => Err(tonic::Status::internal(e.to_string())),
     }
 }
 
