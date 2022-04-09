@@ -1,7 +1,9 @@
 use super::{utils::create_response_stream, *};
 use crate::error::{FusionServiceError, Result};
 use arrow_deps::datafusion::physical_plan::{collect, ExecutionPlan};
-use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, operations::DeltaCommands};
+use arrow_deps::deltalake::{
+    action::SaveMode as DeltaSaveMode, open_table, operations::DeltaCommands,
+};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
     delta_operation_request::Operation as DeltaOperation, DeltaOperationRequest,
@@ -53,7 +55,8 @@ impl DoGetHandler<DeltaOperationRequest> for FusionActionHandler {
         ticket: DeltaOperationRequest,
     ) -> Result<BoxedFlightStream<FlightData>> {
         if let Some(source) = ticket.source {
-            let _full_path = self.area_store.get_full_table_path(&source)?;
+            let full_path = self.area_store.get_full_table_path(&source)?;
+            let _table = open_table(&full_path).await?;
             todo!()
             // let location = self.area_store.get_table_location(&table)?;
             // let batches = self.area_store.get_batches(&location).await?;

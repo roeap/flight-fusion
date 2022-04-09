@@ -1,5 +1,8 @@
 use area_store::{catalog::error::AreaCatalogError, store::error::AreaStoreError};
-use arrow_deps::{datafusion::error::DataFusionError, deltalake::operations::DeltaCommandError};
+use arrow_deps::{
+    datafusion::error::DataFusionError,
+    deltalake::{operations::DeltaCommandError, DeltaTableError},
+};
 use flight_fusion_ipc::FlightFusionIpcError;
 use futures::Stream;
 use std::pin::Pin;
@@ -43,6 +46,9 @@ pub enum FusionServiceError {
 
     #[error(transparent)]
     DeltaCommand(#[from] DeltaCommandError),
+
+    #[error(transparent)]
+    DeltaTable(#[from] DeltaTableError),
 }
 
 impl FusionServiceError {

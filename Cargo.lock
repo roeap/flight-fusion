@@ -266,6 +266,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "azure_core"
+version = "0.2.1"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=fix-range#fb3137236fe87720eff10327f2335ccd0a9d0d4a"
+dependencies = [
+ "async-trait",
+ "base64",
+ "bytes",
+ "chrono",
+ "dyn-clone",
+ "futures",
+ "getrandom",
+ "http",
+ "log",
+ "oauth2",
+ "pin-project",
+ "rand",
+ "reqwest",
+ "rustc_version",
+ "serde 1.0.136",
+ "serde_derive",
+ "serde_json",
+ "thiserror",
+ "url",
+ "uuid",
+]
+
+[[package]]
 name = "azure_identity"
 version = "0.1.1"
 source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto#23123ad502316cf9041a6acc274435dbfa75e504"
@@ -273,7 +300,7 @@ dependencies = [
  "async-lock",
  "async-timer",
  "async-trait",
- "azure_core",
+ "azure_core 0.1.1",
  "chrono",
  "futures",
  "log",
@@ -288,11 +315,37 @@ dependencies = [
 [[package]]
 name = "azure_storage"
 version = "0.1.0"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=fix-range#fb3137236fe87720eff10327f2335ccd0a9d0d4a"
+dependencies = [
+ "RustyXML",
+ "async-trait",
+ "azure_core 0.2.1",
+ "base64",
+ "bytes",
+ "chrono",
+ "futures",
+ "hmac",
+ "http",
+ "log",
+ "once_cell",
+ "serde 1.0.136",
+ "serde-xml-rs",
+ "serde_derive",
+ "serde_json",
+ "sha2 0.10.2",
+ "thiserror",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "azure_storage"
+version = "0.1.0"
 source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto#23123ad502316cf9041a6acc274435dbfa75e504"
 dependencies = [
  "RustyXML",
  "async-trait",
- "azure_core",
+ "azure_core 0.1.1",
  "base64",
  "bytes",
  "chrono",
@@ -314,11 +367,35 @@ dependencies = [
 [[package]]
 name = "azure_storage_blobs"
 version = "0.1.0"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=fix-range#fb3137236fe87720eff10327f2335ccd0a9d0d4a"
+dependencies = [
+ "RustyXML",
+ "azure_core 0.2.1",
+ "azure_storage 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?branch=fix-range)",
+ "base64",
+ "bytes",
+ "chrono",
+ "futures",
+ "http",
+ "log",
+ "md5",
+ "serde 1.0.136",
+ "serde-xml-rs",
+ "serde_derive",
+ "serde_json",
+ "thiserror",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "azure_storage_blobs"
+version = "0.1.0"
 source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto#23123ad502316cf9041a6acc274435dbfa75e504"
 dependencies = [
  "RustyXML",
- "azure_core",
- "azure_storage",
+ "azure_core 0.1.1",
+ "azure_storage 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto)",
  "base64",
  "bytes",
  "chrono",
@@ -338,11 +415,33 @@ dependencies = [
 [[package]]
 name = "azure_storage_datalake"
 version = "0.1.1"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=fix-range#fb3137236fe87720eff10327f2335ccd0a9d0d4a"
+dependencies = [
+ "async-trait",
+ "azure_core 0.2.1",
+ "azure_storage 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?branch=fix-range)",
+ "base64",
+ "bytes",
+ "chrono",
+ "futures",
+ "http",
+ "log",
+ "serde 1.0.136",
+ "serde-xml-rs",
+ "serde_derive",
+ "serde_json",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "azure_storage_datalake"
+version = "0.1.1"
 source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto#23123ad502316cf9041a6acc274435dbfa75e504"
 dependencies = [
  "async-trait",
- "azure_core",
- "azure_storage",
+ "azure_core 0.1.1",
+ "azure_storage 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto)",
  "base64",
  "bytes",
  "chrono",
@@ -789,10 +888,10 @@ version = "0.1.0"
 dependencies = [
  "arrow",
  "async-trait",
- "azure_core",
- "azure_storage",
- "azure_storage_blobs",
- "azure_storage_datalake",
+ "azure_core 0.2.1",
+ "azure_storage 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?branch=fix-range)",
+ "azure_storage_blobs 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?branch=fix-range)",
+ "azure_storage_datalake 0.1.1 (git+https://github.com/roeap/azure-sdk-for-rust?branch=fix-range)",
  "bytes",
  "datafusion-data-access 1.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=f619d43494e182e260423f8333eed9ea789f0cb8)",
  "futures",
@@ -1989,11 +2088,11 @@ name = "object-store"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "azure_core",
+ "azure_core 0.1.1",
  "azure_identity",
- "azure_storage",
- "azure_storage_blobs",
- "azure_storage_datalake",
+ "azure_storage 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto)",
+ "azure_storage_blobs 0.1.0 (git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto)",
+ "azure_storage_datalake 0.1.1 (git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto)",
  "bytes",
  "chrono",
  "dotenv",
