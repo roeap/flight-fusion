@@ -1,11 +1,6 @@
 // This file was automatically generated through the build.rs script, and should not be edited.
 
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeltaReference {
-    #[prost(string, tag="1")]
-    pub location: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileReference {
     #[prost(string, tag="1")]
     pub path: ::prost::alloc::string::String,
@@ -14,15 +9,13 @@ pub struct FileReference {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TableReference {
-    #[prost(oneof="table_reference::Table", tags="1, 3")]
+    #[prost(oneof="table_reference::Table", tags="3")]
     pub table: ::core::option::Option<table_reference::Table>,
 }
 /// Nested message and enum types in `TableReference`.
 pub mod table_reference {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Table {
-        #[prost(message, tag="1")]
-        Delta(super::DeltaReference),
         #[prost(message, tag="3")]
         File(super::FileReference),
     }
@@ -396,10 +389,19 @@ pub struct DeltaWriteOperation {
     pub predicate: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeltaReadOperation {
+    #[prost(string, tag="1")]
+    pub version: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub timestamp: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub predicate: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeltaOperationRequest {
     #[prost(message, optional, tag="1")]
     pub source: ::core::option::Option<AreaSourceReference>,
-    #[prost(oneof="delta_operation_request::Operation", tags="10, 11")]
+    #[prost(oneof="delta_operation_request::Operation", tags="10, 11, 12")]
     pub operation: ::core::option::Option<delta_operation_request::Operation>,
 }
 /// Nested message and enum types in `DeltaOperationRequest`.
@@ -410,6 +412,8 @@ pub mod delta_operation_request {
         Create(super::DeltaCreateOperation),
         #[prost(message, tag="11")]
         Write(super::DeltaWriteOperation),
+        #[prost(message, tag="12")]
+        Read(super::DeltaReadOperation),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -600,7 +604,7 @@ pub struct FlightGetSchemaRequest {
 /// Requests submitted against the `do_get` endpoint
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightDoGetRequest {
-    #[prost(oneof="flight_do_get_request::Command", tags="1, 2, 3, 4, 5")]
+    #[prost(oneof="flight_do_get_request::Command", tags="1, 2, 3, 4, 5, 6")]
     pub command: ::core::option::Option<flight_do_get_request::Command>,
 }
 /// Nested message and enum types in `FlightDoGetRequest`.
@@ -619,6 +623,9 @@ pub mod flight_do_get_request {
         /// Execute a query against a pre-defined context
         #[prost(message, tag="5")]
         Query(super::CommandExecuteQuery),
+        /// Perform a read operation against Delta table
+        #[prost(message, tag="6")]
+        Delta(super::DeltaOperationRequest),
     }
 }
 /// Requests submitted against the `do_put` endpoint

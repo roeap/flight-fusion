@@ -57,10 +57,6 @@ enum StorageType {
   STORAGE_TYPE_S3 = 5;
 }
 
-message DeltaReference {
-  string location = 1;
-}
-
 message FileReference {
   string path = 1;
   FileFormat format = 2;
@@ -68,7 +64,6 @@ message FileReference {
 
 message TableReference {
   oneof table {
-    DeltaReference delta = 1;
     FileReference file = 3;
   }
 }

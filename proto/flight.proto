@@ -27,6 +27,9 @@ message FlightDoGetRequest {
 
     // Execute a query against a pre-defined context
     CommandExecuteQuery query = 5;
+
+    // Perform a read operation against Delta table
+    DeltaOperationRequest delta = 6;
   }
 }
 

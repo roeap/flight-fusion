@@ -17,6 +17,9 @@ from flight_fusion.ipc.v1alpha1 import (
     CommandExecuteQuery,
     CommandReadDataset,
     CommandWriteIntoDataset,
+    DeltaOperationRequest,
+    DeltaReadOperation,
+    DeltaWriteOperation,
     FlightDoGetRequest,
     FlightDoPutRequest,
     ResultActionStatus,
@@ -65,19 +68,13 @@ class DatasetClient:
             raise NotImplementedError
         return self._schema
 
+    @abstractmethod
     def write_into(
         self,
         data: Union[pd.DataFrame, pa.Table],
-        save_mode: SaveMode = SaveMode.SAVE_MODE_OVERWRITE,
+        save_mode: SaveMode = SaveMode.SAVE_MODE_APPEND,
     ) -> ResultDoPutUpdate:
-        if isinstance(data, pd.DataFrame):
-            data = pa.Table.from_pandas(data)
-        data = data.replace_schema_metadata({})
-        command = FlightDoPutRequest(
-            storage=CommandWriteIntoDataset(source=self._reference, save_mode=save_mode)
-        )
-        response = self._client.client._do_put(table=data, command=command)
-        return ResultDoPutUpdate().parse(response)
+        raise NotImplementedError
 
     def load(self) -> pa.Table:
         command = FlightDoGetRequest(read=CommandReadDataset(source=self._reference))
@@ -107,3 +104,53 @@ class TableClient(DatasetClient):
             client=AreaClient.from_options(areas=areas, options=options),
             reference=AreaSourceReference(location=AreaTableLocation(name=name, areas=areas)),
         )
+
+    def write_into(
+        self,
+        data: Union[pd.DataFrame, pa.Table],
+        save_mode: SaveMode = SaveMode.SAVE_MODE_APPEND,
+    ) -> ResultDoPutUpdate:
+        if isinstance(data, pd.DataFrame):
+            data = pa.Table.from_pandas(data)
+        data = data.replace_schema_metadata({})
+        command = FlightDoPutRequest(
+            storage=CommandWriteIntoDataset(source=self._reference, save_mode=save_mode)
+        )
+        response = self._client.client._do_put(table=data, command=command)
+        return ResultDoPutUpdate().parse(response)
+
+
+class VersionedDatasetClient(DatasetClient):
+    def __init__(self, client: AreaClient, reference: AreaSourceReference) -> None:
+        super().__init__(client, reference)
+
+    @classmethod
+    def from_options(
+        cls, name: str, areas: List[str], options: ClientOptions
+    ) -> VersionedDatasetClient:
+        return cls(
+            client=AreaClient.from_options(areas=areas, options=options),
+            reference=AreaSourceReference(location=AreaTableLocation(name=name, areas=areas)),
+        )
+
+    def write_into(
+        self,
+        data: Union[pd.DataFrame, pa.Table],
+        save_mode: SaveMode = SaveMode.SAVE_MODE_APPEND,
+    ) -> ResultDoPutUpdate:
+        if isinstance(data, pd.DataFrame):
+            data = pa.Table.from_pandas(data)
+        data = data.replace_schema_metadata({})
+        command = FlightDoPutRequest(
+            delta=DeltaOperationRequest(
+                source=self._reference, write=DeltaWriteOperation(save_mode=save_mode)
+            )
+        )
+        response = self._client.client._do_put(table=data, command=command)
+        return ResultDoPutUpdate().parse(response)
+
+    def load(self) -> pa.Table:
+        command = FlightDoGetRequest(
+            delta=DeltaOperationRequest(source=self._reference, read=DeltaReadOperation())
+        )
+        return self._client.client._do_get(command)

@@ -56,7 +56,9 @@ impl DoGetHandler<DeltaOperationRequest> for FusionActionHandler {
     ) -> Result<BoxedFlightStream<FlightData>> {
         if let Some(source) = ticket.source {
             let full_path = self.area_store.get_full_table_path(&source)?;
-            let _table = open_table(&full_path).await?;
+            let table = open_table(&full_path).await?;
+            let files = table.get_file_uris().collect::<Vec<_>>();
+            println!("{:?}", files);
             todo!()
             // let location = self.area_store.get_table_location(&table)?;
             // let batches = self.area_store.get_batches(&location).await?;

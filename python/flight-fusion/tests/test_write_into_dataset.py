@@ -10,7 +10,7 @@ def test_roundtrip(ff_client: FusionServiceClient):
     df = pd.DataFrame(np.random.randn(5, 3), columns=["col1", "col2", "col3"])
 
     fds = ff_client.get_dataset_client(name="new_dataset", areas=["asd", "fgh"])
-    fds.write_into(df)
+    fds.write_into(df, SaveMode.SAVE_MODE_OVERWRITE)
 
     df_loaded = fds.load().to_pandas()
 
@@ -21,7 +21,7 @@ def test_save_mode(ff_client: FusionServiceClient):
     np.random.seed(42)
     df = pd.DataFrame(np.random.randn(5, 3), columns=["col1", "col2", "col3"])
 
-    fds = ff_client.get_dataset_client(name="new_dataset", areas=["asd", "fgh"])
+    fds = ff_client.get_dataset_client(name="new_dataset", areas=["test_save_mode"])
 
     fds.write_into(df)
     df_loaded = fds.load().to_pandas()

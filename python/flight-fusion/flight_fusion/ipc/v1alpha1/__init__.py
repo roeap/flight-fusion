@@ -70,11 +70,6 @@ class ActionStatus(betterproto.Enum):
 
 
 @dataclass(eq=False, repr=False)
-class DeltaReference(betterproto.Message):
-    location: str = betterproto.string_field(1)
-
-
-@dataclass(eq=False, repr=False)
 class FileReference(betterproto.Message):
     path: str = betterproto.string_field(1)
     format: "FileFormat" = betterproto.enum_field(2)
@@ -82,7 +77,6 @@ class FileReference(betterproto.Message):
 
 @dataclass(eq=False, repr=False)
 class TableReference(betterproto.Message):
-    delta: "DeltaReference" = betterproto.message_field(1, group="table")
     file: "FileReference" = betterproto.message_field(3, group="table")
 
 
@@ -121,7 +115,7 @@ class AreaTableId(betterproto.Message):
 
 @dataclass(eq=False, repr=False)
 class AreaTableUri(betterproto.Message):
-    id: str = betterproto.string_field(1)
+    uri: str = betterproto.string_field(1)
 
 
 @dataclass(eq=False, repr=False)
@@ -275,7 +269,7 @@ class CommandWriteIntoDataset(betterproto.Message):
 
     # source identifier
     source: "AreaSourceReference" = betterproto.message_field(1)
-    # denotes how to beahve for existing data - defaults to overwrite
+    # denotes how to beahve for existing data - defaults to append
     save_mode: "SaveMode" = betterproto.enum_field(3)
 
 
@@ -330,10 +324,18 @@ class DeltaWriteOperation(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
+class DeltaReadOperation(betterproto.Message):
+    version: str = betterproto.string_field(1)
+    timestamp: str = betterproto.string_field(2)
+    predicate: str = betterproto.string_field(3)
+
+
+@dataclass(eq=False, repr=False)
 class DeltaOperationRequest(betterproto.Message):
     source: "AreaSourceReference" = betterproto.message_field(1)
     create: "DeltaCreateOperation" = betterproto.message_field(10, group="operation")
     write: "DeltaWriteOperation" = betterproto.message_field(11, group="operation")
+    read: "DeltaReadOperation" = betterproto.message_field(12, group="operation")
 
 
 @dataclass(eq=False, repr=False)
@@ -429,6 +431,8 @@ class FlightDoGetRequest(betterproto.Message):
     read: "CommandReadDataset" = betterproto.message_field(4, group="command")
     # Execute a query against a pre-defined context
     query: "CommandExecuteQuery" = betterproto.message_field(5, group="command")
+    # Perform a read operation against Delta table
+    delta: "DeltaOperationRequest" = betterproto.message_field(6, group="command")
 
 
 @dataclass(eq=False, repr=False)

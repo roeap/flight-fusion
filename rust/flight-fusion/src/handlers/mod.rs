@@ -216,6 +216,7 @@ impl FusionActionHandler {
                 }
                 DoGetCommand::Read(read) => self.handle_do_get(read).await,
                 DoGetCommand::Query(query) => self.handle_do_get(query).await,
+                DoGetCommand::Delta(operation) => self.handle_do_get(operation).await,
             },
             None => Err(FusionServiceError::unknown_action(
                 "No operation data passed",
