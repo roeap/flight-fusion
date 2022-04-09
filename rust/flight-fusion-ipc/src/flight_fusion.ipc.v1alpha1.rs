@@ -74,7 +74,7 @@ pub struct AreaTableId {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AreaTableUri {
     #[prost(string, tag="1")]
-    pub id: ::prost::alloc::string::String,
+    pub uri: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AreaSourceReference {
@@ -326,7 +326,7 @@ pub struct CommandWriteIntoDataset {
     /// source identifier
     #[prost(message, optional, tag="1")]
     pub source: ::core::option::Option<AreaSourceReference>,
-    /// denotes how to beahve for existing data - defaults to overwrite
+    /// denotes how to beahve for existing data - defaults to append
     #[prost(enumeration="SaveMode", tag="3")]
     pub save_mode: i32,
 }

@@ -103,7 +103,7 @@ message AreaTableId {
 }
 
 message AreaTableUri {
-  string id = 1;
+  string uri = 1;
 }
 
 message AreaSourceReference {

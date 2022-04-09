@@ -53,7 +53,7 @@ _OUTPUT_CONFIG_SCHEMA = {
     "save_mode": Field(
         Enum.from_python_enum(SaveMode),
         is_required=False,
-        default_value="SAVE_MODE_OVERWRITE",
+        default_value="SAVE_MODE_APPEND",
         description="Specifies behavior when saving data into a table location",
     ),
 }

@@ -1,4 +1,4 @@
-use super::*;
+use super::{utils::create_response_stream, *};
 use crate::error::{FusionServiceError, Result};
 use arrow_deps::datafusion::physical_plan::{collect, ExecutionPlan};
 use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, operations::DeltaCommands};
@@ -42,6 +42,26 @@ impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
         } else {
             // TODO migrate errors and raise something more meaningful
             Err(FusionServiceError::generic("Source not found"))
+        }
+    }
+}
+
+#[async_trait]
+impl DoGetHandler<DeltaOperationRequest> for FusionActionHandler {
+    async fn handle_do_get(
+        &self,
+        ticket: DeltaOperationRequest,
+    ) -> Result<BoxedFlightStream<FlightData>> {
+        if let Some(source) = ticket.source {
+            let _full_path = self.area_store.get_full_table_path(&source)?;
+            todo!()
+            // let location = self.area_store.get_table_location(&table)?;
+            // let batches = self.area_store.get_batches(&location).await?;
+            // create_response_stream(batches).await
+        } else {
+            Err(FusionServiceError::InputError(
+                "missing table reference".to_string(),
+            ))
         }
     }
 }

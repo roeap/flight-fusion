@@ -61,7 +61,7 @@ message CommandWriteIntoDataset {
   // source identifier
   AreaSourceReference source = 1;
 
-  // denotes how to beahve for existing data - defaults to overwrite
+  // denotes how to beahve for existing data - defaults to append
   SaveMode save_mode = 3;
 }
 
