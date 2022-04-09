@@ -4,7 +4,8 @@ use arrow_deps::datafusion::physical_plan::{collect, ExecutionPlan};
 use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, operations::DeltaCommands};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
-    delta_operation_request, DeltaOperationRequest, DeltaOperationResponse, SaveMode,
+    delta_operation_request::Operation as DeltaOperation, DeltaOperationRequest,
+    DeltaOperationResponse, SaveMode,
 };
 use std::sync::Arc;
 
@@ -23,7 +24,7 @@ impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
             let batches = collect(input, task_ctx).await?;
 
             match ticket.operation {
-                Some(delta_operation_request::Operation::Write(req)) => {
+                Some(DeltaOperation::Write(req)) => {
                     let mode = match SaveMode::from_i32(req.save_mode) {
                         Some(SaveMode::Append) => DeltaSaveMode::Append,
                         Some(SaveMode::Overwrite) => DeltaSaveMode::Overwrite,

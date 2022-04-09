@@ -27,10 +27,6 @@ impl RequestFor for CommandRegisterSource {
     type Reply = ResultActionStatus;
 }
 
-impl RequestFor for PutMemoryTableRequest {
-    type Reply = ResultDoPutUpdate;
-}
-
 impl RequestFor for CommandWriteIntoDataset {
     type Reply = ResultDoPutUpdate;
 }

@@ -130,10 +130,6 @@ message DeltaOperationResponse {
   string stats = 1;
 }
 
-message PutMemoryTableRequest {
-  string name = 1;
-}
-
 // Metadata
 
 // Metadata associated with an area source

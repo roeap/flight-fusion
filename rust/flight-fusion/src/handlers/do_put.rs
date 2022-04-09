@@ -18,10 +18,6 @@ impl FusionActionHandler {
         let body = match &request_data.command {
             Some(action) => {
                 let result_body = match action {
-                    DoPutCommand::Memory(_memory) => {
-                        todo!()
-                        // serialize_message(self.handle_do_put(memory.clone(), stream).await?)
-                    }
                     DoPutCommand::Storage(storage) => {
                         serialize_message(self.handle_do_put(storage.clone(), stream).await?)
                     }

@@ -342,11 +342,6 @@ class DeltaOperationResponse(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
-class PutMemoryTableRequest(betterproto.Message):
-    name: str = betterproto.string_field(1)
-
-
-@dataclass(eq=False, repr=False)
 class AreaSourceMetadata(betterproto.Message):
     """Metadata associated with an area source"""
 
@@ -440,7 +435,6 @@ class FlightDoGetRequest(betterproto.Message):
 class FlightDoPutRequest(betterproto.Message):
     """Requests submitted against the `do_put` endpoint"""
 
-    memory: "PutMemoryTableRequest" = betterproto.message_field(1, group="command")
     # Write data into a registered source
     storage: "CommandWriteIntoDataset" = betterproto.message_field(2, group="command")
     delta: "DeltaOperationRequest" = betterproto.message_field(3, group="command")

@@ -417,11 +417,6 @@ pub struct DeltaOperationResponse {
     #[prost(string, tag="1")]
     pub stats: ::prost::alloc::string::String,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PutMemoryTableRequest {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-}
 // Metadata
 
 /// Metadata associated with an area source
@@ -629,15 +624,13 @@ pub mod flight_do_get_request {
 /// Requests submitted against the `do_put` endpoint
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightDoPutRequest {
-    #[prost(oneof="flight_do_put_request::Command", tags="1, 2, 3")]
+    #[prost(oneof="flight_do_put_request::Command", tags="2, 3")]
     pub command: ::core::option::Option<flight_do_put_request::Command>,
 }
 /// Nested message and enum types in `FlightDoPutRequest`.
 pub mod flight_do_put_request {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Command {
-        #[prost(message, tag="1")]
-        Memory(super::PutMemoryTableRequest),
         /// Write data into a registered source
         #[prost(message, tag="2")]
         Storage(super::CommandWriteIntoDataset),
