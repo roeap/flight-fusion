@@ -34,6 +34,7 @@ use std::{path::PathBuf, pin::Pin};
 use tonic::Status;
 
 pub mod actions;
+mod delta;
 pub mod do_get;
 pub mod do_put;
 mod utils;
