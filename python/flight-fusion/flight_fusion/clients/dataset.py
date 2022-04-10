@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import datetime as dt
 from abc import abstractmethod
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import pandas as pd
 import pyarrow as pa
@@ -71,14 +72,14 @@ class DatasetClient:
     @abstractmethod
     def write_into(
         self,
-        data: Union[pd.DataFrame, pa.Table],
+        data: pd.DataFrame | pa.Table,
         save_mode: SaveMode = SaveMode.SAVE_MODE_APPEND,
     ) -> ResultDoPutUpdate:
         raise NotImplementedError
 
+    @abstractmethod
     def load(self) -> pa.Table:
-        command = FlightDoGetRequest(read=CommandReadDataset(source=self._reference))
-        return self._client.client._do_get(command)
+        raise NotImplementedError
 
     def query(self, query: str) -> pa.Table:
         command = FlightDoGetRequest(query=CommandExecuteQuery(query=query, source=self._reference))
@@ -107,7 +108,7 @@ class TableClient(DatasetClient):
 
     def write_into(
         self,
-        data: Union[pd.DataFrame, pa.Table],
+        data: pd.DataFrame | pa.Table,
         save_mode: SaveMode = SaveMode.SAVE_MODE_APPEND,
     ) -> ResultDoPutUpdate:
         if isinstance(data, pd.DataFrame):
@@ -118,6 +119,10 @@ class TableClient(DatasetClient):
         )
         response = self._client.client._do_put(table=data, command=command)
         return ResultDoPutUpdate().parse(response)
+
+    def load(self) -> pa.Table:
+        command = FlightDoGetRequest(read=CommandReadDataset(source=self._reference))
+        return self._client.client._do_get(command)
 
 
 class VersionedDatasetClient(DatasetClient):
@@ -135,7 +140,7 @@ class VersionedDatasetClient(DatasetClient):
 
     def write_into(
         self,
-        data: Union[pd.DataFrame, pa.Table],
+        data: pd.DataFrame | pa.Table,
         save_mode: SaveMode = SaveMode.SAVE_MODE_APPEND,
     ) -> ResultDoPutUpdate:
         if isinstance(data, pd.DataFrame):
@@ -154,3 +159,9 @@ class VersionedDatasetClient(DatasetClient):
             delta=DeltaOperationRequest(source=self._reference, read=DeltaReadOperation())
         )
         return self._client.client._do_get(command)
+
+    def load_version(self, version: int | None) -> pa.Table:
+        raise NotImplementedError
+
+    def load_timetravel(self, before_or_at: dt.datetime | pd.Timestamp) -> pa.Table:
+        raise NotImplementedError
