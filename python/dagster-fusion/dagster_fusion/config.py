@@ -25,7 +25,7 @@ FIELD_LOCATION = Field(
             ),
         }
     ),
-    is_required=True,
+    is_required=False,
 )
 
 FIELD_COLUMN_SELECTION = Field(
@@ -42,20 +42,26 @@ FIELD_SAVE_MODE = Field(
 )
 
 
-def table_reference_to_area_source(ref: TableReference) -> AreaSourceReference:
-    key = ref.get("key")
-    if key is not None:
-        parts = key.split(_KEY_SEPARATOR)
-        areas = parts[:-1]
-        name = parts[-1]
+def table_reference_to_area_source(ref: TableReference | AssetKey) -> AreaSourceReference:
+    location = None
 
-        return AreaSourceReference(location=AreaTableLocation(name=name, areas=areas))
+    if isinstance(ref, AssetKey):
+        location = AreaTableLocation(name=ref.path[-1], areas=ref.path[:-1])  # type: ignore
+    else:
+        key = ref.get("key")
+        if key is not None:
+            parts = key.split(_KEY_SEPARATOR)
+            areas = parts[:-1]
+            name = parts[-1]
 
-    source = ref.get("source")
-    if source is not None:
-        return AreaSourceReference(
-            location=AreaTableLocation(name=source["name"], areas=source["areas"])
-        )
+            location = AreaTableLocation(name=name, areas=areas)
+
+        source = ref.get("source")
+        if location is None and source is not None:
+            location = AreaTableLocation(name=source["name"], areas=source["areas"])
+
+    if location:
+        return AreaSourceReference(location=location)
 
     raise MissingConfiguration("Either location 'source' or 'key' must be configured")
 

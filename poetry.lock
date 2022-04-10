@@ -346,6 +346,7 @@ develop = true
 
 [package.dependencies]
 dagster = "^0.14"
+polars = "^0.13.20"
 pyarrow = "*"
 
 [package.source]
@@ -1337,6 +1338,24 @@ python-versions = ">=3.6"
 [package.extras]
 dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
+
+[[package]]
+name = "polars"
+version = "0.13.20"
+description = "Blazingly fast DataFrame library"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+numpy = ">=1.16.0"
+typing_extensions = {version = ">=4.0.0", markers = "python_version < \"3.10\""}
+
+[package.extras]
+pyarrow = ["pyarrow (>=4.0)"]
+pandas = ["pyarrow (>=4.0)", "pandas"]
+fsspec = ["fsspec"]
+connectorx = ["connectorx"]
 
 [[package]]
 name = "pre-commit"
@@ -3049,6 +3068,13 @@ platformdirs = [
 pluggy = [
     {file = "pluggy-1.0.0-py2.py3-none-any.whl", hash = "sha256:74134bbf457f031a36d68416e1509f34bd5ccc019f0bcc952c7b909d06b37bd3"},
     {file = "pluggy-1.0.0.tar.gz", hash = "sha256:4224373bacce55f955a878bf9cfa763c1e360858e330072059e10bad68531159"},
+]
+polars = [
+    {file = "polars-0.13.20-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:5abbdc84708b6eb2aa21c9f96fdbd485883708e130a085b416b713b5c40b476f"},
+    {file = "polars-0.13.20-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:8f32df42f455a5775b2f2284eb3618f82ebdc0ac5feae43d12573ce882a7bdc3"},
+    {file = "polars-0.13.20-cp37-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:568bf574a17c16ee9bc10dddb249bbb1483923e4fd259596a10b70e193397a76"},
+    {file = "polars-0.13.20-cp37-abi3-win_amd64.whl", hash = "sha256:ac0bcb51b799af4057e72ddc22f68f9aa54aa7237ca74e23251c1c61e1674271"},
+    {file = "polars-0.13.20.tar.gz", hash = "sha256:c292cd45beeb75de2f4c60e6b853413d305ee9e84f2d590754bd94097cdc8cc1"},
 ]
 pre-commit = [
     {file = "pre_commit-2.18.1-py2.py3-none-any.whl", hash = "sha256:02226e69564ebca1a070bd1f046af866aa1c318dbc430027c50ab832ed2b73f2"},

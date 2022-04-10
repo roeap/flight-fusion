@@ -10,7 +10,7 @@ class FusionConfig(TypedDict):
     port: int
 
 
-@resource(
+@resource(  # type: ignore
     config_schema={"host": str, "port": int},
     description="Service client to interact with flight-fusion service",
 )

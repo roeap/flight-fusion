@@ -25,15 +25,19 @@ class LoaderResources(Protocol):
 
 
 @root_input_manager(
+    description="`RootInputManager` for loading tables from flight fusion service.",
     input_config_schema=_INPUT_CONFIG_SCHEMA,
     required_resource_keys={"fusion_client"},
 )
-def flight_fusion_loader(context: TypedInputContext[InputConfig, LoaderResources]):
-    location = context.config.get("location")
-    if location is None:
-        raise MissingConfiguration("Field `location` must be configured")
+def flight_fusion_loader(context: TypedInputContext[InputConfig, LoaderResources, None]):
+    location = None
+    if context.config is not None:
+        location = context.config.get("location")
 
-    reference = table_reference_to_area_source(location)
+    if location is None and context.asset_key is None:
+        raise MissingConfiguration("An `asset_key` or config field `location` must be configured")
+
+    reference = table_reference_to_area_source(context.asset_key or location)  # type: ignore
     client = TableClient(
         client=AreaClient(client=context.resources.fusion_client, areas=reference.location.areas),
         reference=reference,
