@@ -2,58 +2,23 @@ from typing import List, Optional, Protocol, Set, TypedDict, Union
 
 import pandas as pd
 import pyarrow as pa
-from dagster import (
-    Array,
-    AssetKey,
-    Enum,
-    Field,
-    IOManager,
-    Selector,
-    Shape,
-    String,
-    io_manager,
-)
+from dagster import AssetKey, IOManager, io_manager
 from dagster_fusion._types import TableReference, TypedInputContext, TypedOutputContext
+from dagster_fusion.config import (
+    FIELD_COLUMN_SELECTION,
+    FIELD_LOCATION,
+    FIELD_SAVE_MODE,
+    table_reference_to_area_source,
+)
+from dagster_fusion.errors import MissingConfiguration
 from flight_fusion import AreaClient, DatasetClient, FusionServiceClient, TableClient
-from flight_fusion.ipc.v1alpha1 import AreaSourceReference, AreaTableLocation, SaveMode
+from flight_fusion.ipc.v1alpha1 import SaveMode
 
-_INPUT_CONFIG_SCHEMA = {
-    "columns": Field(
-        Array(String),
-        is_required=False,
-        description="Sub-selection of columns to load from dataset",
-    ),
-}
+_INPUT_CONFIG_SCHEMA = {"columns": FIELD_COLUMN_SELECTION}
 
 _OUTPUT_CONFIG_SCHEMA = {
-    "location": Field(
-        Selector(
-            {
-                "key": Field(String, is_required=False),
-                # TODO find a better name then `source`
-                "source": Field(
-                    Shape(
-                        fields={
-                            "name": Field(
-                                String,
-                                is_required=True,
-                                description="Table / location name where data is loaded from",
-                            ),
-                            "areas": Field(Array(String)),
-                        }
-                    ),
-                    is_required=False,
-                ),
-            }
-        ),
-        is_required=True,
-    ),
-    "save_mode": Field(
-        Enum.from_python_enum(SaveMode),
-        is_required=False,
-        default_value="SAVE_MODE_APPEND",
-        description="Specifies behavior when saving data into a table location",
-    ),
+    "location": FIELD_LOCATION,
+    "save_mode": FIELD_SAVE_MODE,
 }
 
 
@@ -64,6 +29,7 @@ class InputConfig(TypedDict, total=False):
 class OutputConfig(TypedDict, total=False):
     location: TableReference
     save_mode: SaveMode
+    partition_columns: List[str]
 
 
 class IOManagerResources(Protocol):
@@ -76,29 +42,12 @@ class TableIOManager(IOManager):
     ) -> DatasetClient:
         location = config.get("location")
         if location is None:
-            raise ValueError("Location must be configured")
+            raise MissingConfiguration("Field `location` must be configured")
 
-        key = location.get("key")
-        if key is not None:
-            parts = key.split("/")
-            areas = parts[:-1]
-            name = parts[-1]
-
-            return TableClient(
-                client=AreaClient(client=client, areas=areas),
-                reference=AreaSourceReference(location=AreaTableLocation(name=name, areas=areas)),
-            )
-
-        source = location.get("source")
-        if source is not None:
-            return TableClient(
-                client=AreaClient(client=client, areas=source["areas"]),
-                reference=AreaSourceReference(
-                    location=AreaTableLocation(name=source["name"], areas=source["areas"])
-                ),
-            )
-
-        raise ValueError("Missing configuration")
+        reference = table_reference_to_area_source(location)
+        return TableClient(
+            client=AreaClient(client=client, areas=reference.location.areas), reference=reference
+        )
 
     def handle_output(
         self,
