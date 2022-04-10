@@ -241,7 +241,7 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 [[package]]
 name = "azure_core"
 version = "0.1.1"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto#23123ad502316cf9041a6acc274435dbfa75e504"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto#c9cb878030c22a5b5431a6fa74ce3303cdd0db74"
 dependencies = [
  "async-trait",
  "base64",
@@ -295,7 +295,7 @@ dependencies = [
 [[package]]
 name = "azure_identity"
 version = "0.1.1"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto#23123ad502316cf9041a6acc274435dbfa75e504"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto#c9cb878030c22a5b5431a6fa74ce3303cdd0db74"
 dependencies = [
  "async-lock",
  "async-timer",
@@ -341,7 +341,7 @@ dependencies = [
 [[package]]
 name = "azure_storage"
 version = "0.1.0"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto#23123ad502316cf9041a6acc274435dbfa75e504"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto#c9cb878030c22a5b5431a6fa74ce3303cdd0db74"
 dependencies = [
  "RustyXML",
  "async-trait",
@@ -391,7 +391,7 @@ dependencies = [
 [[package]]
 name = "azure_storage_blobs"
 version = "0.1.0"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto#23123ad502316cf9041a6acc274435dbfa75e504"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto#c9cb878030c22a5b5431a6fa74ce3303cdd0db74"
 dependencies = [
  "RustyXML",
  "azure_core 0.1.1",
@@ -437,7 +437,7 @@ dependencies = [
 [[package]]
 name = "azure_storage_datalake"
 version = "0.1.1"
-source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto#23123ad502316cf9041a6acc274435dbfa75e504"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?branch=kusto#c9cb878030c22a5b5431a6fa74ce3303cdd0db74"
 dependencies = [
  "async-trait",
  "azure_core 0.1.1",
