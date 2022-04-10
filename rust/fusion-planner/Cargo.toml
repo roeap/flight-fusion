@@ -13,7 +13,7 @@ flight-fusion-ipc = { path = "../flight-fusion-ipc" }
 # Creates.io dependencies
 async-trait = "0.1"
 petgraph = "0.6"
-prost = "0.9"
+prost = "0.10"
 sqlparser = "0.15"
 thiserror = "1"
 
