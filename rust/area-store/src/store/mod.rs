@@ -7,6 +7,7 @@ pub mod utils;
 pub mod writer;
 
 use arrow_deps::arrow::{datatypes::*, record_batch::RecordBatch};
+use arrow_deps::datafusion::parquet::arrow::ArrowReader;
 use arrow_deps::datafusion::parquet::{arrow::ParquetFileArrowReader, basic::LogicalType};
 use async_trait::async_trait;
 pub use basic::DefaultAreaStore;
@@ -26,6 +27,8 @@ pub trait AreaStore: Send + Sync {
     /// Get a reference to the underlying object store
     fn object_store(&self) -> Arc<object_store::ObjectStore>;
 
+    fn get_path_from_raw(&self, raw: String) -> Path;
+
     // TODO use a more structured reference for table location
     /// Write batches into table location
     async fn put_batches(
@@ -40,13 +43,21 @@ pub trait AreaStore: Send + Sync {
 
     async fn get_arrow_reader(&self, location: &Path) -> Result<ParquetFileArrowReader>;
 
+    async fn read_file(&self, file: &Path) -> Result<Vec<RecordBatch>> {
+        let mut reader = self.get_arrow_reader(&file).await?;
+        let batch_reader = reader.get_record_reader(DEFAULT_READ_BATCH_SIZE).unwrap();
+        Ok(batch_reader
+            .into_iter()
+            .collect::<std::result::Result<Vec<_>, _>>()?)
+    }
+
     /// Resolve an [`AreaSourceReference`] to a storage location
     fn get_table_location(&self, source: &AreaSourceReference) -> Result<Path>;
 
     /// Resolve an [`AreaSourceReference`] to the files relevant for source reference
     async fn get_source_files(&self, source: &AreaSourceReference) -> Result<Vec<Path>> {
         let location = self.get_table_location(source)?;
-        flatten_list_stream(&self.object_store(), Some(&location)).await
+        self.get_location_files(&location).await
     }
 
     async fn get_location_files(&self, location: &Path) -> Result<Vec<Path>> {

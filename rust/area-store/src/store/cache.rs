@@ -77,6 +77,11 @@ impl AreaStore for CachedAreaStore {
     fn object_store(&self) -> Arc<object_store::ObjectStore> {
         self.store.object_store()
     }
+
+    fn get_path_from_raw(&self, raw: String) -> Path {
+        self.store.get_path_from_raw(raw)
+    }
+
     async fn put_batches(
         &self,
         batches: Vec<RecordBatch>,
