@@ -16,7 +16,7 @@ class TableReference(TypedDict, total=False):
     source: AreaConfig
 
 
-class TypedInitResourceContext(InitResourceContext, Generic[CT]):
+class TypedInitResourceContext(Generic[CT], InitResourceContext):
     """Auxiliary class for better type support with dagster configurations
 
     Args:
