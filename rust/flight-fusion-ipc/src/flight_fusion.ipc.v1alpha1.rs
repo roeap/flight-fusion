@@ -1,11 +1,6 @@
 // This file was automatically generated through the build.rs script, and should not be edited.
 
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeltaReference {
-    #[prost(string, tag="1")]
-    pub location: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileReference {
     #[prost(string, tag="1")]
     pub path: ::prost::alloc::string::String,
@@ -14,15 +9,13 @@ pub struct FileReference {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TableReference {
-    #[prost(oneof="table_reference::Table", tags="1, 3")]
+    #[prost(oneof="table_reference::Table", tags="3")]
     pub table: ::core::option::Option<table_reference::Table>,
 }
 /// Nested message and enum types in `TableReference`.
 pub mod table_reference {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Table {
-        #[prost(message, tag="1")]
-        Delta(super::DeltaReference),
         #[prost(message, tag="3")]
         File(super::FileReference),
     }
@@ -74,7 +67,7 @@ pub struct AreaTableId {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AreaTableUri {
     #[prost(string, tag="1")]
-    pub id: ::prost::alloc::string::String,
+    pub uri: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AreaSourceReference {
@@ -326,7 +319,7 @@ pub struct CommandWriteIntoDataset {
     /// source identifier
     #[prost(message, optional, tag="1")]
     pub source: ::core::option::Option<AreaSourceReference>,
-    /// denotes how to beahve for existing data - defaults to overwrite
+    /// denotes how to beahve for existing data - defaults to append
     #[prost(enumeration="SaveMode", tag="3")]
     pub save_mode: i32,
 }
@@ -396,10 +389,19 @@ pub struct DeltaWriteOperation {
     pub predicate: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeltaReadOperation {
+    #[prost(string, tag="1")]
+    pub version: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub timestamp: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub predicate: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeltaOperationRequest {
     #[prost(message, optional, tag="1")]
-    pub table: ::core::option::Option<DeltaReference>,
-    #[prost(oneof="delta_operation_request::Operation", tags="10, 11")]
+    pub source: ::core::option::Option<AreaSourceReference>,
+    #[prost(oneof="delta_operation_request::Operation", tags="10, 11, 12")]
     pub operation: ::core::option::Option<delta_operation_request::Operation>,
 }
 /// Nested message and enum types in `DeltaOperationRequest`.
@@ -410,17 +412,14 @@ pub mod delta_operation_request {
         Create(super::DeltaCreateOperation),
         #[prost(message, tag="11")]
         Write(super::DeltaWriteOperation),
+        #[prost(message, tag="12")]
+        Read(super::DeltaReadOperation),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeltaOperationResponse {
     #[prost(string, tag="1")]
     pub stats: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PutMemoryTableRequest {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
 }
 // Metadata
 
@@ -502,95 +501,6 @@ pub enum ActionStatus {
     Failure = 2,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Integrity {
-    #[prost(int32, tag="1")]
-    pub version: i32,
-    #[prost(string, tag="2")]
-    pub key_name: ::prost::alloc::string::String,
-    #[prost(bytes="vec", tag="3")]
-    pub hmac: ::prost::alloc::vec::Vec<u8>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Header {
-    #[prost(string, tag="1")]
-    pub service: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Passport {
-    #[prost(message, optional, tag="1")]
-    pub header: ::core::option::Option<Header>,
-    #[prost(message, optional, tag="2")]
-    pub user_info: ::core::option::Option<UserInfo>,
-    #[prost(message, optional, tag="3")]
-    pub device_info: ::core::option::Option<DeviceInfo>,
-    #[prost(message, optional, tag="4")]
-    pub user_integrity: ::core::option::Option<Integrity>,
-    #[prost(message, optional, tag="5")]
-    pub device_integrity: ::core::option::Option<Integrity>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct UserInfo {
-    #[prost(enumeration="Source", tag="1")]
-    pub source: i32,
-    #[prost(int64, tag="2")]
-    pub created: i64,
-    #[prost(int64, tag="3")]
-    pub expires: i64,
-    #[prost(int64, tag="4")]
-    pub customer_id: i64,
-    #[prost(enumeration="PassportAuthenticationLevel", tag="11")]
-    pub authentication_level: i32,
-    #[prost(enumeration="UserAction", repeated, tag="12")]
-    pub actions: ::prost::alloc::vec::Vec<i32>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeviceInfo {
-    #[prost(enumeration="Source", tag="1")]
-    pub source: i32,
-    #[prost(int64, tag="2")]
-    pub created: i64,
-    #[prost(int64, tag="3")]
-    pub expires: i64,
-    #[prost(string, tag="4")]
-    pub esn: ::prost::alloc::string::String,
-    #[prost(int32, tag="5")]
-    pub device_type: i32,
-    #[prost(enumeration="DeviceAction", repeated, tag="7")]
-    pub actions: ::prost::alloc::vec::Vec<i32>,
-    #[prost(enumeration="PassportAuthenticationLevel", tag="8")]
-    pub authentication_level: i32,
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum Source {
-    None = 0,
-    Cookie = 1,
-    CookieInsecure = 2,
-    Msl = 3,
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum PassportAuthenticationLevel {
-    /// untrusted transport
-    Low = 0,
-    /// secure tokens over TLS
-    High = 1,
-    /// MSL or user credentials
-    Highest = 2,
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum UserAction {
-    Unspecified = 0,
-    Read = 1,
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum DeviceAction {
-    Unspecified = 0,
-    Read = 1,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightGetFlightInfoRequest {
     /// source identifier
     #[prost(message, optional, tag="1")]
@@ -605,7 +515,7 @@ pub struct FlightGetSchemaRequest {
 /// Requests submitted against the `do_get` endpoint
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightDoGetRequest {
-    #[prost(oneof="flight_do_get_request::Command", tags="1, 2, 3, 4, 5")]
+    #[prost(oneof="flight_do_get_request::Command", tags="1, 2, 3, 4, 5, 6")]
     pub command: ::core::option::Option<flight_do_get_request::Command>,
 }
 /// Nested message and enum types in `FlightDoGetRequest`.
@@ -624,20 +534,21 @@ pub mod flight_do_get_request {
         /// Execute a query against a pre-defined context
         #[prost(message, tag="5")]
         Query(super::CommandExecuteQuery),
+        /// Perform a read operation against Delta table
+        #[prost(message, tag="6")]
+        Delta(super::DeltaOperationRequest),
     }
 }
 /// Requests submitted against the `do_put` endpoint
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightDoPutRequest {
-    #[prost(oneof="flight_do_put_request::Command", tags="1, 2, 3")]
+    #[prost(oneof="flight_do_put_request::Command", tags="2, 3")]
     pub command: ::core::option::Option<flight_do_put_request::Command>,
 }
 /// Nested message and enum types in `FlightDoPutRequest`.
 pub mod flight_do_put_request {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Command {
-        #[prost(message, tag="1")]
-        Memory(super::PutMemoryTableRequest),
         /// Write data into a registered source
         #[prost(message, tag="2")]
         Storage(super::CommandWriteIntoDataset),

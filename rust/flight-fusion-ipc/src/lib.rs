@@ -4,7 +4,6 @@ mod macros;
 mod gen {
     include!("flight_fusion.ipc.v1alpha1.rs");
 }
-pub mod passport;
 pub mod utils;
 
 pub use error::*;
@@ -25,10 +24,6 @@ impl RequestFor for CommandSetMetadata {
 
 impl RequestFor for CommandRegisterSource {
     type Reply = ResultActionStatus;
-}
-
-impl RequestFor for PutMemoryTableRequest {
-    type Reply = ResultDoPutUpdate;
 }
 
 impl RequestFor for CommandWriteIntoDataset {

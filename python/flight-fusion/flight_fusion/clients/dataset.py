@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import datetime as dt
 from abc import abstractmethod
-from typing import List, Union
+from typing import List, Optional
 
 import pandas as pd
 import pyarrow as pa
@@ -17,6 +18,9 @@ from flight_fusion.ipc.v1alpha1 import (
     CommandExecuteQuery,
     CommandReadDataset,
     CommandWriteIntoDataset,
+    DeltaOperationRequest,
+    DeltaReadOperation,
+    DeltaWriteOperation,
     FlightDoGetRequest,
     FlightDoPutRequest,
     ResultActionStatus,
@@ -65,10 +69,47 @@ class DatasetClient:
             raise NotImplementedError
         return self._schema
 
+    @abstractmethod
     def write_into(
         self,
-        data: Union[pd.DataFrame, pa.Table],
-        save_mode: SaveMode = SaveMode.SAVE_MODE_OVERWRITE,
+        data: pd.DataFrame | pa.Table,
+        save_mode: SaveMode = SaveMode.SAVE_MODE_APPEND,
+    ) -> ResultDoPutUpdate:
+        raise NotImplementedError
+
+    @abstractmethod
+    def load(self) -> pa.Table:
+        raise NotImplementedError
+
+    def query(self, query: str) -> pa.Table:
+        command = FlightDoGetRequest(query=CommandExecuteQuery(query=query, source=self._reference))
+        return self._client.client._do_get(command)
+
+    def drop(self) -> ResultActionStatus:
+        raise NotImplementedError
+
+    def get_metadata(self) -> AreaSourceMetadata:
+        raise NotImplementedError
+
+    def set_metadata(self, metadata: Optional[AreaSourceMetadata] = None) -> None:
+        raise NotImplementedError
+
+
+class TableClient(DatasetClient):
+    def __init__(self, client: AreaClient, reference: AreaSourceReference) -> None:
+        super().__init__(client, reference)
+
+    @classmethod
+    def from_options(cls, name: str, areas: List[str], options: ClientOptions) -> TableClient:
+        return cls(
+            client=AreaClient.from_options(areas=areas, options=options),
+            reference=AreaSourceReference(location=AreaTableLocation(name=name, areas=areas)),
+        )
+
+    def write_into(
+        self,
+        data: pd.DataFrame | pa.Table,
+        save_mode: SaveMode = SaveMode.SAVE_MODE_APPEND,
     ) -> ResultDoPutUpdate:
         if isinstance(data, pd.DataFrame):
             data = pa.Table.from_pandas(data)
@@ -83,27 +124,44 @@ class DatasetClient:
         command = FlightDoGetRequest(read=CommandReadDataset(source=self._reference))
         return self._client.client._do_get(command)
 
-    def query(self, query: str) -> pa.Table:
-        command = FlightDoGetRequest(query=CommandExecuteQuery(query=query, source=self._reference))
-        return self._client.client._do_get(command)
 
-    def drop(self) -> ResultActionStatus:
-        raise NotImplementedError
-
-    def get_metadata(self) -> AreaSourceMetadata:
-        raise NotImplementedError
-
-    def set_metadata(self, metadata: AreaSourceMetadata = None) -> None:
-        raise NotImplementedError
-
-
-class TableClient(DatasetClient):
+class VersionedDatasetClient(DatasetClient):
     def __init__(self, client: AreaClient, reference: AreaSourceReference) -> None:
         super().__init__(client, reference)
 
     @classmethod
-    def from_options(cls, name: str, areas: List[str], options: ClientOptions) -> TableClient:
+    def from_options(
+        cls, name: str, areas: List[str], options: ClientOptions
+    ) -> VersionedDatasetClient:
         return cls(
             client=AreaClient.from_options(areas=areas, options=options),
             reference=AreaSourceReference(location=AreaTableLocation(name=name, areas=areas)),
         )
+
+    def write_into(
+        self,
+        data: pd.DataFrame | pa.Table,
+        save_mode: SaveMode = SaveMode.SAVE_MODE_APPEND,
+    ) -> ResultDoPutUpdate:
+        if isinstance(data, pd.DataFrame):
+            data = pa.Table.from_pandas(data)
+        data = data.replace_schema_metadata({})
+        command = FlightDoPutRequest(
+            delta=DeltaOperationRequest(
+                source=self._reference, write=DeltaWriteOperation(save_mode=save_mode)
+            )
+        )
+        response = self._client.client._do_put(table=data, command=command)
+        return ResultDoPutUpdate().parse(response)
+
+    def load(self) -> pa.Table:
+        command = FlightDoGetRequest(
+            delta=DeltaOperationRequest(source=self._reference, read=DeltaReadOperation())
+        )
+        return self._client.client._do_get(command)
+
+    def load_version(self, version: int | None) -> pa.Table:
+        raise NotImplementedError
+
+    def load_timetravel(self, before_or_at: dt.datetime | pd.Timestamp) -> pa.Table:
+        raise NotImplementedError

@@ -27,14 +27,15 @@ message FlightDoGetRequest {
 
     // Execute a query against a pre-defined context
     CommandExecuteQuery query = 5;
+
+    // Perform a read operation against Delta table
+    DeltaOperationRequest delta = 6;
   }
 }
 
 // Requests submitted against the `do_put` endpoint
 message FlightDoPutRequest {
   oneof command {
-    PutMemoryTableRequest memory = 1;
-
     // Write data into a registered source
     CommandWriteIntoDataset storage = 2;
     DeltaOperationRequest delta = 3;

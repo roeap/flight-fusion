@@ -8,10 +8,12 @@ use area_store::{
 };
 use arrow_deps::arrow::ipc::writer::IpcWriteOptions;
 use arrow_deps::datafusion::{
-    catalog::{catalog::MemoryCatalogProvider, schema::MemorySchemaProvider},
+    catalog::{
+        catalog::CatalogProvider, catalog::MemoryCatalogProvider, schema::MemorySchemaProvider,
+    },
     datasource::MemTable,
-    execution::context::ExecutionContext,
     physical_plan::ExecutionPlan,
+    prelude::*,
 };
 use arrow_flight::{
     flight_descriptor::DescriptorType, FlightData, FlightDescriptor, FlightEndpoint, FlightInfo,
@@ -32,8 +34,10 @@ use std::{path::PathBuf, pin::Pin};
 use tonic::Status;
 
 pub mod actions;
+mod delta;
 pub mod do_get;
 pub mod do_put;
+mod utils;
 
 pub type BoxedFlightStream<T> =
     Pin<Box<dyn Stream<Item = std::result::Result<T, Status>> + Send + Sync + 'static>>;
@@ -69,19 +73,19 @@ pub struct FusionActionHandler {
 }
 
 impl FusionActionHandler {
-    pub fn new(root: impl Into<PathBuf>) -> Self {
+    pub fn new(root: impl Into<PathBuf>) -> Result<Self> {
         let schema_provider = MemorySchemaProvider::new();
         let catalog = Arc::new(MemoryCatalogProvider::new());
-        catalog.register_schema("schema".to_string(), Arc::new(schema_provider));
+        catalog.register_schema("schema", Arc::new(schema_provider))?;
 
         let area_store = Arc::new(DefaultAreaStore::new(root));
         let area_catalog = Arc::new(FileAreaCatalog::new(area_store.clone()));
 
-        Self {
+        Ok(Self {
             catalog,
             area_store,
             area_catalog,
-        }
+        })
     }
 
     pub fn new_azure(
@@ -91,7 +95,7 @@ impl FusionActionHandler {
     ) -> Result<Self> {
         let schema_provider = MemorySchemaProvider::new();
         let catalog = Arc::new(MemoryCatalogProvider::new());
-        catalog.register_schema("schema".to_string(), Arc::new(schema_provider));
+        catalog.register_schema("schema", Arc::new(schema_provider))?;
 
         let area_store = Arc::new(DefaultAreaStore::new_azure(
             account,
@@ -109,7 +113,7 @@ impl FusionActionHandler {
 
     pub async fn register_source(
         &self,
-        ctx: &mut ExecutionContext,
+        ctx: &mut SessionContext,
         source: &AreaSourceReference,
     ) -> Result<()> {
         let location = self.area_store.get_table_location(&source.clone())?;
@@ -127,7 +131,7 @@ impl FusionActionHandler {
 
     pub async fn list_flights(
         &self,
-        command: CommandListSources,
+        _command: CommandListSources,
     ) -> Result<BoxedFlightStream<FlightInfo>> {
         // let _ = Ok(Box::pin(
         //     self.area_catalog
@@ -212,39 +216,12 @@ impl FusionActionHandler {
                 }
                 DoGetCommand::Read(read) => self.handle_do_get(read).await,
                 DoGetCommand::Query(query) => self.handle_do_get(query).await,
+                DoGetCommand::Delta(operation) => self.handle_do_get(operation).await,
             },
             None => Err(FusionServiceError::unknown_action(
                 "No operation data passed",
             )),
         }
-    }
-}
-
-fn meta_to_flight_info(
-    meta: Result<AreaSourceMetadata>,
-) -> std::result::Result<FlightInfo, tonic::Status> {
-    match meta {
-        Ok(_m) => {
-            // TODO populate with meaningful data
-            let descriptor = FlightDescriptor {
-                r#type: DescriptorType::Cmd.into(),
-                cmd: vec![],
-                ..FlightDescriptor::default()
-            };
-            let endpoint = FlightEndpoint {
-                ticket: None,
-                location: vec![],
-            };
-            let info = FlightInfo {
-                schema: vec![],
-                flight_descriptor: Some(descriptor),
-                endpoint: vec![endpoint],
-                total_records: -1,
-                total_bytes: -1,
-            };
-            Ok(info)
-        }
-        Err(e) => Err(tonic::Status::internal(e.to_string())),
     }
 }
 

@@ -38,7 +38,7 @@ build-docker-fusion:
 .PHONY: python-develop
 python-develop: ## Run check on Python
 	$(info Dev build for python bindings)
-	cd python/flight-fusion && maturin develop --extras=devel,docker $(MATURIN_EXTRA_ARGS)
+	cd python/flight-fusion-server && maturin develop --extras=devel $(MATURIN_EXTRA_ARGS)
 
 .PHONY: python-check
 python-check: ## Run check on Python
@@ -59,6 +59,8 @@ python-proto:
 	python -m grpc_tools.protoc -I proto --python_betterproto_out=tmp-proto proto/common.proto proto/message.proto proto/signals.proto proto/flight.proto
 	mv -f ./tmp-proto/flight_fusion/ipc/v1alpha1/* ./python/flight-fusion/flight_fusion/ipc/v1alpha1/
 	rm -rf ./tmp-proto
+	black --line-length 100 python/flight-fusion/flight_fusion/
+	isort python/flight-fusion/flight_fusion/
 
 .PHONY: python-test
 python-test: ## Run check on Rust

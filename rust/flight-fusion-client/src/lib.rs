@@ -13,8 +13,7 @@ use flight_fusion_ipc::{
     flight_do_put_request::Command as DoPutCommand, utils::serialize_message, CommandDropSource,
     CommandExecuteQuery, CommandGetSchema, CommandReadDataset, CommandRegisterSource,
     CommandSetMetadata, CommandWriteIntoDataset, DatasetFormat, FlightActionRequest,
-    FlightDoGetRequest, FlightDoPutRequest, PutMemoryTableRequest, RequestFor, ResultActionStatus,
-    ResultDoPutUpdate,
+    FlightDoGetRequest, FlightDoPutRequest, RequestFor, ResultActionStatus, ResultDoPutUpdate,
 };
 use observability_deps::instrument;
 use observability_deps::tracing;
@@ -104,24 +103,6 @@ impl FlightFusionClient {
         };
         let response = self.client.clone().get_schema(ticket).await?.into_inner();
         Ok(schema_from_bytes(response.schema.as_ref())?)
-    }
-
-    #[instrument(skip(self, batches))]
-    pub async fn put_memory_table<T>(
-        &self,
-        table_ref: T,
-        batches: Vec<RecordBatch>,
-    ) -> Result<ResultDoPutUpdate, FusionClientError>
-    where
-        T: Into<String> + std::fmt::Debug,
-    {
-        let operation = DoPutCommand::Memory(PutMemoryTableRequest {
-            name: table_ref.into(),
-        });
-        Ok(self
-            .do_put::<ResultDoPutUpdate>(batches, operation)
-            .await?
-            .unwrap())
     }
 
     #[instrument(skip(self))]

@@ -48,7 +48,7 @@ pub struct FlightFusionService {
 
 impl FlightFusionService {
     pub fn new_default(root: impl Into<PathBuf>) -> Self {
-        let action_handler = Arc::new(FusionActionHandler::new(root));
+        let action_handler = Arc::new(FusionActionHandler::new(root).unwrap());
         Self { action_handler }
     }
 

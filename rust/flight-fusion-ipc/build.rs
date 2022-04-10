@@ -10,7 +10,6 @@ fn main() -> Result<()> {
     prost_build::compile_protos(
         &[
             "../../proto/message.proto",
-            "../../proto/passport.proto",
             "../../proto/signals.proto",
             "../../proto/flight.proto",
         ],

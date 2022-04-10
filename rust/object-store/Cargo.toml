@@ -42,6 +42,7 @@ azure_storage_datalake = { git = "https://github.com/roeap/azure-sdk-for-rust", 
 [dev-dependencies]
 dotenv = "*"
 futures-test = "*"
+pretty_assertions = "1"
 
 [features]
 default = ["azure"]

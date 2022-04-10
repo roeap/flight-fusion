@@ -1,0 +1,23 @@
+[build-system]
+requires = ["maturin>=0.12,<0.13"]
+build-backend = "maturin"
+
+[project]
+name = "flight-fusion-server"
+requires-python = ">=3.6"
+keywords = ["deltalake", "delta", "arrow", "datafusion", "arrow-flight"]
+authors = [{ name = "Robert Pack", email = "r.pack@outlook.com>" }]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Rust",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+
+[project.urls]
+repository = "https://github.com/roeap/flight-fusion"
+
+[tool.maturin]
+bindings = "bin"

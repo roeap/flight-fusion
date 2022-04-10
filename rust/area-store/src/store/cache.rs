@@ -39,7 +39,7 @@ impl CachedAreaStore {
         // check if file can be loaded from cache
         if self.file_in_cache(location).await {
             let mut cache = self.cache.write().unwrap();
-            let file_reader = FileReader::try_new(cache.get(location.to_raw())?)?;
+            let file_reader = FileReader::try_new(cache.get(location.to_raw())?, None)?;
             let mut batches = Vec::new();
             for batch in file_reader.into_iter() {
                 batches.push(batch?.clone());
@@ -77,6 +77,11 @@ impl AreaStore for CachedAreaStore {
     fn object_store(&self) -> Arc<object_store::ObjectStore> {
         self.store.object_store()
     }
+
+    fn get_path_from_raw(&self, raw: String) -> Path {
+        self.store.get_path_from_raw(raw)
+    }
+
     async fn put_batches(
         &self,
         batches: Vec<RecordBatch>,

@@ -61,7 +61,7 @@ message CommandWriteIntoDataset {
   // source identifier
   AreaSourceReference source = 1;
 
-  // denotes how to beahve for existing data - defaults to overwrite
+  // denotes how to beahve for existing data - defaults to append
   SaveMode save_mode = 3;
 }
 
@@ -118,20 +118,23 @@ message DeltaWriteOperation {
   string predicate = 3;
 }
 
+message DeltaReadOperation {
+  string version = 1;
+  string timestamp = 2;
+  string predicate = 3;
+}
+
 message DeltaOperationRequest {
-  DeltaReference table = 1;
+  AreaSourceReference source = 1;
   oneof operation {
     DeltaCreateOperation create = 10;
     DeltaWriteOperation write = 11;
+    DeltaReadOperation read = 12;
   }
 }
 
 message DeltaOperationResponse {
   string stats = 1;
-}
-
-message PutMemoryTableRequest {
-  string name = 1;
 }
 
 // Metadata

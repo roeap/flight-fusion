@@ -1,0 +1,17 @@
+[package]
+name = "flight-fusion-server"
+version = "0.1.0"
+edition = "2021"
+authors = ["Robert Pack <r.pack@outlook.com>"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# workspace dependencies
+flight-fusion = { path = "../../rust/flight-fusion" }
+observability_deps = { path = "../../rust/observability-deps" }
+
+# crates.io dependencies
+clap = { version = "3.1.8", features = ["derive"] }
+dotenv = "0.15"
+tokio = { version = "1", features = ["full"] }

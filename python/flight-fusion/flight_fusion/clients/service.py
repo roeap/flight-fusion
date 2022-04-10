@@ -71,3 +71,11 @@ class FusionServiceClient:
             client=self.get_area_client(areas),
             reference=AreaSourceReference(location=AreaTableLocation(name=name, areas=areas)),
         )
+
+    def get_versioned_dataset_client(self, name: str, areas: List[str]) -> DatasetClient:
+        from flight_fusion.clients.dataset import VersionedDatasetClient
+
+        return VersionedDatasetClient(
+            client=self.get_area_client(areas),
+            reference=AreaSourceReference(location=AreaTableLocation(name=name, areas=areas)),
+        )

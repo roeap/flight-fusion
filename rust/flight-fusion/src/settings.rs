@@ -47,15 +47,11 @@ const CONFIG_FILE_PREFIX: &str = "./config/";
 impl Settings {
     pub fn new() -> Result<Self, ConfigError> {
         let env = std::env::var("RUN_ENV").unwrap_or_else(|_| "Production".into());
-        let mut s = Config::new();
+        let mut s = Config::default();
         s.set("env", env.clone())?;
-
         s.merge(File::with_name(CONFIG_FILE_PATH))?;
         s.merge(File::with_name(&format!("{}{}", CONFIG_FILE_PREFIX, env)))?;
-
-        // This makes it so "FF_SERVER__PORT overrides server.port
         s.merge(Environment::with_prefix("ff").separator("__"))?;
-
         s.try_into()
     }
 }
