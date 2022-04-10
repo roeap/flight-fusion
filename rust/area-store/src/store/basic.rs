@@ -24,7 +24,7 @@ impl DefaultAreaStore {
         let object_store = Arc::new(object_store::ObjectStore::new_file(buf.clone()));
         Self {
             object_store,
-            root_path: format!("{}", buf.to_str().unwrap()),
+            root_path: buf.to_str().unwrap().to_string(),
         }
     }
 

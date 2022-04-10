@@ -41,7 +41,7 @@ impl CachedAreaStore {
             let mut cache = self.cache.write().unwrap();
             let file_reader = FileReader::try_new(cache.get(location.to_raw())?, None)?;
             let mut batches = Vec::new();
-            for batch in file_reader.into_iter() {
+            for batch in file_reader {
                 batches.push(batch?.clone());
             }
             return Ok(batches);
