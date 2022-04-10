@@ -1,135 +1,164 @@
-from typing import List, Optional, Protocol, Set, TypedDict, Union
+from __future__ import annotations
+
+from typing import Iterable, List, Optional, Protocol, Set, TypedDict
 
 import pandas as pd
+import polars as pl
 import pyarrow as pa
 from dagster import (
-    Array,
     AssetKey,
-    Enum,
-    Field,
     IOManager,
-    Selector,
-    Shape,
-    String,
+    MetadataEntry,
+    MetadataValue,
+    TableColumn,
+    TableSchema,
     io_manager,
 )
-from dagster_fusion._types import TableReference, TypedInputContext, TypedOutputContext
-from flight_fusion import AreaClient, DatasetClient, FusionServiceClient
-from flight_fusion.ipc.v1alpha1 import AreaSourceReference, AreaTableLocation, SaveMode
+from dagster_fusion._types import (
+    AreaConfig,
+    TableReference,
+    TypedInputContext,
+    TypedOutputContext,
+)
+from dagster_fusion.config import (
+    FIELD_COLUMN_SELECTION,
+    FIELD_LOCATION,
+    FIELD_SAVE_MODE,
+    area_source_to_asset_key,
+    table_reference_to_area_source,
+)
+from dagster_fusion.errors import MissingConfiguration
+from flight_fusion import AreaClient, DatasetClient, FusionServiceClient, TableClient
+from flight_fusion.ipc.v1alpha1 import SaveMode
 
-_INPUT_CONFIG_SCHEMA = {
-    "columns": Field(
-        # HACK this should be an Array(String) but somehow we run into trouble with
-        # list vs frozenlist type checks
-        Array(String),
-        is_required=False,
-        description="Sub-selection of columns to load from dataset",
-    ),
-}
+_INPUT_CONFIG_SCHEMA = {"columns": FIELD_COLUMN_SELECTION}
 
 _OUTPUT_CONFIG_SCHEMA = {
-    "location": Field(
-        Selector(
-            {
-                "key": Field(String, is_required=False),
-                # TODO find a better name then `source`
-                "source": Field(
-                    Shape(
-                        fields={
-                            "name": Field(
-                                String,
-                                is_required=True,
-                                description="Table / location name where data is loaded from",
-                            ),
-                            "areas": Field(Array(String)),
-                        }
-                    ),
-                    is_required=False,
-                ),
-            }
-        ),
-        is_required=True,
-    ),
-    "save_mode": Field(
-        Enum.from_python_enum(SaveMode),
-        is_required=False,
-        default_value="SAVE_MODE_APPEND",
-        description="Specifies behavior when saving data into a table location",
-    ),
+    "location": FIELD_LOCATION,
+    "save_mode": FIELD_SAVE_MODE,
 }
 
 
 class InputConfig(TypedDict, total=False):
-    location: TableReference
     columns: List[str]
 
 
 class OutputConfig(TypedDict, total=False):
     location: TableReference
-    columns: List[str]
+    save_mode: SaveMode
+    partition_columns: List[str]
 
 
 class IOManagerResources(Protocol):
     fusion_client: FusionServiceClient
 
 
-class FlightFusionIOManager(IOManager):
+class TableIOManager(IOManager):
     def _get_dataset_client(
-        self, client: FusionServiceClient, config: Union[OutputConfig, InputConfig]
+        self, client: FusionServiceClient, config: OutputConfig | InputConfig | AssetKey
     ) -> DatasetClient:
-        location = config.get("location")
-        if location is None:
-            raise ValueError("Location must be configured")
-
-        key = location.get("key")
-        if key is not None:
-            parts = key.split("/")
-            areas = parts[:-1]
-            name = parts[-1]
-
-            return DatasetClient(
-                client=AreaClient(client=client, areas=areas),
-                reference=AreaSourceReference(location=AreaTableLocation(name=name, areas=areas)),
+        if isinstance(config, AssetKey):
+            location = TableReference(
+                source=AreaConfig(name=config.path[-1], areas=config.path[:-1])  # type: ignore
             )
+        else:
+            location = config.get("location")
+            if location is None:
+                raise MissingConfiguration("Field `location` must be configured")
 
-        source = location.get("source")
-        if source is not None:
-            return DatasetClient(
-                client=AreaClient(client=client, areas=source["areas"]),
-                reference=AreaSourceReference(
-                    location=AreaTableLocation(name=source["name"], areas=source["areas"])
-                ),
-            )
+        reference = table_reference_to_area_source(location)
 
-        raise ValueError("Missing configuration")
+        return TableClient(
+            client=AreaClient(client=client, areas=reference.location.areas), reference=reference
+        )
 
     def handle_output(
         self,
         context: TypedOutputContext[OutputConfig, IOManagerResources],
-        obj: Union[pd.DataFrame, pa.Table],
-    ) -> None:
+        obj: pd.DataFrame | pa.Table,
+    ) -> Iterable[MetadataEntry]:
         client = self._get_dataset_client(
-            client=context.resources.fusion_client, config=context.config
+            client=context.resources.fusion_client, config=context.asset_key or context.config
         )
-        # TODO yield metadata
-        client.write_into(obj)
+        save_mode = context.config.get("save_mode") or SaveMode.SAVE_MODE_APPEND
 
-    def load_input(self, context: TypedInputContext[InputConfig, IOManagerResources]) -> pa.Table:
-        if context.upstream_output is None or context.upstream_output.config is None:
-            raise ValueError
-        client = self._get_dataset_client(
-            client=context.resources.fusion_client, config=context.upstream_output.config
+        data = obj
+        if isinstance(obj, pd.DataFrame):
+            data = pa.Table.from_pandas(obj)
+        data = data.replace_schema_metadata({})
+
+        client.write_into(data, save_mode)
+
+        yield MetadataEntry.int(data.nbytes, "size (bytes)")
+        yield MetadataEntry.int(data.num_rows, "row count")
+
+        schema = TableSchema(
+            columns=[TableColumn(name=col.name, type=str(col.type)) for col in data.schema]
         )
+        yield MetadataEntry("table_schema", value=MetadataValue.table_schema(schema))
+
+        df = pl.from_arrow(data)
+        df_null = df.null_count()
+
+        column_names = ["statistic"] + df_null.columns  # type: ignore
+        stats = [dict(zip(column_names, row)) for row in df.describe().rows()]
+        stats.append(dict(zip(column_names, ("null_count",) + df_null.row(0))))  # type: ignore
+
+        yield MetadataEntry(
+            "column_statistics",
+            value=MetadataValue.json({"stats": stats}),
+        )
+
+        # stats_schema = TableSchema(
+        #     columns=[TableColumn(name="statistic", type="string")]
+        #     + [TableColumn(name=col, type="float") for col in column_names[1:]]
+        # )
+        # stats = [TableRecord(**dict(zip(column_names, row))) for row in df.describe().rows()]
+        # stats.append(TableRecord(**dict(zip(column_names, ("null_count",) + df_null.row(0)))))  # type: ignore
+
+        # yield MetadataEntry(
+        #     "column_statistics",
+        #     value=TableMetadataValue(
+        #         records=stats,
+        #         schema=stats_schema,
+        #     ),
+        # )
+
+    def load_input(
+        self,
+        context: TypedInputContext[
+            InputConfig, IOManagerResources, TypedOutputContext[OutputConfig, IOManagerResources]
+        ],
+    ) -> pa.Table:
+        if hasattr(context.resources, "fusion_client"):
+            client = context.resources.fusion_client
+        elif hasattr(context.step_context.resources, "fusion_client"):
+            client = context.step_context.resources.fusion_client  # type: ignore
+        else:
+            raise MissingConfiguration("Unable to locate `FusionServiceClient` resource")
+
+        config = (
+            context.upstream_output.asset_key or context.asset_key or context.upstream_output.config
+        )
+        if config is None:
+            raise MissingConfiguration("Filed to get source reference")
+
+        client = self._get_dataset_client(client=client, config=config)
         return client.load()
 
-    def get_output_asset_key(self, _context) -> Optional[AssetKey]:
-        """User-defined method that associates outputs handled by this IOManager with a particular
-        AssetKey.
+    def get_output_asset_key(
+        self, context: TypedOutputContext[OutputConfig, IOManagerResources]
+    ) -> Optional[AssetKey]:
+        """Associates outputs handled by this IOManager with a particular AssetKey."""
+        if context.asset_key is not None:
+            return None
 
-        Args:
-            context (OutputContext): The context of the step output that produces this object.
-        """
-        return None
+        location = context.config.get("location")
+        if location is None:
+            raise MissingConfiguration("Field `location` must be configured")
+
+        reference = table_reference_to_area_source(location)
+        return area_source_to_asset_key(reference)
 
     def get_output_asset_partitions(self, _context) -> Set[str]:
         """User-defined method that associates outputs handled by this IOManager with a set of
@@ -140,6 +169,26 @@ class FlightFusionIOManager(IOManager):
         """
         return set()
 
+    def get_input_asset_key(
+        self,
+        context: TypedInputContext[
+            InputConfig, IOManagerResources, TypedOutputContext[OutputConfig, IOManagerResources]
+        ],
+    ) -> Optional[AssetKey]:
+        """Associates inputs handled by this IOManager with a particular AssetKey."""
+        if context.upstream_output is None:
+            return None
+
+        if context.upstream_output.asset_key is not None:
+            return None
+
+        location = context.upstream_output.config.get("location")
+        if location is None:
+            return None
+
+        reference = table_reference_to_area_source(location)
+        return area_source_to_asset_key(reference)
+
 
 @io_manager(
     required_resource_keys={"fusion_client"},
@@ -148,4 +197,4 @@ class FlightFusionIOManager(IOManager):
     output_config_schema=_OUTPUT_CONFIG_SCHEMA,
 )
 def flight_fusion_io_manager(init_context):
-    return FlightFusionIOManager()
+    return TableIOManager()

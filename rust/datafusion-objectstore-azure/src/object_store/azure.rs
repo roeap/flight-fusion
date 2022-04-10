@@ -137,7 +137,6 @@ struct AzureFileReader {
 }
 
 impl AzureFileReader {
-    #[allow(clippy::too_many_arguments)]
     fn new(client: FileClient, file: SizedFile) -> DFAccessResult<Self> {
         Ok(Self { client, file })
     }

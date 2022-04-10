@@ -34,8 +34,16 @@ def test_graph(test_data):
 
 run_config = {
     "ops": {
-        "solid_a": {"outputs": {"out_a": {"location": {"key": "scope/out_a"}}}},
-        "solid_b": {"outputs": {"out_b": {"location": {"key": "scope/out_b"}}}},
+        "solid_a": {
+            "outputs": {
+                "out_a": {"location": {"key": "scope/out_a"}, "save_mode": "SAVE_MODE_OVERWRITE"}
+            }
+        },
+        "solid_b": {
+            "outputs": {
+                "out_b": {"location": {"key": "scope/out_b"}, "save_mode": "SAVE_MODE_OVERWRITE"}
+            }
+        },
     }
 }
 

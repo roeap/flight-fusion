@@ -12,6 +12,7 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.8"
 dagster = "^0.14"
+polars = "^0.13.20"
 pyarrow = "*"
 
 [tool.poetry.dev-dependencies]

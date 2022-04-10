@@ -4,6 +4,7 @@ from dagster import InitResourceContext, InputContext, OutputContext
 
 CT = TypeVar("CT")
 RT = TypeVar("RT")
+UC = TypeVar("UC")
 
 
 class AreaConfig(TypedDict):
@@ -16,7 +17,7 @@ class TableReference(TypedDict, total=False):
     source: AreaConfig
 
 
-class TypedInitResourceContext(InitResourceContext, Generic[CT]):
+class TypedInitResourceContext(Generic[CT], InitResourceContext):
     """Auxiliary class for better type support with dagster configurations
 
     Args:
@@ -29,7 +30,7 @@ class TypedInitResourceContext(InitResourceContext, Generic[CT]):
         ...
 
 
-class TypedInputContext(InputContext, Generic[CT, RT]):
+class TypedInputContext(InputContext, Generic[CT, RT, UC]):
     """Auxiliary class for better type support with dagster configurations
 
     Args:
@@ -43,6 +44,10 @@ class TypedInputContext(InputContext, Generic[CT, RT]):
 
     @property
     def resources(self) -> RT:
+        ...
+
+    @property
+    def upstream_output(self) -> UC:
         ...
 
 

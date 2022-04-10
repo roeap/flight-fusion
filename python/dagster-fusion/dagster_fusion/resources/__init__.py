@@ -10,7 +10,10 @@ class FusionConfig(TypedDict):
     port: int
 
 
-@resource(config_schema={"host": str, "port": int})
+@resource(  # type: ignore
+    config_schema={"host": str, "port": int},
+    description="Service client to interact with flight-fusion service",
+)
 def flight_fusion_resource(
     init_context: TypedInitResourceContext[FusionConfig],
 ) -> FusionServiceClient:
