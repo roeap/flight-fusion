@@ -1,4 +1,6 @@
-from typing import List, Optional, Protocol, Set, TypedDict, Union
+from __future__ import annotations
+
+from typing import List, Optional, Protocol, Set, TypedDict
 
 import pandas as pd
 import pyarrow as pa
@@ -8,6 +10,7 @@ from dagster_fusion.config import (
     FIELD_COLUMN_SELECTION,
     FIELD_LOCATION,
     FIELD_SAVE_MODE,
+    area_source_to_asset_key,
     table_reference_to_area_source,
 )
 from dagster_fusion.errors import MissingConfiguration
@@ -38,7 +41,7 @@ class IOManagerResources(Protocol):
 
 class TableIOManager(IOManager):
     def _get_dataset_client(
-        self, client: FusionServiceClient, config: Union[OutputConfig, InputConfig]
+        self, client: FusionServiceClient, config: OutputConfig | InputConfig
     ) -> DatasetClient:
         location = config.get("location")
         if location is None:
@@ -52,7 +55,7 @@ class TableIOManager(IOManager):
     def handle_output(
         self,
         context: TypedOutputContext[OutputConfig, IOManagerResources],
-        obj: Union[pd.DataFrame, pa.Table],
+        obj: pd.DataFrame | pa.Table,
     ) -> None:
         client = self._get_dataset_client(
             client=context.resources.fusion_client, config=context.config
@@ -69,14 +72,21 @@ class TableIOManager(IOManager):
         )
         return client.load()
 
-    def get_output_asset_key(self, _context) -> Optional[AssetKey]:
+    def get_output_asset_key(
+        self, context: TypedOutputContext[OutputConfig, IOManagerResources]
+    ) -> Optional[AssetKey]:
         """User-defined method that associates outputs handled by this IOManager with a particular
         AssetKey.
 
         Args:
             context (OutputContext): The context of the step output that produces this object.
         """
-        return None
+        location = context.config.get("location")
+        if location is None:
+            raise MissingConfiguration("Field `location` must be configured")
+
+        reference = table_reference_to_area_source(location)
+        return area_source_to_asset_key(reference)
 
     def get_output_asset_partitions(self, _context) -> Set[str]:
         """User-defined method that associates outputs handled by this IOManager with a set of
