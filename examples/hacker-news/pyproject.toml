@@ -1,0 +1,10 @@
+[tool.poetry]
+name = "hacker-news"
+version = "0.1.0"
+description = ""
+authors = ["Robert Pack <robstar.pack@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+dagster-fusion = { path = "../../python/dagster-fusion" }
