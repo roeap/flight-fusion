@@ -54,9 +54,10 @@ class IOManagerResources(Protocol):
 
 
 class TableIOManager(IOManager):
-    def _get_dataset_client(
-        self, client: FusionServiceClient, config: OutputConfig | InputConfig | AssetKey
-    ) -> DatasetClient:
+    def __init__(self, client: FusionServiceClient) -> None:
+        self._fusion = client
+
+    def _get_dataset_client(self, config: OutputConfig | InputConfig | AssetKey) -> DatasetClient:
         if isinstance(config, AssetKey):
             location = TableReference(
                 source=AreaConfig(name=config.path[-1], areas=config.path[:-1])  # type: ignore
@@ -69,22 +70,23 @@ class TableIOManager(IOManager):
         reference = table_reference_to_area_source(location)
 
         return TableClient(
-            client=AreaClient(client=client, areas=reference.location.areas), reference=reference
+            client=AreaClient(client=self._fusion, areas=reference.location.areas),
+            reference=reference,
         )
 
     def handle_output(
         self,
         context: TypedOutputContext[OutputConfig, IOManagerResources],
-        obj: pd.DataFrame | pa.Table,
+        obj: pd.DataFrame | pa.Table | pl.DataFrame,
     ) -> Iterable[MetadataEntry]:
-        client = self._get_dataset_client(
-            client=context.resources.fusion_client, config=context.asset_key or context.config
-        )
+        client = self._get_dataset_client(config=context.asset_key or context.config)
         save_mode = context.config.get("save_mode") or SaveMode.SAVE_MODE_APPEND
 
         data = obj
         if isinstance(obj, pd.DataFrame):
             data = pa.Table.from_pandas(obj)
+        elif isinstance(obj, pl.DataFrame):
+            data = obj.to_arrow()
         data = data.replace_schema_metadata({})
 
         client.write_into(data, save_mode)
@@ -129,22 +131,24 @@ class TableIOManager(IOManager):
         context: TypedInputContext[
             InputConfig, IOManagerResources, TypedOutputContext[OutputConfig, IOManagerResources]
         ],
-    ) -> pa.Table:
-        if hasattr(context.resources, "fusion_client"):
-            client = context.resources.fusion_client
-        elif hasattr(context.step_context.resources, "fusion_client"):
-            client = context.step_context.resources.fusion_client  # type: ignore
-        else:
-            raise MissingConfiguration("Unable to locate `FusionServiceClient` resource")
-
+    ) -> pa.Table | pl.DataFrame | pd.DataFrame:
         config = (
-            context.upstream_output.asset_key or context.asset_key or context.upstream_output.config
+            context.asset_key or context.upstream_output.asset_key or context.upstream_output.config
         )
         if config is None:
             raise MissingConfiguration("Filed to get source reference")
 
-        client = self._get_dataset_client(client=client, config=config)
-        return client.load()
+        client = self._get_dataset_client(config=config)
+        data = client.load()
+
+        # determine supported return types based on the type of the downstream input
+        if context.dagster_type.typing_type == pl.DataFrame:
+            return pl.from_arrow(data)
+
+        if context.dagster_type.typing_type == pd.DataFrame:
+            return data.to_pandas()
+
+        return data
 
     def get_output_asset_key(
         self, context: TypedOutputContext[OutputConfig, IOManagerResources]
@@ -191,10 +195,10 @@ class TableIOManager(IOManager):
 
 
 @io_manager(
-    required_resource_keys={"fusion_client"},
     description="IO Manager for handling dagster assets within a flight fusion service.",
     input_config_schema=_INPUT_CONFIG_SCHEMA,
     output_config_schema=_OUTPUT_CONFIG_SCHEMA,
+    required_resource_keys={"fusion_client"},
 )
 def flight_fusion_io_manager(init_context):
-    return TableIOManager()
+    return TableIOManager(init_context.resources.fusion_client)

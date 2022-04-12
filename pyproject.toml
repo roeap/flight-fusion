@@ -16,6 +16,7 @@ dagster-fusion = { path = "python/dagster-fusion/", develop = true }
 flight-fusion = { path = "python/flight-fusion/", develop = true, extras = [
   "docker",
 ] }
+hacker-news = { path = "examples/hacker-news/", develop = true }
 pyspark = "^3.2.1"
 delta-spark = "^1.1.0"
 dagit = "^0.14.8"

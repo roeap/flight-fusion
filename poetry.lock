@@ -342,7 +342,7 @@ description = ""
 category = "main"
 optional = false
 python-versions = "^3.8"
-develop = true
+develop = false
 
 [package.dependencies]
 dagster = "^0.14"
@@ -396,7 +396,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
 name = "delta-spark"
-version = "1.1.0"
+version = "1.2.0"
 description = "Python APIs for using Delta Lake with Apache Spark"
 category = "main"
 optional = false
@@ -710,6 +710,22 @@ hpack = ">=4.0,<5"
 hyperframe = ">=6.0,<7"
 
 [[package]]
+name = "hacker-news"
+version = "0.1.0"
+description = ""
+category = "main"
+optional = false
+python-versions = "^3.8"
+develop = true
+
+[package.dependencies]
+dagster-fusion = {path = "../../python/dagster-fusion"}
+
+[package.source]
+type = "directory"
+url = "examples/hacker-news"
+
+[[package]]
 name = "hpack"
 version = "4.0.0"
 description = "Pure-Python HPACK header compression"
@@ -807,7 +823,7 @@ python-versions = "*"
 
 [[package]]
 name = "ipykernel"
-version = "6.12.1"
+version = "6.13.0"
 description = "IPython Kernel for Jupyter"
 category = "dev"
 optional = false
@@ -1341,7 +1357,7 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "polars"
-version = "0.13.20"
+version = "0.13.22"
 description = "Blazingly fast DataFrame library"
 category = "main"
 optional = false
@@ -2011,7 +2027,7 @@ test = ["aiohttp", "flake8 (>=3.9.2,<3.10.0)", "psutil", "pycodestyle (>=2.7.0,<
 
 [[package]]
 name = "virtualenv"
-version = "20.14.0"
+version = "20.14.1"
 description = "Virtual Python Environment builder"
 category = "dev"
 optional = false
@@ -2124,7 +2140,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "bce4f408faff570bce5363988c63afabeba6b166d7ea840fd3073f8616318461"
+content-hash = "75148a0c0bc613011813bb2ecbbc7c4bbf84ddbc10b6e3f938ddb9c2ccf1e379"
 
 [metadata.files]
 alembic = [
@@ -2365,8 +2381,8 @@ defusedxml = [
     {file = "defusedxml-0.7.1.tar.gz", hash = "sha256:1bb3032db185915b62d7c6209c5a8792be6a32ab2fedacc84e01b52c51aa3e69"},
 ]
 delta-spark = [
-    {file = "delta-spark-1.1.0.tar.gz", hash = "sha256:263f743c8885e4c293e7c5d98c228ffe1a92b9719c61ea738e138f943fd25aeb"},
-    {file = "delta_spark-1.1.0-py3-none-any.whl", hash = "sha256:df16737fe445b70886577fdb106941237c328aeaedb1ccbab71c0876a032d572"},
+    {file = "delta-spark-1.2.0.tar.gz", hash = "sha256:c976f5026e3770945299c25f70a748052bedb6d2a49d5f21248f997ee5c36b88"},
+    {file = "delta_spark-1.2.0-py3-none-any.whl", hash = "sha256:7cee4f297812624edd8f84d832de11c177c76a1e8da04b1d8c7e4085038e7f11"},
 ]
 distlib = [
     {file = "distlib-0.3.4-py2.py3-none-any.whl", hash = "sha256:6564fe0a8f51e734df6333d08b8b94d4ea8ee6b99b5ed50613f731fd4089f34b"},
@@ -2643,6 +2659,7 @@ h2 = [
     {file = "h2-4.1.0-py3-none-any.whl", hash = "sha256:03a46bcf682256c95b5fd9e9a99c1323584c3eec6440d379b9903d709476bc6d"},
     {file = "h2-4.1.0.tar.gz", hash = "sha256:a83aca08fbe7aacb79fec788c9c0bac936343560ed9ec18b82a13a12c28d2abb"},
 ]
+hacker-news = []
 hpack = [
     {file = "hpack-4.0.0-py3-none-any.whl", hash = "sha256:84a076fad3dc9a9f8063ccb8041ef100867b1878b25ef0ee63847a5d53818a6c"},
     {file = "hpack-4.0.0.tar.gz", hash = "sha256:fc41de0c63e687ebffde81187a948221294896f6bdc0ae2312708df339430095"},
@@ -2712,8 +2729,8 @@ iniconfig = [
     {file = "iniconfig-1.1.1.tar.gz", hash = "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"},
 ]
 ipykernel = [
-    {file = "ipykernel-6.12.1-py3-none-any.whl", hash = "sha256:d840e3bf1c4b23bf6939f78dcdae639c9f6962e41d17e1c084a18c3c7f972d3a"},
-    {file = "ipykernel-6.12.1.tar.gz", hash = "sha256:0868f5561729ade444011f8ca7d3502dc9f27f7f44e20f1d5fee7e1f2b7183a1"},
+    {file = "ipykernel-6.13.0-py3-none-any.whl", hash = "sha256:2b0987af43c0d4b62cecb13c592755f599f96f29aafe36c01731aaa96df30d39"},
+    {file = "ipykernel-6.13.0.tar.gz", hash = "sha256:0e28273e290858393e86e152b104e5506a79c13d25b951ac6eca220051b4be60"},
 ]
 ipython = [
     {file = "ipython-8.2.0-py3-none-any.whl", hash = "sha256:1b672bfd7a48d87ab203d9af8727a3b0174a4566b4091e9447c22fb63ea32857"},
@@ -3070,11 +3087,11 @@ pluggy = [
     {file = "pluggy-1.0.0.tar.gz", hash = "sha256:4224373bacce55f955a878bf9cfa763c1e360858e330072059e10bad68531159"},
 ]
 polars = [
-    {file = "polars-0.13.20-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:5abbdc84708b6eb2aa21c9f96fdbd485883708e130a085b416b713b5c40b476f"},
-    {file = "polars-0.13.20-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:8f32df42f455a5775b2f2284eb3618f82ebdc0ac5feae43d12573ce882a7bdc3"},
-    {file = "polars-0.13.20-cp37-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:568bf574a17c16ee9bc10dddb249bbb1483923e4fd259596a10b70e193397a76"},
-    {file = "polars-0.13.20-cp37-abi3-win_amd64.whl", hash = "sha256:ac0bcb51b799af4057e72ddc22f68f9aa54aa7237ca74e23251c1c61e1674271"},
-    {file = "polars-0.13.20.tar.gz", hash = "sha256:c292cd45beeb75de2f4c60e6b853413d305ee9e84f2d590754bd94097cdc8cc1"},
+    {file = "polars-0.13.22-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:619ae2174a18ee38af17916b77675bba82c5c417a34543372cd866630b549950"},
+    {file = "polars-0.13.22-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:0f878b0f559dc31683411c1872e01392f4455e1dd0effc3747b4d58c65c1de82"},
+    {file = "polars-0.13.22-cp37-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:8ab3501f202d74253c00c43154cfcc63b8fa18827e2b7a1ecd23bf11928306c9"},
+    {file = "polars-0.13.22-cp37-abi3-win_amd64.whl", hash = "sha256:f8a698f51eb3fca33de9d1cafa7b385ac3c404899df365ecbc05e5ce3464a45f"},
+    {file = "polars-0.13.22.tar.gz", hash = "sha256:1a9a4012d9aff1e2ecb0e99f4f4b5a7ac197f210f35e742e2d7fe65cd9e5d2e6"},
 ]
 pre-commit = [
     {file = "pre_commit-2.18.1-py2.py3-none-any.whl", hash = "sha256:02226e69564ebca1a070bd1f046af866aa1c318dbc430027c50ab832ed2b73f2"},
@@ -3611,8 +3628,8 @@ uvloop = [
     {file = "uvloop-0.16.0.tar.gz", hash = "sha256:f74bc20c7b67d1c27c72601c78cf95be99d5c2cdd4514502b4f3eb0933ff1228"},
 ]
 virtualenv = [
-    {file = "virtualenv-20.14.0-py2.py3-none-any.whl", hash = "sha256:1e8588f35e8b42c6ec6841a13c5e88239de1e6e4e4cedfd3916b306dc826ec66"},
-    {file = "virtualenv-20.14.0.tar.gz", hash = "sha256:8e5b402037287126e81ccde9432b95a8be5b19d36584f64957060a3488c11ca8"},
+    {file = "virtualenv-20.14.1-py2.py3-none-any.whl", hash = "sha256:e617f16e25b42eb4f6e74096b9c9e37713cf10bf30168fb4a739f3fa8f898a3a"},
+    {file = "virtualenv-20.14.1.tar.gz", hash = "sha256:ef589a79795589aada0c1c5b319486797c03b67ac3984c48c669c0e4f50df3a5"},
 ]
 watchdog = [
     {file = "watchdog-2.1.7-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:177bae28ca723bc00846466016d34f8c1d6a621383b6caca86745918d55c7383"},
