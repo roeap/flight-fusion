@@ -91,40 +91,52 @@ class TableIOManager(IOManager):
 
         client.write_into(data, save_mode)
 
-        yield MetadataEntry.int(data.nbytes, "size (bytes)")
-        yield MetadataEntry.int(data.num_rows, "row count")
+        yield MetadataEntry("size (bytes)", value=MetadataValue.int(data.nbytes))
+        yield MetadataEntry("row count", value=MetadataValue.int(data.num_rows))
+        yield MetadataEntry("save mode", value=MetadataValue.text(save_mode.name))
 
         schema = TableSchema(
             columns=[TableColumn(name=col.name, type=str(col.type)) for col in data.schema]
         )
         yield MetadataEntry("table_schema", value=MetadataValue.table_schema(schema))
 
-        df = pl.from_arrow(data)
-        df_null = df.null_count()
+        try:
+            df: pl.DataFrame = pl.from_arrow(data)  # type: ignore
 
-        column_names = ["statistic"] + df_null.columns  # type: ignore
-        stats = [dict(zip(column_names, row)) for row in df.describe().rows()]
-        stats.append(dict(zip(column_names, ("null_count",) + df_null.row(0))))  # type: ignore
+            stats: List[pl.DataFrame] = []
+            for col in df.columns:
+                try:
+                    series_stats = df.get_column(col).describe()
+                    series_stats.columns = ["statistic", col]
+                    stats.append(series_stats)
+                except Exception:
+                    context.log.warning(f"Error computing statistics for column: '{col}'.")
 
-        yield MetadataEntry(
-            "column_statistics",
-            value=MetadataValue.json({"stats": stats}),
-        )
+            df_series = stats[0]
+            if len(stats) > 1:
+                for tbl in stats[1:]:
+                    df_series = df_series.join(tbl, on="statistic", how="outer")
 
-        # stats_schema = TableSchema(
-        #     columns=[TableColumn(name="statistic", type="string")]
-        #     + [TableColumn(name=col, type="float") for col in column_names[1:]]
-        # )
-        # stats = [TableRecord(**dict(zip(column_names, row))) for row in df.describe().rows()]
-        # stats.append(TableRecord(**dict(zip(column_names, ("null_count",) + df_null.row(0)))))  # type: ignore
+            df_stats = (
+                df_series[:, 1:]
+                .transpose(column_names=df_series[:, 0])  # type: ignore
+                .with_column(pl.Series(name="column_name", values=df_series.columns[1:]))
+            )
 
-        # yield MetadataEntry(
-        #     "column_statistics",
-        #     value=TableMetadataValue(
-        #         records=stats,
-        #         schema=stats_schema,
-        #     ),
-        # )
+            # rows = [TableRecord(**dict(zip(df_stats.columns, row))) for row in df_stats.rows()]
+            # yield MetadataEntry("column_statistics", value=TableMetadataEntryData(rows, None))
+
+            # yield MetadataEntry(
+            #     "column_statistics",
+            #     value=MetadataValue.json({"stats": df_stats.to_dicts()}),
+            # )
+            yield MetadataEntry(
+                "column_statistics",
+                value=MetadataValue.md(df_stats.to_pandas().to_markdown()),
+            )
+
+        except Exception:
+            context.log.warning("Error computing table statistics.")
 
     def load_input(
         self,

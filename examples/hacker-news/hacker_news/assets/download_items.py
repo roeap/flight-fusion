@@ -1,7 +1,5 @@
 import pyarrow as pa
-from dagster import AssetKey, Out, Output, op
-from pandas import DataFrame
-from pyspark.sql import DataFrame as SparkDF
+from dagster import asset
 
 from .id_range_for_time import id_range_for_time
 
@@ -24,17 +22,12 @@ HN_ACTION_SCHEMA = pa.schema(
 ACTION_FIELD_NAMES = [field.name for field in HN_ACTION_SCHEMA]
 
 
-@op(
-    out={
-        "items": Out(
-            metadata={"partitioned": True},
-            dagster_type=DataFrame,
-            asset_key=AssetKey(["demo", "hacker", "items_old"]),
-        )
-    },
+@asset(
+    name="items",
+    namespace=["demo", "hacker"],
     required_resource_keys={"hn_client", "partition_bounds"},
 )
-def download_items(context) -> Output:
+def download_items(context) -> pa.Table:
     """
     Downloads all of the items for the id range passed in as input and creates a DataFrame with
     all the entries.
@@ -55,35 +48,6 @@ def download_items(context) -> Output:
             context.log.info(f"Downloaded {len(rows)} items!")
 
     non_none_rows = [row for row in rows if row is not None]
-    result = DataFrame(non_none_rows, columns=ACTION_FIELD_NAMES).drop_duplicates(subset=["id"])
-    result.rename(columns={"by": "user_id"}, inplace=True)
+    table = pa.Table.from_pylist(non_none_rows, HN_ACTION_SCHEMA)
 
-    return Output(
-        result,
-        "items",
-        metadata={"Non-empty items": len(non_none_rows), "Empty items": rows.count(None)},
-    )
-
-
-@op(
-    out=Out(
-        metadata={"table": "hackernews.comments", "partitioned": True},
-        asset_key=AssetKey(["demo", "hacker", "comments"]),
-    ),
-    description="Creates a dataset of all items that are comments",
-)
-def build_comments(context, items: SparkDF) -> SparkDF:
-    context.log.info(str(items.schema))
-    return items.where(items["type"] == "comment")
-
-
-@op(
-    out=Out(
-        metadata={"table": "hackernews.stories", "partitioned": True},
-        asset_key=AssetKey(["demo", "hacker", "stories"]),
-    ),
-    description="Creates a dataset of all items that are stories",
-)
-def build_stories(context, items: SparkDF) -> SparkDF:
-    context.log.info(str(items.schema))
-    return items.where(items["type"] == "story")
+    return table
