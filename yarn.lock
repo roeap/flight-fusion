@@ -312,9 +312,9 @@ process-nextick-args@~2.0.0:
   integrity sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==
 
 quicktype-core@^6.0.70:
-  version "6.0.70"
-  resolved "https://registry.yarnpkg.com/quicktype-core/-/quicktype-core-6.0.70.tgz#3be15eef505d356bc16fad01d2941d726c0a5700"
-  integrity sha512-BMoG1omvauNhgGFzz1AkFVIC0LPXPArE6cCGI5fTeHvXKQsVUCbHt+seee2TaqUkELX9Pk6yA0s8OW8vW3kllA==
+  version "6.0.71"
+  resolved "https://registry.yarnpkg.com/quicktype-core/-/quicktype-core-6.0.71.tgz#01e9cf870a4d57112a4f0678835902bdd2f45934"
+  integrity sha512-NqyPyMhKFUzDKxk5+omV165x2HfxgAMuKaImjuUY3X0CSREBU7p3Bo2uXCMr16bdghpmc/dXOz4ZXvzayQritg==
   dependencies:
     "@mark.probst/unicode-properties" "~1.1.0"
     browser-or-node "^1.2.1"
@@ -478,9 +478,9 @@ unicode-trie@^0.3.0:
     tiny-inflate "^1.0.0"
 
 urijs@^1.19.1:
-  version "1.19.10"
-  resolved "https://registry.yarnpkg.com/urijs/-/urijs-1.19.10.tgz#8e2fe70a8192845c180f75074884278f1eea26cb"
-  integrity sha512-EzauQlgKuJgsXOqoMrCiePBf4At5jVqRhXykF3Wfb8ZsOBMxPcfiVBcsHXug4Aepb/ICm2PIgqAUGMelgdrWEg==
+  version "1.19.11"
+  resolved "https://registry.yarnpkg.com/urijs/-/urijs-1.19.11.tgz#204b0d6b605ae80bea54bea39280cdb7c9f923cc"
+  integrity sha512-HXgFDgDommxn5/bIv0cnQZsPhHDA90NPHD6+c/v21U5+Sx5hoP8+dP9IZXBU1gIfvdRfhG8cel9QNPeionfcCQ==
 
 util-deprecate@~1.0.1:
   version "1.0.2"
