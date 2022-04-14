@@ -1,9 +1,6 @@
-from dagster import build_schedule_from_partitioned_job, repository
+from dagster import repository
 
 from .assets import hacker_assets
-from .jobs.api_download import (  # download_prod_job,; download_staging_job,
-    download_local_job,
-)
 
 # from .jobs.dbt_metrics import dbt_prod_job, dbt_staging_job
 # from .jobs.story_recommender import (
@@ -11,7 +8,7 @@ from .jobs.api_download import (  # download_prod_job,; download_staging_job,
 #     story_recommender_prod_job,
 #     story_recommender_staging_job,
 # )
-from .sensors import make_hn_tables_updated_sensor
+# from .sensors import make_hn_tables_updated_sensor
 
 # from .sensors.slack_on_failure_sensor import make_slack_on_failure_sensor
 
@@ -19,7 +16,6 @@ from .sensors import make_hn_tables_updated_sensor
 @repository
 def hacker_news_local():
     return [
-        download_local_job,
         hacker_assets,
         # story_recommender_local_job,
         # dbt_staging_job,

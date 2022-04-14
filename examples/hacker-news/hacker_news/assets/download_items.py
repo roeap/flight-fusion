@@ -1,5 +1,6 @@
+import polars as pl
 import pyarrow as pa
-from dagster import asset
+from dagster import AssetIn, AssetKey, asset
 
 from .id_range_for_time import id_range_for_time
 
@@ -51,3 +52,25 @@ def download_items(context) -> pa.Table:
     table = pa.Table.from_pylist(non_none_rows, HN_ACTION_SCHEMA)
 
     return table
+
+
+@asset(
+    name="comments",
+    namespace=["demo", "hacker"],
+    ins={"items": AssetIn(asset_key=AssetKey(["demo", "hacker", "items"]))},
+    description="Creates a dataset of all items that are comments",
+    metadata={"table": "hackernews.comments", "partitioned": True},
+)
+def build_comments(context, items: pl.DataFrame) -> pa.Table:
+    return items.filter(pl.col("type") == "comment").to_arrow()
+
+
+@asset(
+    name="stories",
+    namespace=["demo", "hacker"],
+    ins={"items": AssetIn(asset_key=AssetKey(["demo", "hacker", "items"]))},
+    description="Creates a dataset of all items that are stories",
+    metadata={"table": "hackernews.stories", "partitioned": True},
+)
+def build_stories(context, items: pl.DataFrame) -> pa.Table:
+    return items.filter(pl.col("type") == "story").to_arrow()
