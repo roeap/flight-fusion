@@ -103,7 +103,6 @@ table_1 = SourceAsset(
     namespace=["computed"],
     ins={"table_1": AssetIn(asset_key=AssetKey(["static", "table1"]))},
     description="Process external input table",
-    required_resource_keys={"fusion_client"},
 )
 def compute_result1(_context, table_1: pa.Table) -> pa.Table:
     return table_1
@@ -114,7 +113,6 @@ def compute_result1(_context, table_1: pa.Table) -> pa.Table:
     namespace=["computed"],
     ins={"table_1": AssetIn(asset_key=AssetKey(["static", "table1"]))},
     description="Process external input table",
-    required_resource_keys={"fusion_client"},
 )
 def compute_result2(_context, table_1: pa.Table) -> pa.Table:
     return table_1

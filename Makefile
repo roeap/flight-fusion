@@ -81,3 +81,12 @@ rust-test-integration:
 .PHONY: run
 run: ## run most recent build of flight fusion
 	./target/debug/flight-fusion
+
+dagit-daemon:
+	cd .dagster && DAGSTER_HOME=$(PWD)/.dagster dagster-daemon run
+
+dagit-hacker:
+	cd .dagster && DAGSTER_HOME=$(PWD)/.dagster dagit -m hacker_news.repo
+
+dagit-simple:
+	DAGSTER_HOME=$(PWD)/.dagster dagit -f scripts/dagster_example.py
