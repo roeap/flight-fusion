@@ -8,13 +8,14 @@ from typer import get_app_dir
 
 from flight_fusion.errors import FlightFusionError
 
-from ._config import AppSettings
-
 _APP_NAME = "flight-fusion"
 _CONFIG_FILE_STEM = "app"
 
+MLFLOW_DIR = ".mlflow"
+DAGSTER_DIR = ".dagster"
 
-def _find_git_root() -> Optional[Path]:
+
+def find_git_root() -> Optional[Path]:
     try:
         args = ["git", "rev-parse", "--show-toplevel"]
         output = subprocess.check_output(args)  # nosec
@@ -44,6 +45,17 @@ def _read_config_data(app_root: Path) -> Dict:
     raise FlightFusionError("Unsupported file format for config file")
 
 
+def get_project_directory():
+    git_root = find_git_root()
+    if git_root is not None:
+        return git_root / f".{_APP_NAME}"
+    return None
+
+
+def get_global_directory():
+    return Path(get_app_dir(app_name=_APP_NAME, force_posix=True, roaming=False))
+
+
 def get_app_directory() -> Path:
     """Get path to the application config directory
 
@@ -56,18 +68,9 @@ def get_app_directory() -> Path:
     Returns:
         Path: path to application config directory
     """
-    git_root = _find_git_root()
-    if git_root is not None:
-        return git_root / f".{_APP_NAME}"
+    directory = get_project_directory()
+    if directory is not None and directory.exists():
+        return directory
 
-    return Path(get_app_dir(app_name=_APP_NAME, force_posix=True))
-
-
-def get_app_settings() -> AppSettings:
-    app_dir = get_app_directory()
-    data = _read_config_data(app_dir)
-    settings = AppSettings(**data)
-    if not settings.executable.is_absolute():
-        settings.executable = app_dir.joinpath(settings.executable)
-
-    return settings
+    raise NotImplementedError("Global dir not supported yet.")
+    return get_global_directory()

@@ -7,19 +7,25 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.8,<3.11"
+
+# pypi dependencies
 grpcio-tools = "^1.42.0"
-mkdocs = "^1.2.3"
 betterproto = { version = "2.0.0b4", extras = ["compiler"] }
-mkdocs-material = "^8.1.4"
-mkautodoc = "^0.1.0"
+dagit = "^0.14.8"
+delta-spark = "^1.1.0"
+mkdocs-protobuf = "^0.1"
+mkdocs-techdocs-core = "^1"
+pyspark = "^3.2.1"
+
+# workspace dependencies
 dagster-fusion = { path = "python/dagster-fusion/", develop = true }
 flight-fusion = { path = "python/flight-fusion/", develop = true, extras = [
   "docker",
 ] }
+
+# example projects
 hacker-news = { path = "examples/hacker-news/", develop = true }
-pyspark = "^3.2.1"
-delta-spark = "^1.1.0"
-dagit = "^0.14.8"
+model-training = { path = "examples/model-training/", develop = true }
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"

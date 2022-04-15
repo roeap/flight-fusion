@@ -17,6 +17,7 @@ ignoreWords:
   - chrono
   - clippy
   - codegen
+  - dagit
   - datafusion
   - datalake
   - datasource
@@ -29,6 +30,7 @@ ignoreWords:
   - jdbc
   - maturin
   - mkdocs
+  - mlflow
   - opentelemetry
   - petgraph
   - prost
@@ -46,6 +48,7 @@ ignoreWords:
   - rustfmt
   - schemafy
   - seekable
+  - sklearn
   - sqlparser
   - structopt
   - tempdir

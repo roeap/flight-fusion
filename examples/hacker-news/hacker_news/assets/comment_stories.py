@@ -10,10 +10,9 @@ from pandas import DataFrame, Series
     },
     io_manager_key="fusion_io_manager",
 )
-def comment_stories(stories: DataFrame, comments: DataFrame) -> DataFrame:
+def comment_stories(context, stories: DataFrame, comments: DataFrame) -> DataFrame:
     """
     Comments linked to their root stories.
-    Owners: sandy@elementl.com, owen@elementl.com
     """
     comments.rename(columns={"user_id": "commenter_id", "id": "comment_id"}, inplace=True)
     comments = comments.set_index("comment_id")[["commenter_id", "parent"]]
