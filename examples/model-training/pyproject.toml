@@ -8,6 +8,9 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.8"
 dagster-fusion = { path = "../../python/dagster-fusion" }
+dagster-mlflow = "^0.14"
 mlflow = "^1.25.1"
 scipy = "^1.8"
 scikit-learn = "^1"
+itsdangerous = "2.0.1"
+werkzeug = "<2.1"

@@ -90,3 +90,6 @@ dagit-hacker:
 
 dagit-simple:
 	DAGSTER_HOME=$(PWD)/.dagster dagit -f scripts/dagster_example.py
+
+mlflow:
+	cd .mlflow && mlflow server --backend-store-uri sqlite:///mlruns.sqlite --default-artifact-root $(PWD)/.mlflow/mlruns/

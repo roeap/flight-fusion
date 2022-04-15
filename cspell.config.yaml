@@ -29,6 +29,7 @@ ignoreWords:
   - jdbc
   - maturin
   - mkdocs
+  - mlflow
   - opentelemetry
   - petgraph
   - prost
