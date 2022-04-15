@@ -80,6 +80,7 @@ class TableIOManager(IOManager):
         obj: pd.DataFrame | pa.Table | pl.DataFrame,
     ) -> Iterable[MetadataEntry]:
         client = self._get_dataset_client(config=context.asset_key or context.config)
+        # TODO get save_mode from metadata
         save_mode = context.config.get("save_mode") or SaveMode.SAVE_MODE_APPEND
 
         data = obj
@@ -89,7 +90,12 @@ class TableIOManager(IOManager):
             data = obj.to_arrow()
         data = data.replace_schema_metadata({})
 
-        client.write_into(data, save_mode)
+        context.log.warning(f"num rows: {data.num_rows}")
+        if data.num_rows > 0:
+            client.write_into(data, save_mode)
+        else:
+            context.log.warning(f"Tried writing empty data for asset: {context.asset_key}")
+            return
 
         yield MetadataEntry("size (bytes)", value=MetadataValue.int(data.nbytes))
         yield MetadataEntry("row count", value=MetadataValue.int(data.num_rows))
@@ -152,6 +158,14 @@ class TableIOManager(IOManager):
 
         client = self._get_dataset_client(config=config)
         data = client.load()
+
+        # TODO filter columns in read request
+        columns = (context.metadata or {}).get("columns")
+        if columns is not None:
+            context.log.debug(f"Selecting columns {columns}")
+            if not isinstance(columns, list):
+                raise ValueError("metadata value 'columns' must be list of column names")
+            data = data.select(columns)
 
         # determine supported return types based on the type of the downstream input
         if context.dagster_type.typing_type == pl.DataFrame:

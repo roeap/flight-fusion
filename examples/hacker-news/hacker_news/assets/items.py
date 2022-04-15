@@ -44,7 +44,8 @@ def items(context, id_range_for_time: Tuple[int, int]):
 
     non_none_rows = [row for row in rows if row is not None]
     table = pa.Table.from_pylist(non_none_rows, HN_ACTION_SCHEMA)
-    # TODO rename id to user_id
+    names = [name if name != "by" else "user_id" for name in table.column_names]
+    table = table.rename_columns(names)
 
     return Output(
         table,

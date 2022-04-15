@@ -6,17 +6,20 @@ from pandas import DataFrame, Series
 from sklearn.decomposition import TruncatedSVD
 
 
-#
-#
-@asset(namespace=["demo", "hacker"])
-def recommender_model(user_story_matrix: IndexedCooMatrix):
+@asset(namespace=["demo", "hacker"], required_resource_keys={"mlflow"})
+def recommender_model(context, user_story_matrix: IndexedCooMatrix):
     """
     An SVD model for collaborative filtering-based recommendation.
     """
-    n_components = min(random.randint(90, 110), len(user_story_matrix.col_index) - 1)
+    mlflow = context.resources.mlflow
+    mlflow.sklearn.autolog()
+
+    n_components = min(random.randint(90, 110), len(user_story_matrix.col_index) - 1)  # nosec
     svd = TruncatedSVD(n_components=n_components)
     svd.fit(user_story_matrix.matrix)
     total_explained_variance = svd.explained_variance_ratio_.sum()
+
+    mlflow.end_run()
 
     return Output(
         svd,
@@ -33,7 +36,7 @@ def recommender_model(user_story_matrix: IndexedCooMatrix):
     io_manager_key="fusion_io_manager",
 )
 def component_top_stories(
-    recommender_model, user_story_matrix: IndexedCooMatrix, stories: DataFrame
+    recommender_model: TruncatedSVD, user_story_matrix: IndexedCooMatrix, stories: DataFrame
 ):
     """
     For each component in the collaborative filtering model, the titles of the top stories
