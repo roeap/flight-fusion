@@ -1,10 +1,10 @@
 from datetime import datetime, timezone
-from typing import List, Tuple
 
-from dagster import MetadataEntry, check
+from dagster import MetadataEntry, Output, asset, check
+from hacker_news.partitions import hourly_partitions
 
 
-def _binary_search_nearest_left(get_value, start, end, min_target):
+def binary_search_nearest_left(get_value, start, end, min_target):
     mid = (start + end) // 2
 
     while start <= end:
@@ -24,7 +24,7 @@ def _binary_search_nearest_left(get_value, start, end, min_target):
     return start
 
 
-def _binary_search_nearest_right(get_value, start, end, max_target):
+def binary_search_nearest_right(get_value, start, end, max_target):
     mid = (start + end) // 2
 
     while start <= end:
@@ -50,18 +50,13 @@ def _binary_search_nearest_right(get_value, start, end, max_target):
     return end
 
 
-def id_range_for_time(start, end, hn_client) -> Tuple[Tuple[int, int], List[MetadataEntry]]:
+def _id_range_for_time(start: int, end: int, hn_client):
     check.invariant(end >= start, "End time comes before start time")
-
-    start = datetime.timestamp(
-        datetime.strptime(start, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
-    )
-    end = datetime.timestamp(
-        datetime.strptime(end, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
-    )
 
     def _get_item_timestamp(item_id):
         item = hn_client.fetch_item_by_id(item_id)
+        if not item:
+            raise ValueError(f"No item with id {item_id}")
         return item["time"]
 
     max_item_id = hn_client.fetch_max_item_id()
@@ -69,8 +64,8 @@ def id_range_for_time(start, end, hn_client) -> Tuple[Tuple[int, int], List[Meta
     # declared by resource to allow testability against snapshot
     min_item_id = hn_client.min_item_id()
 
-    start_id = _binary_search_nearest_left(_get_item_timestamp, min_item_id, max_item_id, start)
-    end_id = _binary_search_nearest_right(_get_item_timestamp, min_item_id, max_item_id, end)
+    start_id = binary_search_nearest_left(_get_item_timestamp, min_item_id, max_item_id, start)
+    end_id = binary_search_nearest_right(_get_item_timestamp, min_item_id, max_item_id, end)
 
     start_timestamp = str(datetime.fromtimestamp(_get_item_timestamp(start_id), tz=timezone.utc))
     end_timestamp = str(datetime.fromtimestamp(_get_item_timestamp(end_id), tz=timezone.utc))
@@ -86,3 +81,20 @@ def id_range_for_time(start, end, hn_client) -> Tuple[Tuple[int, int], List[Meta
 
     id_range = (start_id, end_id)
     return id_range, metadata_entries
+
+
+@asset(
+    namespace=["demo", "hacker"],
+    required_resource_keys={"hn_client"},
+    description="The lower (inclusive) and upper (exclusive) ids that bound the range for the partition",
+    partitions_def=hourly_partitions,
+)
+def id_range_for_time(context):
+    """
+    For the configured time partition, searches for the range of ids that were created in that time.
+    """
+    start, end = context.output_asset_partitions_time_window()
+    id_range, metadata_entries = _id_range_for_time(
+        start.timestamp(), end.timestamp(), context.resources.hn_client
+    )
+    yield Output(id_range, metadata_entries=metadata_entries)  # type: ignore

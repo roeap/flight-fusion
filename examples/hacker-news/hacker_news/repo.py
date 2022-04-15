@@ -1,8 +1,8 @@
 from dagster import repository
 
-from .assets import hacker_assets
+from .assets import local_assets
+from .jobs import download_local_job
 
-# from .jobs.dbt_metrics import dbt_prod_job, dbt_staging_job
 # from .jobs.story_recommender import (
 #     story_recommender_local_job,
 #     story_recommender_prod_job,
@@ -16,10 +16,9 @@ from .assets import hacker_assets
 @repository
 def hacker_news_local():
     return [
-        hacker_assets,
-        # story_recommender_local_job,
-        # dbt_staging_job,
-    ]
+        local_assets,
+        download_local_job,
+    ]  # , activity_stats_local_job, story_recommender_local_job]
 
 
 # @repository

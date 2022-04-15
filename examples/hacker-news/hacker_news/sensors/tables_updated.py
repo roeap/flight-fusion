@@ -17,10 +17,7 @@ def make_hn_tables_updated_sensor(job: JobDefinition) -> SensorDefinition:
     both been updated.
     """
 
-    @sensor(
-        name=f"{job.name}_on_hn_tables_updated",
-        job=job,
-    )
+    @sensor(name=f"{job.name}_on_hn_tables_updated", job=job)
     def hn_tables_updated_sensor(context):
         cursor_dict = json.loads(context.cursor) if context.cursor else {}
         comments_cursor = cursor_dict.get("comments")
@@ -29,7 +26,7 @@ def make_hn_tables_updated_sensor(job: JobDefinition) -> SensorDefinition:
         comments_event_records = context.instance.get_event_records(
             EventRecordsFilter(
                 event_type=DagsterEventType.ASSET_MATERIALIZATION,
-                asset_key=AssetKey(["demo", "hackernews", "comments"]),
+                asset_key=AssetKey(["snowflake", "hackernews", "comments"]),
                 after_cursor=comments_cursor,
             ),
             ascending=False,
@@ -38,7 +35,7 @@ def make_hn_tables_updated_sensor(job: JobDefinition) -> SensorDefinition:
         stories_event_records = context.instance.get_event_records(
             EventRecordsFilter(
                 event_type=DagsterEventType.ASSET_MATERIALIZATION,
-                asset_key=AssetKey(["demo", "hackernews", "stories"]),
+                asset_key=AssetKey(["snowflake", "hackernews", "stories"]),
                 after_cursor=stories_cursor,
             ),
             ascending=False,

@@ -1,8 +1,9 @@
+from typing import Tuple
+
 import polars as pl
 import pyarrow as pa
-from dagster import AssetIn, AssetKey, asset
-
-from .id_range_for_time import id_range_for_time
+from dagster import Output, asset
+from hacker_news.partitions import hourly_partitions
 
 HN_ACTION_SCHEMA = pa.schema(
     [
@@ -24,21 +25,14 @@ ACTION_FIELD_NAMES = [field.name for field in HN_ACTION_SCHEMA]
 
 
 @asset(
-    name="items",
     namespace=["demo", "hacker"],
-    required_resource_keys={"hn_client", "partition_bounds"},
+    io_manager_key="fusion_io_manager",
+    required_resource_keys={"hn_client"},
+    partitions_def=hourly_partitions,
 )
-def download_items(context) -> pa.Table:
-    """
-    Downloads all of the items for the id range passed in as input and creates a DataFrame with
-    all the entries.
-    """
-    # The lower (inclusive) and upper (exclusive) ids that bound the range for the partition
-    (start_id, end_id), metadata_entries = id_range_for_time(
-        context.resources.partition_bounds["start"],
-        context.resources.partition_bounds["end"],
-        context.resources.hn_client,
-    )
+def items(context, id_range_for_time: Tuple[int, int]):
+    """Items from the Hacker News API: each is a story or a comment on a story."""
+    start_id, end_id = id_range_for_time
 
     context.log.info(f"Downloading range {start_id} up to {end_id}: {end_id - start_id} items.")
 
@@ -50,27 +44,27 @@ def download_items(context) -> pa.Table:
 
     non_none_rows = [row for row in rows if row is not None]
     table = pa.Table.from_pylist(non_none_rows, HN_ACTION_SCHEMA)
+    # TODO rename id to user_id
 
-    return table
+    return Output(
+        table,
+        metadata={"Non-empty items": len(non_none_rows), "Empty items": rows.count(None)},
+    )
 
 
 @asset(
-    name="comments",
     namespace=["demo", "hacker"],
-    ins={"items": AssetIn(asset_key=AssetKey(["demo", "hacker", "items"]))},
-    description="Creates a dataset of all items that are comments",
-    metadata={"table": "hackernews.comments", "partitioned": True},
+    io_manager_key="fusion_io_manager",
+    partitions_def=hourly_partitions,
 )
-def build_comments(context, items: pl.DataFrame) -> pa.Table:
+def comments(items: pl.DataFrame) -> pa.Table:
     return items.filter(pl.col("type") == "comment").to_arrow()
 
 
 @asset(
-    name="stories",
     namespace=["demo", "hacker"],
-    ins={"items": AssetIn(asset_key=AssetKey(["demo", "hacker", "items"]))},
-    description="Creates a dataset of all items that are stories",
-    metadata={"table": "hackernews.stories", "partitioned": True},
+    io_manager_key="fusion_io_manager",
+    partitions_def=hourly_partitions,
 )
-def build_stories(context, items: pl.DataFrame) -> pa.Table:
+def stories(items: pl.DataFrame) -> pa.Table:
     return items.filter(pl.col("type") == "story").to_arrow()

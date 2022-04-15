@@ -8,3 +8,5 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.8"
 dagster-fusion = { path = "../../python/dagster-fusion" }
+scipy = "^1.8"
+scikit-learn = "^1"
