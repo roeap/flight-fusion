@@ -86,7 +86,7 @@ dagit-daemon:
 	cd .dagster && DAGSTER_HOME=$(PWD)/.dagster dagster-daemon run
 
 dagit-hacker:
-	cd .dagster && DAGSTER_HOME=$(PWD)/.dagster dagit -m hacker_news.repo
+	cd .dagster && DAGSTER_HOME=$(PWD)/.dagster dagit
 
 dagit-simple:
 	DAGSTER_HOME=$(PWD)/.dagster dagit -f scripts/dagster_example.py
