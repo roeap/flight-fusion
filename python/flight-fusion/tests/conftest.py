@@ -7,7 +7,7 @@ from typing import Generator
 import pytest
 
 from flight_fusion import ClientOptions, FusionServiceClient
-from flight_fusion.cli._utils import _find_git_root
+from flight_fusion.cli._utils import find_git_root
 
 ENV_FF_EXECUTABLE = "FF_EXECUTABLE"
 
@@ -17,7 +17,7 @@ def ff_server():
     # try and find a suitable executable
     ff_executable_path = os.environ.get(ENV_FF_EXECUTABLE)
     if ff_executable_path is None:
-        git_root = _find_git_root()
+        git_root = find_git_root()
         if git_root is None:
             raise ValueError("Executable path must be configured")
         ff_executable_path = git_root / "target/debug/flight-fusion"

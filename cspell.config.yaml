@@ -17,6 +17,7 @@ ignoreWords:
   - chrono
   - clippy
   - codegen
+  - dagit
   - datafusion
   - datalake
   - datasource
