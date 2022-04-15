@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow
+spec:
+  replicas: 1
+  strategy:
+    type: "Recreate"
+  selector:
+    matchLabels:
+      app: mlflow
+  template:
+    metadata:
+      labels:
+        app: mlflow
+        pod.staroid.com/isolation: dedicated
+    spec:
+      securityContext:
+        fsGroup: 2000 # To mount mlruns volume with access permission. fyi, 'sandboxed' does not support fsGroup
+      containers:
+        - name: mlflow
+          image: mlflow
+          command:
+            - "bash"
+            - "-c"
+            - >-
+              mkdir -p /home/mlflow/.ssh && chmod 700 /home/mlflow/.ssh &&
+              echo -n "mlflow.$POD_NAMESPACE " >> /home/mlflow/.ssh/known_hosts &&
+              cat /ssh-key/id_rsa.pub >> /home/mlflow/.ssh/known_hosts &&
+              cp /ssh-key/id_rsa /home/mlflow/.ssh/ &&
+              chmod 600 /home/mlflow/.ssh/* &&
+              mlflow server
+              --backend-store-uri postgresql://mlflow:mlflow@postgres:5432/mlflow
+              --default-artifact-root sftp://mlflow@mlflow.$POD_NAMESPACE:10022/mlruns
+              --host 0.0.0.0
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - name: mlflow-artifact-volume
+              mountPath: /mlruns
+            - name: ssh-key-volume
+              mountPath: /ssh-key
+        - name: artifact-store
+          image: sftp
+          command:
+            - "bash"
+            - "-c"
+            - >-
+              mkdir -p /home/mlflow/.ssh/ && chmod 700 /home/mlflow/.ssh &&
+              cp /ssh-key/* /home/mlflow/.ssh/ &&
+              mv /home/mlflow/.ssh/id_rsa.pub /home/mlflow/.ssh/authorized_keys &&
+              chmod 600 /home/mlflow/.ssh/* &&
+              /usr/sbin/sshd -e -D -h /home/mlflow/.ssh/id_rsa -p 10022
+          volumeMounts:
+            - name: mlflow-artifact-volume
+              mountPath: /mlruns
+            - name: ssh-key-volume
+              mountPath: /ssh-key
+      volumes:
+        - name: mlflow-artifact-volume
+          persistentVolumeClaim:
+            claimName: mlflow-artifact-pvc
+        - name: ssh-key-volume
+          secret:
+            secretName: mlflow-ssh-key
+            defaultMode: 0600
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: mlflow
+spec:
+  ports:
+    - name: mlflow
+      port: 5000
+    - name: sftp
+      port: 10022 # sftp for artifact
+  selector:
+    app: mlflow
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mlflow-artifact-pvc
+spec:
+  storageClassName: ssd
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---

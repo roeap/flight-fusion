@@ -15,7 +15,14 @@ dagit = "^0.14.8"
 delta-spark = "^1.1.0"
 mkdocs-protobuf = "^0.1"
 mkdocs-techdocs-core = "^1"
+mlflow = "^1.25.1"
+mlserver = "^1.0.1"
+mlserver-mlflow = "^1.0.1"
 pyspark = "^3.2.1"
+
+# TODO remove once flask ist updated in deps
+itsdangerous = "2.0.1"
+werkzeug = "<2.1"
 
 # workspace dependencies
 dagster-fusion = { path = "python/dagster-fusion/", develop = true }
