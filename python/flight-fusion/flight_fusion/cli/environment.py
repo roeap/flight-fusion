@@ -1,12 +1,7 @@
 # flake8: noqa 401
 import shutil
-import subprocess  # nosec
-import sys
-from enum import Enum
-from pathlib import Path
 
 import typer
-from loguru import logger
 
 from ._utils import DAGSTER_DIR, MLFLOW_DIR, get_app_directory, get_project_directory
 
@@ -45,7 +40,7 @@ def init(local: bool = True):
         with ignore_file.open("w", encoding="utf-8") as f_:
             f_.write(_GITIGNORE)
 
-    typer.echo(f"Hello init")
+    typer.echo(f"Initialized flight-fusion env in: {str(work_dir)}")
 
 
 @app.command()
