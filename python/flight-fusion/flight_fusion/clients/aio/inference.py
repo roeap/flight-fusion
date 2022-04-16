@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 from contextlib import asynccontextmanager
 from threading import Thread
@@ -8,6 +10,10 @@ from grpclib.events import SendRequest, listen
 
 from flight_fusion.ipc.inference import (
     GrpcInferenceServiceStub,
+    InferParameter,
+    ModelInferRequestInferInputTensor,
+    ModelInferRequestInferRequestedOutputTensor,
+    ModelInferResponse,
     ModelMetadataResponse,
     ServerMetadataResponse,
 )
@@ -29,7 +35,7 @@ class _RunThread(Thread):
 def run_async(func: Callable[..., Coroutine[Any, Any, T]], *args, **kwargs) -> T:
     """Helper function to execute async code.
 
-    Will use current loop if executen inside a running lopp, will use asyncio.run otherwise.
+    Will use current loop if executed inside a running loop, will use asyncio.run otherwise.
     """
     try:
         loop = asyncio.get_running_loop()
@@ -44,7 +50,7 @@ def run_async(func: Callable[..., Coroutine[Any, Any, T]], *args, **kwargs) -> T
         return asyncio.run(func(*args, **kwargs))
 
 
-class AsyncServiceClient:
+class AsyncGrpcInferenceServiceClient:
     def __init__(
         self,
         host: str = "localhost",
@@ -98,3 +104,23 @@ class AsyncServiceClient:
     async def model_metadata(self, *, name: str, version: str = "") -> ModelMetadataResponse:
         async with self._service() as service:
             return await service.model_metadata(name=name, version=version)
+
+    async def model_infer(
+        self,
+        *,
+        model_name: str,
+        model_version: str = "",
+        id: str = "",
+        parameters: dict[str, InferParameter] | None = None,
+        inputs: list[ModelInferRequestInferInputTensor] | None = None,
+        outputs: list[ModelInferRequestInferRequestedOutputTensor] | None = None,
+    ) -> ModelInferResponse:
+        async with self._service() as service:
+            return await service.model_infer(
+                model_name=model_name,
+                model_version=model_version,
+                id=id,
+                parameters=parameters or {},
+                inputs=inputs,
+                outputs=outputs,
+            )
