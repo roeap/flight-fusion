@@ -11,7 +11,7 @@ from flight_fusion.ipc.inference import (
     ServerMetadataResponse,
 )
 
-from .aio.inference import AsyncGrpcInferenceServiceClient, run_async
+from .aio import AsyncGrpcInferenceServiceClient, run_async
 
 IS_WINDOWS = os.name == "nt"
 
