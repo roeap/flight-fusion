@@ -13,8 +13,6 @@
 - write into delta tables
 - write into parquet tables
 
-### Signal Frames
-
 ## Client
 
 - list available datasets

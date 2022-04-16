@@ -29,11 +29,6 @@ On top of this this project aims to evaluate integrations of different services 
 
 - [Dagster](https://dagster.io/)
 
-## USPs
-
-- Lineage based on Signal (e.g. Column) level
-- Compute graph as first class citizen
-
 ## Links
 
 - https://github.com/indradb/indradb

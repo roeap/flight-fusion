@@ -1417,6 +1417,19 @@ mlflow = "*"
 mlserver = "*"
 
 [[package]]
+name = "mlserver-sklearn"
+version = "1.0.1"
+description = "Scikit-Learn runtime for MLServer"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+joblib = "*"
+mlserver = "*"
+scikit-learn = "*"
+
+[[package]]
 name = "model-training"
 version = "0.1.0"
 description = ""
@@ -2655,7 +2668,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8,<3.11"
-content-hash = "fa274c6fe1bc0eda027bb76db53a086686fd4c82c65c5adb7bdb62648e112283"
+content-hash = "764c1313a3539b6267357efd0d3f1d0cc3ee4ebf2840a1acedefec3b9963256a"
 
 [metadata.files]
 alembic = [
@@ -3484,6 +3497,10 @@ mlserver = [
 mlserver-mlflow = [
     {file = "mlserver-mlflow-1.0.1.tar.gz", hash = "sha256:cabf24ca0324b0233fddd8893e7ddb93a59d9ee0d0fd2cb2b20d0c8bf6502921"},
     {file = "mlserver_mlflow-1.0.1-py3-none-any.whl", hash = "sha256:a99daa0883559b13234fc9f06e69b60d13cd275ff788be1c8c3951b6b6f66f1a"},
+]
+mlserver-sklearn = [
+    {file = "mlserver-sklearn-1.0.1.tar.gz", hash = "sha256:496f851e8cce97a83f8bfa85e22d59a0d4288be0c732137dd423a21134406965"},
+    {file = "mlserver_sklearn-1.0.1-py3-none-any.whl", hash = "sha256:7f433fa2a8b207b6d8f163b940188f20c2f35126994f1899b095e903db6eaa6d"},
 ]
 model-training = []
 multidict = [
