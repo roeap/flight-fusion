@@ -62,6 +62,14 @@ python-proto:
 	black --line-length 100 python/flight-fusion/flight_fusion/
 	isort python/flight-fusion/flight_fusion/
 
+python-proto-inference:
+	mkdir tmp-proto
+	python -m grpc_tools.protoc -I proto --python_betterproto_out=tmp-proto proto/inference/dataplane.proto proto/inference/model_repository/model_repository.proto
+	mv -f ./tmp-proto/inference/* ./python/flight-fusion/flight_fusion/ipc/inference/
+	rm -rf ./tmp-proto
+	black --line-length 100 python/flight-fusion/flight_fusion/
+	isort python/flight-fusion/flight_fusion/
+
 .PHONY: python-test
 python-test: ## Run check on Rust
 	pytest python/flight-fusion/tests

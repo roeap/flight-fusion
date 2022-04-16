@@ -59,7 +59,11 @@ profile = "black"
 src_paths = ["python/**/*"]
 
 [tool.pyright]
-exclude = ["**/node_modules", "**/__pycache__"]
+exclude = [
+  "**/node_modules",
+  "**/__pycache__",
+  "python/flight-fusion/flight_fusion/ipc/inference",
+]
 
 [tool.pytest.ini_options]
 markers = [
