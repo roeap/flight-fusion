@@ -30,6 +30,7 @@ dagster-fusion = { path = "python/dagster-fusion/", develop = true }
 flight-fusion = { path = "python/flight-fusion/", develop = true, extras = [
   "docker",
 ] }
+mlserver-fusion = { path = "python/mlserver-fusion/", develop = true }
 
 # example projects
 hacker-news = { path = "examples/hacker-news/", develop = true }

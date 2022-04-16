@@ -349,7 +349,7 @@ version = "0.1.0"
 description = ""
 category = "main"
 optional = false
-python-versions = "^3.8"
+python-versions = "^3.8,<3.11"
 develop = true
 
 [package.dependencies]
@@ -579,7 +579,7 @@ version = "0.2.0"
 description = "Client for interacting with flight fusion service"
 category = "main"
 optional = false
-python-versions = "^3.8"
+python-versions = "^3.8,<3.11"
 develop = true
 
 [package.dependencies]
@@ -1403,6 +1403,24 @@ uvicorn = "*"
 
 [package.extras]
 all = ["orjson"]
+
+[[package]]
+name = "mlserver-fusion"
+version = "0.1.0"
+description = "Customized MLServer"
+category = "main"
+optional = false
+python-versions = "^3.8,<3.11"
+develop = true
+
+[package.dependencies]
+betterproto = "2.0.0b4"
+mlserver = "^1.0.1"
+typer = ">=0.4"
+
+[package.source]
+type = "directory"
+url = "python/mlserver-fusion"
 
 [[package]]
 name = "mlserver-mlflow"
@@ -2668,7 +2686,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8,<3.11"
-content-hash = "764c1313a3539b6267357efd0d3f1d0cc3ee4ebf2840a1acedefec3b9963256a"
+content-hash = "83c46bf2b949bb993aea25d5c7712d345794b4d2594e0963e1db42ff1368c9e0"
 
 [metadata.files]
 alembic = [
@@ -3494,6 +3512,7 @@ mlserver = [
     {file = "mlserver-1.0.1-py3-none-any.whl", hash = "sha256:c4ea369976012e306eb69104db17f70bd89086d90adda17c8e3f06c47d4747ff"},
     {file = "mlserver-1.0.1.tar.gz", hash = "sha256:491be6210776fccdb5ba22545c8c2833bbf61df486c4d965e43a55ec3da0c913"},
 ]
+mlserver-fusion = []
 mlserver-mlflow = [
     {file = "mlserver-mlflow-1.0.1.tar.gz", hash = "sha256:cabf24ca0324b0233fddd8893e7ddb93a59d9ee0d0fd2cb2b20d0c8bf6502921"},
     {file = "mlserver_mlflow-1.0.1-py3-none-any.whl", hash = "sha256:a99daa0883559b13234fc9f06e69b60d13cd275ff788be1c8c3951b6b6f66f1a"},

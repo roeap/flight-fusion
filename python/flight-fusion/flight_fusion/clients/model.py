@@ -99,6 +99,10 @@ class GrpcModelClient(ModelClient):
             type_key = FIELD_MAP[field.type]
             if type_key == DataTypes.float64:
                 contents = InferTensorContents(fp64_contents=data)
+            elif type_key == DataTypes.float32:
+                contents = InferTensorContents(fp32_contents=data)
+            elif type_key == DataTypes.int64:
+                contents = InferTensorContents(int64_contents=data)
             else:
                 raise NotImplementedError(f"Datatype {type_key} not yet supported")
 
@@ -120,6 +124,10 @@ class GrpcModelClient(ModelClient):
             fields.append(pa.field(out.name, DATATYPE_MAP[out.datatype]))
             if DataTypes.float64:
                 arrays.append(pa.array(out.contents.fp64_contents))
+            elif DataTypes.float32:
+                arrays.append(pa.array(out.contents.fp32_contents))
+            elif DataTypes.int64:
+                arrays.append(pa.array(out.contents.int64_contents))
             else:
                 raise NotImplementedError(f"Datatype {out.datatype} not yet supported")
 
