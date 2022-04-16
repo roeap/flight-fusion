@@ -58,7 +58,7 @@ class AsyncGrpcInferenceServiceClient:
             response = await service.server_ready()
         return response.ready
 
-    async def model_ready(self, name: str, version: str = "") -> bool:
+    async def model_ready(self, *, name: str, version: str = "") -> bool:
         async with self._service() as service:
             response = await service.model_ready(name=name, version=version)
         return response.ready

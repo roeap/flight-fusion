@@ -1,16 +1,26 @@
 # flake8: noqa 401
+import asyncio
 import os
 import subprocess  # nosec
 import sys
 from enum import Enum
+from functools import wraps
 from pathlib import Path
 
 import typer
 from loguru import logger
 
-from ._utils import DAGSTER_DIR, MLFLOW_DIR, get_app_directory, get_project_directory
+from ._utils import DAGSTER_DIR, MLFLOW_DIR, MLSERVER_DIR, get_app_directory
 
 app = typer.Typer(name="server")
+
+
+def click_async(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        return asyncio.run(f(*args, **kwargs))
+
+    return wrapper
 
 
 class LogLevel(str, Enum):
@@ -91,6 +101,19 @@ def daemon():
         cwd=str(workdir),
         env={**os.environ, "DAGSTER_HOME": str(home)},
     )
+
+
+@app.command()
+@click_async
+async def mlserver():
+    from mlserver.cli.serve import load_settings
+    from mlserver_fusion.server import MLServer
+
+    workdir = get_app_directory().absolute() / MLSERVER_DIR
+    settings, models_settings = await load_settings(str(workdir))
+
+    server = MLServer(settings)
+    await server.start(models_settings)
 
 
 @app.command()
