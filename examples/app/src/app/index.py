@@ -11,6 +11,7 @@ documentation: https://dash.plot.ly/urls
 import dash
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
+from app.themes import theme_light
 from dash import Input, Output, dcc, html
 
 from flight_fusion.clients.model import ModelServiceClient
@@ -57,7 +58,11 @@ content = html.Div(id="page-content", style=CONTENT_STYLE)
 
 app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
 
-page = dcc.Graph(responsive=True, figure=go.Figure(), style={"height": "calc(100vh - 4rem)"})
+page = dcc.Graph(
+    responsive=True,
+    figure=go.Figure(layout=go.Layout(template=theme_light)),
+    style={"height": "calc(100vh - 4rem)"},
+)
 
 
 def models():
@@ -71,7 +76,7 @@ def models():
         for model in response.models
     ]
     table_body = [html.Tbody(rows)]
-    return dbc.Table(table_header + table_body, bordered=True)
+    return dbc.Table(table_header + table_body, bordered=True)  # type: ignore
 
 
 @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
