@@ -26,6 +26,12 @@ export function activate(context: vscode.ExtensionContext) {
       (model: ModelIndex) => modelIndexProvider.loadModel(model)
     )
   );
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "vscode-fusion.models.unloadModel",
+      (model: ModelIndex) => modelIndexProvider.unloadModel(model)
+    )
+  );
 }
 
 // this method is called when your extension is deactivated

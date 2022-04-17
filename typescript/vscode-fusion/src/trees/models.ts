@@ -25,14 +25,19 @@ export class ModelIndexProvider implements vscode.TreeDataProvider<ModelIndex> {
     if (element) {
       return Promise.resolve([]);
     } else {
-      return grpcClient
-        .repositoryIndex({})
-        .then((index) =>
+      return grpcClient.repositoryIndex({}).then(
+        (index) =>
           index.models.map(
             (model) =>
-              new ModelIndex(model, vscode.TreeItemCollapsibleState.None)
-          )
-        );
+              new ModelIndex(model, vscode.TreeItemCollapsibleState.Collapsed)
+          ),
+        (err) => {
+          vscode.window.showErrorMessage(
+            `Failed loading model index' - ${err}`
+          );
+          return [];
+        }
+      );
     }
   }
 
@@ -40,10 +45,35 @@ export class ModelIndexProvider implements vscode.TreeDataProvider<ModelIndex> {
     const grpcClient = getModelRepositoryClient();
     return grpcClient
       .repositoryModelLoad({ modelName: element.index.name })
-      .then((_response) =>
-        vscode.window.showInformationMessage(
-          `Successfully loaded model: '${element.index.name}'`
-        )
+      .then(
+        (_response) => {
+          this.refresh();
+          return vscode.window.showInformationMessage(
+            `Successfully loaded model: '${element.index.name}'`
+          );
+        },
+        (err) =>
+          vscode.window.showErrorMessage(
+            `Failed loading model: '${element.index.name}' - ${err}`
+          )
+      );
+  }
+
+  async unloadModel(element: ModelIndex): Promise<string | undefined> {
+    const grpcClient = getModelRepositoryClient();
+    return grpcClient
+      .repositoryModelUnload({ modelName: element.index.name })
+      .then(
+        (_response) => {
+          this.refresh();
+          return vscode.window.showInformationMessage(
+            `Successfully unloaded model: '${element.index.name}'`
+          );
+        },
+        (err) =>
+          vscode.window.showErrorMessage(
+            `Failed unloading model: '${element.index.name}' - ${err}`
+          )
       );
   }
 }

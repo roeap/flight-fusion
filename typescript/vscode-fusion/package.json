@@ -44,6 +44,11 @@
         "command": "vscode-fusion.models.loadModel",
         "title": "Load model",
         "icon": "$(notebook-execute)"
+      },
+      {
+        "command": "vscode-fusion.models.unloadModel",
+        "title": "Unload model",
+        "icon": "$(notebook-stop)"
       }
     ],
     "menus": {
@@ -57,6 +62,11 @@
       "view/item/context": [
         {
           "command": "vscode-fusion.models.loadModel",
+          "when": "view == mlfusion-models && viewItem == mlfusion-model",
+          "group": "inline"
+        },
+        {
+          "command": "vscode-fusion.models.unloadModel",
           "when": "view == mlfusion-models && viewItem == mlfusion-model",
           "group": "inline"
         }
