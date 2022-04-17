@@ -9,15 +9,18 @@ from mlserver.logging import configure_logger
 from mlserver.model import MLModel
 from mlserver.parallel import load_inference_pool, unload_inference_pool
 from mlserver.registry import MultiModelRegistry
-from mlserver.repository import ModelRepository
+
+# from mlserver.repository import ModelRepository
 from mlserver.rest import RESTServer
 from mlserver.settings import ModelSettings, Settings
+
+from mlserver_fusion.repository import MlFlowRepository
 
 HANDLED_SIGNALS = [signal.SIGINT, signal.SIGTERM]
 
 
 class MLServer:
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, mlflow_url: str):
         self._settings = settings
         self._model_registry = MultiModelRegistry(
             on_model_load=[  # type: ignore
@@ -27,7 +30,8 @@ class MLServer:
             ],
             on_model_unload=[self.remove_custom_handlers, unload_inference_pool],
         )
-        self._model_repository = ModelRepository(self._settings.model_repository_root)
+
+        self._model_repository = MlFlowRepository(mlflow_url)
         self._data_plane = DataPlane(settings=self._settings, model_registry=self._model_registry)
         self._model_repository_handlers = ModelRepositoryHandlers(
             repository=self._model_repository, model_registry=self._model_registry

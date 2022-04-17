@@ -105,14 +105,14 @@ def daemon():
 
 @app.command()
 @click_async
-async def mlserver():
+async def mlserver(host: str = "http://localhost", port: int = 5000):
     from mlserver.cli.serve import load_settings
     from mlserver_fusion.server import MLServer
 
     workdir = get_app_directory().absolute() / MLSERVER_DIR
     settings, models_settings = await load_settings(str(workdir))
 
-    server = MLServer(settings)
+    server = MLServer(settings, f"{host}:{port}")
     await server.start(models_settings)
 
 

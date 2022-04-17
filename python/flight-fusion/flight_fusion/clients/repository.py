@@ -1,4 +1,8 @@
-from flight_fusion.ipc.inference.model_repository import RepositoryIndexResponse
+from flight_fusion.ipc.inference.model_repository import (
+    RepositoryIndexResponse,
+    RepositoryModelLoadResponse,
+    RepositoryModelUnloadResponse,
+)
 
 from .aio import AsyncGrpcModelRepositoryServiceClient, run_async
 
@@ -29,4 +33,22 @@ class GrpcModelRepositoryServiceClient:
     ) -> RepositoryIndexResponse:
         return run_async(
             self._client.repository_index, repository_name=repository_name, ready=ready
+        )
+
+    def repository_model_load(
+        self, *, repository_name: str = "", model_name: str = ""
+    ) -> RepositoryModelLoadResponse:
+        return run_async(
+            self._client.repository_model_load,
+            repository_name=repository_name,
+            model_name=model_name,
+        )
+
+    def repository_model_unload(
+        self, *, repository_name: str = "", model_name: str = ""
+    ) -> RepositoryModelUnloadResponse:
+        return run_async(
+            self._client.repository_model_unload,
+            repository_name=repository_name,
+            model_name=model_name,
         )

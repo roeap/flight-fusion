@@ -25,6 +25,7 @@ ignoreWords:
   - dotenv
   - filetime
   - hmac
+  - httpx
   - isort
   - itertools
   - jdbc

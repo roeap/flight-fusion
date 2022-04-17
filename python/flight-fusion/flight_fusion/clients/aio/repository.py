@@ -8,6 +8,8 @@ from grpclib.events import SendRequest, listen
 from flight_fusion.ipc.inference.model_repository import (
     ModelRepositoryServiceStub,
     RepositoryIndexResponse,
+    RepositoryModelLoadResponse,
+    RepositoryModelUnloadResponse,
 )
 
 
@@ -48,3 +50,19 @@ class AsyncGrpcModelRepositoryServiceClient:
     ) -> RepositoryIndexResponse:
         async with self._service() as service:
             return await service.repository_index(repository_name=repository_name, ready=ready)
+
+    async def repository_model_load(
+        self, *, repository_name: str = "", model_name: str = ""
+    ) -> RepositoryModelLoadResponse:
+        async with self._service() as service:
+            return await service.repository_model_load(
+                repository_name=repository_name, model_name=model_name
+            )
+
+    async def repository_model_unload(
+        self, *, repository_name: str = "", model_name: str = ""
+    ) -> RepositoryModelUnloadResponse:
+        async with self._service() as service:
+            return await service.repository_model_unload(
+                repository_name=repository_name, model_name=model_name
+            )
