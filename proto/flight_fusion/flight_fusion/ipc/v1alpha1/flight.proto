@@ -2,8 +2,8 @@
 syntax = "proto3";
 package flight_fusion.ipc.v1alpha1;
 
-import "message.proto";
-import "common.proto";
+import "flight_fusion/ipc/v1alpha1/message.proto";
+import "flight_fusion/ipc/v1alpha1/common.proto";
 
 message FlightGetFlightInfoRequest {
   // source identifier

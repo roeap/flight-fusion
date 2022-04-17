@@ -9,11 +9,11 @@ fn main() -> Result<()> {
 
     prost_build::compile_protos(
         &[
-            "../../proto/message.proto",
-            "../../proto/signals.proto",
-            "../../proto/flight.proto",
+            "../../proto/flight_fusion/flight_fusion/ipc/v1alpha1/message.proto",
+            "../../proto/flight_fusion/flight_fusion/ipc/v1alpha1/signals.proto",
+            "../../proto/flight_fusion/flight_fusion/ipc/v1alpha1/flight.proto",
         ],
-        &["../../proto/"],
+        &["../../proto/flight_fusion/flight_fusion/ipc/v1alpha1/"],
     )
     .unwrap();
 

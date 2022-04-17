@@ -32,6 +32,7 @@ ignoreWords:
   - maturin
   - mkdocs
   - mlflow
+  - mlfusion
   - mlserver
   - opentelemetry
   - petgraph

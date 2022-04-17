@@ -101,3 +101,19 @@ dagit-simple:
 
 mlflow:
 	cd .mlflow && mlflow server --backend-store-uri sqlite:///mlruns.sqlite --default-artifact-root $(PWD)/.mlflow/mlruns/
+
+gen-proto:
+	$(info --- Generating proto files ---)
+	buf generate proto/flight_fusion
+	buf generate proto/inference
+	buf generate proto/mlflow
+
+	$(info --- Processing Python files ---)
+	rsync -a tmp-proto/flight_fusion/ipc/v1alpha1/ python/flight-fusion/flight_fusion/ipc/v1alpha1/
+	rsync -a tmp-proto/inference/ python/flight-fusion/flight_fusion/ipc/inference/
+	rsync -a tmp-proto/mlflow/ python/flight-fusion/flight_fusion/ipc/mlflow/
+	black ./python/flight-fusion/flight_fusion/ipc --line-length 100
+	isort ./python/flight-fusion/flight_fusion/ipc
+
+	$(info --- Cleanup ---)
+	rm -r tmp-proto

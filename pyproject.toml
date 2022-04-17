@@ -64,7 +64,7 @@ src_paths = ["python/**/*"]
 exclude = [
   "**/node_modules",
   "**/__pycache__",
-  "python/flight-fusion/flight_fusion/ipc/inference",
+  "python/flight-fusion/flight_fusion/ipc/",
 ]
 
 [tool.pytest.ini_options]
