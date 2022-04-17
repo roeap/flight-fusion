@@ -1,0 +1,6 @@
+version: v1
+directories:
+  - proto/mlflow
+  - proto/scalapb
+  - proto/inference
+  - proto/flight_fusion

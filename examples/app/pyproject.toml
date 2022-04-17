@@ -1,0 +1,11 @@
+[tool.poetry]
+name = "app"
+version = "0.1.0"
+description = "A Dash applicationm to interact with fusion services"
+authors = ["Robert Pack <robstar.pack@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.8,<3.11"
+dash = "^2.3.1"
+dash-bootstrap-components = "^1.1.0"

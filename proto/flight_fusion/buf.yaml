@@ -1,0 +1,8 @@
+version: v1
+name: buf.build/mlfusion/flight_fusion
+lint:
+  use:
+    - DEFAULT
+breaking:
+  use:
+    - FILE

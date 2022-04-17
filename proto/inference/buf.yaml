@@ -1,0 +1,8 @@
+version: v1
+name: buf.build/mlfusion/inference
+lint:
+  use:
+    - DEFAULT
+breaking:
+  use:
+    - FILE

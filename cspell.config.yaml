@@ -25,14 +25,18 @@ ignoreWords:
   - dotenv
   - filetime
   - hmac
+  - httpx
   - isort
   - itertools
   - jdbc
   - maturin
   - mkdocs
   - mlflow
+  - mlfusion
+  - mlserver
   - opentelemetry
   - petgraph
+  - plotly
   - prost
   - proto
   - protobuf

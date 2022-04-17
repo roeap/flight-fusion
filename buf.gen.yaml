@@ -1,0 +1,10 @@
+version: v1
+managed:
+  enabled: true
+  go_package_prefix:
+    default: github.com/mlfusion/fusion/private/gen/proto/go
+    except:
+      - buf.build/googleapis/googleapis
+plugins:
+  - name: python_betterproto
+    out: ./tmp-proto/

@@ -7,7 +7,7 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-dagster-fusion = { path = "../../python/dagster-fusion" }
+dagster-fusion = { path = "../../python/dagster-fusion", develop = true }
 dagster-mlflow = "^0.14"
 scipy = "^1.8"
 scikit-learn = "^1"

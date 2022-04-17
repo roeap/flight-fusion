@@ -90,7 +90,6 @@ class TableIOManager(IOManager):
             data = obj.to_arrow()
         data = data.replace_schema_metadata({})
 
-        context.log.warning(f"num rows: {data.num_rows}")
         if data.num_rows > 0:
             client.write_into(data, save_mode)
         else:

@@ -10,7 +10,7 @@ authors = ["Robert Pack <robstar.pack@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.8,<3.11"
 dagster = "^0.14"
 polars = "^0.13.20"
 pyarrow = "*"

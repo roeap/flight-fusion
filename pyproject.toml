@@ -15,17 +15,27 @@ dagit = "^0.14.8"
 delta-spark = "^1.1.0"
 mkdocs-protobuf = "^0.1"
 mkdocs-techdocs-core = "^1"
+mlflow = "^1.25.1"
+mlserver = "^1.0.1"
+mlserver-mlflow = "^1.0.1"
+mlserver-sklearn = "^1.0.1"
 pyspark = "^3.2.1"
+
+# TODO remove once flask ist updated in deps
+itsdangerous = "2.0.1"
+werkzeug = "<2.1"
 
 # workspace dependencies
 dagster-fusion = { path = "python/dagster-fusion/", develop = true }
 flight-fusion = { path = "python/flight-fusion/", develop = true, extras = [
   "docker",
 ] }
+mlserver-fusion = { path = "python/mlserver-fusion/", develop = true }
 
 # example projects
 hacker-news = { path = "examples/hacker-news/", develop = true }
 model-training = { path = "examples/model-training/", develop = true }
+app = { path = "examples/app/", develop = true }
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"
@@ -51,7 +61,11 @@ profile = "black"
 src_paths = ["python/**/*"]
 
 [tool.pyright]
-exclude = ["**/node_modules", "**/__pycache__"]
+exclude = [
+  "**/node_modules",
+  "**/__pycache__",
+  "python/flight-fusion/flight_fusion/ipc/",
+]
 
 [tool.pytest.ini_options]
 markers = [

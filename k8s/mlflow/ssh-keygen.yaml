@@ -1,0 +1,20 @@
+# generate new ssh key and create Secret if not exists
+apiVersion: batch/v1
+kind: Job
+metadata:
+  # Unique key of the Job instance
+  name: ssh-keygen
+spec:
+  # of retries before marking as failed.
+  backoffLimit: 1
+  template:
+    metadata:
+      name: ssh-keygen
+    spec:
+      automountServiceAccountToken: true
+      # Do not restart containers after they exit
+      restartPolicy: Never
+      containers:
+        - name: ssh-keygen
+          image: sftp
+          command: ["/usr/local/bin/ssh-key-gen.sh"]

@@ -62,6 +62,14 @@ python-proto:
 	black --line-length 100 python/flight-fusion/flight_fusion/
 	isort python/flight-fusion/flight_fusion/
 
+python-proto-inference:
+	mkdir tmp-proto
+	python -m grpc_tools.protoc -I proto --python_betterproto_out=tmp-proto proto/inference/dataplane.proto proto/inference/model_repository/model_repository.proto
+	mv -f ./tmp-proto/inference/* ./python/flight-fusion/flight_fusion/ipc/inference/
+	rm -rf ./tmp-proto
+	black --line-length 100 python/flight-fusion/flight_fusion/
+	isort python/flight-fusion/flight_fusion/
+
 .PHONY: python-test
 python-test: ## Run check on Rust
 	pytest python/flight-fusion/tests
@@ -93,3 +101,19 @@ dagit-simple:
 
 mlflow:
 	cd .mlflow && mlflow server --backend-store-uri sqlite:///mlruns.sqlite --default-artifact-root $(PWD)/.mlflow/mlruns/
+
+gen-proto:
+	$(info --- Generating proto files ---)
+	buf generate proto/flight_fusion
+	buf generate proto/inference
+	buf generate proto/mlflow
+
+	$(info --- Processing Python files ---)
+	rsync -a tmp-proto/flight_fusion/ipc/v1alpha1/ python/flight-fusion/flight_fusion/ipc/v1alpha1/
+	rsync -a tmp-proto/inference/ python/flight-fusion/flight_fusion/ipc/inference/
+	rsync -a tmp-proto/mlflow/ python/flight-fusion/flight_fusion/ipc/mlflow/
+	black ./python/flight-fusion/flight_fusion/ipc --line-length 100
+	isort ./python/flight-fusion/flight_fusion/ipc
+
+	$(info --- Cleanup ---)
+	rm -r tmp-proto

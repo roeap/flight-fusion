@@ -1,8 +1,8 @@
 syntax = "proto3";
 package flight_fusion.ipc.v1alpha1;
 
-import "common.proto";
-import "signals.proto";
+import "flight_fusion/ipc/v1alpha1/common.proto";
+import "flight_fusion/ipc/v1alpha1/signals.proto";
 
 // Describes an SQL query operation
 message CommandSqlOperation {
