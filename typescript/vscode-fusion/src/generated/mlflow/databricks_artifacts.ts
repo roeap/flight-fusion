@@ -227,8 +227,8 @@ export const ArtifactCredentialInfo = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ArtifactCredentialInfo>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<ArtifactCredentialInfo>
   ): ArtifactCredentialInfo {
     const message = createBaseArtifactCredentialInfo();
     message.runId = object.runId ?? "";
@@ -299,9 +299,9 @@ export const ArtifactCredentialInfo_HttpHeader = {
     return obj;
   },
 
-  fromPartial<
-    I extends Exact<DeepPartial<ArtifactCredentialInfo_HttpHeader>, I>
-  >(object: I): ArtifactCredentialInfo_HttpHeader {
+  fromPartial(
+    object: DeepPartial<ArtifactCredentialInfo_HttpHeader>
+  ): ArtifactCredentialInfo_HttpHeader {
     const message = createBaseArtifactCredentialInfo_HttpHeader();
     message.name = object.name ?? "";
     message.value = object.value ?? "";
@@ -379,8 +379,8 @@ export const GetCredentialsForRead = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetCredentialsForRead>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<GetCredentialsForRead>
   ): GetCredentialsForRead {
     const message = createBaseGetCredentialsForRead();
     message.runId = object.runId ?? "";
@@ -461,8 +461,8 @@ export const GetCredentialsForRead_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetCredentialsForRead_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<GetCredentialsForRead_Response>
   ): GetCredentialsForRead_Response {
     const message = createBaseGetCredentialsForRead_Response();
     message.credentialInfos =
@@ -544,8 +544,8 @@ export const GetCredentialsForWrite = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetCredentialsForWrite>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<GetCredentialsForWrite>
   ): GetCredentialsForWrite {
     const message = createBaseGetCredentialsForWrite();
     message.runId = object.runId ?? "";
@@ -626,8 +626,8 @@ export const GetCredentialsForWrite_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetCredentialsForWrite_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<GetCredentialsForWrite_Response>
   ): GetCredentialsForWrite_Response {
     const message = createBaseGetCredentialsForWrite_Response();
     message.credentialInfos =
@@ -639,69 +639,37 @@ export const GetCredentialsForWrite_Response = {
   },
 };
 
-export interface DatabricksMlflowArtifactsService {
-  /**
-   * Fetch credentials to read from the specified MLflow artifact location
-   *
-   * Note: Even if no artifacts exist at the specified artifact location, this API will
-   * still provide read credentials as long as the format of the location is valid.
-   * Callers must subsequently check for the existence of the artifacts using the appropriate
-   * cloud storage APIs (as determined by the `ArtifactCredentialType` property of the response)
-   */
-  getCredentialsForRead(
-    request: GetCredentialsForRead
-  ): Promise<GetCredentialsForRead_Response>;
-  /** Fetch credentials to write to the specified MLflow artifact location */
-  getCredentialsForWrite(
-    request: GetCredentialsForWrite
-  ): Promise<GetCredentialsForWrite_Response>;
-}
-
-export class DatabricksMlflowArtifactsServiceClientImpl
-  implements DatabricksMlflowArtifactsService
-{
-  private readonly rpc: Rpc;
-  constructor(rpc: Rpc) {
-    this.rpc = rpc;
-    this.getCredentialsForRead = this.getCredentialsForRead.bind(this);
-    this.getCredentialsForWrite = this.getCredentialsForWrite.bind(this);
-  }
-  getCredentialsForRead(
-    request: GetCredentialsForRead
-  ): Promise<GetCredentialsForRead_Response> {
-    const data = GetCredentialsForRead.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.DatabricksMlflowArtifactsService",
-      "getCredentialsForRead",
-      data
-    );
-    return promise.then((data) =>
-      GetCredentialsForRead_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  getCredentialsForWrite(
-    request: GetCredentialsForWrite
-  ): Promise<GetCredentialsForWrite_Response> {
-    const data = GetCredentialsForWrite.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.DatabricksMlflowArtifactsService",
-      "getCredentialsForWrite",
-      data
-    );
-    return promise.then((data) =>
-      GetCredentialsForWrite_Response.decode(new _m0.Reader(data))
-    );
-  }
-}
-
-interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array
-  ): Promise<Uint8Array>;
-}
+export const DatabricksMlflowArtifactsServiceDefinition = {
+  name: "DatabricksMlflowArtifactsService",
+  fullName: "mlflow.DatabricksMlflowArtifactsService",
+  methods: {
+    /**
+     * Fetch credentials to read from the specified MLflow artifact location
+     *
+     * Note: Even if no artifacts exist at the specified artifact location, this API will
+     * still provide read credentials as long as the format of the location is valid.
+     * Callers must subsequently check for the existence of the artifacts using the appropriate
+     * cloud storage APIs (as determined by the `ArtifactCredentialType` property of the response)
+     */
+    getCredentialsForRead: {
+      name: "getCredentialsForRead",
+      requestType: GetCredentialsForRead,
+      requestStream: false,
+      responseType: GetCredentialsForRead_Response,
+      responseStream: false,
+      options: {},
+    },
+    /** Fetch credentials to write to the specified MLflow artifact location */
+    getCredentialsForWrite: {
+      name: "getCredentialsForWrite",
+      requestType: GetCredentialsForWrite,
+      requestStream: false,
+      responseType: GetCredentialsForWrite_Response,
+      responseStream: false,
+      options: {},
+    },
+  },
+} as const;
 
 type Builtin =
   | Date
@@ -721,14 +689,6 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
-
-type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
-        Exclude<keyof I, KeysOfUnion<P>>,
-        never
-      >;
 
 // If you get a compile-error about 'Constructor<Long> and ... have no overlap',
 // add '--ts_proto_opt=esModuleInterop=true' as a flag when calling 'protoc'.

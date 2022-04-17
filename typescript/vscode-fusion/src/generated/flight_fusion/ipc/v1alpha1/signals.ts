@@ -164,9 +164,7 @@ export const ExpressionReference = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ExpressionReference>, I>>(
-    object: I
-  ): ExpressionReference {
+  fromPartial(object: DeepPartial<ExpressionReference>): ExpressionReference {
     const message = createBaseExpressionReference();
     message.uid = object.uid ?? "";
     message.expression = object.expression ?? "";
@@ -219,9 +217,7 @@ export const ModelReference = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ModelReference>, I>>(
-    object: I
-  ): ModelReference {
+  fromPartial(object: DeepPartial<ModelReference>): ModelReference {
     const message = createBaseModelReference();
     message.uri = object.uri ?? "";
     return message;
@@ -306,7 +302,7 @@ export const Signal = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<Signal>, I>>(object: I): Signal {
+  fromPartial(object: DeepPartial<Signal>): Signal {
     const message = createBaseSignal();
     message.uid = object.uid ?? "";
     message.name = object.name ?? "";
@@ -412,9 +408,7 @@ export const SignalTrait = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SignalTrait>, I>>(
-    object: I
-  ): SignalTrait {
+  fromPartial(object: DeepPartial<SignalTrait>): SignalTrait {
     const message = createBaseSignalTrait();
     message.sensitive =
       object.sensitive !== undefined && object.sensitive !== null
@@ -477,9 +471,7 @@ export const SensitiveDataTrait = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SensitiveDataTrait>, I>>(
-    object: I
-  ): SensitiveDataTrait {
+  fromPartial(object: DeepPartial<SensitiveDataTrait>): SensitiveDataTrait {
     const message = createBaseSensitiveDataTrait();
     message.level = object.level ?? "";
     return message;
@@ -531,9 +523,7 @@ export const TimeSeriesTrait = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<TimeSeriesTrait>, I>>(
-    object: I
-  ): TimeSeriesTrait {
+  fromPartial(object: DeepPartial<TimeSeriesTrait>): TimeSeriesTrait {
     const message = createBaseTimeSeriesTrait();
     message.level = object.level ?? "";
     return message;
@@ -588,9 +578,7 @@ export const EntityReferenceTrait = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<EntityReferenceTrait>, I>>(
-    object: I
-  ): EntityReferenceTrait {
+  fromPartial(object: DeepPartial<EntityReferenceTrait>): EntityReferenceTrait {
     const message = createBaseEntityReferenceTrait();
     message.level = object.level ?? "";
     return message;
@@ -745,9 +733,7 @@ export const SignalProvider = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SignalProvider>, I>>(
-    object: I
-  ): SignalProvider {
+  fromPartial(object: DeepPartial<SignalProvider>): SignalProvider {
     const message = createBaseSignalProvider();
     message.uid = object.uid ?? "";
     message.name = object.name ?? "";
@@ -850,9 +836,7 @@ export const SignalFrame = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SignalFrame>, I>>(
-    object: I
-  ): SignalFrame {
+  fromPartial(object: DeepPartial<SignalFrame>): SignalFrame {
     const message = createBaseSignalFrame();
     message.uid = object.uid ?? "";
     message.name = object.name ?? "";
@@ -881,14 +865,6 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
-
-type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
-        Exclude<keyof I, KeysOfUnion<P>>,
-        never
-      >;
 
 // If you get a compile-error about 'Constructor<Long> and ... have no overlap',
 // add '--ts_proto_opt=esModuleInterop=true' as a flag when calling 'protoc'.

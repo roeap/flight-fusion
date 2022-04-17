@@ -309,9 +309,7 @@ export const ServerLiveRequest = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ServerLiveRequest>, I>>(
-    _: I
-  ): ServerLiveRequest {
+  fromPartial(_: DeepPartial<ServerLiveRequest>): ServerLiveRequest {
     const message = createBaseServerLiveRequest();
     return message;
   },
@@ -362,9 +360,7 @@ export const ServerLiveResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ServerLiveResponse>, I>>(
-    object: I
-  ): ServerLiveResponse {
+  fromPartial(object: DeepPartial<ServerLiveResponse>): ServerLiveResponse {
     const message = createBaseServerLiveResponse();
     message.live = object.live ?? false;
     return message;
@@ -407,9 +403,7 @@ export const ServerReadyRequest = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ServerReadyRequest>, I>>(
-    _: I
-  ): ServerReadyRequest {
+  fromPartial(_: DeepPartial<ServerReadyRequest>): ServerReadyRequest {
     const message = createBaseServerReadyRequest();
     return message;
   },
@@ -460,9 +454,7 @@ export const ServerReadyResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ServerReadyResponse>, I>>(
-    object: I
-  ): ServerReadyResponse {
+  fromPartial(object: DeepPartial<ServerReadyResponse>): ServerReadyResponse {
     const message = createBaseServerReadyResponse();
     message.ready = object.ready ?? false;
     return message;
@@ -522,9 +514,7 @@ export const ModelReadyRequest = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ModelReadyRequest>, I>>(
-    object: I
-  ): ModelReadyRequest {
+  fromPartial(object: DeepPartial<ModelReadyRequest>): ModelReadyRequest {
     const message = createBaseModelReadyRequest();
     message.name = object.name ?? "";
     message.version = object.version ?? "";
@@ -577,9 +567,7 @@ export const ModelReadyResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ModelReadyResponse>, I>>(
-    object: I
-  ): ModelReadyResponse {
+  fromPartial(object: DeepPartial<ModelReadyResponse>): ModelReadyResponse {
     const message = createBaseModelReadyResponse();
     message.ready = object.ready ?? false;
     return message;
@@ -625,9 +613,7 @@ export const ServerMetadataRequest = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ServerMetadataRequest>, I>>(
-    _: I
-  ): ServerMetadataRequest {
+  fromPartial(_: DeepPartial<ServerMetadataRequest>): ServerMetadataRequest {
     const message = createBaseServerMetadataRequest();
     return message;
   },
@@ -703,8 +689,8 @@ export const ServerMetadataResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ServerMetadataResponse>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<ServerMetadataResponse>
   ): ServerMetadataResponse {
     const message = createBaseServerMetadataResponse();
     message.name = object.name ?? "";
@@ -770,9 +756,7 @@ export const ModelMetadataRequest = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ModelMetadataRequest>, I>>(
-    object: I
-  ): ModelMetadataRequest {
+  fromPartial(object: DeepPartial<ModelMetadataRequest>): ModelMetadataRequest {
     const message = createBaseModelMetadataRequest();
     message.name = object.name ?? "";
     message.version = object.version ?? "";
@@ -932,8 +916,8 @@ export const ModelMetadataResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ModelMetadataResponse>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<ModelMetadataResponse>
   ): ModelMetadataResponse {
     const message = createBaseModelMetadataResponse();
     message.name = object.name ?? "";
@@ -1068,9 +1052,9 @@ export const ModelMetadataResponse_TensorMetadata = {
     return obj;
   },
 
-  fromPartial<
-    I extends Exact<DeepPartial<ModelMetadataResponse_TensorMetadata>, I>
-  >(object: I): ModelMetadataResponse_TensorMetadata {
+  fromPartial(
+    object: DeepPartial<ModelMetadataResponse_TensorMetadata>
+  ): ModelMetadataResponse_TensorMetadata {
     const message = createBaseModelMetadataResponse_TensorMetadata();
     message.name = object.name ?? "";
     message.datatype = object.datatype ?? "";
@@ -1151,12 +1135,9 @@ export const ModelMetadataResponse_TensorMetadata_ParametersEntry = {
     return obj;
   },
 
-  fromPartial<
-    I extends Exact<
-      DeepPartial<ModelMetadataResponse_TensorMetadata_ParametersEntry>,
-      I
-    >
-  >(object: I): ModelMetadataResponse_TensorMetadata_ParametersEntry {
+  fromPartial(
+    object: DeepPartial<ModelMetadataResponse_TensorMetadata_ParametersEntry>
+  ): ModelMetadataResponse_TensorMetadata_ParametersEntry {
     const message =
       createBaseModelMetadataResponse_TensorMetadata_ParametersEntry();
     message.key = object.key ?? "";
@@ -1229,9 +1210,9 @@ export const ModelMetadataResponse_ParametersEntry = {
     return obj;
   },
 
-  fromPartial<
-    I extends Exact<DeepPartial<ModelMetadataResponse_ParametersEntry>, I>
-  >(object: I): ModelMetadataResponse_ParametersEntry {
+  fromPartial(
+    object: DeepPartial<ModelMetadataResponse_ParametersEntry>
+  ): ModelMetadataResponse_ParametersEntry {
     const message = createBaseModelMetadataResponse_ParametersEntry();
     message.key = object.key ?? "";
     message.value =
@@ -1391,9 +1372,7 @@ export const ModelInferRequest = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ModelInferRequest>, I>>(
-    object: I
-  ): ModelInferRequest {
+  fromPartial(object: DeepPartial<ModelInferRequest>): ModelInferRequest {
     const message = createBaseModelInferRequest();
     message.modelName = object.modelName ?? "";
     message.modelVersion = object.modelVersion ?? "";
@@ -1552,9 +1531,9 @@ export const ModelInferRequest_InferInputTensor = {
     return obj;
   },
 
-  fromPartial<
-    I extends Exact<DeepPartial<ModelInferRequest_InferInputTensor>, I>
-  >(object: I): ModelInferRequest_InferInputTensor {
+  fromPartial(
+    object: DeepPartial<ModelInferRequest_InferInputTensor>
+  ): ModelInferRequest_InferInputTensor {
     const message = createBaseModelInferRequest_InferInputTensor();
     message.name = object.name ?? "";
     message.datatype = object.datatype ?? "";
@@ -1637,12 +1616,9 @@ export const ModelInferRequest_InferInputTensor_ParametersEntry = {
     return obj;
   },
 
-  fromPartial<
-    I extends Exact<
-      DeepPartial<ModelInferRequest_InferInputTensor_ParametersEntry>,
-      I
-    >
-  >(object: I): ModelInferRequest_InferInputTensor_ParametersEntry {
+  fromPartial(
+    object: DeepPartial<ModelInferRequest_InferInputTensor_ParametersEntry>
+  ): ModelInferRequest_InferInputTensor_ParametersEntry {
     const message =
       createBaseModelInferRequest_InferInputTensor_ParametersEntry();
     message.key = object.key ?? "";
@@ -1732,12 +1708,9 @@ export const ModelInferRequest_InferRequestedOutputTensor = {
     return obj;
   },
 
-  fromPartial<
-    I extends Exact<
-      DeepPartial<ModelInferRequest_InferRequestedOutputTensor>,
-      I
-    >
-  >(object: I): ModelInferRequest_InferRequestedOutputTensor {
+  fromPartial(
+    object: DeepPartial<ModelInferRequest_InferRequestedOutputTensor>
+  ): ModelInferRequest_InferRequestedOutputTensor {
     const message = createBaseModelInferRequest_InferRequestedOutputTensor();
     message.name = object.name ?? "";
     message.parameters = Object.entries(object.parameters ?? {}).reduce<{
@@ -1818,12 +1791,9 @@ export const ModelInferRequest_InferRequestedOutputTensor_ParametersEntry = {
     return obj;
   },
 
-  fromPartial<
-    I extends Exact<
-      DeepPartial<ModelInferRequest_InferRequestedOutputTensor_ParametersEntry>,
-      I
-    >
-  >(object: I): ModelInferRequest_InferRequestedOutputTensor_ParametersEntry {
+  fromPartial(
+    object: DeepPartial<ModelInferRequest_InferRequestedOutputTensor_ParametersEntry>
+  ): ModelInferRequest_InferRequestedOutputTensor_ParametersEntry {
     const message =
       createBaseModelInferRequest_InferRequestedOutputTensor_ParametersEntry();
     message.key = object.key ?? "";
@@ -1896,9 +1866,9 @@ export const ModelInferRequest_ParametersEntry = {
     return obj;
   },
 
-  fromPartial<
-    I extends Exact<DeepPartial<ModelInferRequest_ParametersEntry>, I>
-  >(object: I): ModelInferRequest_ParametersEntry {
+  fromPartial(
+    object: DeepPartial<ModelInferRequest_ParametersEntry>
+  ): ModelInferRequest_ParametersEntry {
     const message = createBaseModelInferRequest_ParametersEntry();
     message.key = object.key ?? "";
     message.value =
@@ -2031,9 +2001,7 @@ export const ModelInferResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ModelInferResponse>, I>>(
-    object: I
-  ): ModelInferResponse {
+  fromPartial(object: DeepPartial<ModelInferResponse>): ModelInferResponse {
     const message = createBaseModelInferResponse();
     message.modelName = object.modelName ?? "";
     message.modelVersion = object.modelVersion ?? "";
@@ -2188,9 +2156,9 @@ export const ModelInferResponse_InferOutputTensor = {
     return obj;
   },
 
-  fromPartial<
-    I extends Exact<DeepPartial<ModelInferResponse_InferOutputTensor>, I>
-  >(object: I): ModelInferResponse_InferOutputTensor {
+  fromPartial(
+    object: DeepPartial<ModelInferResponse_InferOutputTensor>
+  ): ModelInferResponse_InferOutputTensor {
     const message = createBaseModelInferResponse_InferOutputTensor();
     message.name = object.name ?? "";
     message.datatype = object.datatype ?? "";
@@ -2275,12 +2243,9 @@ export const ModelInferResponse_InferOutputTensor_ParametersEntry = {
     return obj;
   },
 
-  fromPartial<
-    I extends Exact<
-      DeepPartial<ModelInferResponse_InferOutputTensor_ParametersEntry>,
-      I
-    >
-  >(object: I): ModelInferResponse_InferOutputTensor_ParametersEntry {
+  fromPartial(
+    object: DeepPartial<ModelInferResponse_InferOutputTensor_ParametersEntry>
+  ): ModelInferResponse_InferOutputTensor_ParametersEntry {
     const message =
       createBaseModelInferResponse_InferOutputTensor_ParametersEntry();
     message.key = object.key ?? "";
@@ -2353,9 +2318,9 @@ export const ModelInferResponse_ParametersEntry = {
     return obj;
   },
 
-  fromPartial<
-    I extends Exact<DeepPartial<ModelInferResponse_ParametersEntry>, I>
-  >(object: I): ModelInferResponse_ParametersEntry {
+  fromPartial(
+    object: DeepPartial<ModelInferResponse_ParametersEntry>
+  ): ModelInferResponse_ParametersEntry {
     const message = createBaseModelInferResponse_ParametersEntry();
     message.key = object.key ?? "";
     message.value =
@@ -2439,9 +2404,7 @@ export const InferParameter = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<InferParameter>, I>>(
-    object: I
-  ): InferParameter {
+  fromPartial(object: DeepPartial<InferParameter>): InferParameter {
     const message = createBaseInferParameter();
     message.boolParam = object.boolParam ?? undefined;
     message.int64Param = object.int64Param ?? undefined;
@@ -2675,9 +2638,7 @@ export const InferTensorContents = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<InferTensorContents>, I>>(
-    object: I
-  ): InferTensorContents {
+  fromPartial(object: DeepPartial<InferTensorContents>): InferTensorContents {
     const message = createBaseInferTensorContents();
     message.boolContents = object.boolContents?.map((e) => e) || [];
     message.intContents = object.intContents?.map((e) => e) || [];
@@ -2692,116 +2653,66 @@ export const InferTensorContents = {
 };
 
 /** Inference Server GRPC endpoints. */
-export interface GRPCInferenceService {
-  /** Check liveness of the inference server. */
-  ServerLive(request: ServerLiveRequest): Promise<ServerLiveResponse>;
-  /** Check readiness of the inference server. */
-  ServerReady(request: ServerReadyRequest): Promise<ServerReadyResponse>;
-  /** Check readiness of a model in the inference server. */
-  ModelReady(request: ModelReadyRequest): Promise<ModelReadyResponse>;
-  /** Get server metadata. */
-  ServerMetadata(
-    request: ServerMetadataRequest
-  ): Promise<ServerMetadataResponse>;
-  /** Get model metadata. */
-  ModelMetadata(request: ModelMetadataRequest): Promise<ModelMetadataResponse>;
-  /** Perform inference using a specific model. */
-  ModelInfer(request: ModelInferRequest): Promise<ModelInferResponse>;
-}
-
-export class GRPCInferenceServiceClientImpl implements GRPCInferenceService {
-  private readonly rpc: Rpc;
-  constructor(rpc: Rpc) {
-    this.rpc = rpc;
-    this.ServerLive = this.ServerLive.bind(this);
-    this.ServerReady = this.ServerReady.bind(this);
-    this.ModelReady = this.ModelReady.bind(this);
-    this.ServerMetadata = this.ServerMetadata.bind(this);
-    this.ModelMetadata = this.ModelMetadata.bind(this);
-    this.ModelInfer = this.ModelInfer.bind(this);
-  }
-  ServerLive(request: ServerLiveRequest): Promise<ServerLiveResponse> {
-    const data = ServerLiveRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "inference.GRPCInferenceService",
-      "ServerLive",
-      data
-    );
-    return promise.then((data) =>
-      ServerLiveResponse.decode(new _m0.Reader(data))
-    );
-  }
-
-  ServerReady(request: ServerReadyRequest): Promise<ServerReadyResponse> {
-    const data = ServerReadyRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "inference.GRPCInferenceService",
-      "ServerReady",
-      data
-    );
-    return promise.then((data) =>
-      ServerReadyResponse.decode(new _m0.Reader(data))
-    );
-  }
-
-  ModelReady(request: ModelReadyRequest): Promise<ModelReadyResponse> {
-    const data = ModelReadyRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "inference.GRPCInferenceService",
-      "ModelReady",
-      data
-    );
-    return promise.then((data) =>
-      ModelReadyResponse.decode(new _m0.Reader(data))
-    );
-  }
-
-  ServerMetadata(
-    request: ServerMetadataRequest
-  ): Promise<ServerMetadataResponse> {
-    const data = ServerMetadataRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "inference.GRPCInferenceService",
-      "ServerMetadata",
-      data
-    );
-    return promise.then((data) =>
-      ServerMetadataResponse.decode(new _m0.Reader(data))
-    );
-  }
-
-  ModelMetadata(request: ModelMetadataRequest): Promise<ModelMetadataResponse> {
-    const data = ModelMetadataRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "inference.GRPCInferenceService",
-      "ModelMetadata",
-      data
-    );
-    return promise.then((data) =>
-      ModelMetadataResponse.decode(new _m0.Reader(data))
-    );
-  }
-
-  ModelInfer(request: ModelInferRequest): Promise<ModelInferResponse> {
-    const data = ModelInferRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "inference.GRPCInferenceService",
-      "ModelInfer",
-      data
-    );
-    return promise.then((data) =>
-      ModelInferResponse.decode(new _m0.Reader(data))
-    );
-  }
-}
-
-interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array
-  ): Promise<Uint8Array>;
-}
+export const GRPCInferenceServiceDefinition = {
+  name: "GRPCInferenceService",
+  fullName: "inference.GRPCInferenceService",
+  methods: {
+    /** Check liveness of the inference server. */
+    serverLive: {
+      name: "ServerLive",
+      requestType: ServerLiveRequest,
+      requestStream: false,
+      responseType: ServerLiveResponse,
+      responseStream: false,
+      options: {},
+    },
+    /** Check readiness of the inference server. */
+    serverReady: {
+      name: "ServerReady",
+      requestType: ServerReadyRequest,
+      requestStream: false,
+      responseType: ServerReadyResponse,
+      responseStream: false,
+      options: {},
+    },
+    /** Check readiness of a model in the inference server. */
+    modelReady: {
+      name: "ModelReady",
+      requestType: ModelReadyRequest,
+      requestStream: false,
+      responseType: ModelReadyResponse,
+      responseStream: false,
+      options: {},
+    },
+    /** Get server metadata. */
+    serverMetadata: {
+      name: "ServerMetadata",
+      requestType: ServerMetadataRequest,
+      requestStream: false,
+      responseType: ServerMetadataResponse,
+      responseStream: false,
+      options: {},
+    },
+    /** Get model metadata. */
+    modelMetadata: {
+      name: "ModelMetadata",
+      requestType: ModelMetadataRequest,
+      requestStream: false,
+      responseType: ModelMetadataResponse,
+      responseStream: false,
+      options: {},
+    },
+    /** Perform inference using a specific model. */
+    modelInfer: {
+      name: "ModelInfer",
+      requestType: ModelInferRequest,
+      requestStream: false,
+      responseType: ModelInferResponse,
+      responseStream: false,
+      options: {},
+    },
+  },
+} as const;
 
 declare var self: any | undefined;
 declare var window: any | undefined;
@@ -2855,14 +2766,6 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
-
-type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
-        Exclude<keyof I, KeysOfUnion<P>>,
-        never
-      >;
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {

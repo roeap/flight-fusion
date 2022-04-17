@@ -524,9 +524,7 @@ export const RegisteredModel = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RegisteredModel>, I>>(
-    object: I
-  ): RegisteredModel {
+  fromPartial(object: DeepPartial<RegisteredModel>): RegisteredModel {
     const message = createBaseRegisteredModel();
     message.name = object.name ?? "";
     message.creationTimestamp = object.creationTimestamp ?? 0;
@@ -720,9 +718,7 @@ export const ModelVersion = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ModelVersion>, I>>(
-    object: I
-  ): ModelVersion {
+  fromPartial(object: DeepPartial<ModelVersion>): ModelVersion {
     const message = createBaseModelVersion();
     message.name = object.name ?? "";
     message.version = object.version ?? "";
@@ -815,8 +811,8 @@ export const CreateRegisteredModel = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CreateRegisteredModel>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<CreateRegisteredModel>
   ): CreateRegisteredModel {
     const message = createBaseCreateRegisteredModel();
     message.name = object.name ?? "";
@@ -886,8 +882,8 @@ export const CreateRegisteredModel_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CreateRegisteredModel_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<CreateRegisteredModel_Response>
   ): CreateRegisteredModel_Response {
     const message = createBaseCreateRegisteredModel_Response();
     message.registeredModel =
@@ -954,8 +950,8 @@ export const RenameRegisteredModel = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RenameRegisteredModel>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<RenameRegisteredModel>
   ): RenameRegisteredModel {
     const message = createBaseRenameRegisteredModel();
     message.name = object.name ?? "";
@@ -1023,8 +1019,8 @@ export const RenameRegisteredModel_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RenameRegisteredModel_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<RenameRegisteredModel_Response>
   ): RenameRegisteredModel_Response {
     const message = createBaseRenameRegisteredModel_Response();
     message.registeredModel =
@@ -1092,8 +1088,8 @@ export const UpdateRegisteredModel = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<UpdateRegisteredModel>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<UpdateRegisteredModel>
   ): UpdateRegisteredModel {
     const message = createBaseUpdateRegisteredModel();
     message.name = object.name ?? "";
@@ -1161,8 +1157,8 @@ export const UpdateRegisteredModel_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<UpdateRegisteredModel_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<UpdateRegisteredModel_Response>
   ): UpdateRegisteredModel_Response {
     const message = createBaseUpdateRegisteredModel_Response();
     message.registeredModel =
@@ -1221,8 +1217,8 @@ export const DeleteRegisteredModel = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeleteRegisteredModel>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<DeleteRegisteredModel>
   ): DeleteRegisteredModel {
     const message = createBaseDeleteRegisteredModel();
     message.name = object.name ?? "";
@@ -1269,8 +1265,8 @@ export const DeleteRegisteredModel_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeleteRegisteredModel_Response>, I>>(
-    _: I
+  fromPartial(
+    _: DeepPartial<DeleteRegisteredModel_Response>
   ): DeleteRegisteredModel_Response {
     const message = createBaseDeleteRegisteredModel_Response();
     return message;
@@ -1322,9 +1318,7 @@ export const GetRegisteredModel = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetRegisteredModel>, I>>(
-    object: I
-  ): GetRegisteredModel {
+  fromPartial(object: DeepPartial<GetRegisteredModel>): GetRegisteredModel {
     const message = createBaseGetRegisteredModel();
     message.name = object.name ?? "";
     return message;
@@ -1390,8 +1384,8 @@ export const GetRegisteredModel_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetRegisteredModel_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<GetRegisteredModel_Response>
   ): GetRegisteredModel_Response {
     const message = createBaseGetRegisteredModel_Response();
     message.registeredModel =
@@ -1459,9 +1453,7 @@ export const ListRegisteredModels = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ListRegisteredModels>, I>>(
-    object: I
-  ): ListRegisteredModels {
+  fromPartial(object: DeepPartial<ListRegisteredModels>): ListRegisteredModels {
     const message = createBaseListRegisteredModels();
     message.maxResults = object.maxResults ?? 0;
     message.pageToken = object.pageToken ?? "";
@@ -1538,8 +1530,8 @@ export const ListRegisteredModels_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ListRegisteredModels_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<ListRegisteredModels_Response>
   ): ListRegisteredModels_Response {
     const message = createBaseListRegisteredModels_Response();
     message.registeredModels =
@@ -1628,8 +1620,8 @@ export const SearchRegisteredModels = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SearchRegisteredModels>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<SearchRegisteredModels>
   ): SearchRegisteredModels {
     const message = createBaseSearchRegisteredModels();
     message.filter = object.filter ?? "";
@@ -1709,8 +1701,8 @@ export const SearchRegisteredModels_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SearchRegisteredModels_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<SearchRegisteredModels_Response>
   ): SearchRegisteredModels_Response {
     const message = createBaseSearchRegisteredModels_Response();
     message.registeredModels =
@@ -1779,9 +1771,7 @@ export const GetLatestVersions = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetLatestVersions>, I>>(
-    object: I
-  ): GetLatestVersions {
+  fromPartial(object: DeepPartial<GetLatestVersions>): GetLatestVersions {
     const message = createBaseGetLatestVersions();
     message.name = object.name ?? "";
     message.stages = object.stages?.map((e) => e) || [];
@@ -1847,8 +1837,8 @@ export const GetLatestVersions_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetLatestVersions_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<GetLatestVersions_Response>
   ): GetLatestVersions_Response {
     const message = createBaseGetLatestVersions_Response();
     message.modelVersions =
@@ -1958,9 +1948,7 @@ export const CreateModelVersion = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CreateModelVersion>, I>>(
-    object: I
-  ): CreateModelVersion {
+  fromPartial(object: DeepPartial<CreateModelVersion>): CreateModelVersion {
     const message = createBaseCreateModelVersion();
     message.name = object.name ?? "";
     message.source = object.source ?? "";
@@ -2029,8 +2017,8 @@ export const CreateModelVersion_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CreateModelVersion_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<CreateModelVersion_Response>
   ): CreateModelVersion_Response {
     const message = createBaseCreateModelVersion_Response();
     message.modelVersion =
@@ -2103,9 +2091,7 @@ export const UpdateModelVersion = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<UpdateModelVersion>, I>>(
-    object: I
-  ): UpdateModelVersion {
+  fromPartial(object: DeepPartial<UpdateModelVersion>): UpdateModelVersion {
     const message = createBaseUpdateModelVersion();
     message.name = object.name ?? "";
     message.version = object.version ?? "";
@@ -2170,8 +2156,8 @@ export const UpdateModelVersion_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<UpdateModelVersion_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<UpdateModelVersion_Response>
   ): UpdateModelVersion_Response {
     const message = createBaseUpdateModelVersion_Response();
     message.modelVersion =
@@ -2257,8 +2243,8 @@ export const TransitionModelVersionStage = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<TransitionModelVersionStage>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<TransitionModelVersionStage>
   ): TransitionModelVersionStage {
     const message = createBaseTransitionModelVersionStage();
     message.name = object.name ?? "";
@@ -2325,9 +2311,9 @@ export const TransitionModelVersionStage_Response = {
     return obj;
   },
 
-  fromPartial<
-    I extends Exact<DeepPartial<TransitionModelVersionStage_Response>, I>
-  >(object: I): TransitionModelVersionStage_Response {
+  fromPartial(
+    object: DeepPartial<TransitionModelVersionStage_Response>
+  ): TransitionModelVersionStage_Response {
     const message = createBaseTransitionModelVersionStage_Response();
     message.modelVersion =
       object.modelVersion !== undefined && object.modelVersion !== null
@@ -2390,9 +2376,7 @@ export const DeleteModelVersion = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeleteModelVersion>, I>>(
-    object: I
-  ): DeleteModelVersion {
+  fromPartial(object: DeepPartial<DeleteModelVersion>): DeleteModelVersion {
     const message = createBaseDeleteModelVersion();
     message.name = object.name ?? "";
     message.version = object.version ?? "";
@@ -2439,8 +2423,8 @@ export const DeleteModelVersion_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeleteModelVersion_Response>, I>>(
-    _: I
+  fromPartial(
+    _: DeepPartial<DeleteModelVersion_Response>
   ): DeleteModelVersion_Response {
     const message = createBaseDeleteModelVersion_Response();
     return message;
@@ -2500,9 +2484,7 @@ export const GetModelVersion = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetModelVersion>, I>>(
-    object: I
-  ): GetModelVersion {
+  fromPartial(object: DeepPartial<GetModelVersion>): GetModelVersion {
     const message = createBaseGetModelVersion();
     message.name = object.name ?? "";
     message.version = object.version ?? "";
@@ -2566,8 +2548,8 @@ export const GetModelVersion_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetModelVersion_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<GetModelVersion_Response>
   ): GetModelVersion_Response {
     const message = createBaseGetModelVersion_Response();
     message.modelVersion =
@@ -2654,9 +2636,7 @@ export const SearchModelVersions = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SearchModelVersions>, I>>(
-    object: I
-  ): SearchModelVersions {
+  fromPartial(object: DeepPartial<SearchModelVersions>): SearchModelVersions {
     const message = createBaseSearchModelVersions();
     message.filter = object.filter ?? "";
     message.maxResults = object.maxResults ?? 0;
@@ -2735,8 +2715,8 @@ export const SearchModelVersions_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SearchModelVersions_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<SearchModelVersions_Response>
   ): SearchModelVersions_Response {
     const message = createBaseSearchModelVersions_Response();
     message.modelVersions =
@@ -2802,8 +2782,8 @@ export const GetModelVersionDownloadUri = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetModelVersionDownloadUri>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<GetModelVersionDownloadUri>
   ): GetModelVersionDownloadUri {
     const message = createBaseGetModelVersionDownloadUri();
     message.name = object.name ?? "";
@@ -2861,9 +2841,9 @@ export const GetModelVersionDownloadUri_Response = {
     return obj;
   },
 
-  fromPartial<
-    I extends Exact<DeepPartial<GetModelVersionDownloadUri_Response>, I>
-  >(object: I): GetModelVersionDownloadUri_Response {
+  fromPartial(
+    object: DeepPartial<GetModelVersionDownloadUri_Response>
+  ): GetModelVersionDownloadUri_Response {
     const message = createBaseGetModelVersionDownloadUri_Response();
     message.artifactUri = object.artifactUri ?? "";
     return message;
@@ -2923,9 +2903,7 @@ export const ModelVersionTag = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ModelVersionTag>, I>>(
-    object: I
-  ): ModelVersionTag {
+  fromPartial(object: DeepPartial<ModelVersionTag>): ModelVersionTag {
     const message = createBaseModelVersionTag();
     message.key = object.key ?? "";
     message.value = object.value ?? "";
@@ -2986,9 +2964,7 @@ export const RegisteredModelTag = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RegisteredModelTag>, I>>(
-    object: I
-  ): RegisteredModelTag {
+  fromPartial(object: DeepPartial<RegisteredModelTag>): RegisteredModelTag {
     const message = createBaseRegisteredModelTag();
     message.key = object.key ?? "";
     message.value = object.value ?? "";
@@ -3060,8 +3036,8 @@ export const SetRegisteredModelTag = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SetRegisteredModelTag>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<SetRegisteredModelTag>
   ): SetRegisteredModelTag {
     const message = createBaseSetRegisteredModelTag();
     message.name = object.name ?? "";
@@ -3110,8 +3086,8 @@ export const SetRegisteredModelTag_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SetRegisteredModelTag_Response>, I>>(
-    _: I
+  fromPartial(
+    _: DeepPartial<SetRegisteredModelTag_Response>
   ): SetRegisteredModelTag_Response {
     const message = createBaseSetRegisteredModelTag_Response();
     return message;
@@ -3187,9 +3163,7 @@ export const SetModelVersionTag = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SetModelVersionTag>, I>>(
-    object: I
-  ): SetModelVersionTag {
+  fromPartial(object: DeepPartial<SetModelVersionTag>): SetModelVersionTag {
     const message = createBaseSetModelVersionTag();
     message.name = object.name ?? "";
     message.version = object.version ?? "";
@@ -3238,8 +3212,8 @@ export const SetModelVersionTag_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SetModelVersionTag_Response>, I>>(
-    _: I
+  fromPartial(
+    _: DeepPartial<SetModelVersionTag_Response>
   ): SetModelVersionTag_Response {
     const message = createBaseSetModelVersionTag_Response();
     return message;
@@ -3302,8 +3276,8 @@ export const DeleteRegisteredModelTag = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeleteRegisteredModelTag>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<DeleteRegisteredModelTag>
   ): DeleteRegisteredModelTag {
     const message = createBaseDeleteRegisteredModelTag();
     message.name = object.name ?? "";
@@ -3351,9 +3325,9 @@ export const DeleteRegisteredModelTag_Response = {
     return obj;
   },
 
-  fromPartial<
-    I extends Exact<DeepPartial<DeleteRegisteredModelTag_Response>, I>
-  >(_: I): DeleteRegisteredModelTag_Response {
+  fromPartial(
+    _: DeepPartial<DeleteRegisteredModelTag_Response>
+  ): DeleteRegisteredModelTag_Response {
     const message = createBaseDeleteRegisteredModelTag_Response();
     return message;
   },
@@ -3423,8 +3397,8 @@ export const DeleteModelVersionTag = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeleteModelVersionTag>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<DeleteModelVersionTag>
   ): DeleteModelVersionTag {
     const message = createBaseDeleteModelVersionTag();
     message.name = object.name ?? "";
@@ -3473,371 +3447,173 @@ export const DeleteModelVersionTag_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeleteModelVersionTag_Response>, I>>(
-    _: I
+  fromPartial(
+    _: DeepPartial<DeleteModelVersionTag_Response>
   ): DeleteModelVersionTag_Response {
     const message = createBaseDeleteModelVersionTag_Response();
     return message;
   },
 };
 
-export interface ModelRegistryService {
-  /** Throws ``RESOURCE_ALREADY_EXISTS`` if a registered model with the given name exists. */
-  createRegisteredModel(
-    request: CreateRegisteredModel
-  ): Promise<CreateRegisteredModel_Response>;
-  renameRegisteredModel(
-    request: RenameRegisteredModel
-  ): Promise<RenameRegisteredModel_Response>;
-  updateRegisteredModel(
-    request: UpdateRegisteredModel
-  ): Promise<UpdateRegisteredModel_Response>;
-  deleteRegisteredModel(
-    request: DeleteRegisteredModel
-  ): Promise<DeleteRegisteredModel_Response>;
-  getRegisteredModel(
-    request: GetRegisteredModel
-  ): Promise<GetRegisteredModel_Response>;
-  searchRegisteredModels(
-    request: SearchRegisteredModels
-  ): Promise<SearchRegisteredModels_Response>;
-  listRegisteredModels(
-    request: ListRegisteredModels
-  ): Promise<ListRegisteredModels_Response>;
-  getLatestVersions(
-    request: GetLatestVersions
-  ): Promise<GetLatestVersions_Response>;
-  createModelVersion(
-    request: CreateModelVersion
-  ): Promise<CreateModelVersion_Response>;
-  updateModelVersion(
-    request: UpdateModelVersion
-  ): Promise<UpdateModelVersion_Response>;
-  transitionModelVersionStage(
-    request: TransitionModelVersionStage
-  ): Promise<TransitionModelVersionStage_Response>;
-  deleteModelVersion(
-    request: DeleteModelVersion
-  ): Promise<DeleteModelVersion_Response>;
-  getModelVersion(request: GetModelVersion): Promise<GetModelVersion_Response>;
-  searchModelVersions(
-    request: SearchModelVersions
-  ): Promise<SearchModelVersions_Response>;
-  getModelVersionDownloadUri(
-    request: GetModelVersionDownloadUri
-  ): Promise<GetModelVersionDownloadUri_Response>;
-  setRegisteredModelTag(
-    request: SetRegisteredModelTag
-  ): Promise<SetRegisteredModelTag_Response>;
-  setModelVersionTag(
-    request: SetModelVersionTag
-  ): Promise<SetModelVersionTag_Response>;
-  deleteRegisteredModelTag(
-    request: DeleteRegisteredModelTag
-  ): Promise<DeleteRegisteredModelTag_Response>;
-  deleteModelVersionTag(
-    request: DeleteModelVersionTag
-  ): Promise<DeleteModelVersionTag_Response>;
-}
-
-export class ModelRegistryServiceClientImpl implements ModelRegistryService {
-  private readonly rpc: Rpc;
-  constructor(rpc: Rpc) {
-    this.rpc = rpc;
-    this.createRegisteredModel = this.createRegisteredModel.bind(this);
-    this.renameRegisteredModel = this.renameRegisteredModel.bind(this);
-    this.updateRegisteredModel = this.updateRegisteredModel.bind(this);
-    this.deleteRegisteredModel = this.deleteRegisteredModel.bind(this);
-    this.getRegisteredModel = this.getRegisteredModel.bind(this);
-    this.searchRegisteredModels = this.searchRegisteredModels.bind(this);
-    this.listRegisteredModels = this.listRegisteredModels.bind(this);
-    this.getLatestVersions = this.getLatestVersions.bind(this);
-    this.createModelVersion = this.createModelVersion.bind(this);
-    this.updateModelVersion = this.updateModelVersion.bind(this);
-    this.transitionModelVersionStage =
-      this.transitionModelVersionStage.bind(this);
-    this.deleteModelVersion = this.deleteModelVersion.bind(this);
-    this.getModelVersion = this.getModelVersion.bind(this);
-    this.searchModelVersions = this.searchModelVersions.bind(this);
-    this.getModelVersionDownloadUri =
-      this.getModelVersionDownloadUri.bind(this);
-    this.setRegisteredModelTag = this.setRegisteredModelTag.bind(this);
-    this.setModelVersionTag = this.setModelVersionTag.bind(this);
-    this.deleteRegisteredModelTag = this.deleteRegisteredModelTag.bind(this);
-    this.deleteModelVersionTag = this.deleteModelVersionTag.bind(this);
-  }
-  createRegisteredModel(
-    request: CreateRegisteredModel
-  ): Promise<CreateRegisteredModel_Response> {
-    const data = CreateRegisteredModel.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "createRegisteredModel",
-      data
-    );
-    return promise.then((data) =>
-      CreateRegisteredModel_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  renameRegisteredModel(
-    request: RenameRegisteredModel
-  ): Promise<RenameRegisteredModel_Response> {
-    const data = RenameRegisteredModel.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "renameRegisteredModel",
-      data
-    );
-    return promise.then((data) =>
-      RenameRegisteredModel_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  updateRegisteredModel(
-    request: UpdateRegisteredModel
-  ): Promise<UpdateRegisteredModel_Response> {
-    const data = UpdateRegisteredModel.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "updateRegisteredModel",
-      data
-    );
-    return promise.then((data) =>
-      UpdateRegisteredModel_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  deleteRegisteredModel(
-    request: DeleteRegisteredModel
-  ): Promise<DeleteRegisteredModel_Response> {
-    const data = DeleteRegisteredModel.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "deleteRegisteredModel",
-      data
-    );
-    return promise.then((data) =>
-      DeleteRegisteredModel_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  getRegisteredModel(
-    request: GetRegisteredModel
-  ): Promise<GetRegisteredModel_Response> {
-    const data = GetRegisteredModel.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "getRegisteredModel",
-      data
-    );
-    return promise.then((data) =>
-      GetRegisteredModel_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  searchRegisteredModels(
-    request: SearchRegisteredModels
-  ): Promise<SearchRegisteredModels_Response> {
-    const data = SearchRegisteredModels.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "searchRegisteredModels",
-      data
-    );
-    return promise.then((data) =>
-      SearchRegisteredModels_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  listRegisteredModels(
-    request: ListRegisteredModels
-  ): Promise<ListRegisteredModels_Response> {
-    const data = ListRegisteredModels.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "listRegisteredModels",
-      data
-    );
-    return promise.then((data) =>
-      ListRegisteredModels_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  getLatestVersions(
-    request: GetLatestVersions
-  ): Promise<GetLatestVersions_Response> {
-    const data = GetLatestVersions.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "getLatestVersions",
-      data
-    );
-    return promise.then((data) =>
-      GetLatestVersions_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  createModelVersion(
-    request: CreateModelVersion
-  ): Promise<CreateModelVersion_Response> {
-    const data = CreateModelVersion.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "createModelVersion",
-      data
-    );
-    return promise.then((data) =>
-      CreateModelVersion_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  updateModelVersion(
-    request: UpdateModelVersion
-  ): Promise<UpdateModelVersion_Response> {
-    const data = UpdateModelVersion.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "updateModelVersion",
-      data
-    );
-    return promise.then((data) =>
-      UpdateModelVersion_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  transitionModelVersionStage(
-    request: TransitionModelVersionStage
-  ): Promise<TransitionModelVersionStage_Response> {
-    const data = TransitionModelVersionStage.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "transitionModelVersionStage",
-      data
-    );
-    return promise.then((data) =>
-      TransitionModelVersionStage_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  deleteModelVersion(
-    request: DeleteModelVersion
-  ): Promise<DeleteModelVersion_Response> {
-    const data = DeleteModelVersion.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "deleteModelVersion",
-      data
-    );
-    return promise.then((data) =>
-      DeleteModelVersion_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  getModelVersion(request: GetModelVersion): Promise<GetModelVersion_Response> {
-    const data = GetModelVersion.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "getModelVersion",
-      data
-    );
-    return promise.then((data) =>
-      GetModelVersion_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  searchModelVersions(
-    request: SearchModelVersions
-  ): Promise<SearchModelVersions_Response> {
-    const data = SearchModelVersions.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "searchModelVersions",
-      data
-    );
-    return promise.then((data) =>
-      SearchModelVersions_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  getModelVersionDownloadUri(
-    request: GetModelVersionDownloadUri
-  ): Promise<GetModelVersionDownloadUri_Response> {
-    const data = GetModelVersionDownloadUri.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "getModelVersionDownloadUri",
-      data
-    );
-    return promise.then((data) =>
-      GetModelVersionDownloadUri_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  setRegisteredModelTag(
-    request: SetRegisteredModelTag
-  ): Promise<SetRegisteredModelTag_Response> {
-    const data = SetRegisteredModelTag.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "setRegisteredModelTag",
-      data
-    );
-    return promise.then((data) =>
-      SetRegisteredModelTag_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  setModelVersionTag(
-    request: SetModelVersionTag
-  ): Promise<SetModelVersionTag_Response> {
-    const data = SetModelVersionTag.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "setModelVersionTag",
-      data
-    );
-    return promise.then((data) =>
-      SetModelVersionTag_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  deleteRegisteredModelTag(
-    request: DeleteRegisteredModelTag
-  ): Promise<DeleteRegisteredModelTag_Response> {
-    const data = DeleteRegisteredModelTag.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "deleteRegisteredModelTag",
-      data
-    );
-    return promise.then((data) =>
-      DeleteRegisteredModelTag_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  deleteModelVersionTag(
-    request: DeleteModelVersionTag
-  ): Promise<DeleteModelVersionTag_Response> {
-    const data = DeleteModelVersionTag.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.ModelRegistryService",
-      "deleteModelVersionTag",
-      data
-    );
-    return promise.then((data) =>
-      DeleteModelVersionTag_Response.decode(new _m0.Reader(data))
-    );
-  }
-}
-
-interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array
-  ): Promise<Uint8Array>;
-}
+export const ModelRegistryServiceDefinition = {
+  name: "ModelRegistryService",
+  fullName: "mlflow.ModelRegistryService",
+  methods: {
+    /** Throws ``RESOURCE_ALREADY_EXISTS`` if a registered model with the given name exists. */
+    createRegisteredModel: {
+      name: "createRegisteredModel",
+      requestType: CreateRegisteredModel,
+      requestStream: false,
+      responseType: CreateRegisteredModel_Response,
+      responseStream: false,
+      options: {},
+    },
+    renameRegisteredModel: {
+      name: "renameRegisteredModel",
+      requestType: RenameRegisteredModel,
+      requestStream: false,
+      responseType: RenameRegisteredModel_Response,
+      responseStream: false,
+      options: {},
+    },
+    updateRegisteredModel: {
+      name: "updateRegisteredModel",
+      requestType: UpdateRegisteredModel,
+      requestStream: false,
+      responseType: UpdateRegisteredModel_Response,
+      responseStream: false,
+      options: {},
+    },
+    deleteRegisteredModel: {
+      name: "deleteRegisteredModel",
+      requestType: DeleteRegisteredModel,
+      requestStream: false,
+      responseType: DeleteRegisteredModel_Response,
+      responseStream: false,
+      options: {},
+    },
+    getRegisteredModel: {
+      name: "getRegisteredModel",
+      requestType: GetRegisteredModel,
+      requestStream: false,
+      responseType: GetRegisteredModel_Response,
+      responseStream: false,
+      options: {},
+    },
+    searchRegisteredModels: {
+      name: "searchRegisteredModels",
+      requestType: SearchRegisteredModels,
+      requestStream: false,
+      responseType: SearchRegisteredModels_Response,
+      responseStream: false,
+      options: {},
+    },
+    listRegisteredModels: {
+      name: "listRegisteredModels",
+      requestType: ListRegisteredModels,
+      requestStream: false,
+      responseType: ListRegisteredModels_Response,
+      responseStream: false,
+      options: {},
+    },
+    getLatestVersions: {
+      name: "getLatestVersions",
+      requestType: GetLatestVersions,
+      requestStream: false,
+      responseType: GetLatestVersions_Response,
+      responseStream: false,
+      options: {},
+    },
+    createModelVersion: {
+      name: "createModelVersion",
+      requestType: CreateModelVersion,
+      requestStream: false,
+      responseType: CreateModelVersion_Response,
+      responseStream: false,
+      options: {},
+    },
+    updateModelVersion: {
+      name: "updateModelVersion",
+      requestType: UpdateModelVersion,
+      requestStream: false,
+      responseType: UpdateModelVersion_Response,
+      responseStream: false,
+      options: {},
+    },
+    transitionModelVersionStage: {
+      name: "transitionModelVersionStage",
+      requestType: TransitionModelVersionStage,
+      requestStream: false,
+      responseType: TransitionModelVersionStage_Response,
+      responseStream: false,
+      options: {},
+    },
+    deleteModelVersion: {
+      name: "deleteModelVersion",
+      requestType: DeleteModelVersion,
+      requestStream: false,
+      responseType: DeleteModelVersion_Response,
+      responseStream: false,
+      options: {},
+    },
+    getModelVersion: {
+      name: "getModelVersion",
+      requestType: GetModelVersion,
+      requestStream: false,
+      responseType: GetModelVersion_Response,
+      responseStream: false,
+      options: {},
+    },
+    searchModelVersions: {
+      name: "searchModelVersions",
+      requestType: SearchModelVersions,
+      requestStream: false,
+      responseType: SearchModelVersions_Response,
+      responseStream: false,
+      options: {},
+    },
+    getModelVersionDownloadUri: {
+      name: "getModelVersionDownloadUri",
+      requestType: GetModelVersionDownloadUri,
+      requestStream: false,
+      responseType: GetModelVersionDownloadUri_Response,
+      responseStream: false,
+      options: {},
+    },
+    setRegisteredModelTag: {
+      name: "setRegisteredModelTag",
+      requestType: SetRegisteredModelTag,
+      requestStream: false,
+      responseType: SetRegisteredModelTag_Response,
+      responseStream: false,
+      options: {},
+    },
+    setModelVersionTag: {
+      name: "setModelVersionTag",
+      requestType: SetModelVersionTag,
+      requestStream: false,
+      responseType: SetModelVersionTag_Response,
+      responseStream: false,
+      options: {},
+    },
+    deleteRegisteredModelTag: {
+      name: "deleteRegisteredModelTag",
+      requestType: DeleteRegisteredModelTag,
+      requestStream: false,
+      responseType: DeleteRegisteredModelTag_Response,
+      responseStream: false,
+      options: {},
+    },
+    deleteModelVersionTag: {
+      name: "deleteModelVersionTag",
+      requestType: DeleteModelVersionTag,
+      requestStream: false,
+      responseType: DeleteModelVersionTag_Response,
+      responseStream: false,
+      options: {},
+    },
+  },
+} as const;
 
 declare var self: any | undefined;
 declare var window: any | undefined;
@@ -3868,14 +3644,6 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
-
-type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
-        Exclude<keyof I, KeysOfUnion<P>>,
-        never
-      >;
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {

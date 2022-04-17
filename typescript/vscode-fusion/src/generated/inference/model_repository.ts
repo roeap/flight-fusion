@@ -114,8 +114,8 @@ export const RepositoryIndexRequest = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RepositoryIndexRequest>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<RepositoryIndexRequest>
   ): RepositoryIndexRequest {
     const message = createBaseRepositoryIndexRequest();
     message.repositoryName = object.repositoryName ?? "";
@@ -187,8 +187,8 @@ export const RepositoryIndexResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RepositoryIndexResponse>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<RepositoryIndexResponse>
   ): RepositoryIndexResponse {
     const message = createBaseRepositoryIndexResponse();
     message.models =
@@ -271,9 +271,9 @@ export const RepositoryIndexResponse_ModelIndex = {
     return obj;
   },
 
-  fromPartial<
-    I extends Exact<DeepPartial<RepositoryIndexResponse_ModelIndex>, I>
-  >(object: I): RepositoryIndexResponse_ModelIndex {
+  fromPartial(
+    object: DeepPartial<RepositoryIndexResponse_ModelIndex>
+  ): RepositoryIndexResponse_ModelIndex {
     const message = createBaseRepositoryIndexResponse_ModelIndex();
     message.name = object.name ?? "";
     message.version = object.version ?? "";
@@ -342,8 +342,8 @@ export const RepositoryModelLoadRequest = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RepositoryModelLoadRequest>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<RepositoryModelLoadRequest>
   ): RepositoryModelLoadRequest {
     const message = createBaseRepositoryModelLoadRequest();
     message.repositoryName = object.repositoryName ?? "";
@@ -391,8 +391,8 @@ export const RepositoryModelLoadResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RepositoryModelLoadResponse>, I>>(
-    _: I
+  fromPartial(
+    _: DeepPartial<RepositoryModelLoadResponse>
   ): RepositoryModelLoadResponse {
     const message = createBaseRepositoryModelLoadResponse();
     return message;
@@ -458,8 +458,8 @@ export const RepositoryModelUnloadRequest = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RepositoryModelUnloadRequest>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<RepositoryModelUnloadRequest>
   ): RepositoryModelUnloadRequest {
     const message = createBaseRepositoryModelUnloadRequest();
     message.repositoryName = object.repositoryName ?? "";
@@ -507,89 +507,47 @@ export const RepositoryModelUnloadResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RepositoryModelUnloadResponse>, I>>(
-    _: I
+  fromPartial(
+    _: DeepPartial<RepositoryModelUnloadResponse>
   ): RepositoryModelUnloadResponse {
     const message = createBaseRepositoryModelUnloadResponse();
     return message;
   },
 };
 
-export interface ModelRepositoryService {
-  /** Get the index of model repository contents. */
-  RepositoryIndex(
-    request: RepositoryIndexRequest
-  ): Promise<RepositoryIndexResponse>;
-  /** Load or reload a model from a repository. */
-  RepositoryModelLoad(
-    request: RepositoryModelLoadRequest
-  ): Promise<RepositoryModelLoadResponse>;
-  /** Unload a model. */
-  RepositoryModelUnload(
-    request: RepositoryModelUnloadRequest
-  ): Promise<RepositoryModelUnloadResponse>;
-}
-
-export class ModelRepositoryServiceClientImpl
-  implements ModelRepositoryService
-{
-  private readonly rpc: Rpc;
-  constructor(rpc: Rpc) {
-    this.rpc = rpc;
-    this.RepositoryIndex = this.RepositoryIndex.bind(this);
-    this.RepositoryModelLoad = this.RepositoryModelLoad.bind(this);
-    this.RepositoryModelUnload = this.RepositoryModelUnload.bind(this);
-  }
-  RepositoryIndex(
-    request: RepositoryIndexRequest
-  ): Promise<RepositoryIndexResponse> {
-    const data = RepositoryIndexRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "inference.model_repository.ModelRepositoryService",
-      "RepositoryIndex",
-      data
-    );
-    return promise.then((data) =>
-      RepositoryIndexResponse.decode(new _m0.Reader(data))
-    );
-  }
-
-  RepositoryModelLoad(
-    request: RepositoryModelLoadRequest
-  ): Promise<RepositoryModelLoadResponse> {
-    const data = RepositoryModelLoadRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "inference.model_repository.ModelRepositoryService",
-      "RepositoryModelLoad",
-      data
-    );
-    return promise.then((data) =>
-      RepositoryModelLoadResponse.decode(new _m0.Reader(data))
-    );
-  }
-
-  RepositoryModelUnload(
-    request: RepositoryModelUnloadRequest
-  ): Promise<RepositoryModelUnloadResponse> {
-    const data = RepositoryModelUnloadRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "inference.model_repository.ModelRepositoryService",
-      "RepositoryModelUnload",
-      data
-    );
-    return promise.then((data) =>
-      RepositoryModelUnloadResponse.decode(new _m0.Reader(data))
-    );
-  }
-}
-
-interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array
-  ): Promise<Uint8Array>;
-}
+export const ModelRepositoryServiceDefinition = {
+  name: "ModelRepositoryService",
+  fullName: "inference.model_repository.ModelRepositoryService",
+  methods: {
+    /** Get the index of model repository contents. */
+    repositoryIndex: {
+      name: "RepositoryIndex",
+      requestType: RepositoryIndexRequest,
+      requestStream: false,
+      responseType: RepositoryIndexResponse,
+      responseStream: false,
+      options: {},
+    },
+    /** Load or reload a model from a repository. */
+    repositoryModelLoad: {
+      name: "RepositoryModelLoad",
+      requestType: RepositoryModelLoadRequest,
+      requestStream: false,
+      responseType: RepositoryModelLoadResponse,
+      responseStream: false,
+      options: {},
+    },
+    /** Unload a model. */
+    repositoryModelUnload: {
+      name: "RepositoryModelUnload",
+      requestType: RepositoryModelUnloadRequest,
+      requestStream: false,
+      responseType: RepositoryModelUnloadResponse,
+      responseStream: false,
+      options: {},
+    },
+  },
+} as const;
 
 type Builtin =
   | Date
@@ -609,14 +567,6 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
-
-type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
-        Exclude<keyof I, KeysOfUnion<P>>,
-        never
-      >;
 
 // If you get a compile-error about 'Constructor<Long> and ... have no overlap',
 // add '--ts_proto_opt=esModuleInterop=true' as a flag when calling 'protoc'.

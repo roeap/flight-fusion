@@ -67,9 +67,7 @@ export const DownloadArtifact = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DownloadArtifact>, I>>(
-    _: I
-  ): DownloadArtifact {
+  fromPartial(_: DeepPartial<DownloadArtifact>): DownloadArtifact {
     const message = createBaseDownloadArtifact();
     return message;
   },
@@ -114,8 +112,8 @@ export const DownloadArtifact_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DownloadArtifact_Response>, I>>(
-    _: I
+  fromPartial(
+    _: DeepPartial<DownloadArtifact_Response>
   ): DownloadArtifact_Response {
     const message = createBaseDownloadArtifact_Response();
     return message;
@@ -158,9 +156,7 @@ export const UploadArtifact = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<UploadArtifact>, I>>(
-    _: I
-  ): UploadArtifact {
+  fromPartial(_: DeepPartial<UploadArtifact>): UploadArtifact {
     const message = createBaseUploadArtifact();
     return message;
   },
@@ -205,8 +201,8 @@ export const UploadArtifact_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<UploadArtifact_Response>, I>>(
-    _: I
+  fromPartial(
+    _: DeepPartial<UploadArtifact_Response>
   ): UploadArtifact_Response {
     const message = createBaseUploadArtifact_Response();
     return message;
@@ -258,9 +254,7 @@ export const ListArtifacts = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ListArtifacts>, I>>(
-    object: I
-  ): ListArtifacts {
+  fromPartial(object: DeepPartial<ListArtifacts>): ListArtifacts {
     const message = createBaseListArtifacts();
     message.path = object.path ?? "";
     return message;
@@ -323,8 +317,8 @@ export const ListArtifacts_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ListArtifacts_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<ListArtifacts_Response>
   ): ListArtifacts_Response {
     const message = createBaseListArtifacts_Response();
     message.files = object.files?.map((e) => FileInfo.fromPartial(e)) || [];
@@ -394,7 +388,7 @@ export const FileInfo = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<FileInfo>, I>>(object: I): FileInfo {
+  fromPartial(object: DeepPartial<FileInfo>): FileInfo {
     const message = createBaseFileInfo();
     message.path = object.path ?? "";
     message.isDir = object.isDir ?? false;
@@ -403,70 +397,36 @@ export const FileInfo = {
   },
 };
 
-export interface MlflowArtifactsService {
-  downloadArtifact(
-    request: DownloadArtifact
-  ): Promise<DownloadArtifact_Response>;
-  uploadArtifact(request: UploadArtifact): Promise<UploadArtifact_Response>;
-  listArtifacts(request: ListArtifacts): Promise<ListArtifacts_Response>;
-}
-
-export class MlflowArtifactsServiceClientImpl
-  implements MlflowArtifactsService
-{
-  private readonly rpc: Rpc;
-  constructor(rpc: Rpc) {
-    this.rpc = rpc;
-    this.downloadArtifact = this.downloadArtifact.bind(this);
-    this.uploadArtifact = this.uploadArtifact.bind(this);
-    this.listArtifacts = this.listArtifacts.bind(this);
-  }
-  downloadArtifact(
-    request: DownloadArtifact
-  ): Promise<DownloadArtifact_Response> {
-    const data = DownloadArtifact.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.artifacts.MlflowArtifactsService",
-      "downloadArtifact",
-      data
-    );
-    return promise.then((data) =>
-      DownloadArtifact_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  uploadArtifact(request: UploadArtifact): Promise<UploadArtifact_Response> {
-    const data = UploadArtifact.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.artifacts.MlflowArtifactsService",
-      "uploadArtifact",
-      data
-    );
-    return promise.then((data) =>
-      UploadArtifact_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  listArtifacts(request: ListArtifacts): Promise<ListArtifacts_Response> {
-    const data = ListArtifacts.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.artifacts.MlflowArtifactsService",
-      "listArtifacts",
-      data
-    );
-    return promise.then((data) =>
-      ListArtifacts_Response.decode(new _m0.Reader(data))
-    );
-  }
-}
-
-interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array
-  ): Promise<Uint8Array>;
-}
+export const MlflowArtifactsServiceDefinition = {
+  name: "MlflowArtifactsService",
+  fullName: "mlflow.artifacts.MlflowArtifactsService",
+  methods: {
+    downloadArtifact: {
+      name: "downloadArtifact",
+      requestType: DownloadArtifact,
+      requestStream: false,
+      responseType: DownloadArtifact_Response,
+      responseStream: false,
+      options: {},
+    },
+    uploadArtifact: {
+      name: "uploadArtifact",
+      requestType: UploadArtifact,
+      requestStream: false,
+      responseType: UploadArtifact_Response,
+      responseStream: false,
+      options: {},
+    },
+    listArtifacts: {
+      name: "listArtifacts",
+      requestType: ListArtifacts,
+      requestStream: false,
+      responseType: ListArtifacts_Response,
+      responseStream: false,
+      options: {},
+    },
+  },
+} as const;
 
 declare var self: any | undefined;
 declare var window: any | undefined;
@@ -497,14 +457,6 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
-
-type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
-        Exclude<keyof I, KeysOfUnion<P>>,
-        never
-      >;
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {

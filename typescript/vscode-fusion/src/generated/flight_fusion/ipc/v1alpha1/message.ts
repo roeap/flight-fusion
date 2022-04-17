@@ -274,9 +274,7 @@ export const CommandSqlOperation = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CommandSqlOperation>, I>>(
-    object: I
-  ): CommandSqlOperation {
+  fromPartial(object: DeepPartial<CommandSqlOperation>): CommandSqlOperation {
     const message = createBaseCommandSqlOperation();
     message.query = object.query ?? "";
     return message;
@@ -337,9 +335,7 @@ export const CommandKqlOperation = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CommandKqlOperation>, I>>(
-    object: I
-  ): CommandKqlOperation {
+  fromPartial(object: DeepPartial<CommandKqlOperation>): CommandKqlOperation {
     const message = createBaseCommandKqlOperation();
     message.serviceName = object.serviceName ?? "";
     message.query = object.query ?? "";
@@ -400,9 +396,7 @@ export const CommandGetSchema = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CommandGetSchema>, I>>(
-    object: I
-  ): CommandGetSchema {
+  fromPartial(object: DeepPartial<CommandGetSchema>): CommandGetSchema {
     const message = createBaseCommandGetSchema();
     message.source =
       object.source !== undefined && object.source !== null
@@ -470,9 +464,7 @@ export const CommandListSources = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CommandListSources>, I>>(
-    object: I
-  ): CommandListSources {
+  fromPartial(object: DeepPartial<CommandListSources>): CommandListSources {
     const message = createBaseCommandListSources();
     message.root =
       object.root !== undefined && object.root !== null
@@ -536,9 +528,7 @@ export const CommandReadDataset = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CommandReadDataset>, I>>(
-    object: I
-  ): CommandReadDataset {
+  fromPartial(object: DeepPartial<CommandReadDataset>): CommandReadDataset {
     const message = createBaseCommandReadDataset();
     message.source =
       object.source !== undefined && object.source !== null
@@ -601,9 +591,7 @@ export const CommandDropSource = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CommandDropSource>, I>>(
-    object: I
-  ): CommandDropSource {
+  fromPartial(object: DeepPartial<CommandDropSource>): CommandDropSource {
     const message = createBaseCommandDropSource();
     message.source =
       object.source !== undefined && object.source !== null
@@ -682,9 +670,7 @@ export const CommandSetMetadata = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CommandSetMetadata>, I>>(
-    object: I
-  ): CommandSetMetadata {
+  fromPartial(object: DeepPartial<CommandSetMetadata>): CommandSetMetadata {
     const message = createBaseCommandSetMetadata();
     message.source =
       object.source !== undefined && object.source !== null
@@ -763,8 +749,8 @@ export const CommandWriteIntoDataset = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CommandWriteIntoDataset>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<CommandWriteIntoDataset>
   ): CommandWriteIntoDataset {
     const message = createBaseCommandWriteIntoDataset();
     message.source =
@@ -841,8 +827,8 @@ export const CommandRegisterSource = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CommandRegisterSource>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<CommandRegisterSource>
   ): CommandRegisterSource {
     const message = createBaseCommandRegisterSource();
     message.format = object.format ?? 0;
@@ -947,9 +933,7 @@ export const CommandExecuteQuery = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CommandExecuteQuery>, I>>(
-    object: I
-  ): CommandExecuteQuery {
+  fromPartial(object: DeepPartial<CommandExecuteQuery>): CommandExecuteQuery {
     const message = createBaseCommandExecuteQuery();
     message.query = object.query ?? "";
     message.source =
@@ -1014,9 +998,7 @@ export const ResultActionStatus = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ResultActionStatus>, I>>(
-    object: I
-  ): ResultActionStatus {
+  fromPartial(object: DeepPartial<ResultActionStatus>): ResultActionStatus {
     const message = createBaseResultActionStatus();
     message.status = object.status ?? 0;
     return message;
@@ -1076,9 +1058,7 @@ export const ResultDoPutUpdate = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ResultDoPutUpdate>, I>>(
-    object: I
-  ): ResultDoPutUpdate {
+  fromPartial(object: DeepPartial<ResultDoPutUpdate>): ResultDoPutUpdate {
     const message = createBaseResultDoPutUpdate();
     message.statistics =
       object.statistics !== undefined && object.statistics !== null
@@ -1141,9 +1121,7 @@ export const SignalFrameOperation = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SignalFrameOperation>, I>>(
-    object: I
-  ): SignalFrameOperation {
+  fromPartial(object: DeepPartial<SignalFrameOperation>): SignalFrameOperation {
     const message = createBaseSignalFrameOperation();
     message.frame =
       object.frame !== undefined && object.frame !== null
@@ -1202,9 +1180,7 @@ export const DeltaCreateOperation = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeltaCreateOperation>, I>>(
-    object: I
-  ): DeltaCreateOperation {
+  fromPartial(object: DeepPartial<DeltaCreateOperation>): DeltaCreateOperation {
     const message = createBaseDeltaCreateOperation();
     message.saveMode = object.saveMode ?? 0;
     return message;
@@ -1279,9 +1255,7 @@ export const DeltaWriteOperation = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeltaWriteOperation>, I>>(
-    object: I
-  ): DeltaWriteOperation {
+  fromPartial(object: DeepPartial<DeltaWriteOperation>): DeltaWriteOperation {
     const message = createBaseDeltaWriteOperation();
     message.saveMode = object.saveMode ?? 0;
     message.partitionColumns = object.partitionColumns?.map((e) => e) || [];
@@ -1351,9 +1325,7 @@ export const DeltaReadOperation = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeltaReadOperation>, I>>(
-    object: I
-  ): DeltaReadOperation {
+  fromPartial(object: DeepPartial<DeltaReadOperation>): DeltaReadOperation {
     const message = createBaseDeltaReadOperation();
     message.version = object.version ?? "";
     message.timestamp = object.timestamp ?? "";
@@ -1471,8 +1443,8 @@ export const DeltaOperationRequest = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeltaOperationRequest>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<DeltaOperationRequest>
   ): DeltaOperationRequest {
     const message = createBaseDeltaOperationRequest();
     message.source =
@@ -1543,8 +1515,8 @@ export const DeltaOperationResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeltaOperationResponse>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<DeltaOperationResponse>
   ): DeltaOperationResponse {
     const message = createBaseDeltaOperationResponse();
     message.stats = object.stats ?? "";
@@ -1658,9 +1630,7 @@ export const AreaSourceMetadata = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<AreaSourceMetadata>, I>>(
-    object: I
-  ): AreaSourceMetadata {
+  fromPartial(object: DeepPartial<AreaSourceMetadata>): AreaSourceMetadata {
     const message = createBaseAreaSourceMetadata();
     message.id = object.id ?? "";
     message.name = object.name ?? "";
@@ -1734,9 +1704,9 @@ export const AreaSourceMetadata_PropertiesEntry = {
     return obj;
   },
 
-  fromPartial<
-    I extends Exact<DeepPartial<AreaSourceMetadata_PropertiesEntry>, I>
-  >(object: I): AreaSourceMetadata_PropertiesEntry {
+  fromPartial(
+    object: DeepPartial<AreaSourceMetadata_PropertiesEntry>
+  ): AreaSourceMetadata_PropertiesEntry {
     const message = createBaseAreaSourceMetadata_PropertiesEntry();
     message.key = object.key ?? "";
     message.value = object.value ?? "";
@@ -1805,9 +1775,7 @@ export const AreaSourceDetails = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<AreaSourceDetails>, I>>(
-    object: I
-  ): AreaSourceDetails {
+  fromPartial(object: DeepPartial<AreaSourceDetails>): AreaSourceDetails {
     const message = createBaseAreaSourceDetails();
     message.id = object.id ?? "";
     message.metadata =
@@ -1906,9 +1874,7 @@ export const BatchStatistics = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<BatchStatistics>, I>>(
-    object: I
-  ): BatchStatistics {
+  fromPartial(object: DeepPartial<BatchStatistics>): BatchStatistics {
     const message = createBaseBatchStatistics();
     message.recordCount = object.recordCount ?? 0;
     message.totalByteSize = object.totalByteSize ?? 0;
@@ -1993,9 +1959,7 @@ export const ColumnStatistics = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ColumnStatistics>, I>>(
-    object: I
-  ): ColumnStatistics {
+  fromPartial(object: DeepPartial<ColumnStatistics>): ColumnStatistics {
     const message = createBaseColumnStatistics();
     message.nullCount = object.nullCount ?? 0;
     message.maxValue = object.maxValue ?? "";
@@ -2034,14 +1998,6 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
-
-type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
-        Exclude<keyof I, KeysOfUnion<P>>,
-        never
-      >;
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {

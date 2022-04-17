@@ -451,9 +451,7 @@ export const DatabricksRpcOptions = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DatabricksRpcOptions>, I>>(
-    object: I
-  ): DatabricksRpcOptions {
+  fromPartial(object: DeepPartial<DatabricksRpcOptions>): DatabricksRpcOptions {
     const message = createBaseDatabricksRpcOptions();
     message.endpoints =
       object.endpoints?.map((e) => HttpEndpoint.fromPartial(e)) || [];
@@ -534,9 +532,7 @@ export const HttpEndpoint = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<HttpEndpoint>, I>>(
-    object: I
-  ): HttpEndpoint {
+  fromPartial(object: DeepPartial<HttpEndpoint>): HttpEndpoint {
     const message = createBaseHttpEndpoint();
     message.method = object.method ?? "";
     message.path = object.path ?? "";
@@ -601,9 +597,7 @@ export const ApiVersion = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ApiVersion>, I>>(
-    object: I
-  ): ApiVersion {
+  fromPartial(object: DeepPartial<ApiVersion>): ApiVersion {
     const message = createBaseApiVersion();
     message.major = object.major ?? 0;
     message.minor = object.minor ?? 0;
@@ -668,9 +662,7 @@ export const RateLimit = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RateLimit>, I>>(
-    object: I
-  ): RateLimit {
+  fromPartial(object: DeepPartial<RateLimit>): RateLimit {
     const message = createBaseRateLimit();
     message.maxBurst = object.maxBurst ?? 0;
     message.maxSustainedPerSecond = object.maxSustainedPerSecond ?? 0;
@@ -774,8 +766,8 @@ export const DocumentationMetadata = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DocumentationMetadata>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<DocumentationMetadata>
   ): DocumentationMetadata {
     const message = createBaseDocumentationMetadata();
     message.docstring = object.docstring ?? "";
@@ -854,8 +846,8 @@ export const DatabricksServiceExceptionProto = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DatabricksServiceExceptionProto>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<DatabricksServiceExceptionProto>
   ): DatabricksServiceExceptionProto {
     const message = createBaseDatabricksServiceExceptionProto();
     message.errorCode = object.errorCode ?? 1;
@@ -894,14 +886,6 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
-
-type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
-        Exclude<keyof I, KeysOfUnion<P>>,
-        never
-      >;
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {

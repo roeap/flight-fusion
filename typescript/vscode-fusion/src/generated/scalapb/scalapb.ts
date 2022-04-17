@@ -101,9 +101,7 @@ export const ScalaPbOptions = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ScalaPbOptions>, I>>(
-    object: I
-  ): ScalaPbOptions {
+  fromPartial(object: DeepPartial<ScalaPbOptions>): ScalaPbOptions {
     const message = createBaseScalaPbOptions();
     message.packageName = object.packageName ?? "";
     message.flatPackage = object.flatPackage ?? false;
@@ -163,9 +161,7 @@ export const MessageOptions = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<MessageOptions>, I>>(
-    object: I
-  ): MessageOptions {
+  fromPartial(object: DeepPartial<MessageOptions>): MessageOptions {
     const message = createBaseMessageOptions();
     message.extends = object.extends?.map((e) => e) || [];
     return message;
@@ -217,9 +213,7 @@ export const FieldOptions = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<FieldOptions>, I>>(
-    object: I
-  ): FieldOptions {
+  fromPartial(object: DeepPartial<FieldOptions>): FieldOptions {
     const message = createBaseFieldOptions();
     message.type = object.type ?? "";
     return message;
@@ -244,14 +238,6 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
-
-type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
-        Exclude<keyof I, KeysOfUnion<P>>,
-        never
-      >;
 
 // If you get a compile-error about 'Constructor<Long> and ... have no overlap',
 // add '--ts_proto_opt=esModuleInterop=true' as a flag when calling 'protoc'.

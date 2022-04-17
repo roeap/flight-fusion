@@ -128,8 +128,8 @@ export const FlightGetFlightInfoRequest = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<FlightGetFlightInfoRequest>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<FlightGetFlightInfoRequest>
   ): FlightGetFlightInfoRequest {
     const message = createBaseFlightGetFlightInfoRequest();
     message.source =
@@ -196,8 +196,8 @@ export const FlightGetSchemaRequest = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<FlightGetSchemaRequest>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<FlightGetSchemaRequest>
   ): FlightGetSchemaRequest {
     const message = createBaseFlightGetSchemaRequest();
     message.source =
@@ -348,9 +348,7 @@ export const FlightDoGetRequest = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<FlightDoGetRequest>, I>>(
-    object: I
-  ): FlightDoGetRequest {
+  fromPartial(object: DeepPartial<FlightDoGetRequest>): FlightDoGetRequest {
     const message = createBaseFlightDoGetRequest();
     message.sql =
       object.sql !== undefined && object.sql !== null
@@ -452,9 +450,7 @@ export const FlightDoPutRequest = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<FlightDoPutRequest>, I>>(
-    object: I
-  ): FlightDoPutRequest {
+  fromPartial(object: DeepPartial<FlightDoPutRequest>): FlightDoPutRequest {
     const message = createBaseFlightDoPutRequest();
     message.storage =
       object.storage !== undefined && object.storage !== null
@@ -521,9 +517,7 @@ export const FlightDoPutResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<FlightDoPutResponse>, I>>(
-    object: I
-  ): FlightDoPutResponse {
+  fromPartial(object: DeepPartial<FlightDoPutResponse>): FlightDoPutResponse {
     const message = createBaseFlightDoPutResponse();
     message.update =
       object.update !== undefined && object.update !== null
@@ -618,9 +612,7 @@ export const FlightActionRequest = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<FlightActionRequest>, I>>(
-    object: I
-  ): FlightActionRequest {
+  fromPartial(object: DeepPartial<FlightActionRequest>): FlightActionRequest {
     const message = createBaseFlightActionRequest();
     message.register =
       object.register !== undefined && object.register !== null
@@ -694,9 +686,7 @@ export const FlightActionResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<FlightActionResponse>, I>>(
-    object: I
-  ): FlightActionResponse {
+  fromPartial(object: DeepPartial<FlightActionResponse>): FlightActionResponse {
     const message = createBaseFlightActionResponse();
     message.status =
       object.status !== undefined && object.status !== null
@@ -724,14 +714,6 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
-
-type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
-        Exclude<keyof I, KeysOfUnion<P>>,
-        never
-      >;
 
 // If you get a compile-error about 'Constructor<Long> and ... have no overlap',
 // add '--ts_proto_opt=esModuleInterop=true' as a flag when calling 'protoc'.

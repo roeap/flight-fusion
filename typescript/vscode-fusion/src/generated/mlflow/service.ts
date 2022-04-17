@@ -715,7 +715,7 @@ export const Metric = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<Metric>, I>>(object: I): Metric {
+  fromPartial(object: DeepPartial<Metric>): Metric {
     const message = createBaseMetric();
     message.key = object.key ?? "";
     message.value = object.value ?? 0;
@@ -775,7 +775,7 @@ export const Param = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<Param>, I>>(object: I): Param {
+  fromPartial(object: DeepPartial<Param>): Param {
     const message = createBaseParam();
     message.key = object.key ?? "";
     message.value = object.value ?? "";
@@ -835,7 +835,7 @@ export const Run = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<Run>, I>>(object: I): Run {
+  fromPartial(object: DeepPartial<Run>): Run {
     const message = createBaseRun();
     message.info =
       object.info !== undefined && object.info !== null
@@ -930,7 +930,7 @@ export const RunData = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RunData>, I>>(object: I): RunData {
+  fromPartial(object: DeepPartial<RunData>): RunData {
     const message = createBaseRunData();
     message.metrics = object.metrics?.map((e) => Metric.fromPartial(e)) || [];
     message.params = object.params?.map((e) => Param.fromPartial(e)) || [];
@@ -992,7 +992,7 @@ export const RunTag = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RunTag>, I>>(object: I): RunTag {
+  fromPartial(object: DeepPartial<RunTag>): RunTag {
     const message = createBaseRunTag();
     message.key = object.key ?? "";
     message.value = object.value ?? "";
@@ -1053,9 +1053,7 @@ export const ExperimentTag = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ExperimentTag>, I>>(
-    object: I
-  ): ExperimentTag {
+  fromPartial(object: DeepPartial<ExperimentTag>): ExperimentTag {
     const message = createBaseExperimentTag();
     message.key = object.key ?? "";
     message.value = object.value ?? "";
@@ -1192,7 +1190,7 @@ export const RunInfo = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RunInfo>, I>>(object: I): RunInfo {
+  fromPartial(object: DeepPartial<RunInfo>): RunInfo {
     const message = createBaseRunInfo();
     message.runId = object.runId ?? "";
     message.runUuid = object.runUuid ?? "";
@@ -1331,9 +1329,7 @@ export const Experiment = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<Experiment>, I>>(
-    object: I
-  ): Experiment {
+  fromPartial(object: DeepPartial<Experiment>): Experiment {
     const message = createBaseExperiment();
     message.experimentId = object.experimentId ?? "";
     message.name = object.name ?? "";
@@ -1418,9 +1414,7 @@ export const CreateExperiment = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CreateExperiment>, I>>(
-    object: I
-  ): CreateExperiment {
+  fromPartial(object: DeepPartial<CreateExperiment>): CreateExperiment {
     const message = createBaseCreateExperiment();
     message.name = object.name ?? "";
     message.artifactLocation = object.artifactLocation ?? "";
@@ -1480,8 +1474,8 @@ export const CreateExperiment_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CreateExperiment_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<CreateExperiment_Response>
   ): CreateExperiment_Response {
     const message = createBaseCreateExperiment_Response();
     message.experimentId = object.experimentId ?? "";
@@ -1552,9 +1546,7 @@ export const ListExperiments = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ListExperiments>, I>>(
-    object: I
-  ): ListExperiments {
+  fromPartial(object: DeepPartial<ListExperiments>): ListExperiments {
     const message = createBaseListExperiments();
     message.viewType = object.viewType ?? 1;
     message.maxResults = object.maxResults ?? 0;
@@ -1630,8 +1622,8 @@ export const ListExperiments_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ListExperiments_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<ListExperiments_Response>
   ): ListExperiments_Response {
     const message = createBaseListExperiments_Response();
     message.experiments =
@@ -1689,9 +1681,7 @@ export const GetExperiment = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetExperiment>, I>>(
-    object: I
-  ): GetExperiment {
+  fromPartial(object: DeepPartial<GetExperiment>): GetExperiment {
     const message = createBaseGetExperiment();
     message.experimentId = object.experimentId ?? "";
     return message;
@@ -1765,8 +1755,8 @@ export const GetExperiment_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetExperiment_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<GetExperiment_Response>
   ): GetExperiment_Response {
     const message = createBaseGetExperiment_Response();
     message.experiment =
@@ -1826,9 +1816,7 @@ export const DeleteExperiment = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeleteExperiment>, I>>(
-    object: I
-  ): DeleteExperiment {
+  fromPartial(object: DeepPartial<DeleteExperiment>): DeleteExperiment {
     const message = createBaseDeleteExperiment();
     message.experimentId = object.experimentId ?? "";
     return message;
@@ -1874,8 +1862,8 @@ export const DeleteExperiment_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeleteExperiment_Response>, I>>(
-    _: I
+  fromPartial(
+    _: DeepPartial<DeleteExperiment_Response>
   ): DeleteExperiment_Response {
     const message = createBaseDeleteExperiment_Response();
     return message;
@@ -1930,9 +1918,7 @@ export const RestoreExperiment = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RestoreExperiment>, I>>(
-    object: I
-  ): RestoreExperiment {
+  fromPartial(object: DeepPartial<RestoreExperiment>): RestoreExperiment {
     const message = createBaseRestoreExperiment();
     message.experimentId = object.experimentId ?? "";
     return message;
@@ -1978,8 +1964,8 @@ export const RestoreExperiment_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RestoreExperiment_Response>, I>>(
-    _: I
+  fromPartial(
+    _: DeepPartial<RestoreExperiment_Response>
   ): RestoreExperiment_Response {
     const message = createBaseRestoreExperiment_Response();
     return message;
@@ -2042,9 +2028,7 @@ export const UpdateExperiment = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<UpdateExperiment>, I>>(
-    object: I
-  ): UpdateExperiment {
+  fromPartial(object: DeepPartial<UpdateExperiment>): UpdateExperiment {
     const message = createBaseUpdateExperiment();
     message.experimentId = object.experimentId ?? "";
     message.newName = object.newName ?? "";
@@ -2091,8 +2075,8 @@ export const UpdateExperiment_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<UpdateExperiment_Response>, I>>(
-    _: I
+  fromPartial(
+    _: DeepPartial<UpdateExperiment_Response>
   ): UpdateExperiment_Response {
     const message = createBaseUpdateExperiment_Response();
     return message;
@@ -2178,9 +2162,7 @@ export const CreateRun = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CreateRun>, I>>(
-    object: I
-  ): CreateRun {
+  fromPartial(object: DeepPartial<CreateRun>): CreateRun {
     const message = createBaseCreateRun();
     message.experimentId = object.experimentId ?? "";
     message.userId = object.userId ?? "";
@@ -2236,9 +2218,7 @@ export const CreateRun_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CreateRun_Response>, I>>(
-    object: I
-  ): CreateRun_Response {
+  fromPartial(object: DeepPartial<CreateRun_Response>): CreateRun_Response {
     const message = createBaseCreateRun_Response();
     message.run =
       object.run !== undefined && object.run !== null
@@ -2319,9 +2299,7 @@ export const UpdateRun = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<UpdateRun>, I>>(
-    object: I
-  ): UpdateRun {
+  fromPartial(object: DeepPartial<UpdateRun>): UpdateRun {
     const message = createBaseUpdateRun();
     message.runId = object.runId ?? "";
     message.runUuid = object.runUuid ?? "";
@@ -2381,9 +2359,7 @@ export const UpdateRun_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<UpdateRun_Response>, I>>(
-    object: I
-  ): UpdateRun_Response {
+  fromPartial(object: DeepPartial<UpdateRun_Response>): UpdateRun_Response {
     const message = createBaseUpdateRun_Response();
     message.runInfo =
       object.runInfo !== undefined && object.runInfo !== null
@@ -2438,9 +2414,7 @@ export const DeleteRun = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeleteRun>, I>>(
-    object: I
-  ): DeleteRun {
+  fromPartial(object: DeepPartial<DeleteRun>): DeleteRun {
     const message = createBaseDeleteRun();
     message.runId = object.runId ?? "";
     return message;
@@ -2483,9 +2457,7 @@ export const DeleteRun_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeleteRun_Response>, I>>(
-    _: I
-  ): DeleteRun_Response {
+  fromPartial(_: DeepPartial<DeleteRun_Response>): DeleteRun_Response {
     const message = createBaseDeleteRun_Response();
     return message;
   },
@@ -2536,9 +2508,7 @@ export const RestoreRun = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RestoreRun>, I>>(
-    object: I
-  ): RestoreRun {
+  fromPartial(object: DeepPartial<RestoreRun>): RestoreRun {
     const message = createBaseRestoreRun();
     message.runId = object.runId ?? "";
     return message;
@@ -2581,9 +2551,7 @@ export const RestoreRun_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RestoreRun_Response>, I>>(
-    _: I
-  ): RestoreRun_Response {
+  fromPartial(_: DeepPartial<RestoreRun_Response>): RestoreRun_Response {
     const message = createBaseRestoreRun_Response();
     return message;
   },
@@ -2675,9 +2643,7 @@ export const LogMetric = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<LogMetric>, I>>(
-    object: I
-  ): LogMetric {
+  fromPartial(object: DeepPartial<LogMetric>): LogMetric {
     const message = createBaseLogMetric();
     message.runId = object.runId ?? "";
     message.runUuid = object.runUuid ?? "";
@@ -2725,9 +2691,7 @@ export const LogMetric_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<LogMetric_Response>, I>>(
-    _: I
-  ): LogMetric_Response {
+  fromPartial(_: DeepPartial<LogMetric_Response>): LogMetric_Response {
     const message = createBaseLogMetric_Response();
     return message;
   },
@@ -2802,7 +2766,7 @@ export const LogParam = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<LogParam>, I>>(object: I): LogParam {
+  fromPartial(object: DeepPartial<LogParam>): LogParam {
     const message = createBaseLogParam();
     message.runId = object.runId ?? "";
     message.runUuid = object.runUuid ?? "";
@@ -2848,9 +2812,7 @@ export const LogParam_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<LogParam_Response>, I>>(
-    _: I
-  ): LogParam_Response {
+  fromPartial(_: DeepPartial<LogParam_Response>): LogParam_Response {
     const message = createBaseLogParam_Response();
     return message;
   },
@@ -2920,9 +2882,7 @@ export const SetExperimentTag = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SetExperimentTag>, I>>(
-    object: I
-  ): SetExperimentTag {
+  fromPartial(object: DeepPartial<SetExperimentTag>): SetExperimentTag {
     const message = createBaseSetExperimentTag();
     message.experimentId = object.experimentId ?? "";
     message.key = object.key ?? "";
@@ -2970,8 +2930,8 @@ export const SetExperimentTag_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SetExperimentTag_Response>, I>>(
-    _: I
+  fromPartial(
+    _: DeepPartial<SetExperimentTag_Response>
   ): SetExperimentTag_Response {
     const message = createBaseSetExperimentTag_Response();
     return message;
@@ -3047,7 +3007,7 @@ export const SetTag = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SetTag>, I>>(object: I): SetTag {
+  fromPartial(object: DeepPartial<SetTag>): SetTag {
     const message = createBaseSetTag();
     message.runId = object.runId ?? "";
     message.runUuid = object.runUuid ?? "";
@@ -3093,9 +3053,7 @@ export const SetTag_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SetTag_Response>, I>>(
-    _: I
-  ): SetTag_Response {
+  fromPartial(_: DeepPartial<SetTag_Response>): SetTag_Response {
     const message = createBaseSetTag_Response();
     return message;
   },
@@ -3154,9 +3112,7 @@ export const DeleteTag = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeleteTag>, I>>(
-    object: I
-  ): DeleteTag {
+  fromPartial(object: DeepPartial<DeleteTag>): DeleteTag {
     const message = createBaseDeleteTag();
     message.runId = object.runId ?? "";
     message.key = object.key ?? "";
@@ -3200,9 +3156,7 @@ export const DeleteTag_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeleteTag_Response>, I>>(
-    _: I
-  ): DeleteTag_Response {
+  fromPartial(_: DeepPartial<DeleteTag_Response>): DeleteTag_Response {
     const message = createBaseDeleteTag_Response();
     return message;
   },
@@ -3261,7 +3215,7 @@ export const GetRun = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetRun>, I>>(object: I): GetRun {
+  fromPartial(object: DeepPartial<GetRun>): GetRun {
     const message = createBaseGetRun();
     message.runId = object.runId ?? "";
     message.runUuid = object.runUuid ?? "";
@@ -3315,9 +3269,7 @@ export const GetRun_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetRun_Response>, I>>(
-    object: I
-  ): GetRun_Response {
+  fromPartial(object: DeepPartial<GetRun_Response>): GetRun_Response {
     const message = createBaseGetRun_Response();
     message.run =
       object.run !== undefined && object.run !== null
@@ -3435,9 +3387,7 @@ export const SearchRuns = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SearchRuns>, I>>(
-    object: I
-  ): SearchRuns {
+  fromPartial(object: DeepPartial<SearchRuns>): SearchRuns {
     const message = createBaseSearchRuns();
     message.experimentIds = object.experimentIds?.map((e) => e) || [];
     message.filter = object.filter ?? "";
@@ -3511,9 +3461,7 @@ export const SearchRuns_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SearchRuns_Response>, I>>(
-    object: I
-  ): SearchRuns_Response {
+  fromPartial(object: DeepPartial<SearchRuns_Response>): SearchRuns_Response {
     const message = createBaseSearchRuns_Response();
     message.runs = object.runs?.map((e) => Run.fromPartial(e)) || [];
     message.nextPageToken = object.nextPageToken ?? "";
@@ -3590,9 +3538,7 @@ export const ListArtifacts = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ListArtifacts>, I>>(
-    object: I
-  ): ListArtifacts {
+  fromPartial(object: DeepPartial<ListArtifacts>): ListArtifacts {
     const message = createBaseListArtifacts();
     message.runId = object.runId ?? "";
     message.runUuid = object.runUuid ?? "";
@@ -3677,8 +3623,8 @@ export const ListArtifacts_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ListArtifacts_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<ListArtifacts_Response>
   ): ListArtifacts_Response {
     const message = createBaseListArtifacts_Response();
     message.rootUri = object.rootUri ?? "";
@@ -3750,7 +3696,7 @@ export const FileInfo = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<FileInfo>, I>>(object: I): FileInfo {
+  fromPartial(object: DeepPartial<FileInfo>): FileInfo {
     const message = createBaseFileInfo();
     message.path = object.path ?? "";
     message.isDir = object.isDir ?? false;
@@ -3820,9 +3766,7 @@ export const GetMetricHistory = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetMetricHistory>, I>>(
-    object: I
-  ): GetMetricHistory {
+  fromPartial(object: DeepPartial<GetMetricHistory>): GetMetricHistory {
     const message = createBaseGetMetricHistory();
     message.runId = object.runId ?? "";
     message.runUuid = object.runUuid ?? "";
@@ -3887,8 +3831,8 @@ export const GetMetricHistory_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetMetricHistory_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<GetMetricHistory_Response>
   ): GetMetricHistory_Response {
     const message = createBaseGetMetricHistory_Response();
     message.metrics = object.metrics?.map((e) => Metric.fromPartial(e)) || [];
@@ -3985,7 +3929,7 @@ export const LogBatch = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<LogBatch>, I>>(object: I): LogBatch {
+  fromPartial(object: DeepPartial<LogBatch>): LogBatch {
     const message = createBaseLogBatch();
     message.runId = object.runId ?? "";
     message.metrics = object.metrics?.map((e) => Metric.fromPartial(e)) || [];
@@ -4031,9 +3975,7 @@ export const LogBatch_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<LogBatch_Response>, I>>(
-    _: I
-  ): LogBatch_Response {
+  fromPartial(_: DeepPartial<LogBatch_Response>): LogBatch_Response {
     const message = createBaseLogBatch_Response();
     return message;
   },
@@ -4092,7 +4034,7 @@ export const LogModel = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<LogModel>, I>>(object: I): LogModel {
+  fromPartial(object: DeepPartial<LogModel>): LogModel {
     const message = createBaseLogModel();
     message.runId = object.runId ?? "";
     message.modelJson = object.modelJson ?? "";
@@ -4136,9 +4078,7 @@ export const LogModel_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<LogModel_Response>, I>>(
-    _: I
-  ): LogModel_Response {
+  fromPartial(_: DeepPartial<LogModel_Response>): LogModel_Response {
     const message = createBaseLogModel_Response();
     return message;
   },
@@ -4192,9 +4132,7 @@ export const GetExperimentByName = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetExperimentByName>, I>>(
-    object: I
-  ): GetExperimentByName {
+  fromPartial(object: DeepPartial<GetExperimentByName>): GetExperimentByName {
     const message = createBaseGetExperimentByName();
     message.experimentName = object.experimentName ?? "";
     return message;
@@ -4254,8 +4192,8 @@ export const GetExperimentByName_Response = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetExperimentByName_Response>, I>>(
-    object: I
+  fromPartial(
+    object: DeepPartial<GetExperimentByName_Response>
   ): GetExperimentByName_Response {
     const message = createBaseGetExperimentByName_Response();
     message.experiment =
@@ -4266,440 +4204,314 @@ export const GetExperimentByName_Response = {
   },
 };
 
-export interface MlflowService {
-  /**
-   * Get metadata for an experiment.
-   *
-   * This endpoint will return deleted experiments, but prefers the active experiment
-   * if an active and deleted experiment share the same name. If multiple deleted
-   * experiments share the same name, the API will return one of them.
-   *
-   * Throws ``RESOURCE_DOES_NOT_EXIST`` if no experiment with the specified name exists.
-   */
-  getExperimentByName(
-    request: GetExperimentByName
-  ): Promise<GetExperimentByName_Response>;
-  /**
-   * Create an experiment with a name. Returns the ID of the newly created experiment.
-   * Validates that another experiment with the same name does not already exist and fails
-   * if another experiment with the same name already exists.
-   *
-   *
-   * Throws ``RESOURCE_ALREADY_EXISTS`` if a experiment with the given name exists.
-   */
-  createExperiment(
-    request: CreateExperiment
-  ): Promise<CreateExperiment_Response>;
-  /** Get a list of all experiments. */
-  listExperiments(request: ListExperiments): Promise<ListExperiments_Response>;
-  /** Get metadata for an experiment. This method works on deleted experiments. */
-  getExperiment(request: GetExperiment): Promise<GetExperiment_Response>;
-  /**
-   * Mark an experiment and associated metadata, runs, metrics, params, and tags for deletion.
-   * If the experiment uses FileStore, artifacts associated with experiment are also deleted.
-   */
-  deleteExperiment(
-    request: DeleteExperiment
-  ): Promise<DeleteExperiment_Response>;
-  /**
-   * Restore an experiment marked for deletion. This also restores
-   * associated metadata, runs, metrics, params, and tags. If experiment uses FileStore, underlying
-   * artifacts associated with experiment are also restored.
-   *
-   * Throws ``RESOURCE_DOES_NOT_EXIST`` if experiment was never created or was permanently deleted.
-   */
-  restoreExperiment(
-    request: RestoreExperiment
-  ): Promise<RestoreExperiment_Response>;
-  /** Update experiment metadata. */
-  updateExperiment(
-    request: UpdateExperiment
-  ): Promise<UpdateExperiment_Response>;
-  /**
-   * Create a new run within an experiment. A run is usually a single execution of a
-   * machine learning or data ETL pipeline. MLflow uses runs to track :ref:`mlflowParam`,
-   * :ref:`mlflowMetric`, and :ref:`mlflowRunTag` associated with a single execution.
-   */
-  createRun(request: CreateRun): Promise<CreateRun_Response>;
-  /** Update run metadata. */
-  updateRun(request: UpdateRun): Promise<UpdateRun_Response>;
-  /** Mark a run for deletion. */
-  deleteRun(request: DeleteRun): Promise<DeleteRun_Response>;
-  /** Restore a deleted run. */
-  restoreRun(request: RestoreRun): Promise<RestoreRun_Response>;
-  /**
-   * Log a metric for a run. A metric is a key-value pair (string key, float value) with an
-   * associated timestamp. Examples include the various metrics that represent ML model accuracy.
-   * A metric can be logged multiple times.
-   */
-  logMetric(request: LogMetric): Promise<LogMetric_Response>;
-  /**
-   * Log a param used for a run. A param is a key-value pair (string key,
-   * string value). Examples include hyperparameters used for ML model training and
-   * constant dates and values used in an ETL pipeline. A param can be logged only once for a run.
-   */
-  logParam(request: LogParam): Promise<LogParam_Response>;
-  /** Set a tag on an experiment. Experiment tags are metadata that can be updated. */
-  setExperimentTag(
-    request: SetExperimentTag
-  ): Promise<SetExperimentTag_Response>;
-  /**
-   * Set a tag on a run. Tags are run metadata that can be updated during a run and after
-   * a run completes.
-   */
-  setTag(request: SetTag): Promise<SetTag_Response>;
-  /**
-   * Delete a tag on a run. Tags are run metadata that can be updated during a run and after
-   * a run completes.
-   */
-  deleteTag(request: DeleteTag): Promise<DeleteTag_Response>;
-  /**
-   * Get metadata, metrics, params, and tags for a run. In the case where multiple metrics
-   * with the same key are logged for a run, return only the value with the latest timestamp.
-   * If there are multiple values with the latest timestamp, return the maximum of these values.
-   */
-  getRun(request: GetRun): Promise<GetRun_Response>;
-  /**
-   * Search for runs that satisfy expressions. Search expressions can use :ref:`mlflowMetric` and
-   * :ref:`mlflowParam` keys.
-   */
-  searchRuns(request: SearchRuns): Promise<SearchRuns_Response>;
-  /**
-   * List artifacts for a run. Takes an optional ``artifact_path`` prefix which if specified,
-   * the response contains only artifacts with the specified prefix.
-   */
-  listArtifacts(request: ListArtifacts): Promise<ListArtifacts_Response>;
-  /** Get a list of all values for the specified metric for a given run. */
-  getMetricHistory(
-    request: GetMetricHistory
-  ): Promise<GetMetricHistory_Response>;
-  /**
-   * Log a batch of metrics, params, and tags for a run.
-   * If any data failed to be persisted, the server will respond with an error (non-200 status code).
-   * In case of error (due to internal server error or an invalid request), partial data may
-   * be written.
-   *
-   * You can write metrics, params, and tags in interleaving fashion, but within a given entity
-   * type are guaranteed to follow the order specified in the request body. That is, for an API
-   * request like
-   *
-   * .. code-block:: json
-   *
-   *   {
-   *      "run_id": "2a14ed5c6a87499199e0106c3501eab8",
-   *      "metrics": [
-   *        {"key": "mae", "value": 2.5, "timestamp": 1552550804},
-   *        {"key": "rmse", "value": 2.7, "timestamp": 1552550804},
-   *      ],
-   *      "params": [
-   *        {"key": "model_class", "value": "LogisticRegression"},
-   *      ]
-   *   }
-   *
-   * the server is guaranteed to write metric "rmse" after "mae", though it may write param
-   * "model_class" before both metrics, after "mae", or after both metrics.
-   *
-   * The overwrite behavior for metrics, params, and tags is as follows:
-   *
-   * - Metrics: metric values are never overwritten. Logging a metric (key, value, timestamp) appends to the set of values for the metric with the provided key.
-   *
-   * - Tags: tag values can be overwritten by successive writes to the same tag key. That is, if multiple tag values with the same key are provided in the same API request, the last-provided tag value is written. Logging the same tag (key, value) is permitted - that is, logging a tag is idempotent.
-   *
-   * - Params: once written, param values cannot be changed (attempting to overwrite a param value will result in an error). However, logging the same param (key, value) is permitted - that is, logging a param is idempotent.
-   *
-   * Request Limits
-   * --------------
-   * A single JSON-serialized API request may be up to 1 MB in size and contain:
-   *
-   * - No more than 1000 metrics, params, and tags in total
-   * - Up to 1000 metrics
-   * - Up to 100 params
-   * - Up to 100 tags
-   *
-   * For example, a valid request might contain 900 metrics, 50 params, and 50 tags, but logging
-   * 900 metrics, 50 params, and 51 tags is invalid. The following limits also apply
-   * to metric, param, and tag keys and values:
-   *
-   * - Metric, param, and tag keys can be up to 250 characters in length
-   * - Param and tag values can be up to 250 characters in length
-   */
-  logBatch(request: LogBatch): Promise<LogBatch_Response>;
-  /**
-   * .. note::
-   *     Experimental: This API may change or be removed in a future release without warning.
-   */
-  logModel(request: LogModel): Promise<LogModel_Response>;
-}
-
-export class MlflowServiceClientImpl implements MlflowService {
-  private readonly rpc: Rpc;
-  constructor(rpc: Rpc) {
-    this.rpc = rpc;
-    this.getExperimentByName = this.getExperimentByName.bind(this);
-    this.createExperiment = this.createExperiment.bind(this);
-    this.listExperiments = this.listExperiments.bind(this);
-    this.getExperiment = this.getExperiment.bind(this);
-    this.deleteExperiment = this.deleteExperiment.bind(this);
-    this.restoreExperiment = this.restoreExperiment.bind(this);
-    this.updateExperiment = this.updateExperiment.bind(this);
-    this.createRun = this.createRun.bind(this);
-    this.updateRun = this.updateRun.bind(this);
-    this.deleteRun = this.deleteRun.bind(this);
-    this.restoreRun = this.restoreRun.bind(this);
-    this.logMetric = this.logMetric.bind(this);
-    this.logParam = this.logParam.bind(this);
-    this.setExperimentTag = this.setExperimentTag.bind(this);
-    this.setTag = this.setTag.bind(this);
-    this.deleteTag = this.deleteTag.bind(this);
-    this.getRun = this.getRun.bind(this);
-    this.searchRuns = this.searchRuns.bind(this);
-    this.listArtifacts = this.listArtifacts.bind(this);
-    this.getMetricHistory = this.getMetricHistory.bind(this);
-    this.logBatch = this.logBatch.bind(this);
-    this.logModel = this.logModel.bind(this);
-  }
-  getExperimentByName(
-    request: GetExperimentByName
-  ): Promise<GetExperimentByName_Response> {
-    const data = GetExperimentByName.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.MlflowService",
-      "getExperimentByName",
-      data
-    );
-    return promise.then((data) =>
-      GetExperimentByName_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  createExperiment(
-    request: CreateExperiment
-  ): Promise<CreateExperiment_Response> {
-    const data = CreateExperiment.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.MlflowService",
-      "createExperiment",
-      data
-    );
-    return promise.then((data) =>
-      CreateExperiment_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  listExperiments(request: ListExperiments): Promise<ListExperiments_Response> {
-    const data = ListExperiments.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.MlflowService",
-      "listExperiments",
-      data
-    );
-    return promise.then((data) =>
-      ListExperiments_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  getExperiment(request: GetExperiment): Promise<GetExperiment_Response> {
-    const data = GetExperiment.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.MlflowService",
-      "getExperiment",
-      data
-    );
-    return promise.then((data) =>
-      GetExperiment_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  deleteExperiment(
-    request: DeleteExperiment
-  ): Promise<DeleteExperiment_Response> {
-    const data = DeleteExperiment.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.MlflowService",
-      "deleteExperiment",
-      data
-    );
-    return promise.then((data) =>
-      DeleteExperiment_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  restoreExperiment(
-    request: RestoreExperiment
-  ): Promise<RestoreExperiment_Response> {
-    const data = RestoreExperiment.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.MlflowService",
-      "restoreExperiment",
-      data
-    );
-    return promise.then((data) =>
-      RestoreExperiment_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  updateExperiment(
-    request: UpdateExperiment
-  ): Promise<UpdateExperiment_Response> {
-    const data = UpdateExperiment.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.MlflowService",
-      "updateExperiment",
-      data
-    );
-    return promise.then((data) =>
-      UpdateExperiment_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  createRun(request: CreateRun): Promise<CreateRun_Response> {
-    const data = CreateRun.encode(request).finish();
-    const promise = this.rpc.request("mlflow.MlflowService", "createRun", data);
-    return promise.then((data) =>
-      CreateRun_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  updateRun(request: UpdateRun): Promise<UpdateRun_Response> {
-    const data = UpdateRun.encode(request).finish();
-    const promise = this.rpc.request("mlflow.MlflowService", "updateRun", data);
-    return promise.then((data) =>
-      UpdateRun_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  deleteRun(request: DeleteRun): Promise<DeleteRun_Response> {
-    const data = DeleteRun.encode(request).finish();
-    const promise = this.rpc.request("mlflow.MlflowService", "deleteRun", data);
-    return promise.then((data) =>
-      DeleteRun_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  restoreRun(request: RestoreRun): Promise<RestoreRun_Response> {
-    const data = RestoreRun.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.MlflowService",
-      "restoreRun",
-      data
-    );
-    return promise.then((data) =>
-      RestoreRun_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  logMetric(request: LogMetric): Promise<LogMetric_Response> {
-    const data = LogMetric.encode(request).finish();
-    const promise = this.rpc.request("mlflow.MlflowService", "logMetric", data);
-    return promise.then((data) =>
-      LogMetric_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  logParam(request: LogParam): Promise<LogParam_Response> {
-    const data = LogParam.encode(request).finish();
-    const promise = this.rpc.request("mlflow.MlflowService", "logParam", data);
-    return promise.then((data) =>
-      LogParam_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  setExperimentTag(
-    request: SetExperimentTag
-  ): Promise<SetExperimentTag_Response> {
-    const data = SetExperimentTag.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.MlflowService",
-      "setExperimentTag",
-      data
-    );
-    return promise.then((data) =>
-      SetExperimentTag_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  setTag(request: SetTag): Promise<SetTag_Response> {
-    const data = SetTag.encode(request).finish();
-    const promise = this.rpc.request("mlflow.MlflowService", "setTag", data);
-    return promise.then((data) => SetTag_Response.decode(new _m0.Reader(data)));
-  }
-
-  deleteTag(request: DeleteTag): Promise<DeleteTag_Response> {
-    const data = DeleteTag.encode(request).finish();
-    const promise = this.rpc.request("mlflow.MlflowService", "deleteTag", data);
-    return promise.then((data) =>
-      DeleteTag_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  getRun(request: GetRun): Promise<GetRun_Response> {
-    const data = GetRun.encode(request).finish();
-    const promise = this.rpc.request("mlflow.MlflowService", "getRun", data);
-    return promise.then((data) => GetRun_Response.decode(new _m0.Reader(data)));
-  }
-
-  searchRuns(request: SearchRuns): Promise<SearchRuns_Response> {
-    const data = SearchRuns.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.MlflowService",
-      "searchRuns",
-      data
-    );
-    return promise.then((data) =>
-      SearchRuns_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  listArtifacts(request: ListArtifacts): Promise<ListArtifacts_Response> {
-    const data = ListArtifacts.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.MlflowService",
-      "listArtifacts",
-      data
-    );
-    return promise.then((data) =>
-      ListArtifacts_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  getMetricHistory(
-    request: GetMetricHistory
-  ): Promise<GetMetricHistory_Response> {
-    const data = GetMetricHistory.encode(request).finish();
-    const promise = this.rpc.request(
-      "mlflow.MlflowService",
-      "getMetricHistory",
-      data
-    );
-    return promise.then((data) =>
-      GetMetricHistory_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  logBatch(request: LogBatch): Promise<LogBatch_Response> {
-    const data = LogBatch.encode(request).finish();
-    const promise = this.rpc.request("mlflow.MlflowService", "logBatch", data);
-    return promise.then((data) =>
-      LogBatch_Response.decode(new _m0.Reader(data))
-    );
-  }
-
-  logModel(request: LogModel): Promise<LogModel_Response> {
-    const data = LogModel.encode(request).finish();
-    const promise = this.rpc.request("mlflow.MlflowService", "logModel", data);
-    return promise.then((data) =>
-      LogModel_Response.decode(new _m0.Reader(data))
-    );
-  }
-}
-
-interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array
-  ): Promise<Uint8Array>;
-}
+export const MlflowServiceDefinition = {
+  name: "MlflowService",
+  fullName: "mlflow.MlflowService",
+  methods: {
+    /**
+     * Get metadata for an experiment.
+     *
+     * This endpoint will return deleted experiments, but prefers the active experiment
+     * if an active and deleted experiment share the same name. If multiple deleted
+     * experiments share the same name, the API will return one of them.
+     *
+     * Throws ``RESOURCE_DOES_NOT_EXIST`` if no experiment with the specified name exists.
+     */
+    getExperimentByName: {
+      name: "getExperimentByName",
+      requestType: GetExperimentByName,
+      requestStream: false,
+      responseType: GetExperimentByName_Response,
+      responseStream: false,
+      options: {},
+    },
+    /**
+     * Create an experiment with a name. Returns the ID of the newly created experiment.
+     * Validates that another experiment with the same name does not already exist and fails
+     * if another experiment with the same name already exists.
+     *
+     *
+     * Throws ``RESOURCE_ALREADY_EXISTS`` if a experiment with the given name exists.
+     */
+    createExperiment: {
+      name: "createExperiment",
+      requestType: CreateExperiment,
+      requestStream: false,
+      responseType: CreateExperiment_Response,
+      responseStream: false,
+      options: {},
+    },
+    /** Get a list of all experiments. */
+    listExperiments: {
+      name: "listExperiments",
+      requestType: ListExperiments,
+      requestStream: false,
+      responseType: ListExperiments_Response,
+      responseStream: false,
+      options: {},
+    },
+    /** Get metadata for an experiment. This method works on deleted experiments. */
+    getExperiment: {
+      name: "getExperiment",
+      requestType: GetExperiment,
+      requestStream: false,
+      responseType: GetExperiment_Response,
+      responseStream: false,
+      options: {},
+    },
+    /**
+     * Mark an experiment and associated metadata, runs, metrics, params, and tags for deletion.
+     * If the experiment uses FileStore, artifacts associated with experiment are also deleted.
+     */
+    deleteExperiment: {
+      name: "deleteExperiment",
+      requestType: DeleteExperiment,
+      requestStream: false,
+      responseType: DeleteExperiment_Response,
+      responseStream: false,
+      options: {},
+    },
+    /**
+     * Restore an experiment marked for deletion. This also restores
+     * associated metadata, runs, metrics, params, and tags. If experiment uses FileStore, underlying
+     * artifacts associated with experiment are also restored.
+     *
+     * Throws ``RESOURCE_DOES_NOT_EXIST`` if experiment was never created or was permanently deleted.
+     */
+    restoreExperiment: {
+      name: "restoreExperiment",
+      requestType: RestoreExperiment,
+      requestStream: false,
+      responseType: RestoreExperiment_Response,
+      responseStream: false,
+      options: {},
+    },
+    /** Update experiment metadata. */
+    updateExperiment: {
+      name: "updateExperiment",
+      requestType: UpdateExperiment,
+      requestStream: false,
+      responseType: UpdateExperiment_Response,
+      responseStream: false,
+      options: {},
+    },
+    /**
+     * Create a new run within an experiment. A run is usually a single execution of a
+     * machine learning or data ETL pipeline. MLflow uses runs to track :ref:`mlflowParam`,
+     * :ref:`mlflowMetric`, and :ref:`mlflowRunTag` associated with a single execution.
+     */
+    createRun: {
+      name: "createRun",
+      requestType: CreateRun,
+      requestStream: false,
+      responseType: CreateRun_Response,
+      responseStream: false,
+      options: {},
+    },
+    /** Update run metadata. */
+    updateRun: {
+      name: "updateRun",
+      requestType: UpdateRun,
+      requestStream: false,
+      responseType: UpdateRun_Response,
+      responseStream: false,
+      options: {},
+    },
+    /** Mark a run for deletion. */
+    deleteRun: {
+      name: "deleteRun",
+      requestType: DeleteRun,
+      requestStream: false,
+      responseType: DeleteRun_Response,
+      responseStream: false,
+      options: {},
+    },
+    /** Restore a deleted run. */
+    restoreRun: {
+      name: "restoreRun",
+      requestType: RestoreRun,
+      requestStream: false,
+      responseType: RestoreRun_Response,
+      responseStream: false,
+      options: {},
+    },
+    /**
+     * Log a metric for a run. A metric is a key-value pair (string key, float value) with an
+     * associated timestamp. Examples include the various metrics that represent ML model accuracy.
+     * A metric can be logged multiple times.
+     */
+    logMetric: {
+      name: "logMetric",
+      requestType: LogMetric,
+      requestStream: false,
+      responseType: LogMetric_Response,
+      responseStream: false,
+      options: {},
+    },
+    /**
+     * Log a param used for a run. A param is a key-value pair (string key,
+     * string value). Examples include hyperparameters used for ML model training and
+     * constant dates and values used in an ETL pipeline. A param can be logged only once for a run.
+     */
+    logParam: {
+      name: "logParam",
+      requestType: LogParam,
+      requestStream: false,
+      responseType: LogParam_Response,
+      responseStream: false,
+      options: {},
+    },
+    /** Set a tag on an experiment. Experiment tags are metadata that can be updated. */
+    setExperimentTag: {
+      name: "setExperimentTag",
+      requestType: SetExperimentTag,
+      requestStream: false,
+      responseType: SetExperimentTag_Response,
+      responseStream: false,
+      options: {},
+    },
+    /**
+     * Set a tag on a run. Tags are run metadata that can be updated during a run and after
+     * a run completes.
+     */
+    setTag: {
+      name: "setTag",
+      requestType: SetTag,
+      requestStream: false,
+      responseType: SetTag_Response,
+      responseStream: false,
+      options: {},
+    },
+    /**
+     * Delete a tag on a run. Tags are run metadata that can be updated during a run and after
+     * a run completes.
+     */
+    deleteTag: {
+      name: "deleteTag",
+      requestType: DeleteTag,
+      requestStream: false,
+      responseType: DeleteTag_Response,
+      responseStream: false,
+      options: {},
+    },
+    /**
+     * Get metadata, metrics, params, and tags for a run. In the case where multiple metrics
+     * with the same key are logged for a run, return only the value with the latest timestamp.
+     * If there are multiple values with the latest timestamp, return the maximum of these values.
+     */
+    getRun: {
+      name: "getRun",
+      requestType: GetRun,
+      requestStream: false,
+      responseType: GetRun_Response,
+      responseStream: false,
+      options: {},
+    },
+    /**
+     * Search for runs that satisfy expressions. Search expressions can use :ref:`mlflowMetric` and
+     * :ref:`mlflowParam` keys.
+     */
+    searchRuns: {
+      name: "searchRuns",
+      requestType: SearchRuns,
+      requestStream: false,
+      responseType: SearchRuns_Response,
+      responseStream: false,
+      options: {},
+    },
+    /**
+     * List artifacts for a run. Takes an optional ``artifact_path`` prefix which if specified,
+     * the response contains only artifacts with the specified prefix.
+     */
+    listArtifacts: {
+      name: "listArtifacts",
+      requestType: ListArtifacts,
+      requestStream: false,
+      responseType: ListArtifacts_Response,
+      responseStream: false,
+      options: {},
+    },
+    /** Get a list of all values for the specified metric for a given run. */
+    getMetricHistory: {
+      name: "getMetricHistory",
+      requestType: GetMetricHistory,
+      requestStream: false,
+      responseType: GetMetricHistory_Response,
+      responseStream: false,
+      options: {},
+    },
+    /**
+     * Log a batch of metrics, params, and tags for a run.
+     * If any data failed to be persisted, the server will respond with an error (non-200 status code).
+     * In case of error (due to internal server error or an invalid request), partial data may
+     * be written.
+     *
+     * You can write metrics, params, and tags in interleaving fashion, but within a given entity
+     * type are guaranteed to follow the order specified in the request body. That is, for an API
+     * request like
+     *
+     * .. code-block:: json
+     *
+     *   {
+     *      "run_id": "2a14ed5c6a87499199e0106c3501eab8",
+     *      "metrics": [
+     *        {"key": "mae", "value": 2.5, "timestamp": 1552550804},
+     *        {"key": "rmse", "value": 2.7, "timestamp": 1552550804},
+     *      ],
+     *      "params": [
+     *        {"key": "model_class", "value": "LogisticRegression"},
+     *      ]
+     *   }
+     *
+     * the server is guaranteed to write metric "rmse" after "mae", though it may write param
+     * "model_class" before both metrics, after "mae", or after both metrics.
+     *
+     * The overwrite behavior for metrics, params, and tags is as follows:
+     *
+     * - Metrics: metric values are never overwritten. Logging a metric (key, value, timestamp) appends to the set of values for the metric with the provided key.
+     *
+     * - Tags: tag values can be overwritten by successive writes to the same tag key. That is, if multiple tag values with the same key are provided in the same API request, the last-provided tag value is written. Logging the same tag (key, value) is permitted - that is, logging a tag is idempotent.
+     *
+     * - Params: once written, param values cannot be changed (attempting to overwrite a param value will result in an error). However, logging the same param (key, value) is permitted - that is, logging a param is idempotent.
+     *
+     * Request Limits
+     * --------------
+     * A single JSON-serialized API request may be up to 1 MB in size and contain:
+     *
+     * - No more than 1000 metrics, params, and tags in total
+     * - Up to 1000 metrics
+     * - Up to 100 params
+     * - Up to 100 tags
+     *
+     * For example, a valid request might contain 900 metrics, 50 params, and 50 tags, but logging
+     * 900 metrics, 50 params, and 51 tags is invalid. The following limits also apply
+     * to metric, param, and tag keys and values:
+     *
+     * - Metric, param, and tag keys can be up to 250 characters in length
+     * - Param and tag values can be up to 250 characters in length
+     */
+    logBatch: {
+      name: "logBatch",
+      requestType: LogBatch,
+      requestStream: false,
+      responseType: LogBatch_Response,
+      responseStream: false,
+      options: {},
+    },
+    /**
+     * .. note::
+     *     Experimental: This API may change or be removed in a future release without warning.
+     */
+    logModel: {
+      name: "logModel",
+      requestType: LogModel,
+      requestStream: false,
+      responseType: LogModel_Response,
+      responseStream: false,
+      options: {},
+    },
+  },
+} as const;
 
 declare var self: any | undefined;
 declare var window: any | undefined;
@@ -4730,14 +4542,6 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
-
-type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
-        Exclude<keyof I, KeysOfUnion<P>>,
-        never
-      >;
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {

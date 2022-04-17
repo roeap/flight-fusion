@@ -311,9 +311,7 @@ export const FileReference = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<FileReference>, I>>(
-    object: I
-  ): FileReference {
+  fromPartial(object: DeepPartial<FileReference>): FileReference {
     const message = createBaseFileReference();
     message.path = object.path ?? "";
     message.format = object.format ?? 0;
@@ -371,9 +369,7 @@ export const TableReference = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<TableReference>, I>>(
-    object: I
-  ): TableReference {
+  fromPartial(object: DeepPartial<TableReference>): TableReference {
     const message = createBaseTableReference();
     message.file =
       object.file !== undefined && object.file !== null
@@ -428,9 +424,7 @@ export const EntityUri = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<EntityUri>, I>>(
-    object: I
-  ): EntityUri {
+  fromPartial(object: DeepPartial<EntityUri>): EntityUri {
     const message = createBaseEntityUri();
     message.uri = object.uri ?? "";
     return message;
@@ -482,7 +476,7 @@ export const EntityId = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<EntityId>, I>>(object: I): EntityId {
+  fromPartial(object: DeepPartial<EntityId>): EntityId {
     const message = createBaseEntityId();
     message.id = object.id ?? "";
     return message;
@@ -540,9 +534,7 @@ export const EntityPath = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<EntityPath>, I>>(
-    object: I
-  ): EntityPath {
+  fromPartial(object: DeepPartial<EntityPath>): EntityPath {
     const message = createBaseEntityPath();
     message.path = object.path?.map((e) => e) || [];
     return message;
@@ -613,9 +605,7 @@ export const AreaReference = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<AreaReference>, I>>(
-    object: I
-  ): AreaReference {
+  fromPartial(object: DeepPartial<AreaReference>): AreaReference {
     const message = createBaseAreaReference();
     message.id =
       object.id !== undefined && object.id !== null
@@ -692,9 +682,7 @@ export const AreaTableLocation = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<AreaTableLocation>, I>>(
-    object: I
-  ): AreaTableLocation {
+  fromPartial(object: DeepPartial<AreaTableLocation>): AreaTableLocation {
     const message = createBaseAreaTableLocation();
     message.name = object.name ?? "";
     message.areas = object.areas?.map((e) => e) || [];
@@ -747,9 +735,7 @@ export const AreaTableId = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<AreaTableId>, I>>(
-    object: I
-  ): AreaTableId {
+  fromPartial(object: DeepPartial<AreaTableId>): AreaTableId {
     const message = createBaseAreaTableId();
     message.id = object.id ?? "";
     return message;
@@ -801,9 +787,7 @@ export const AreaTableUri = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<AreaTableUri>, I>>(
-    object: I
-  ): AreaTableUri {
+  fromPartial(object: DeepPartial<AreaTableUri>): AreaTableUri {
     const message = createBaseAreaTableUri();
     message.uri = object.uri ?? "";
     return message;
@@ -881,9 +865,7 @@ export const AreaSourceReference = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<AreaSourceReference>, I>>(
-    object: I
-  ): AreaSourceReference {
+  fromPartial(object: DeepPartial<AreaSourceReference>): AreaSourceReference {
     const message = createBaseAreaSourceReference();
     message.location =
       object.location !== undefined && object.location !== null
@@ -972,9 +954,7 @@ export const SourceCollection = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SourceCollection>, I>>(
-    object: I
-  ): SourceCollection {
+  fromPartial(object: DeepPartial<SourceCollection>): SourceCollection {
     const message = createBaseSourceCollection();
     message.areas =
       object.areas?.map((e) => AreaReference.fromPartial(e)) || [];
@@ -1034,7 +1014,7 @@ export const Tag = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<Tag>, I>>(object: I): Tag {
+  fromPartial(object: DeepPartial<Tag>): Tag {
     const message = createBaseTag();
     message.key = object.key ?? "";
     message.value = object.value ?? "";
@@ -1060,14 +1040,6 @@ export type DeepPartial<T> = T extends Builtin
   : T extends {}
   ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
-
-type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
-        Exclude<keyof I, KeysOfUnion<P>>,
-        never
-      >;
 
 // If you get a compile-error about 'Constructor<Long> and ... have no overlap',
 // add '--ts_proto_opt=esModuleInterop=true' as a flag when calling 'protoc'.
