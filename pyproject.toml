@@ -35,6 +35,7 @@ mlserver-fusion = { path = "python/mlserver-fusion/", develop = true }
 # example projects
 hacker-news = { path = "examples/hacker-news/", develop = true }
 model-training = { path = "examples/model-training/", develop = true }
+app = { path = "examples/app/", develop = true }
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"
