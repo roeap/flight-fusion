@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "app"
 version = "0.1.0"
-description = "A Dash applicationm to interact witj fusion services"
+description = "A Dash applicationm to interact with fusion services"
 authors = ["Robert Pack <robstar.pack@gmail.com>"]
 license = "MIT"
 
