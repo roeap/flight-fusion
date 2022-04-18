@@ -315,7 +315,7 @@ class GrpcInferenceServiceStub(betterproto.ServiceStub):
         id: str = "",
         parameters: Dict[str, "InferParameter"] = None,
         inputs: Optional[List["ModelInferRequestInferInputTensor"]] = None,
-        outputs: Optional[List["ModelInferRequestInferRequestedOutputTensor"]] = None
+        outputs: Optional[List["ModelInferRequestInferRequestedOutputTensor"]] = None,
     ) -> "ModelInferResponse":
         inputs = inputs or []
         outputs = outputs or []
