@@ -2,18 +2,21 @@ use super::{error::Result, stats, AreaStore, DEFAULT_READ_BATCH_SIZE};
 use arrow_deps::datafusion::parquet::arrow::ParquetFileArrowReader;
 use arrow_deps::{
     arrow::{
-        ipc::{reader::FileReader, writer::StreamWriter},
+        datatypes::SchemaRef as ArrowSchemaRef,
+        ipc::{reader::StreamReader, writer::StreamWriter},
         record_batch::RecordBatch,
     },
-    datafusion::parquet::arrow::ArrowReader,
+    datafusion::parquet::arrow::{ArrowReader, ParquetRecordBatchStreamBuilder},
 };
 use async_trait::async_trait;
 use file_cache::LruDiskCache;
 use flight_fusion_ipc::{AreaSourceReference, SaveMode};
-use object_store::path::{ObjectStorePath, Path};
+use object_store::{
+    path::{ObjectStorePath, Path},
+    ObjectStoreApi,
+};
 use std::path::PathBuf;
 use std::sync::Arc;
-// use tokio::sync::RwLock;
 use std::sync::RwLock;
 
 pub struct CachedAreaStore {
@@ -38,11 +41,12 @@ impl CachedAreaStore {
     async fn load_or_cache(&self, location: &Path) -> Result<Vec<RecordBatch>> {
         // check if file can be loaded from cache
         if self.file_in_cache(location).await {
+            // TODO remove panic
             let mut cache = self.cache.write().unwrap();
-            let file_reader = FileReader::try_new(cache.get(location.to_raw())?, None)?;
+            let file_reader = StreamReader::try_new(cache.get(location.to_raw())?, None)?;
             let mut batches = Vec::new();
-            for batch in file_reader {
-                batches.push(batch?.clone());
+            for batch in file_reader.into_iter() {
+                batches.push(batch?);
             }
             return Ok(batches);
         }
@@ -50,7 +54,7 @@ impl CachedAreaStore {
         // read record patches form location (file)
         let mut batches = Vec::new();
         let mut reader = self.get_arrow_reader(location).await?;
-        let batch_reader = reader.get_record_reader(DEFAULT_READ_BATCH_SIZE).unwrap();
+        let batch_reader = reader.get_record_reader(DEFAULT_READ_BATCH_SIZE)?;
         let mut file_batches = batch_reader
             .into_iter()
             .collect::<std::result::Result<Vec<_>, _>>()?;
@@ -82,6 +86,24 @@ impl AreaStore for CachedAreaStore {
         self.store.get_path_from_raw(raw)
     }
 
+    fn get_table_location(&self, source: &AreaSourceReference) -> Result<Path> {
+        self.store.get_table_location(source)
+    }
+
+    async fn get_schema(&self, location: &Path) -> Result<ArrowSchemaRef> {
+        if self.file_in_cache(location).await {
+            // TODO remove panic
+            // TODO use async ArrowReader as well
+            let mut cache = self.cache.write().unwrap();
+            let file_reader = StreamReader::try_new(cache.get(location.to_raw())?, None)?;
+            Ok(file_reader.schema())
+        } else {
+            let reader = self.store.object_store().open_file(&location).await?;
+            let builder = ParquetRecordBatchStreamBuilder::new(reader).await?;
+            Ok(builder.schema().clone())
+        }
+    }
+
     async fn put_batches(
         &self,
         batches: Vec<RecordBatch>,
@@ -101,10 +123,6 @@ impl AreaStore for CachedAreaStore {
         Ok(batches)
     }
 
-    fn get_table_location(&self, source: &AreaSourceReference) -> Result<Path> {
-        self.store.get_table_location(source)
-    }
-
     async fn get_arrow_reader(&self, location: &Path) -> Result<ParquetFileArrowReader> {
         self.store.get_arrow_reader(location).await
     }
@@ -114,28 +132,64 @@ impl AreaStore for CachedAreaStore {
 mod tests {
     use super::*;
     use crate::store::basic::DefaultAreaStore;
-    use crate::test_utils::{get_record_batch, workspace_root};
+    use crate::test_utils::get_record_batch;
     use object_store::ObjectStoreApi;
 
     #[tokio::test]
     async fn put_cache_on_read() {
-        let batch = get_record_batch(None, false);
-        let ws_root = workspace_root().unwrap();
-        let area_root = format!("{}/.tmp/test", ws_root);
-        let cache_root = format!("{}/.tmp/_ff_cache", ws_root);
+        let root = tempfile::tempdir().unwrap();
+        let area_root = root.path().join(".tmp");
+        let cache_root = root.path().join(".tmp/_ff_cache");
 
         let area_store = Arc::new(DefaultAreaStore::new(area_root));
         let cached_store = CachedAreaStore::try_new(area_store, cache_root, 10000).unwrap();
 
         let mut path = cached_store.object_store().new_path();
         path.push_dir("asd");
+
+        let batch = get_record_batch(None, false);
         cached_store
             .put_batches(vec![batch.clone()], &path, SaveMode::Overwrite)
             .await
             .unwrap();
 
+        // On first read, the file contents should not yet be cached
         let batches = cached_store.get_batches(&path).await.unwrap();
+        assert_eq!(batches[0], batch);
 
+        // After loading the batches from file, file contents should be cached.
+        let batches = cached_store.get_batches(&path).await.unwrap();
         assert_eq!(batches[0], batch)
+    }
+
+    #[tokio::test]
+    async fn read_schema() {
+        let root = tempfile::tempdir().unwrap();
+        let area_root = root.path().join(".tmp");
+        let cache_root = root.path().join(".tmp/_ff_cache");
+
+        let area_store = Arc::new(DefaultAreaStore::new(area_root));
+        let cached_store = CachedAreaStore::try_new(area_store, cache_root, 10000).unwrap();
+
+        let mut path = cached_store.object_store().new_path();
+        path.push_dir("asd");
+
+        let batch = get_record_batch(None, false);
+        cached_store
+            .put_batches(vec![batch.clone()], &path, SaveMode::Overwrite)
+            .await
+            .unwrap();
+
+        let files = cached_store.get_location_files(&path).await.unwrap();
+        // In this check schema should be read from file
+        let schema = cached_store.get_schema(&files[0]).await.unwrap();
+        assert_eq!(schema, batch.schema());
+
+        let batches = cached_store.get_batches(&path).await.unwrap();
+        assert_eq!(batches[0], batch);
+
+        // After loading the batches from file, file contents should be cached.
+        let schema = cached_store.get_schema(&files[0]).await.unwrap();
+        assert_eq!(schema, batch.schema())
     }
 }

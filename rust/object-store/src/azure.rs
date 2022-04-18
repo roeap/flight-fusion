@@ -1,5 +1,6 @@
 //! This module contains the IOx implementation for using Azure Blob storage as
 //! the object store.
+use super::AsyncReader;
 use crate::{path::cloud::CloudPath, GetResult, ListResult, ObjectStoreApi, ObjectStorePath};
 use async_trait::async_trait;
 use azure_core::ClientOptions;
@@ -211,56 +212,14 @@ impl ObjectStoreApi for MicrosoftAzure {
         .boxed())
     }
 
-    //async fn list<'a>(
-    //    &'a self,
-    //    prefix: Option<&'a Self::Path>,
-    //) -> Result<BoxStream<'a, Result<Vec<Self::Path>>>> {
-    //    println!("list --> {:?}", prefix);
-    //    let prefix_is_dir = prefix.map(|path| path.is_dir()).unwrap_or(true);
-    //
-    //    let list_dir = self.container_client.clone().list_paths();
-    //
-    //    let prefix_raw = prefix.map(|p| p.to_raw());
-    //    if let Some(ref p) = prefix_raw {
-    //        list_dir = list_dir.directory(p as &str);
-    //    }
-    //
-    //    let stream = list_dir
-    //        .clone()
-    //        .into_stream()
-    //        .map(move |res| {
-    //            Ok(res
-    //                .unwrap()
-    //                .paths
-    //                .into_iter()
-    //                .map(|blob| CloudPath::raw(blob.name))
-    //                .filter(move |path| {
-    //                    prefix_is_dir || prefix.map(|prefix| prefix == path).unwrap_or_default()
-    //                })
-    //                .collect::<Vec<_>>())
-    //        })
-    //        .collect::<Vec<_>>()
-    //        .await;
-    //    // let mut results = Vec::new();
-    //    // while let Some(response) = stream.next().await {
-    //    //     let paths = response.unwrap();
-    //    //     let mut cloud_paths = paths
-    //    //         .paths
-    //    //         .iter()
-    //    //         .map(|blob| CloudPath::raw(blob.name))
-    //    //         .filter(move |path| {
-    //    //             prefix_is_dir || prefix.map(|prefix| prefix == path).unwrap_or_default()
-    //    //         })
-    //    //         .collect::<Vec<_>>();
-    //    //     results.append(&mut cloud_paths)
-    //    // }
-    //
-    //    // let asd = Box::pin(futures::stream::iter(vec![Ok(results.clone())]));
-    //    let asd = Box::pin(futures::stream::iter(stream));
-    //    Ok(asd)
-    //}
-
     async fn list_with_delimiter(&self, _prefix: &Self::Path) -> Result<ListResult<Self::Path>> {
+        todo!()
+    }
+
+    async fn open_file(
+        &self,
+        location: &Self::Path,
+    ) -> Result<Box<dyn AsyncReader + Unpin>, Self::Error> {
         todo!()
     }
 }

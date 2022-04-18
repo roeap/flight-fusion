@@ -1,4 +1,5 @@
 //! This module contains the implementation for using memory as the object store.
+use super::AsyncReader;
 use crate::{
     path::{cloud::CloudPath, parsed::DirsAndFileName},
     GetResult, ListResult, ObjectMeta, ObjectStoreApi,
@@ -134,6 +135,13 @@ impl ObjectStoreApi for InMemory {
             common_prefixes: common_prefixes.into_iter().collect(),
             next_token: None,
         })
+    }
+
+    async fn open_file(
+        &self,
+        location: &Self::Path,
+    ) -> Result<Box<dyn AsyncReader + Unpin>, Self::Error> {
+        todo!()
     }
 }
 

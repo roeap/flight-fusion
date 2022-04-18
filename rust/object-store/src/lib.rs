@@ -38,6 +38,9 @@ use error::*;
 use futures::{stream::BoxStream, StreamExt, TryFutureExt, TryStreamExt};
 use std::fmt::Formatter;
 use std::{path::PathBuf, sync::Arc};
+use tokio::io::{AsyncRead, AsyncSeek};
+
+pub trait AsyncReader: AsyncRead + AsyncSeek + Send {}
 
 /// Universal API to multiple object store services.
 #[async_trait]
@@ -85,6 +88,11 @@ pub trait ObjectStoreApi: Send + Sync + 'static {
         &self,
         prefix: &Self::Path,
     ) -> Result<ListResult<Self::Path>, Self::Error>;
+
+    async fn open_file(
+        &self,
+        location: &Self::Path,
+    ) -> Result<Box<dyn AsyncReader + Unpin>, Self::Error>;
 }
 
 /// Universal interface to multiple object store services.
@@ -398,6 +406,27 @@ impl ObjectStoreApi for ObjectStore {
                 .await?),
             _ => unreachable!(),
         }
+    }
+
+    async fn open_file(
+        &self,
+        location: &Self::Path,
+    ) -> Result<Box<dyn AsyncReader + Unpin>, Self::Error> {
+        use ObjectStoreIntegration::*;
+        Ok(match (&self.integration, location) {
+            // (AmazonS3(s3), path::Path::AmazonS3(location)) => s3.get(location).await?.err_into(),
+            // (GoogleCloudStorage(gcs), path::Path::GoogleCloudStorage(location)) => {
+            //     gcs.get(location).await?.err_into()
+            // }
+            (InMemory(in_mem), path::Path::InMemory(location)) => {
+                in_mem.open_file(location).await?
+            }
+            (File(file), path::Path::File(location)) => file.open_file(location).await?,
+            (MicrosoftAzure(azure), path::Path::MicrosoftAzure(location)) => {
+                azure.open_file(location).await?
+            }
+            _ => unreachable!(),
+        })
     }
 }
 

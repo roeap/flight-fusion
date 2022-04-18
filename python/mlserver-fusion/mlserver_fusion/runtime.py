@@ -19,7 +19,7 @@ class MLfusionRuntime(MLflowRuntime):
             if self._settings.parameters.extra:
                 model_metadata.parameters = Parameters(
                     content_type=self._settings.parameters.content_type,
-                    **self._settings.parameters.extra
+                    **self._settings.parameters.extra,
                 )
             else:
                 model_metadata.parameters = Parameters(

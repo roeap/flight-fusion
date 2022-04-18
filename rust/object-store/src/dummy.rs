@@ -1,9 +1,9 @@
 //! Crate that mimics the interface of the the various object stores
 //! but does nothing if they are not enabled.
+use super::AsyncReader;
+use crate::{path::cloud::CloudPath, GetResult, ObjectStoreApi};
 use async_trait::async_trait;
 use bytes::Bytes;
-
-use crate::{path::cloud::CloudPath, GetResult, ObjectStoreApi};
 
 /// A specialized `Error` for Azure object store-related errors
 #[derive(Debug, thiserror::Error, Clone)]
@@ -86,6 +86,15 @@ impl ObjectStoreApi for DummyObjectStore {
         &self,
         _prefix: &Self::Path,
     ) -> crate::Result<crate::ListResult<Self::Path>, Self::Error> {
+        Err(Error::NotSupported {
+            name: self.name.clone(),
+        })
+    }
+
+    async fn open_file(
+        &self,
+        location: &Self::Path,
+    ) -> Result<Box<dyn AsyncReader + Unpin>, Self::Error> {
         Err(Error::NotSupported {
             name: self.name.clone(),
         })

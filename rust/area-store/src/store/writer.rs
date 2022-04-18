@@ -7,7 +7,7 @@ use arrow_deps::arrow::{
     self,
     array::{as_primitive_array, Array, UInt32Array},
     compute::{lexicographical_partition_ranges, lexsort_to_indices, take, SortColumn},
-    datatypes::{Schema as ArrowSchema, SchemaRef as ArrowSchemaRef},
+    datatypes::{DataType, Schema as ArrowSchema, SchemaRef as ArrowSchemaRef, *},
 };
 use arrow_deps::datafusion::parquet::{
     arrow::ArrowWriter, basic::Compression, errors::ParquetError,

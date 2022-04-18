@@ -1,4 +1,5 @@
 //! This module contains the implementation for using local disk as the object store.
+use super::AsyncReader;
 use crate::cache::Cache;
 use crate::path::Path;
 use crate::{path::file::FilePath, GetResult, ListResult, ObjectMeta, ObjectStore, ObjectStoreApi};
@@ -11,10 +12,13 @@ use futures::{
 use std::sync::Arc;
 use std::{collections::BTreeSet, convert::TryFrom, io, path::PathBuf};
 use tokio::fs;
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt};
 use walkdir::WalkDir;
 
 /// A specialized `Result` for filesystem object store-related errors
 pub type Result<T, E = Error> = std::result::Result<T, E>;
+
+impl AsyncReader for tokio::fs::File {}
 
 /// A specialized `Error` for filesystem object store-related errors
 #[derive(Debug, thiserror::Error)]
@@ -254,6 +258,27 @@ impl ObjectStoreApi for File {
             common_prefixes: common_prefixes.into_iter().collect(),
             objects,
         })
+    }
+
+    async fn open_file(
+        &self,
+        location: &Self::Path,
+    ) -> Result<Box<dyn AsyncReader + Unpin>, Self::Error> {
+        let path = self.path(location);
+        let file = fs::File::open(&path).await.map_err(|e| {
+            if e.kind() == std::io::ErrorKind::NotFound {
+                Error::NotFound {
+                    location: location.to_string(),
+                    source: e,
+                }
+            } else {
+                Error::UnableToOpenFile {
+                    path: path.clone(),
+                    source: e,
+                }
+            }
+        })?;
+        Ok(Box::new(file))
     }
 }
 

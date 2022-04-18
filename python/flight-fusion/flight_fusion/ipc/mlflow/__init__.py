@@ -1254,7 +1254,7 @@ class ModelRegistryServiceStub(betterproto.ServiceStub):
         *,
         name: str = "",
         tags: Optional[List["RegisteredModelTag"]] = None,
-        description: str = ""
+        description: str = "",
     ) -> "CreateRegisteredModelResponse":
         tags = tags or []
 
@@ -1326,7 +1326,7 @@ class ModelRegistryServiceStub(betterproto.ServiceStub):
         filter: str = "",
         max_results: int = 0,
         order_by: Optional[List[str]] = None,
-        page_token: str = ""
+        page_token: str = "",
     ) -> "SearchRegisteredModelsResponse":
         order_by = order_by or []
 
@@ -1379,7 +1379,7 @@ class ModelRegistryServiceStub(betterproto.ServiceStub):
         run_id: str = "",
         tags: Optional[List["ModelVersionTag"]] = None,
         run_link: str = "",
-        description: str = ""
+        description: str = "",
     ) -> "CreateModelVersionResponse":
         tags = tags or []
 
@@ -1419,7 +1419,7 @@ class ModelRegistryServiceStub(betterproto.ServiceStub):
         name: str = "",
         version: str = "",
         stage: str = "",
-        archive_existing_versions: bool = False
+        archive_existing_versions: bool = False,
     ) -> "TransitionModelVersionStageResponse":
 
         request = TransitionModelVersionStage()
@@ -1468,7 +1468,7 @@ class ModelRegistryServiceStub(betterproto.ServiceStub):
         filter: str = "",
         max_results: int = 0,
         order_by: Optional[List[str]] = None,
-        page_token: str = ""
+        page_token: str = "",
     ) -> "SearchModelVersionsResponse":
         order_by = order_by or []
 
@@ -1578,7 +1578,7 @@ class MlflowServiceStub(betterproto.ServiceStub):
         *,
         name: str = "",
         artifact_location: str = "",
-        tags: Optional[List["ExperimentTag"]] = None
+        tags: Optional[List["ExperimentTag"]] = None,
     ) -> "CreateExperimentResponse":
         tags = tags or []
 
@@ -1652,7 +1652,7 @@ class MlflowServiceStub(betterproto.ServiceStub):
         experiment_id: str = "",
         user_id: str = "",
         start_time: int = 0,
-        tags: Optional[List["RunTag"]] = None
+        tags: Optional[List["RunTag"]] = None,
     ) -> "CreateRunResponse":
         tags = tags or []
 
@@ -1707,7 +1707,7 @@ class MlflowServiceStub(betterproto.ServiceStub):
         key: str = "",
         value: float = 0.0,
         timestamp: int = 0,
-        step: int = 0
+        step: int = 0,
     ) -> "LogMetricResponse":
 
         request = LogMetric()
@@ -1785,7 +1785,7 @@ class MlflowServiceStub(betterproto.ServiceStub):
         run_view_type: "ViewType" = 1,
         max_results: int = 0,
         order_by: Optional[List[str]] = None,
-        page_token: str = ""
+        page_token: str = "",
     ) -> "SearchRunsResponse":
         experiment_ids = experiment_ids or []
         order_by = order_by or []
@@ -1835,7 +1835,7 @@ class MlflowServiceStub(betterproto.ServiceStub):
         run_id: str = "",
         metrics: Optional[List["Metric"]] = None,
         params: Optional[List["Param"]] = None,
-        tags: Optional[List["RunTag"]] = None
+        tags: Optional[List["RunTag"]] = None,
     ) -> "LogBatchResponse":
         metrics = metrics or []
         params = params or []

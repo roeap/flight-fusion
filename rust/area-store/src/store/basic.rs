@@ -1,8 +1,12 @@
 use super::{error::*, stats, utils::*, writer::*, AreaStore, DATA_FOLDER_NAME};
 use arrow_deps::arrow::record_batch::*;
-use arrow_deps::datafusion::parquet::{
-    arrow::ParquetFileArrowReader,
-    file::serialized_reader::{SerializedFileReader, SliceableCursor},
+use arrow_deps::datafusion::parquet::arrow::async_reader::ParquetRecordBatchStreamBuilder;
+use arrow_deps::datafusion::{
+    arrow::datatypes::SchemaRef as ArrowSchemaRef,
+    parquet::{
+        arrow::ParquetFileArrowReader,
+        file::serialized_reader::{SerializedFileReader, SliceableCursor},
+    },
 };
 use async_trait::async_trait;
 use flight_fusion_ipc::{
@@ -84,6 +88,12 @@ impl AreaStore for DefaultAreaStore {
             },
             _ => todo!(),
         }
+    }
+
+    async fn get_schema(&self, location: &Path) -> Result<ArrowSchemaRef> {
+        let reader = self.object_store.open_file(&location).await?;
+        let builder = ParquetRecordBatchStreamBuilder::new(reader).await?;
+        Ok(builder.schema().clone())
     }
 
     // TODO use some sort of borrowed reference

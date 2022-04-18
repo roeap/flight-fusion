@@ -135,6 +135,7 @@ dependencies = [
  "datafusion 7.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=f619d43494e182e260423f8333eed9ea789f0cb8)",
  "datafusion-data-access 1.0.0 (git+https://github.com/apache/arrow-datafusion.git?rev=f619d43494e182e260423f8333eed9ea789f0cb8)",
  "deltalake",
+ "parquet",
 ]
 
 [[package]]
@@ -2233,6 +2234,7 @@ dependencies = [
  "byteorder",
  "chrono",
  "flate2",
+ "futures",
  "lz4",
  "num",
  "num-bigint",
@@ -2240,6 +2242,7 @@ dependencies = [
  "rand",
  "snap",
  "thrift 0.13.0",
+ "tokio",
  "zstd",
 ]
 
