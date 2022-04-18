@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { ModelIndexProvider, ModelIndex } from "./trees";
+import { ModelIndexProvider, ModelIndex, ValueItem } from "./trees";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -30,6 +30,12 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand(
       "vscode-fusion.models.unloadModel",
       (model: ModelIndex) => modelIndexProvider.unloadModel(model)
+    )
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "vscode-fusion.copyValue",
+      (item: ValueItem) => item.copyValue()
     )
   );
 }
