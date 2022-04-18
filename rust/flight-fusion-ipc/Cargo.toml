@@ -7,7 +7,7 @@ publish = false
 [dependencies]
 async-trait = "0.1"
 base64 = "0.13"
-prost = "0.9"
+prost = "0.10"
 ring = "0.16"
 thiserror = "1"
 tonic = { version = "0.6", features = [
