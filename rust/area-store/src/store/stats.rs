@@ -6,6 +6,7 @@ use arrow_deps::arrow::{
         StructArray,
     },
     buffer::MutableBuffer,
+    datatypes::DataType,
 };
 use arrow_deps::datafusion::parquet::{
     self,

@@ -6,9 +6,10 @@ mod stats;
 pub mod utils;
 pub mod writer;
 
-use arrow_deps::arrow::{datatypes::*, record_batch::RecordBatch};
+use arrow_deps::arrow::{datatypes::SchemaRef as ArrowSchemaRef, record_batch::RecordBatch};
 use arrow_deps::datafusion::parquet::arrow::ArrowReader;
 use arrow_deps::datafusion::parquet::{arrow::ParquetFileArrowReader, basic::LogicalType};
+use arrow_deps::datafusion::physical_plan::SendableRecordBatchStream;
 use async_trait::async_trait;
 pub use basic::DefaultAreaStore;
 pub use cache::CachedAreaStore;
@@ -25,10 +26,17 @@ const DEFAULT_READ_BATCH_SIZE: usize = 1024;
 
 #[async_trait]
 pub trait AreaStore: Send + Sync {
+    // path manipulation
+
     /// Get a reference to the underlying object store
     fn object_store(&self) -> Arc<object_store::ObjectStore>;
 
     fn get_path_from_raw(&self, raw: String) -> Path;
+
+    /// Resolve an [`AreaSourceReference`] to a storage location
+    fn get_table_location(&self, source: &AreaSourceReference) -> Result<Path>;
+
+    async fn get_schema(&self, location: &Path) -> Result<ArrowSchemaRef>;
 
     // TODO use a more structured reference for table location
     /// Write batches into table location
@@ -51,9 +59,6 @@ pub trait AreaStore: Send + Sync {
             .into_iter()
             .collect::<std::result::Result<Vec<_>, _>>()?)
     }
-
-    /// Resolve an [`AreaSourceReference`] to a storage location
-    fn get_table_location(&self, source: &AreaSourceReference) -> Result<Path>;
 
     /// Resolve an [`AreaSourceReference`] to the files relevant for source reference
     async fn get_source_files(&self, source: &AreaSourceReference) -> Result<Vec<Path>> {
