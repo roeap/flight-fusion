@@ -20,7 +20,7 @@
         {
           "id": "mlfusion-explorer",
           "title": "MlFusion",
-          "icon": "$(project)"
+          "icon": "assets/arrow.svg"
         }
       ]
     },
