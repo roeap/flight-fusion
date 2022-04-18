@@ -13,7 +13,15 @@ from mlserver.settings import ModelParameters, ModelSettings
 def _to_settings(model: RegisteredModel) -> list[ModelSettings]:
     items = []
     for version in model.latest_versions:
-        extra = {"mlflow_run_id": version.run_id, "current_stage": version.current_stage}
+        experiment_id = version.source[version.source.find("mlruns") + len("mlruns/") :]
+        experiment_id = experiment_id[: experiment_id.find("/")]
+        extra = {
+            "mlflow_run_id": version.run_id,
+            "current_stage": version.current_stage,
+            "created": version.creation_timestamp,
+            "last_updated": version.last_updated_timestamp,
+            "experiment_id": int(experiment_id),
+        }
         parameters = ModelParameters(uri=version.source, version=version.version, extra=extra)
         items.append(
             ModelSettings(

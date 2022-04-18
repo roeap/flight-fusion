@@ -1,13 +1,32 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as vscode from "vscode";
+import * as R from "ramda";
 import { getModelRepositoryClient, geInferenceClient } from "../clients";
 import { RepositoryIndexResponse_ModelIndex } from "../generated/inference/model_repository";
-import * as R from "ramda";
+import { ModelMetadataResponse_TensorMetadata } from "../generated/inference/dataplane";
+import { setFlagsFromString } from "v8";
 
 let groupModels = R.groupBy(
   (model: RepositoryIndexResponse_ModelIndex) => model.name
 );
 
-type ModelTreeItem = ModelIndex | ModelVersion | ValueItem;
+type ModelTreeItem = ModelIndex | ModelVersion | ModelSchema | ValueItem;
+
+let typeMap: { [key: string]: string } = {
+  BOOL: "bool",
+  UINT8: "unsigned int8",
+  UINT16: "unsigned int16",
+  UINT32: "unsigned int32",
+  UINT64: "unsigned int64",
+  INT8: "int8",
+  INT16: "int16",
+  INT32: "int32",
+  INT64: "int64",
+  FP16: "float16",
+  FP32: "float32",
+  FP64: "float64",
+  BYTES: "bytes",
+};
 
 export class ModelIndexProvider
   implements vscode.TreeDataProvider<ModelTreeItem>
@@ -32,10 +51,7 @@ export class ModelIndexProvider
     if (element) {
       if (element instanceof ModelIndex) {
         return Promise.resolve(
-          element.models.map(
-            (model) =>
-              new ModelVersion(model, vscode.TreeItemCollapsibleState.Collapsed)
-          )
+          element.models.map((model) => new ModelVersion(model))
         );
       }
       if (element instanceof ModelVersion) {
@@ -46,35 +62,43 @@ export class ModelIndexProvider
           })
           .then(
             (meta) => {
-              // let modelMap = groupModels(index.models);
-              vscode.window.showErrorMessage(
-                `Failed loading model index' - ${JSON.stringify(
-                  meta.parameters
-                )}`
-              );
-              let properties = [
-                new ValueItem("Name", meta.name, "symbol-text"),
-                new ValueItem("Version", meta.versions[0], "symbol-number"),
-                new ValueItem("Status", element.model.state, "symbol-enum"),
-              ];
+              let properties: (ModelSchema | ValueItem)[] = [];
               if ("current_stage" in meta.parameters) {
+                let value =
+                  meta.parameters.current_stage.stringParam || "MISSING";
                 properties.push(
-                  new ValueItem(
-                    "Lifecycle",
-                    meta.parameters.current_stage.stringParam || "MISSING",
-                    "symbol-enum"
-                  )
+                  new ValueItem("Lifecycle", value, "symbol-enum")
+                );
+              }
+              if ("experiment_id" in meta.parameters) {
+                let id = meta.parameters.experiment_id.int64Param || -1;
+                properties.push(
+                  new ValueItem("Experiment ID", String(id), "symbol-number")
                 );
               }
               if ("mlflow_run_id" in meta.parameters) {
+                let value =
+                  meta.parameters.mlflow_run_id.stringParam || "MISSING";
+                properties.push(new ValueItem("Run ID", value, "symbol-key"));
+              }
+              if ("created" in meta.parameters) {
+                let date = new Date(meta.parameters.created.int64Param || 0);
                 properties.push(
-                  new ValueItem(
-                    "Run ID",
-                    meta.parameters.mlflow_run_id.stringParam || "MISSING",
-                    "symbol-key"
-                  )
+                  new ValueItem("Created", date.toISOString(), "calendar")
                 );
               }
+              if ("last_updated" in meta.parameters) {
+                let date = new Date(
+                  meta.parameters.last_updated.int64Param || 0
+                );
+                properties.push(
+                  new ValueItem("Last updated", date.toISOString(), "calendar")
+                );
+              }
+              properties.push(new ModelSchema("Inputs", element, meta.inputs));
+              properties.push(
+                new ModelSchema("Outputs", element, meta.outputs)
+              );
               return properties;
             },
             (err) => {
@@ -84,6 +108,9 @@ export class ModelIndexProvider
               return [];
             }
           );
+      }
+      if (element instanceof ModelSchema) {
+        return Promise.resolve(element.columns());
       }
       return Promise.resolve([]);
     } else {
@@ -165,11 +192,13 @@ export class ModelIndex extends vscode.TreeItem {
 }
 
 export class ModelVersion extends vscode.TreeItem {
-  constructor(
-    public readonly model: RepositoryIndexResponse_ModelIndex,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState
-  ) {
-    super(`Version: ${model.version}`, collapsibleState);
+  constructor(public readonly model: RepositoryIndexResponse_ModelIndex) {
+    super(
+      `Version: ${model.version}`,
+      model.state === "READY"
+        ? vscode.TreeItemCollapsibleState.Collapsed
+        : vscode.TreeItemCollapsibleState.None
+    );
 
     this.id = `${model.name}-${model.version}`;
     this.description = `${model.state}`;
@@ -181,24 +210,31 @@ export class ModelVersion extends vscode.TreeItem {
 
 export class ModelSchema extends vscode.TreeItem {
   constructor(
-    public readonly model: RepositoryIndexResponse_ModelIndex,
-    public readonly collapsibleState: vscode.TreeItemCollapsibleState
+    public readonly label: string,
+    public readonly model: ModelVersion,
+    public readonly tensors: ModelMetadataResponse_TensorMetadata[]
   ) {
-    super(`Version: ${model.version}`, collapsibleState);
+    super(label, vscode.TreeItemCollapsibleState.Collapsed);
 
-    this.id = `${model.name}-${model.version}`;
-    this.description = `${model.state}`;
-    this.iconPath = new vscode.ThemeIcon("git-commit");
+    this.id = `${model.model.name}-${model.model.version}-${label}`;
+    this.description = `(${tensors.length})`;
+    this.iconPath = new vscode.ThemeIcon("symbol-class");
   }
 
-  contextValue = "mlfusion-model-version";
+  contextValue = "mlfusion-model-schema";
+
+  columns() {
+    return this.tensors.map(
+      (tensor) => new ValueItem(tensor.name, typeMap[tensor.datatype], "array")
+    );
+  }
 }
 
 export class ValueItem extends vscode.TreeItem {
   constructor(
     public readonly name: string,
     public readonly value: string,
-    private icon: string = "symbol-constant",
+    private icon: string = "symbol-constant"
   ) {
     super(name, vscode.TreeItemCollapsibleState.None);
     let col = vscode.ThemeColor;
