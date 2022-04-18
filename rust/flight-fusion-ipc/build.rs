@@ -13,7 +13,7 @@ fn main() -> Result<()> {
             "../../proto/flight_fusion/flight_fusion/ipc/v1alpha1/signals.proto",
             "../../proto/flight_fusion/flight_fusion/ipc/v1alpha1/flight.proto",
         ],
-        &["../../proto/flight_fusion/flight_fusion/ipc/v1alpha1/"],
+        &["../../proto/flight_fusion/"],
     )
     .unwrap();
 

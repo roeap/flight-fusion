@@ -8,3 +8,10 @@ managed:
 plugins:
   - name: python_betterproto
     out: ./tmp-proto/
+  - name: ts
+    out: ./typescript/vscode-fusion/src/generated
+    strategy: all
+    path: ./node_modules/ts-proto/protoc-gen-ts_proto
+    opt:
+      - outputServices=generic-definitions
+      - useExactTypes=false

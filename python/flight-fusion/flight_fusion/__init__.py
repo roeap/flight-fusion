@@ -1,15 +1,13 @@
+from importlib.metadata import version
+
 from .clients import (
     AreaClient,
     ClientOptions,
     DatasetClient,
     FusionServiceClient,
+    ModelServiceClient,
     TableClient,
 )
-
-try:
-    from importlib.metadata import version
-except ImportError:
-    from importlib_metadata import version
 
 __version__ = version(__name__)
 
@@ -19,4 +17,5 @@ __all__ = (
     "DatasetClient",
     "FusionServiceClient",
     "TableClient",
+    "ModelServiceClient",
 )
