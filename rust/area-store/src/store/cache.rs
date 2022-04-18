@@ -50,7 +50,7 @@ impl CachedAreaStore {
         // read record patches form location (file)
         let mut batches = Vec::new();
         let mut reader = self.get_arrow_reader(location).await?;
-        let batch_reader = reader.get_record_reader(DEFAULT_READ_BATCH_SIZE).unwrap();
+        let batch_reader = reader.get_record_reader(DEFAULT_READ_BATCH_SIZE)?;
         let mut file_batches = batch_reader
             .into_iter()
             .collect::<std::result::Result<Vec<_>, _>>()?;

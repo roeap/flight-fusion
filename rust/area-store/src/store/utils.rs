@@ -6,7 +6,9 @@ use arrow_deps::{
         file::reader::{ChunkReader, Length},
     },
 };
+use flight_fusion_ipc::{area_source_reference::Table, AreaSourceReference, AreaTableLocation};
 use futures::{stream, StreamExt, TryStreamExt};
+use object_store::path::parts::PathPart;
 use object_store::ObjectStoreApi;
 use parquet_format::TimeUnit;
 use std::io::Read;
@@ -57,4 +59,17 @@ pub async fn flatten_list_stream(
         .try_flatten()
         .try_collect()
         .await
+}
+
+pub fn path_to_source(parts: Vec<PathPart>) -> Option<AreaSourceReference> {
+    let mut split = parts.rsplit(|p| p == &PathPart::from("_ff_data"));
+    let name = split.next()?.first()?.to_string();
+    let areas = split
+        .next()?
+        .into_iter()
+        .map(|p| p.to_string())
+        .collect::<Vec<_>>();
+    Some(AreaSourceReference {
+        table: Some(Table::Location(AreaTableLocation { areas, name })),
+    })
 }
