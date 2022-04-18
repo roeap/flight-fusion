@@ -17,10 +17,10 @@ name = "datafusion_objectstore_azure"
 path = "src/lib.rs"
 
 [dependencies]
-azure_core = { git = "https://github.com/roeap/azure-sdk-for-rust", branch = "fix-range" }
-azure_storage = { git = "https://github.com/roeap/azure-sdk-for-rust", branch = "fix-range" }
-azure_storage_blobs = { git = "https://github.com/roeap/azure-sdk-for-rust", branch = "fix-range" }
-azure_storage_datalake = { git = "https://github.com/roeap/azure-sdk-for-rust", branch = "fix-range" }
+azure_core = { git = "https://github.com/Azure/azure-sdk-for-rust", rev = "389aeb64441214543c502ed6811c783c2c7c5307" }
+azure_storage = { git = "https://github.com/Azure/azure-sdk-for-rust", rev = "389aeb64441214543c502ed6811c783c2c7c5307" }
+azure_storage_blobs = { git = "https://github.com/Azure/azure-sdk-for-rust", rev = "389aeb64441214543c502ed6811c783c2c7c5307" }
+azure_storage_datalake = { git = "https://github.com/Azure/azure-sdk-for-rust", rev = "389aeb64441214543c502ed6811c783c2c7c5307" }
 
 # azure_core = { path = "../../../azure-sdk-for-rust/sdk/core" }
 # azure_storage = { path = "../../../azure-sdk-for-rust/sdk/storage" }
