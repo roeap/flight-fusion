@@ -1,52 +1,86 @@
+{{- if .Values.fusion.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "flight-fusion.fullname" . }}
   labels:
     {{- include "flight-fusion.labels" . | nindent 4 }}
+    app.kubernetes.io/component: flight-fusion
 spec:
-{{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-{{- end }}
+  replicas: 1
   selector:
     matchLabels:
       {{- include "flight-fusion.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: flight-fusion
   template:
     metadata:
-    {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
       labels:
         {{- include "flight-fusion.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: flight-fusion
+      annotations:
+        checksum/app-config: {{ include (print $.Template.BasePath "/ff_configmap.yaml") . | sha256sum }}
+        rollme: {{ .Chart.Name }}-{{ .Chart.Version }}-revision-{{ .Release.Revision }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "flight-fusion.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        - name: {{ include "flight-fusion.fullname" . }}
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: http
-              containerPort: 80
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
+            - containerPort: {{ .Values.containerPort }}
+          {{- if .Values.securityContext.enabled }}
+          securityContext:
+            runAsUser: {{ .Values.securityContext.runAsUser }}
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          envFrom:
+            - configMapRef:
+                name: {{ template "flight-fusion.fullname" . }}
+            {{- if .Values.envConfigMaps -}}
+            {{- range $name := .Values.envConfigMaps }}
+            {{- if $name }}
+            - configMapRef:
+                name: {{ $name }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.envSecrets -}}
+            {{- range $name := .Values.envSecrets }}
+            {{- if $name }}
+            - secretRef:
+                name: {{ $name }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+          # livenessProbe:
+          #   httpGet:
+          #     path: /health
+          #     port: {{ .Values.containerPort }}
+          # readinessProbe:
+          #   httpGet:
+          #     path: /health
+          #     port: {{ .Values.containerPort }}
+          volumeMounts:
+            - mountPath: /opt/fusion/{{ .Values.cache.root }}
+              name: cache-volume
+            - name: fusion-config
+              mountPath: /opt/fusion/config/Default.toml
+              subPath: Default.toml
+              readOnly: true
+            - name: fusion-config
+              mountPath: /opt/fusion/config/Production.toml
+              subPath: Production.toml
+              readOnly: true
+      volumes:
+        - name: cache-volume
+          emptyDir: {}
+        - name: fusion-config
+          configMap:
+            name: {{ template "flight-fusion.fullname" . }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -59,3 +93,4 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- end }}

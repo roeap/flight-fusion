@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "flight-fusion.fullname" . }}
+  labels:
+    {{- include "flight-fusion.labels" . | nindent 4 }}
+    app.kubernetes.io/component: fusion
+data:
+  Default.toml: |
+    [server]
+    port = {{ .Values.fusion.containerPort | quote }}
+    url = "0.0.0.0"
+    service_name = "flight-fusion"
+
+    [service]
+    storage = "azure"
+
+    [service.local]
+    area_root = "./.tmp"
+
+    [service.azure]
+    account = ""
+    key = ""
+    file_system = ""
+
+    [service.cache]
+    root = "./_ff_cache"
+    max_size_mb = 100
+
+    [log]
+    level = "info"
+  Production.toml: |
+    [service]
+    storage = {{ .Values.fusion.storageType | quote }}
+
+    [service.azure]
+    file_system = {{ .Values.fusion.storage.fileSystemName | quote }}
+
+    [service.cache]
+    root = {{ .Values.fusion.cache.root | quote }}
+    max_size_mb = {{ .Values.fusion.cache.size_in_mb }}
+
+    [log]
+    level = {{ .Values.fusion.logLevel | quote }}

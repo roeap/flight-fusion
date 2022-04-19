@@ -4,12 +4,13 @@ metadata:
   name: {{ include "flight-fusion.fullname" . }}
   labels:
     {{- include "flight-fusion.labels" . | nindent 4 }}
+    app.kubernetes.io/component: flight-fusion
 spec:
-  type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
+    - port: {{ .Values.containerPort }}
+      targetPort: {{ .Values.containerPort }}
       protocol: TCP
-      name: http
+      name: flight
   selector:
     {{- include "flight-fusion.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: flight-fusion
