@@ -1,4 +1,9 @@
 
-*
+.dagster/**/*
+.fusion/**/*
+.mlflow/**/*
+.mlserver/**/*
 !.gitignore
 !workspace.yaml
+!.mlserver/settings.json
+!.dagster/workspace.yaml

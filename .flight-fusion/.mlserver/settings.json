@@ -1,0 +1,5 @@
+{
+  "debug": "true",
+  "server_name": "mlserver-fusion",
+  "model_repository_root": "http://localhost:5001"
+}
