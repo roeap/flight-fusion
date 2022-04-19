@@ -1,5 +1,8 @@
-use super::{ActionHandler, FusionActionHandler};
-use crate::error::{FusionServiceError, Result};
+use super::ActionHandler;
+use crate::{
+    error::{FusionServiceError, Result},
+    service::FlightFusionService,
+};
 use area_store::{
     catalog::AreaCatalog,
     store::{flatten_list_stream, AreaStore},
@@ -8,7 +11,7 @@ use flight_fusion_ipc::{ActionStatus, CommandDropSource, CommandSetMetadata, Res
 use object_store::ObjectStoreApi;
 
 #[async_trait::async_trait]
-impl ActionHandler<CommandDropSource> for FusionActionHandler {
+impl ActionHandler<CommandDropSource> for FlightFusionService {
     async fn handle_do_action(&self, action: CommandDropSource) -> Result<ResultActionStatus> {
         if let Some(source) = action.source {
             // TODO remove panic
@@ -36,7 +39,7 @@ impl ActionHandler<CommandDropSource> for FusionActionHandler {
 }
 
 #[async_trait::async_trait]
-impl ActionHandler<CommandSetMetadata> for FusionActionHandler {
+impl ActionHandler<CommandSetMetadata> for FlightFusionService {
     async fn handle_do_action(&self, action: CommandSetMetadata) -> Result<ResultActionStatus> {
         match action {
             CommandSetMetadata {
