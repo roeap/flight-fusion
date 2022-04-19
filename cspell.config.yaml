@@ -20,6 +20,7 @@ ignoreWords:
   - dagit
   - datafusion
   - datalake
+  - dataplane
   - datasource
   - deps
   - dotenv

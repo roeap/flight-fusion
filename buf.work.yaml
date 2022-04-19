@@ -4,3 +4,4 @@ directories:
   - proto/scalapb
   - proto/inference
   - proto/flight_fusion
+  - proto/arrow-flight
