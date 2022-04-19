@@ -90,8 +90,10 @@ impl AreaStore for DefaultAreaStore {
         }
     }
 
-    async fn get_schema(&self, location: &Path) -> Result<ArrowSchemaRef> {
-        let reader = self.object_store.open_file(&location).await?;
+    async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {
+        // TODO only actually load first file and also make this work for delta
+        let files = self.get_source_files(source).await?;
+        let reader = self.object_store.open_file(&files[0]).await?;
         let builder = ParquetRecordBatchStreamBuilder::new(reader).await?;
         Ok(builder.schema().clone())
     }

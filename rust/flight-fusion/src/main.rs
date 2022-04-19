@@ -37,7 +37,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_service_name("grpc-server")
         .install_batch(Tokio)?;
     tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::new(CONFIG.log.level.clone()))
+        .with(tracing_subscriber::EnvFilter::new(format!(
+            "{},h2=off,sqlparser=off",
+            CONFIG.log.level.clone()
+        )))
         .with(tracing_opentelemetry::layer().with_tracer(tracer))
         .with(stdout_log)
         .try_init()?;

@@ -23,6 +23,7 @@ from flight_fusion.ipc.v1alpha1 import (
     DeltaWriteOperation,
     FlightDoGetRequest,
     FlightDoPutRequest,
+    FlightGetSchemaRequest,
     ResultActionStatus,
     ResultDoPutUpdate,
     SaveMode,
@@ -66,7 +67,11 @@ class DatasetClient:
 
     def schema(self) -> pa.Schema:
         if self._schema is None:
-            raise NotImplementedError
+            request = pa.flight.FlightDescriptor.for_command(
+                FlightGetSchemaRequest(source=self._reference).SerializeToString()
+            )
+            response = self._client.client._client.get_schema(request)
+            self._schema = response.schema
         return self._schema
 
     @abstractmethod

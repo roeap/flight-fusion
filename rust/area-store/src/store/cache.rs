@@ -90,8 +90,14 @@ impl AreaStore for CachedAreaStore {
         self.store.get_table_location(source)
     }
 
-    async fn get_schema(&self, location: &Path) -> Result<ArrowSchemaRef> {
-        if self.file_in_cache(location).await {
+    async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {
+        let location = self
+            .get_source_files(source)
+            .await?
+            .first()
+            .unwrap()
+            .clone();
+        if self.file_in_cache(&location).await {
             // TODO remove panic
             // TODO use async ArrowReader as well
             let mut cache = self.cache.write().unwrap();
@@ -133,6 +139,10 @@ mod tests {
     use super::*;
     use crate::store::basic::DefaultAreaStore;
     use crate::test_utils::get_record_batch;
+    use flight_fusion_ipc::{
+        area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
+        SaveMode,
+    };
     use object_store::ObjectStoreApi;
 
     #[tokio::test]
@@ -172,6 +182,7 @@ mod tests {
         let cached_store = CachedAreaStore::try_new(area_store, cache_root, 10000).unwrap();
 
         let mut path = cached_store.object_store().new_path();
+        path.push_dir("_ff_data");
         path.push_dir("asd");
 
         let batch = get_record_batch(None, false);
@@ -180,16 +191,21 @@ mod tests {
             .await
             .unwrap();
 
-        let files = cached_store.get_location_files(&path).await.unwrap();
+        let table = TableReference::Location(AreaTableLocation {
+            name: "asd".to_string(),
+            areas: vec![],
+        });
+        let source = AreaSourceReference { table: Some(table) };
+
         // In this check schema should be read from file
-        let schema = cached_store.get_schema(&files[0]).await.unwrap();
+        let schema = cached_store.get_schema(&source).await.unwrap();
         assert_eq!(schema, batch.schema());
 
         let batches = cached_store.get_batches(&path).await.unwrap();
         assert_eq!(batches[0], batch);
 
         // After loading the batches from file, file contents should be cached.
-        let schema = cached_store.get_schema(&files[0]).await.unwrap();
+        let schema = cached_store.get_schema(&source).await.unwrap();
         assert_eq!(schema, batch.schema())
     }
 }
