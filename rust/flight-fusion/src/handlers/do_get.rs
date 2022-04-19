@@ -1,5 +1,8 @@
 use super::{utils::create_response_stream, *};
-use crate::error::{FusionServiceError, Result};
+use crate::{
+    error::{FusionServiceError, Result},
+    service::FlightFusionService,
+};
 use area_store::store::AreaStore;
 use arrow_deps::datafusion::prelude::{SessionConfig, SessionContext};
 use arrow_flight::FlightData;
@@ -10,7 +13,7 @@ use flight_fusion_ipc::{
 };
 
 #[async_trait]
-impl DoGetHandler<CommandSqlOperation> for FusionActionHandler {
+impl DoGetHandler<CommandSqlOperation> for FlightFusionService {
     async fn handle_do_get(
         &self,
         ticket: CommandSqlOperation,
@@ -27,7 +30,7 @@ impl DoGetHandler<CommandSqlOperation> for FusionActionHandler {
 }
 
 #[async_trait]
-impl DoGetHandler<CommandReadDataset> for FusionActionHandler {
+impl DoGetHandler<CommandReadDataset> for FlightFusionService {
     async fn handle_do_get(
         &self,
         ticket: CommandReadDataset,
@@ -45,7 +48,7 @@ impl DoGetHandler<CommandReadDataset> for FusionActionHandler {
 }
 
 #[async_trait]
-impl DoGetHandler<CommandExecuteQuery> for FusionActionHandler {
+impl DoGetHandler<CommandExecuteQuery> for FlightFusionService {
     async fn handle_do_get(
         &self,
         ticket: CommandExecuteQuery,

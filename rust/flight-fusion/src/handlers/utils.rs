@@ -65,3 +65,7 @@ pub(crate) fn meta_to_flight_info(
         Err(e) => Err(tonic::Status::internal(e.to_string())),
     }
 }
+
+pub(crate) fn details_to_flight_info(details: AreaSourceDetails) -> FlightInfo {
+    todo!()
+}

@@ -3,7 +3,7 @@
 // use crate::{
 //     action::Protocol, DeltaTable, DeltaTableConfig, DeltaTableMetaData, SchemaDataType, SchemaField,
 // };
-use crate::handlers::FusionActionHandler;
+use crate::service::FlightFusionService;
 use arrow_deps::datafusion::{
     arrow::{
         array::{
@@ -25,8 +25,8 @@ pub fn workspace_test_data_folder() -> PathBuf {
     ws_root.join("test")
 }
 
-pub fn get_fusion_handler(root: impl Into<PathBuf>) -> FusionActionHandler {
-    FusionActionHandler::new(root).unwrap()
+pub fn get_fusion_handler(root: impl Into<PathBuf>) -> FlightFusionService {
+    FlightFusionService::new_default(root).unwrap()
 }
 
 /// Run cargo to get the root of the workspace

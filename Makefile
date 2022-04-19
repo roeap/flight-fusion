@@ -52,24 +52,6 @@ python-build: ## Build Python binding of flight fusion
 	$(info --- Build Python binding ---)
 	cd python/flight-fusion && maturin build --release --no-sdist --strip
 
-.PHONY: python-proto
-python-proto:
-	$(info Generate python protobuffers)
-	mkdir tmp-proto
-	python -m grpc_tools.protoc -I proto --python_betterproto_out=tmp-proto proto/common.proto proto/message.proto proto/signals.proto proto/flight.proto
-	mv -f ./tmp-proto/flight_fusion/ipc/v1alpha1/* ./python/flight-fusion/flight_fusion/ipc/v1alpha1/
-	rm -rf ./tmp-proto
-	black --line-length 100 python/flight-fusion/flight_fusion/
-	isort python/flight-fusion/flight_fusion/
-
-python-proto-inference:
-	mkdir tmp-proto
-	python -m grpc_tools.protoc -I proto --python_betterproto_out=tmp-proto proto/inference/dataplane.proto proto/inference/model_repository/model_repository.proto
-	mv -f ./tmp-proto/inference/* ./python/flight-fusion/flight_fusion/ipc/inference/
-	rm -rf ./tmp-proto
-	black --line-length 100 python/flight-fusion/flight_fusion/
-	isort python/flight-fusion/flight_fusion/
-
 .PHONY: python-test
 python-test: ## Run check on Rust
 	pytest python/flight-fusion/tests
@@ -85,22 +67,6 @@ rust-check: ## Run check on Rust
 .PHONY: rust-test-integration
 rust-test-integration:
 	cargo test --package flight-fusion-client --tests --features integration
-
-.PHONY: run
-run: ## run most recent build of flight fusion
-	./target/debug/flight-fusion
-
-dagit-daemon:
-	cd .dagster && DAGSTER_HOME=$(PWD)/.dagster dagster-daemon run
-
-dagit-hacker:
-	cd .dagster && DAGSTER_HOME=$(PWD)/.dagster dagit
-
-dagit-simple:
-	DAGSTER_HOME=$(PWD)/.dagster dagit -f scripts/dagster_example.py
-
-mlflow:
-	cd .mlflow && mlflow server --backend-store-uri sqlite:///mlruns.sqlite --default-artifact-root $(PWD)/.mlflow/mlruns/
 
 gen-proto:
 	$(info --- Generating proto files ---)

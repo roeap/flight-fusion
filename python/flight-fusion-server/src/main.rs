@@ -58,7 +58,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .try_init()?;
 
     let addr = format!("{}:{}", args.host, args.port).parse()?;
-    let service = FlightFusionService::new_default("./.fusion");
+    let service = FlightFusionService::new_default("./.fusion").unwrap();
 
     let svc = FlightServiceServer::new(service);
     info!("Listening on {}:{}", args.host, args.port);

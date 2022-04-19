@@ -1,5 +1,8 @@
 use super::{utils::create_response_stream, *};
-use crate::error::{FusionServiceError, Result};
+use crate::{
+    error::{FusionServiceError, Result},
+    service::FlightFusionService,
+};
 use arrow_deps::datafusion::physical_plan::{collect, ExecutionPlan};
 use arrow_deps::deltalake::{
     action::SaveMode as DeltaSaveMode, open_table, operations::DeltaCommands,
@@ -12,7 +15,7 @@ use flight_fusion_ipc::{
 use std::sync::Arc;
 
 #[async_trait]
-impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
+impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
     async fn handle_do_put(
         &self,
         ticket: DeltaOperationRequest,
@@ -49,7 +52,7 @@ impl DoPutHandler<DeltaOperationRequest> for FusionActionHandler {
 }
 
 #[async_trait]
-impl DoGetHandler<DeltaOperationRequest> for FusionActionHandler {
+impl DoGetHandler<DeltaOperationRequest> for FlightFusionService {
     async fn handle_do_get(
         &self,
         ticket: DeltaOperationRequest,

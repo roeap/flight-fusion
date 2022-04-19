@@ -22,7 +22,7 @@ export const getModelRepositoryClient = (): Client<
   );
 };
 
-export const geInferenceClient = (): Client<
+export const getInferenceClient = (): Client<
   typeof GRPCInferenceServiceDefinition
 > => {
   const { host, port, ssl } = vscode.workspace.getConfiguration("mlfusion");
@@ -30,8 +30,5 @@ export const geInferenceClient = (): Client<
     `${host}:${port}`,
     ssl ? ChannelCredentials.createSsl() : ChannelCredentials.createInsecure()
   );
-  return createClientFactory().create(
-    GRPCInferenceServiceDefinition,
-    channel
-  );
+  return createClientFactory().create(GRPCInferenceServiceDefinition, channel);
 };

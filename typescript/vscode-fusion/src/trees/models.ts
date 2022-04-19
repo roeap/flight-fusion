@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as vscode from "vscode";
 import * as R from "ramda";
-import { getModelRepositoryClient, geInferenceClient } from "../clients";
+import { getModelRepositoryClient, getInferenceClient } from "../clients";
 import { RepositoryIndexResponse_ModelIndex } from "../generated/inference/model_repository";
-import { ModelMetadataResponse_TensorMetadata } from "../generated/inference/dataplane";
-import { setFlagsFromString } from "v8";
+import {
+  ModelMetadataResponse_TensorMetadata,
+  ModelMetadataResponse,
+} from "../generated/inference/dataplane";
 
 let groupModels = R.groupBy(
   (model: RepositoryIndexResponse_ModelIndex) => model.name
@@ -55,13 +57,13 @@ export class ModelIndexProvider
         );
       }
       if (element instanceof ModelVersion) {
-        return geInferenceClient()
+        return getInferenceClient()
           .modelMetadata({
             name: element.model.name,
             version: element.model.version,
           })
           .then(
-            (meta) => {
+            (meta: ModelMetadataResponse) => {
               let properties: (ModelSchema | ValueItem)[] = [];
               if ("current_stage" in meta.parameters) {
                 let value =
@@ -237,7 +239,7 @@ export class ValueItem extends vscode.TreeItem {
     private icon: string = "symbol-constant"
   ) {
     super(name, vscode.TreeItemCollapsibleState.None);
-    let col = vscode.ThemeColor;
+
     this.description = value;
     this.iconPath = new vscode.ThemeIcon(icon);
   }

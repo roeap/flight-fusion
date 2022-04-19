@@ -53,15 +53,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = format!("{}:{}", CONFIG.server.url, CONFIG.server.port).parse()?;
 
     let service = match CONFIG.service.storage.as_str() {
-        "file" => Ok(FlightFusionService::new_default(
-            CONFIG.service.local.area_root.clone(),
-        )),
-        "azure" => Ok(FlightFusionService::new_azure(
+        "file" => FlightFusionService::new_default(CONFIG.service.local.area_root.clone()),
+        "azure" => FlightFusionService::new_azure(
             &CONFIG.service.azure.account,
             &CONFIG.service.azure.key,
             &CONFIG.service.azure.file_system,
+        ),
+        _ => Err(crate::error::FusionServiceError::InputError(
+            "unrecognized storage service".to_string(),
         )),
-        _ => Err("unrecognized storage service"),
     }?;
 
     let svc = FlightServiceServer::new(service);
