@@ -36,7 +36,7 @@ pub trait AreaStore: Send + Sync {
     /// Resolve an [`AreaSourceReference`] to a storage location
     fn get_table_location(&self, source: &AreaSourceReference) -> Result<Path>;
 
-    async fn get_schema(&self, location: &Path) -> Result<ArrowSchemaRef>;
+    async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef>;
 
     // TODO use a more structured reference for table location
     /// Write batches into table location

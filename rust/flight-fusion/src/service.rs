@@ -1,8 +1,8 @@
 use crate::{handlers::FusionActionHandler, stream::FlightReceiverPlan};
 use arrow_flight::{
     flight_descriptor::DescriptorType, flight_service_server::FlightService, Action, ActionType,
-    Criteria, Empty, FlightData, FlightDescriptor, FlightInfo, HandshakeRequest, HandshakeResponse,
-    PutResult, SchemaResult, Ticket,
+    Criteria, Empty, FlightData, FlightDescriptor, FlightEndpoint, FlightInfo, HandshakeRequest,
+    HandshakeResponse, IpcMessage, PutResult, SchemaAsIpc, SchemaResult, Ticket,
 };
 use flight_fusion_ipc::{
     CommandListSources, FlightActionRequest, FlightDoGetRequest, FlightGetFlightInfoRequest,
@@ -120,21 +120,41 @@ impl FlightService for FlightFusionService {
         let descriptor = request.into_inner();
         let command = match DescriptorType::from_i32(descriptor.r#type) {
             Some(DescriptorType::Cmd) => {
-                let request_data = FlightGetFlightInfoRequest::decode(&mut descriptor.cmd.as_ref())
+                let request_data = FlightGetSchemaRequest::decode(&mut descriptor.cmd.as_ref())
                     .map_err(|e| tonic::Status::internal(e.to_string()))?;
                 Ok(request_data)
             }
             _ => Err(tonic::Status::internal(
-                "`get_schema` requires command to be defined on flight descriptor",
+                "`get_flight_info` requires command to be defined on flight descriptor",
             )),
         }?;
 
-        Ok(Response::new(
-            self.action_handler
-                .get_flight_info(command)
-                .await
-                .map_err(|e| tonic::Status::internal(e.to_string()))?,
-        ))
+        let schema = self
+            .action_handler
+            .get_schema(command)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let options = arrow_deps::datafusion::arrow::ipc::writer::IpcWriteOptions::default();
+        let schema_result = SchemaAsIpc::new(&schema, &options);
+
+        let descriptor = FlightDescriptor {
+            r#type: DescriptorType::Cmd.into(),
+            cmd: vec![],
+            ..FlightDescriptor::default()
+        };
+        let endpoint = FlightEndpoint {
+            ticket: None,
+            location: vec![],
+        };
+        let info = FlightInfo::new(
+            IpcMessage::try_from(schema_result).unwrap(),
+            Some(descriptor),
+            vec![endpoint],
+            -1,
+            -1,
+        );
+
+        Ok(Response::new(info))
     }
 
     #[instrument(skip(self, request))]
@@ -158,12 +178,19 @@ impl FlightService for FlightFusionService {
             )),
         }?;
 
-        Ok(Response::new(
-            self.action_handler
-                .get_schema(command)
-                .await
-                .map_err(|e| tonic::Status::internal(e.to_string()))?,
-        ))
+        let schema = self
+            .action_handler
+            .get_schema(command)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        let options = arrow_deps::datafusion::arrow::ipc::writer::IpcWriteOptions::default();
+        let schema_result = SchemaAsIpc::new(&schema, &options);
+        let IpcMessage(vals) = IpcMessage::try_from(schema_result).unwrap();
+
+        let result = SchemaResult { schema: vals };
+
+        Ok(Response::new(result))
     }
 
     #[instrument(skip(self, request))]

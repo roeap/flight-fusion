@@ -6,8 +6,8 @@ use area_store::{
     catalog::{AreaCatalog, FileAreaCatalog},
     store::{AreaStore, DefaultAreaStore},
 };
-use arrow_deps::arrow::ipc::writer::IpcWriteOptions;
 use arrow_deps::datafusion::{
+    arrow::datatypes::SchemaRef as ArrowSchemaRef,
     catalog::{
         catalog::CatalogProvider, catalog::MemoryCatalogProvider, schema::MemorySchemaProvider,
     },
@@ -17,7 +17,7 @@ use arrow_deps::datafusion::{
 };
 use arrow_flight::{
     flight_descriptor::DescriptorType, FlightData, FlightDescriptor, FlightEndpoint, FlightInfo,
-    PutResult, SchemaAsIpc, SchemaResult,
+    PutResult,
 };
 use async_trait::async_trait;
 use flight_fusion_ipc::AreaSourceReference;
@@ -144,20 +144,10 @@ impl FusionActionHandler {
         // todo!()
     }
 
-    pub async fn get_schema(&self, request: FlightGetSchemaRequest) -> Result<SchemaResult> {
+    pub async fn get_schema(&self, request: FlightGetSchemaRequest) -> Result<ArrowSchemaRef> {
         if let Some(source) = request.source {
-            // let _meta = self
-            //     .area_catalog
-            //     .get_source_metadata(source)
-            //     .await
-            //     .map_err(to_fusion_err)?;
-            // TODO this is horrible!! - we need async reader support to only read schema
-            let location = self.area_store.get_table_location(&source)?;
-            let batches = self.area_store.get_batches(&location).await?;
-            let schema = batches[0].schema();
-            let schema_result = SchemaAsIpc::new(&schema, &IpcWriteOptions::default()).into();
-
-            Ok(schema_result)
+            let schema = self.area_store.get_schema(&source).await?;
+            Ok(schema)
         } else {
             todo!()
         }
