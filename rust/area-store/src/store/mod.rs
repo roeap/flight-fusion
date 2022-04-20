@@ -38,7 +38,6 @@ pub trait AreaStore: Send + Sync {
 
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef>;
 
-    // TODO use a more structured reference for table location
     /// Write batches into table location
     async fn put_batches(
         &self,
@@ -79,62 +78,5 @@ pub trait AreaStore: Send + Sync {
             .into_iter()
             .filter_map(path_to_source)
             .collect::<Vec<_>>())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use arrow_deps::datafusion::parquet::arrow::async_reader::ParquetRecordBatchStreamBuilder;
-    use futures::TryStreamExt;
-    use object_store::path::ObjectStorePath;
-    use object_store::{ObjectStore, ObjectStoreApi};
-
-    #[tokio::test]
-    async fn test_async_read_2() {
-        let integration =
-            ObjectStore::new_file("/home/robstar/github/flight-fusion/.flight-fusion/.fusion");
-
-        let mut location = integration.new_path();
-        location.push_dir("demo");
-        location.push_dir("hacker");
-        location.push_dir("_ff_data");
-        location.push_dir("comments");
-        location
-            .set_file_name("part-00000-3ae45d64-1c6f-40ea-a641-36d8e2f76dc4-c000.snappy.parquet");
-
-        let file = integration.open_file(&location).await.unwrap();
-
-        let builder = ParquetRecordBatchStreamBuilder::new(file)
-            .await
-            .unwrap()
-            .with_batch_size(3);
-        let metadata = builder.schema();
-        println!("{:?}", metadata)
-    }
-
-    #[tokio::test]
-    async fn test_async_read_3() {
-        let integration = ObjectStore::new_file("/home/robstar/github/flight-fusion/.tmp");
-
-        let mut location = integration.new_path();
-        location.push_dir("file");
-        // location.push_dir("hacker");
-        // location.push_dir("_ff_data");
-        // location.push_dir("comments");
-        location.set_file_name("table.parquet");
-
-        let file = integration.open_file(&location).await.unwrap();
-        // let path = "/home/robstar/github/flight-fusion/.flight-fusion/.fusion/demo/hacker/_ff_data/comments/part-00000-3ae45d64-1c6f-40ea-a641-36d8e2f76dc4-c000.snappy.parquet";
-        // let file = tokio::fs::File::open(path).await.unwrap();
-        let builder = ParquetRecordBatchStreamBuilder::new(file)
-            .await
-            .unwrap()
-            .with_batch_size(3);
-        // let metadata = builder.schema();
-
-        let stream = builder.build().unwrap();
-        let results = stream.try_collect::<Vec<_>>().await.unwrap();
-
-        println!("{:?}", results)
     }
 }

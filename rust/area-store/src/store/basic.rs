@@ -149,6 +149,11 @@ impl AreaStore for DefaultAreaStore {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_utils::get_record_batch;
+    use flight_fusion_ipc::{
+        area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
+        SaveMode,
+    };
 
     #[tokio::test]
     async fn test_put_get_batches() {
@@ -163,7 +168,32 @@ mod tests {
             .unwrap();
 
         let read_batch = area_store.get_batches(&location).await.unwrap();
-
         assert_eq!(batch, read_batch[0])
+    }
+
+    #[tokio::test]
+    async fn read_schema() {
+        let root = tempfile::tempdir().unwrap();
+        let area_root = root.path().join(".tmp");
+        let area_store = Arc::new(DefaultAreaStore::new(area_root));
+
+        let mut path = area_store.object_store().new_path();
+        path.push_dir("_ff_data");
+        path.push_dir("asd");
+
+        let batch = get_record_batch(None, false);
+        area_store
+            .put_batches(vec![batch.clone()], &path, SaveMode::Overwrite)
+            .await
+            .unwrap();
+
+        let table = TableReference::Location(AreaTableLocation {
+            name: "asd".to_string(),
+            areas: vec![],
+        });
+        let source = AreaSourceReference { table: Some(table) };
+
+        let schema = area_store.get_schema(&source).await.unwrap();
+        assert_eq!(schema, batch.schema());
     }
 }

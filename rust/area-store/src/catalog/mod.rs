@@ -1,6 +1,7 @@
 //! The area catalog provides meta data for all data sources registered in the service.
 mod disk;
 pub mod error;
+mod file_index;
 
 use crate::catalog::error::{AreaCatalogResult, AreaCatalogResultStream};
 use async_trait::async_trait;
