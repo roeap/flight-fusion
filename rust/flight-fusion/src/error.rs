@@ -1,4 +1,4 @@
-use area_store::{catalog::error::AreaCatalogError, store::error::AreaStoreError};
+use area_store::error::AreaStoreError;
 use arrow_deps::{
     datafusion::error::DataFusionError,
     deltalake::{operations::DeltaCommandError, DeltaTableError},
@@ -31,9 +31,6 @@ pub enum FusionServiceError {
 
     #[error(transparent)]
     StorageError(#[from] AreaStoreError),
-
-    #[error(transparent)]
-    CatalogError(#[from] AreaCatalogError),
 
     #[error(transparent)]
     QueryError(#[from] DataFusionError),

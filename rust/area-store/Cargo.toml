@@ -20,6 +20,7 @@ thiserror = "1"
 uuid = "*"
 # TODO use less feature
 tokio = { version = "1", features = ["full"] }
+dashmap = "^5.2.0"
 
 [dev-dependencies]
 tempfile = "3"

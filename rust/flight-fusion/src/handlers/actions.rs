@@ -3,10 +3,7 @@ use crate::{
     error::{FusionServiceError, Result},
     service::FlightFusionService,
 };
-use area_store::{
-    catalog::AreaCatalog,
-    store::{flatten_list_stream, AreaStore},
-};
+use area_store::store::{flatten_list_stream, AreaStore};
 use flight_fusion_ipc::{ActionStatus, CommandDropSource, CommandSetMetadata, ResultActionStatus};
 use object_store::ObjectStoreApi;
 
@@ -46,10 +43,7 @@ impl ActionHandler<CommandSetMetadata> for FlightFusionService {
                 source: Some(source),
                 meta: Some(meta),
             } => {
-                self.area_catalog.set_source_metadata(source, meta).await?;
-                Ok(ResultActionStatus {
-                    status: ActionStatus::Success.into(),
-                })
+                todo!();
             }
             _ => Err(FusionServiceError::input(
                 "source and metadata must be specified",

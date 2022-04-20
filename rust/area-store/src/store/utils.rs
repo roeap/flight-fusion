@@ -1,4 +1,4 @@
-use super::error::Result;
+use crate::error::Result;
 use arrow_deps::{
     arrow::temporal_conversions,
     datafusion::parquet::{

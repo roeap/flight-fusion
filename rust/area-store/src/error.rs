@@ -1,22 +1,67 @@
-use futures::Stream;
-use object_store::error::Error as ObjectStoreError;
-use std::pin::Pin;
+use arrow_deps::{
+    arrow::{datatypes::SchemaRef, error::ArrowError},
+    datafusion::parquet::errors::ParquetError,
+};
+use file_cache::DiskCacheError;
+use std::sync::Arc;
 
+/// Enum representing an error when calling [`DeltaWriter`].
 #[derive(thiserror::Error, Debug)]
-pub enum FusionServiceError {
-    /// Error returned when an input is in an unexpected format or contains invalid data
-    #[error("Malformed input {0}")]
-    InputError(String),
+pub enum AreaStoreError {
+    /// Error returned when a table to be created already exists
+    #[error("Table: '{0}' already exists")]
+    TableAlreadyExists(String),
 
-    #[error(transparent)]
-    StorageError(#[from] crate::store::AreaStoreError),
+    /// Partition column is missing in a record written to delta.
+    #[error("Missing partition column: {0}")]
+    MissingPartitionColumn(String),
 
-    #[error(transparent)]
-    ObjectStoreError(#[from] ObjectStoreError),
+    /// The Arrow RecordBatch schema does not match the expected schema.
+    #[error("Arrow RecordBatch schema does not match: RecordBatch schema: {record_batch_schema}, {expected_schema}")]
+    SchemaMismatch {
+        /// The record batch schema.
+        record_batch_schema: SchemaRef,
+        /// The schema of the target delta table.
+        expected_schema: Arc<arrow_deps::arrow::datatypes::Schema>,
+    },
+
+    /// Arrow returned an error.
+    #[error("Arrow interaction failed: {source}")]
+    Arrow {
+        /// The wrapped [`ArrowError`]
+        #[from]
+        source: ArrowError,
+    },
+
+    /// Parquet write failed.
+    #[error("Parquet write failed: {source}")]
+    Parquet {
+        /// The wrapped [`ParquetError`]
+        #[from]
+        source: ParquetError,
+    },
+
+    /// Error returned from std::io
+    #[error("std::io::Error: {source}")]
+    Io {
+        /// The wrapped [`std::io::Error`]
+        #[from]
+        source: std::io::Error,
+    },
+
+    #[error("object_store::Error: {source}")]
+    ObjectStore {
+        /// The wrapped [`object_store::Error`]
+        #[from]
+        source: object_store::error::Error,
+    },
+
+    #[error("Error in file cache: {source}")]
+    Cache {
+        /// The wrapped [`DiskCacheError`]
+        #[from]
+        source: DiskCacheError,
+    },
 }
 
-/// Result type for fallible operations defined in this crate
-pub type Result<T> = std::result::Result<T, FusionServiceError>;
-
-/// Result type for fallible streaming operations defined in this crate
-pub type ResultStream<T> = Result<Pin<Box<dyn Stream<Item = Result<T>> + Send + Sync + 'static>>>;
+pub type Result<T> = std::result::Result<T, AreaStoreError>;

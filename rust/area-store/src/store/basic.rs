@@ -1,4 +1,6 @@
-use super::{error::*, stats, utils::*, writer::*, AreaStore, DATA_FOLDER_NAME};
+use super::{stats, utils::*, writer::*, AreaStore, DATA_FOLDER_NAME};
+use crate::error::{AreaStoreError, Result};
+use crate::store::file_index::FileIndex;
 use arrow_deps::arrow::record_batch::*;
 use arrow_deps::datafusion::parquet::arrow::async_reader::ParquetRecordBatchStreamBuilder;
 use arrow_deps::datafusion::{
@@ -20,19 +22,23 @@ use std::sync::Arc;
 pub struct DefaultAreaStore {
     object_store: Arc<object_store::ObjectStore>,
     root_path: String,
+    file_index: Arc<FileIndex>,
 }
 
 impl DefaultAreaStore {
-    pub fn new(root: impl Into<PathBuf>) -> Self {
+    pub fn try_new(root: impl Into<PathBuf>) -> Result<Self> {
         let buf: PathBuf = root.into();
         let object_store = Arc::new(object_store::ObjectStore::new_file(buf.clone()));
-        Self {
+        let file_index = Arc::new(FileIndex::new(object_store.clone()));
+
+        Ok(Self {
             object_store,
             root_path: buf.to_str().unwrap().to_string(),
-        }
+            file_index,
+        })
     }
 
-    pub fn new_azure(
+    pub fn try_new_azure(
         account: impl Into<String>,
         access_key: impl Into<String>,
         container_name: impl Into<String>,
@@ -44,15 +50,22 @@ impl DefaultAreaStore {
             container.clone(),
             false,
         )?);
+        let file_index = Arc::new(FileIndex::new(object_store.clone()));
+
         Ok(Self {
             object_store,
             root_path: format!("adls2://{}", container),
+            file_index,
         })
     }
 
     pub fn get_full_table_path(&self, source: &AreaSourceReference) -> Result<String> {
         let location = self.get_table_location(source)?;
         Ok(format!("{}/{}", self.root_path, location.to_raw()))
+    }
+
+    pub async fn build_index(&self) -> Result<()> {
+        self.file_index.build_index().await
     }
 }
 
@@ -158,7 +171,7 @@ mod tests {
     #[tokio::test]
     async fn test_put_get_batches() {
         let root = tempfile::tempdir().unwrap();
-        let area_store = DefaultAreaStore::new(root.path());
+        let area_store = DefaultAreaStore::try_new(root.path()).unwrap();
         let location = area_store.object_store().new_path();
 
         let batch = crate::test_utils::get_record_batch(None, false);
@@ -175,7 +188,7 @@ mod tests {
     async fn read_schema() {
         let root = tempfile::tempdir().unwrap();
         let area_root = root.path().join(".tmp");
-        let area_store = Arc::new(DefaultAreaStore::new(area_root));
+        let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
 
         let mut path = area_store.object_store().new_path();
         path.push_dir("_ff_data");

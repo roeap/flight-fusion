@@ -1,4 +1,5 @@
 use super::*;
+use crate::error::Result;
 use arrow_deps::arrow::{
     self,
     array::{
