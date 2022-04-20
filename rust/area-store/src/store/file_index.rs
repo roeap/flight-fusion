@@ -9,6 +9,7 @@ use object_store::{
     path::{parsed::DirsAndFileName, parts::PathPart, Path},
     ObjectStore,
 };
+use observability_deps::tracing::info;
 use std::sync::Arc;
 use tokio::task::{spawn, JoinHandle};
 
@@ -26,6 +27,7 @@ impl FileIndex {
     }
 
     pub async fn build_index(&self) -> crate::error::Result<()> {
+        info!("Building file index");
         let stats: Vec<JoinHandle<crate::error::Result<(Path, Arc<ArrowSchema>)>>> =
             flatten_list_stream(&self.store, None)
                 .await?

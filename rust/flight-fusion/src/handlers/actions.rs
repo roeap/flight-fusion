@@ -40,8 +40,8 @@ impl ActionHandler<CommandSetMetadata> for FlightFusionService {
     async fn handle_do_action(&self, action: CommandSetMetadata) -> Result<ResultActionStatus> {
         match action {
             CommandSetMetadata {
-                source: Some(source),
-                meta: Some(meta),
+                source: Some(_source),
+                meta: Some(_meta),
             } => {
                 todo!();
             }

@@ -65,7 +65,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )),
     }?;
 
-    // task::spawn(service.)
+    let spawner = service.clone();
+    task::spawn(async move { spawner.build_index().await });
 
     let svc = FlightServiceServer::new(service);
     info!(

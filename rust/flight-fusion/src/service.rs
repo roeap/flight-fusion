@@ -54,6 +54,7 @@ impl<'a> Extractor for MetadataMap<'a> {
     }
 }
 
+#[derive(Clone)]
 pub struct FlightFusionService {
     pub(crate) catalog: Arc<MemoryCatalogProvider>,
     pub(crate) area_store: Arc<DefaultAreaStore>,

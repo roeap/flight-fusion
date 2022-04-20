@@ -76,6 +76,7 @@ dependencies = [
  "flight-fusion-ipc",
  "futures",
  "object-store",
+ "observability_deps",
  "parquet-format",
  "serde_json",
  "tempfile",
