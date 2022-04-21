@@ -30,7 +30,7 @@ prost = "0.9"
 tokio = { version = "1", features = ["full"] }
 tokio-stream = { version = "*", features = ["fs"] }
 tokio-util = { version = "0.6.9", features = ["compat"] }
-tonic = "0.6"
+tonic = "0.7"
 tonic-health = "0.5"
 url = "^2.2"
 uuid = "*"
