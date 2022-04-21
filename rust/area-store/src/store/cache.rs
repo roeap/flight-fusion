@@ -1,4 +1,5 @@
-use super::{error::Result, stats, AreaStore, DEFAULT_READ_BATCH_SIZE};
+use super::{stats, AreaStore, DEFAULT_READ_BATCH_SIZE};
+use crate::error::Result;
 use arrow_deps::datafusion::parquet::arrow::ParquetFileArrowReader;
 use arrow_deps::{
     arrow::{
@@ -151,7 +152,7 @@ mod tests {
         let area_root = root.path().join(".tmp");
         let cache_root = root.path().join(".tmp/_ff_cache");
 
-        let area_store = Arc::new(DefaultAreaStore::new(area_root));
+        let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
         let cached_store = CachedAreaStore::try_new(area_store, cache_root, 10000).unwrap();
 
         let mut path = cached_store.object_store().new_path();
@@ -178,7 +179,7 @@ mod tests {
         let area_root = root.path().join(".tmp");
         let cache_root = root.path().join(".tmp/_ff_cache");
 
-        let area_store = Arc::new(DefaultAreaStore::new(area_root));
+        let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
         let cached_store = CachedAreaStore::try_new(area_store, cache_root, 10000).unwrap();
 
         let mut path = cached_store.object_store().new_path();

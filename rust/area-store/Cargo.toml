@@ -9,6 +9,7 @@ arrow-deps = { path = "../arrow-deps/", features = ["delta"] }
 file-cache = { path = "../file-cache/" }
 flight-fusion-ipc = { path = "../flight-fusion-ipc/" }
 object-store = { path = "../object-store/" }
+observability_deps = { path = "../observability-deps" }
 
 # Crates.io dependencies
 async-trait = "0.1"
@@ -20,6 +21,7 @@ thiserror = "1"
 uuid = "*"
 # TODO use less feature
 tokio = { version = "1", features = ["full"] }
+dashmap = "^5.2.0"
 
 [dev-dependencies]
 tempfile = "3"

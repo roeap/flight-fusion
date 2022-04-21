@@ -1,11 +1,12 @@
 //! Abstractions and implementations for writing data to delta tables
 mod basic;
 mod cache;
-pub mod error;
+pub mod file_index;
 mod stats;
 pub mod utils;
 pub mod writer;
 
+use crate::error::Result;
 use arrow_deps::arrow::{datatypes::SchemaRef as ArrowSchemaRef, record_batch::RecordBatch};
 use arrow_deps::datafusion::parquet::arrow::ArrowReader;
 use arrow_deps::datafusion::parquet::{arrow::ParquetFileArrowReader, basic::LogicalType};
@@ -13,7 +14,6 @@ use arrow_deps::datafusion::physical_plan::SendableRecordBatchStream;
 use async_trait::async_trait;
 pub use basic::DefaultAreaStore;
 pub use cache::CachedAreaStore;
-pub use error::*;
 use flight_fusion_ipc::{AreaSourceReference, SaveMode};
 use object_store::path::{parsed::DirsAndFileName, Path};
 use std::collections::HashSet;

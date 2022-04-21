@@ -1,7 +1,6 @@
 use crate::handlers::*;
 use crate::stream::FlightReceiverPlan;
-use area_store::store::AreaStore;
-use area_store::{catalog::FileAreaCatalog, store::DefaultAreaStore};
+use area_store::store::{AreaStore, DefaultAreaStore};
 use arrow_deps::datafusion::{
     arrow::ipc::writer::IpcWriteOptions,
     catalog::{
@@ -55,10 +54,10 @@ impl<'a> Extractor for MetadataMap<'a> {
     }
 }
 
+#[derive(Clone)]
 pub struct FlightFusionService {
     pub(crate) catalog: Arc<MemoryCatalogProvider>,
     pub(crate) area_store: Arc<DefaultAreaStore>,
-    pub(crate) area_catalog: Arc<FileAreaCatalog>,
 }
 
 impl FlightFusionService {
@@ -69,13 +68,11 @@ impl FlightFusionService {
         let catalog = Arc::new(MemoryCatalogProvider::new());
         catalog.register_schema("schema", Arc::new(schema_provider))?;
 
-        let area_store = Arc::new(DefaultAreaStore::new(root));
-        let area_catalog = Arc::new(FileAreaCatalog::new(area_store.clone()));
+        let area_store = Arc::new(DefaultAreaStore::try_new(root)?);
 
         Ok(Self {
             catalog,
             area_store,
-            area_catalog,
         })
     }
 
@@ -88,18 +85,15 @@ impl FlightFusionService {
         let catalog = Arc::new(MemoryCatalogProvider::new());
         catalog.register_schema("schema", Arc::new(schema_provider))?;
 
-        let area_store = Arc::new(DefaultAreaStore::new_azure(
+        let area_store = Arc::new(DefaultAreaStore::try_new_azure(
             account,
             access_key,
             container_name,
         )?);
 
-        let area_catalog = Arc::new(FileAreaCatalog::new(area_store.clone()));
-
         Ok(Self {
             catalog,
             area_store,
-            area_catalog,
         })
     }
 
@@ -119,6 +113,10 @@ impl FlightFusionService {
         };
         ctx.register_table(&*name, table_provider)?;
         Ok(())
+    }
+
+    pub async fn build_index(&self) -> crate::error::Result<()> {
+        Ok(self.area_store.build_index().await?)
     }
 }
 

@@ -3,6 +3,7 @@ use super::{
     stats::{apply_null_counts, create_add, Add, NullCounts},
     *,
 };
+use crate::error::{AreaStoreError, Result};
 use arrow_deps::arrow::{
     self,
     array::{as_primitive_array, Array, UInt32Array},
