@@ -7,7 +7,7 @@ service_name = "flight-fusion"
 storage = "file"
 
 [service.local]
-area_root = "./.tmp"
+area_root = "./.flight-fusion/.fusion"
 
 [service.azure]
 account = ""
