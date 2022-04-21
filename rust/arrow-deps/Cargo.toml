@@ -7,7 +7,7 @@ publish = false
 [dependencies]
 # Crates.io dependencies
 arrow-flight = "11"
-parquet = { version = "11", features = ["async"] }
+parquet = { version = "12", features = ["async"] }
 # Git dependencies
 datafusion = { git = "https://github.com/apache/arrow-datafusion.git", rev = "d54ba4e648bdbe6f7d19f6bd66e5048a796690fc" }
 datafusion-data-access = { git = "https://github.com/apache/arrow-datafusion.git", rev = "d54ba4e648bdbe6f7d19f6bd66e5048a796690fc" }
