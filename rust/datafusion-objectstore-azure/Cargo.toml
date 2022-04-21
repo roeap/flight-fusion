@@ -27,7 +27,7 @@ azure_storage_datalake = { git = "https://github.com/Azure/azure-sdk-for-rust", 
 # azure_storage_blobs = { path = "../../../azure-sdk-for-rust/sdk/storage_blobs" }
 # azure_storage_datalake = { path = "../../../azure-sdk-for-rust/sdk/storage_datalake" }
 
-arrow = { version = "11.0.0", features = ["prettyprint"] }
+arrow = { version = "12.0.0", features = ["prettyprint"] }
 async-trait = "0.1.52"
 bytes = "1.1.0"
 datafusion-data-access = { git = "https://github.com/apache/arrow-datafusion.git", rev = "f619d43494e182e260423f8333eed9ea789f0cb8" }
