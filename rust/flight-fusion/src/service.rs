@@ -12,8 +12,8 @@ use arrow_deps::datafusion::{
 };
 use arrow_flight::{
     flight_descriptor::DescriptorType, flight_service_server::FlightService, Action, ActionType,
-    Criteria, Empty, FlightData, FlightDescriptor, FlightEndpoint, FlightInfo, HandshakeRequest,
-    HandshakeResponse, IpcMessage, PutResult, SchemaAsIpc, SchemaResult, Ticket,
+    Criteria, Empty, FlightData, FlightDescriptor, FlightInfo, HandshakeRequest, HandshakeResponse,
+    IpcMessage, PutResult, SchemaAsIpc, SchemaResult, Ticket,
 };
 use flight_fusion_ipc::{
     area_source_reference::Table, flight_action_request::Action as FusionAction,
@@ -195,14 +195,11 @@ impl FlightService for FlightFusionService {
             cmd: vec![],
             ..FlightDescriptor::default()
         };
-        let endpoint = FlightEndpoint {
-            ticket: None,
-            location: vec![],
-        };
         let info = FlightInfo::new(
-            IpcMessage::try_from(schema_result).unwrap(),
+            IpcMessage::try_from(schema_result)
+                .map_err(|e| tonic::Status::internal(e.to_string()))?,
             Some(descriptor),
-            vec![endpoint],
+            vec![],
             -1,
             -1,
         );
