@@ -22,7 +22,8 @@ use std::sync::Arc;
 pub struct DefaultAreaStore {
     object_store: Arc<object_store::ObjectStore>,
     root_path: String,
-    file_index: Arc<FileIndex>,
+    // only visible for testing purposes
+    pub(crate) file_index: Arc<FileIndex>,
 }
 
 impl DefaultAreaStore {
@@ -167,6 +168,7 @@ mod tests {
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
         SaveMode,
     };
+    use object_store::path::ObjectStorePath;
 
     #[tokio::test]
     async fn test_put_get_batches() {
