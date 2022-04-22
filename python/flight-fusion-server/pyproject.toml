@@ -6,7 +6,7 @@ build-backend = "maturin"
 name = "flight-fusion-server"
 requires-python = ">=3.7"
 keywords = ["deltalake", "delta", "arrow", "datafusion", "arrow-flight"]
-authors = [{ name = "Robert Pack", email = "r.pack@outlook.com>" }]
+authors = [{ name = "Robert Pack", email = "r.pack@outlook.com" }]
 classifiers = [
   "Development Status :: 2 - Pre-Alpha",
   "Intended Audience :: Developers",
