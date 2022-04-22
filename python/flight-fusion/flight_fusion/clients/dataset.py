@@ -23,7 +23,7 @@ from flight_fusion.ipc.v1alpha1 import (
     DeltaWriteOperation,
     FlightDoGetRequest,
     FlightDoPutRequest,
-    FlightGetSchemaRequest,
+    FlightGetFlightInfoRequest,
     ResultActionStatus,
     ResultDoPutUpdate,
     SaveMode,
@@ -68,7 +68,7 @@ class DatasetClient:
     def schema(self) -> pa.Schema:
         if self._schema is None:
             request = pa.flight.FlightDescriptor.for_command(
-                FlightGetSchemaRequest(source=self._reference).SerializeToString()
+                FlightGetFlightInfoRequest(source=self._reference).SerializeToString()
             )
             response = self._client.client._client.get_schema(request)
             self._schema = response.schema
@@ -94,7 +94,10 @@ class DatasetClient:
         raise NotImplementedError
 
     def get_metadata(self) -> AreaSourceMetadata:
-        raise NotImplementedError
+        request = pa.flight.FlightDescriptor.for_command(
+            FlightGetFlightInfoRequest(source=self._reference).SerializeToString()
+        )
+        return self._client.client._client.get_flight_info(request)
 
     def set_metadata(self, metadata: Optional[AreaSourceMetadata] = None) -> None:
         raise NotImplementedError

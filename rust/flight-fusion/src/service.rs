@@ -19,7 +19,7 @@ use flight_fusion_ipc::{
     area_source_reference::Table, flight_action_request::Action as FusionAction,
     flight_do_get_request::Command as DoGetCommand, flight_do_put_request::Command as DoPutCommand,
     serialize_message, AreaSourceReference, CommandListSources, FlightActionRequest,
-    FlightDoGetRequest, FlightGetFlightInfoRequest, FlightGetSchemaRequest,
+    FlightDoGetRequest, FlightGetFlightInfoRequest,
 };
 use futures::Stream;
 use observability_deps::instrument;
@@ -31,6 +31,7 @@ use std::path::PathBuf;
 use std::pin::Pin;
 use std::sync::Arc;
 use tonic::{Request, Response, Status, Streaming};
+
 pub type BoxedFlightStream<T> =
     Pin<Box<dyn Stream<Item = Result<T, Status>> + Send + Sync + 'static>>;
 
@@ -171,36 +172,40 @@ impl FlightService for FlightFusionService {
             global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
         tracing::Span::current().set_parent(parent_cx);
 
-        let _command = message_from_descriptor::<FlightGetFlightInfoRequest>(request)
+        let command = message_from_descriptor::<FlightGetFlightInfoRequest>(request)
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
-        todo!()
-        // let schema = self
-        //     .action_handler
-        //     .get_schema(command)
-        //     .await
-        //     .map_err(|e| tonic::Status::internal(e.to_string()))?;
-        // let options = arrow_deps::datafusion::arrow::ipc::writer::IpcWriteOptions::default();
-        // let schema_result = SchemaAsIpc::new(&schema, &options);
-        //
-        // let descriptor = FlightDescriptor {
-        //     r#type: DescriptorType::Cmd.into(),
-        //     cmd: vec![],
-        //     ..FlightDescriptor::default()
-        // };
-        // let endpoint = FlightEndpoint {
-        //     ticket: None,
-        //     location: vec![],
-        // };
-        // let info = FlightInfo::new(
-        //     IpcMessage::try_from(schema_result).unwrap(),
-        //     Some(descriptor),
-        //     vec![endpoint],
-        //     -1,
-        //     -1,
-        // );
-        //
-        // Ok(Response::new(info))
+        let schema = if let Some(source) = command.source {
+            Ok(self
+                .area_store
+                .get_schema(&source)
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?)
+        } else {
+            Err(crate::error::FusionServiceError::InputError(
+                "Expected valid command payload".to_string(),
+            ))
+        }
+        .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        let options = IpcWriteOptions::default();
+        let schema_result = SchemaAsIpc::new(&schema, &options);
+
+        let descriptor = FlightDescriptor {
+            r#type: DescriptorType::Cmd.into(),
+            cmd: vec![],
+            ..FlightDescriptor::default()
+        };
+        let info = FlightInfo::new(
+            IpcMessage::try_from(schema_result)
+                .map_err(|e| tonic::Status::internal(e.to_string()))?,
+            Some(descriptor),
+            vec![],
+            -1,
+            -1,
+        );
+
+        Ok(Response::new(info))
     }
 
     #[instrument(skip(self, request))]
@@ -212,7 +217,7 @@ impl FlightService for FlightFusionService {
             global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
         tracing::Span::current().set_parent(parent_cx);
 
-        let command = message_from_descriptor::<FlightGetSchemaRequest>(request)
+        let command = message_from_descriptor::<FlightGetFlightInfoRequest>(request)
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
         let schema = if let Some(source) = command.source {

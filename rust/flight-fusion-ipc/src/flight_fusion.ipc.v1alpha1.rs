@@ -506,12 +506,6 @@ pub struct FlightGetFlightInfoRequest {
     #[prost(message, optional, tag="1")]
     pub source: ::core::option::Option<AreaSourceReference>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct FlightGetSchemaRequest {
-    /// source identifier
-    #[prost(message, optional, tag="1")]
-    pub source: ::core::option::Option<AreaSourceReference>,
-}
 /// Requests submitted against the `do_get` endpoint
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightDoGetRequest {

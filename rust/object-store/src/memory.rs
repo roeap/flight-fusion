@@ -139,7 +139,7 @@ impl ObjectStoreApi for InMemory {
 
     async fn open_file(
         &self,
-        location: &Self::Path,
+        _location: &Self::Path,
     ) -> Result<Box<dyn AsyncReader + Unpin>, Self::Error> {
         todo!()
     }

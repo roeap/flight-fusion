@@ -10,11 +10,6 @@ message FlightGetFlightInfoRequest {
   AreaSourceReference source = 1;
 }
 
-message FlightGetSchemaRequest {
-  // source identifier
-  AreaSourceReference source = 1;
-}
-
 // Requests submitted against the `do_get` endpoint
 message FlightDoGetRequest {
   oneof command {
