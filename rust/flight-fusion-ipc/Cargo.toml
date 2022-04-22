@@ -7,10 +7,10 @@ publish = false
 [dependencies]
 async-trait = "0.1"
 base64 = "0.13"
-prost = "0.9"
+prost = "0.10"
 ring = "0.16"
 thiserror = "1"
-tonic = { version = "0.6", features = [
+tonic = { version = "0.7", features = [
   "transport",
   "codegen",
   "prost",
@@ -23,5 +23,5 @@ pretty_assertions = "1.1.0"
 tokio = { version = "1", features = ["full"] }
 
 [build-dependencies]
-prost-build = "0.9"
-tonic-build = "0.6"
+prost-build = "0.10"
+tonic-build = "0.7"

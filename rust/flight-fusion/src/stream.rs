@@ -140,7 +140,7 @@ impl ExecutionPlan for FlightReceiverPlan {
     }
 
     fn with_new_children(
-        &self,
+        self: Arc<Self>,
         _children: Vec<Arc<dyn ExecutionPlan>>,
     ) -> DataFusionResult<Arc<dyn ExecutionPlan>> {
         todo!()

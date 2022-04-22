@@ -6,12 +6,12 @@ publish = false
 
 [dependencies]
 # Crates.io dependencies
-arrow-flight = "11"
-parquet = { version = "11", features = ["async"] }
+arrow-flight = "12"
+parquet = { version = "12", features = ["async"] }
 # Git dependencies
-datafusion = { git = "https://github.com/apache/arrow-datafusion.git", rev = "d54ba4e648bdbe6f7d19f6bd66e5048a796690fc" }
-datafusion-data-access = { git = "https://github.com/apache/arrow-datafusion.git", rev = "d54ba4e648bdbe6f7d19f6bd66e5048a796690fc" }
-deltalake = { git = "https://github.com/roeap/delta-rs", rev = "1b9542a5acb39543aa38dbf87b2b08ca66b49bef", features = [
+datafusion = { git = "https://github.com/apache/arrow-datafusion.git", rev = "886735304f0fa83a24ddc3b3e356aeff4aab78f2" }
+datafusion-data-access = { git = "https://github.com/apache/arrow-datafusion.git", rev = "886735304f0fa83a24ddc3b3e356aeff4aab78f2" }
+deltalake = { git = "https://github.com/roeap/delta-rs", rev = "a56384eceaeadf5ca9f788f0a55752006bdaf901", features = [
   "datafusion-ext",
 ], optional = true }
 
