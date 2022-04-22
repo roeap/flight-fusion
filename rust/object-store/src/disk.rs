@@ -12,7 +12,6 @@ use futures::{
 use std::sync::Arc;
 use std::{collections::BTreeSet, convert::TryFrom, io, path::PathBuf};
 use tokio::fs;
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt};
 use walkdir::WalkDir;
 
 /// A specialized `Result` for filesystem object store-related errors

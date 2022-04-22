@@ -1,34 +1,34 @@
-# Flight Fusion
+# ML Fusion
 
-Flight-Fusion is an implementation of a flight server to manage and unify access to diverse data sources.
-The genesis of this project is to explore the capabilities of the rust-arrow data ecosystem.
+## Getting Started
 
-Specifically:
+```py
+from flight_fusion import FusionServiceClient, ClientOptions, SaveMode
+import numpy as np
+import pandas as pd
 
-- [arrow-rs](https://github.com/apache/arrow-rs)
-- [arrow2](https://github.com/jorgecarleitao/arrow2)
-- [datafusion](https://github.com/apache/arrow-datafusion)
-- [delta-rs](https://github.com/delta-io/delta-rs)
+np.random.seed(42)
 
-On top of this this project aims to evaluate integrations of different services into a consolidated data platform.
+# and create an instance of the service client
+ffc = FusionServiceClient(ClientOptions(host="localhost", port=50051))
 
-### Storage Technologies
+# when interacting with a single dataset, you need a dataset client
+fds = ffc.get_dataset_client(name="new_dataset", areas=["demo"])
+```
 
-- [Parquet](https://parquet.apache.org/)
-- [Delta](https://delta.io/)
-- [ADX (Kusto)](https://docs.microsoft.com/en-us/azure/data-explorer/)
-- Postgres
+```py
+# write data into dataset
+df_example = pd.DataFrame(np.random.randn(5, 3), columns=["col1", "col2", "col3"])
+fds.write_into(df_example, SaveMode.SAVE_MODE_OVERWRITE)
+```
 
-### Metadata management
+## CLI
 
-- [Open Metadata](https://open-metadata.org/)
-- [DataHub](https://datahubproject.io/)
-- [MlFlow](https://mlflow.org/)
+`fusion server start`
 
-### Orchestration
+: start a new instance of the flight-fusion service
 
-- [Dagster](https://dagster.io/)
+`fusion server mlflow`
 
-## Links
-
-- https://github.com/indradb/indradb
+: start the mlflow server
+  new line

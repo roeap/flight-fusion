@@ -7,14 +7,20 @@ theme:
     - scheme: "default"
       media: "(prefers-color-scheme: light)"
       toggle:
-        icon: "material/lightbulb"
+        icon: material/toggle-switch-off-outline
         name: "Switch to dark mode"
     - scheme: "slate"
       media: "(prefers-color-scheme: dark)"
       primary: "blue"
       toggle:
-        icon: "material/lightbulb-outline"
+        icon: material/toggle-switch
         name: "Switch to light mode"
+
+markdown_extensions:
+  - def_list
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      linenums: true
 
 nav:
   - Home: index.md

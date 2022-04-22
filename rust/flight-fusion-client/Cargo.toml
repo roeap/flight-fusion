@@ -9,13 +9,13 @@ flight-fusion-ipc = { path = "../flight-fusion-ipc" }
 observability_deps = { path = "../observability-deps" }
 
 # Crates.io dependencies
-arrow = { version = "11", features = ["prettyprint"] }
-arrow-flight = "11"
+arrow = { version = "12", features = ["prettyprint"] }
+arrow-flight = "12"
 async-trait = "0.1"
 futures = "0.3"
-prost = "0.9"
+prost = "0.10"
 thiserror = "1"
-tonic = { version = "0.6", features = [
+tonic = { version = "0.7", features = [
   "transport",
   "codegen",
   "prost",
