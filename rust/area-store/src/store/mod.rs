@@ -7,7 +7,10 @@ pub mod utils;
 pub mod writer;
 
 use crate::error::Result;
-use arrow_deps::arrow::{datatypes::SchemaRef as ArrowSchemaRef, record_batch::RecordBatch};
+use arrow_deps::arrow::{
+    datatypes::SchemaRef as ArrowSchemaRef, error::ArrowError, record_batch::RecordBatch,
+};
+use arrow_deps::datafusion::parquet::arrow::async_reader::ParquetRecordBatchStreamBuilder;
 use arrow_deps::datafusion::parquet::arrow::ArrowReader;
 use arrow_deps::datafusion::parquet::{arrow::ParquetFileArrowReader, basic::LogicalType};
 use arrow_deps::datafusion::physical_plan::SendableRecordBatchStream;
@@ -15,7 +18,9 @@ use async_trait::async_trait;
 pub use basic::DefaultAreaStore;
 pub use cache::CachedAreaStore;
 use flight_fusion_ipc::{AreaSourceReference, SaveMode};
+use futures::StreamExt;
 use object_store::path::{parsed::DirsAndFileName, Path};
+use object_store::ObjectStoreApi;
 use std::collections::HashSet;
 use std::sync::Arc;
 pub use utils::*;
@@ -57,6 +62,14 @@ pub trait AreaStore: Send + Sync {
         Ok(batch_reader
             .into_iter()
             .collect::<std::result::Result<Vec<_>, _>>()?)
+    }
+
+    async fn open_file(&self, file: &Path) -> Result<SendableRecordBatchStream> {
+        let reader = self.object_store().open_file(file).await?;
+        let builder = ParquetRecordBatchStreamBuilder::new(reader).await?;
+        let rb_stream = builder.build()?;
+        let _asd = rb_stream.then(|ps| async { ps.unwrap() });
+        todo!()
     }
 
     /// Resolve an [`AreaSourceReference`] to the files relevant for source reference
