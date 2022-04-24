@@ -48,10 +48,10 @@ run_config = {
 }
 
 
-def test_graph_in_out(test_graph, test_data, ff_client: FusionServiceClient):
-    fusion_client = ResourceDefinition.hardcoded_resource(ff_client)
+def test_graph_in_out(test_graph, test_data, fusion_client: FusionServiceClient):
+    client = ResourceDefinition.hardcoded_resource(fusion_client)
     job = test_graph.to_job(
-        resource_defs={"io_manager": flight_fusion_io_manager, "fusion_client": fusion_client},
+        resource_defs={"io_manager": flight_fusion_io_manager, "fusion_client": client},
         config=run_config,
     )
 
@@ -64,6 +64,6 @@ def test_graph_in_out(test_graph, test_data, ff_client: FusionServiceClient):
 
     assert out_a.equals(test_data)
 
-    fds = ff_client.get_dataset_client(name="out_b", areas=["scope"])
+    fds = fusion_client.get_dataset_client(name="out_b", areas=["scope"])
     result_table = fds.load()
     assert result_table.equals(test_data)

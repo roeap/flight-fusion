@@ -40,6 +40,9 @@ typer = ">=0.4"
 
 python-on-whales = { version = ">=0.36", optional = true }
 
+pytest = { version = "^6", optional = true }
+pytest-datadir = { version = "^1.3.1", optional = true }
+
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
 pytest-azurepipelines = "^1"
@@ -49,9 +52,13 @@ pytest-mock = "*"
 
 [tool.poetry.extras]
 docker = ["python-on-whales"]
+dev = ["pytest", "pytest-datadir"]
 
 [tool.poetry.scripts]
 fusion = "flight_fusion.cli:app"
+
+[tool.poetry.plugins.pytest11]
+pytest_fusion = "flight_fusion.testing"
 
 [tool.isort]
 profile = "black"

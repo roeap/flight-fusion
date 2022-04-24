@@ -29,6 +29,7 @@ werkzeug = "<2.1"
 dagster-fusion = { path = "python/dagster-fusion/", develop = true }
 flight-fusion = { path = "python/flight-fusion/", develop = true, extras = [
   "docker",
+  "dev",
 ] }
 mlserver-fusion = { path = "python/mlserver-fusion/", develop = true }
 
