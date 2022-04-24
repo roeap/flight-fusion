@@ -1,4 +1,5 @@
 mod client;
+mod errors;
 mod utils;
 
 use pyo3::prelude::*;

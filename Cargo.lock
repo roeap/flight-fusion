@@ -306,7 +306,7 @@ dependencies = [
 [[package]]
 name = "azure-kusto-data"
 version = "0.1.0"
-source = "git+https://github.com/Azure/azure-kusto-rust?rev=b3ca7ce4fe9988a25aa90aaadcd2db8cab885624#b3ca7ce4fe9988a25aa90aaadcd2db8cab885624"
+source = "git+https://github.com/Azure/azure-kusto-rust?rev=fafe5b1bb392a27607b27b1b56a36bb3e205321c#fafe5b1bb392a27607b27b1b56a36bb3e205321c"
 dependencies = [
  "arrow",
  "async-convert",
