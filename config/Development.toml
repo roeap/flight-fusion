@@ -1,3 +1,5 @@
+env = "Development"
+
 [log]
 level = "debug"
 

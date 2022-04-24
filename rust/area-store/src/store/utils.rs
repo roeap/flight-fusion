@@ -66,7 +66,7 @@ pub fn path_to_source(parts: Vec<PathPart>) -> Option<AreaSourceReference> {
     let name = split.next()?.first()?.to_string();
     let areas = split
         .next()?
-        .into_iter()
+        .iter()
         .map(|p| p.to_string())
         .collect::<Vec<_>>();
     Some(AreaSourceReference {

@@ -3,7 +3,7 @@ use area_store::store::AreaStore;
 use arrow_deps::datafusion::{physical_plan::ExecutionPlan, prelude::*};
 use arrow_flight::FlightData;
 use async_trait::async_trait;
-use flight_fusion_ipc::{AreaSourceDetails, AreaSourceMetadata, RequestFor};
+use flight_fusion_ipc::RequestFor;
 use futures::Stream;
 pub use object_store::{path::ObjectStorePath, ObjectStoreApi};
 use std::pin::Pin;

@@ -71,12 +71,10 @@ impl FileIndex {
 
         let outputs = try_join_all(stats).await.unwrap();
 
-        for result in outputs {
-            if let Ok((file, schema)) = result {
-                let parsed = DirsAndFileName::from(file.clone());
-                let mut area = self.index.entry(parsed.directories).or_insert(Vec::new());
-                area.push((file, schema))
-            }
+        for (file, schema) in outputs.into_iter().flatten() {
+            let parsed = DirsAndFileName::from(file.clone());
+            let mut area = self.index.entry(parsed.directories).or_insert(Vec::new());
+            area.push((file, schema))
         }
 
         Ok(())
@@ -96,7 +94,7 @@ impl FileIndex {
 
     pub fn get_schema(&self, area_ref: &impl ToCacheKey) -> Option<ArrowSchemaRef> {
         let reference = self.index.get(&area_ref.to_key()).unwrap();
-        let (_, metadata) = reference.value().first().clone()?;
+        let (_, metadata) = reference.value().first()?;
         let schema = Arc::new(
             parquet_to_arrow_schema(
                 metadata.file_metadata().schema_descr(),
@@ -124,6 +122,10 @@ impl FileIndex {
 
     pub fn len(&self) -> usize {
         self.index.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.index.is_empty()
     }
 
     pub fn contains_key(&self, key: &impl ToCacheKey) -> bool {

@@ -1,10 +1,8 @@
 use super::*;
 use crate::error::{FusionServiceError, Result};
 use arrow_deps::arrow::{ipc::writer::IpcWriteOptions, record_batch::RecordBatch};
+use arrow_flight::FlightData;
 use arrow_flight::SchemaAsIpc;
-use arrow_flight::{
-    flight_descriptor::DescriptorType, FlightData, FlightDescriptor, FlightEndpoint, FlightInfo,
-};
 use tonic::Status;
 
 pub(crate) async fn create_response_stream(
@@ -39,36 +37,4 @@ pub(crate) async fn create_response_stream(
     let output = futures::stream::iter(flights);
 
     Ok(Box::pin(output) as BoxedFlightStream<FlightData>)
-}
-
-pub(crate) fn meta_to_flight_info(
-    meta: Result<AreaSourceMetadata>,
-) -> std::result::Result<FlightInfo, tonic::Status> {
-    match meta {
-        Ok(_m) => {
-            // TODO populate with meaningful data
-            let descriptor = FlightDescriptor {
-                r#type: DescriptorType::Cmd.into(),
-                cmd: vec![],
-                ..FlightDescriptor::default()
-            };
-            let endpoint = FlightEndpoint {
-                ticket: None,
-                location: vec![],
-            };
-            let info = FlightInfo {
-                schema: vec![],
-                flight_descriptor: Some(descriptor),
-                endpoint: vec![endpoint],
-                total_records: -1,
-                total_bytes: -1,
-            };
-            Ok(info)
-        }
-        Err(e) => Err(tonic::Status::internal(e.to_string())),
-    }
-}
-
-pub(crate) fn details_to_flight_info(details: AreaSourceDetails) -> FlightInfo {
-    todo!()
 }

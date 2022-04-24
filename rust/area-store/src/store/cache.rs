@@ -46,7 +46,7 @@ impl CachedAreaStore {
             let mut cache = self.cache.write().unwrap();
             let file_reader = StreamReader::try_new(cache.get(location.to_raw())?, None)?;
             let mut batches = Vec::new();
-            for batch in file_reader.into_iter() {
+            for batch in file_reader {
                 batches.push(batch?);
             }
             return Ok(batches);
