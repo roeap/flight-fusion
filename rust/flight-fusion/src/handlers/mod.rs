@@ -1,9 +1,7 @@
 use crate::error::Result;
 use area_store::store::AreaStore;
 use arrow_deps::datafusion::{physical_plan::ExecutionPlan, prelude::*};
-use arrow_flight::{
-    flight_descriptor::DescriptorType, FlightData, FlightDescriptor, FlightEndpoint, FlightInfo,
-};
+use arrow_flight::FlightData;
 use async_trait::async_trait;
 use flight_fusion_ipc::{AreaSourceDetails, AreaSourceMetadata, RequestFor};
 use futures::Stream;

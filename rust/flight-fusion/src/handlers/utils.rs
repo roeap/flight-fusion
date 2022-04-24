@@ -1,7 +1,10 @@
 use super::*;
 use crate::error::{FusionServiceError, Result};
 use arrow_deps::arrow::{ipc::writer::IpcWriteOptions, record_batch::RecordBatch};
-use arrow_flight::{FlightData, SchemaAsIpc};
+use arrow_flight::SchemaAsIpc;
+use arrow_flight::{
+    flight_descriptor::DescriptorType, FlightData, FlightDescriptor, FlightEndpoint, FlightInfo,
+};
 use tonic::Status;
 
 pub(crate) async fn create_response_stream(
