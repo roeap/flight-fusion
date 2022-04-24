@@ -76,19 +76,16 @@ jobs:
 
       - name: Install native dependencies
         run: |
-          source .venv/bin/activate
-          maturin develop -m python/flight-fusion-server/Cargo.toml --extras=devel $(MATURIN_EXTRA_ARGS)
+          poetry run maturin develop -m python/flight-fusion-server/Cargo.toml --extras=devel $(MATURIN_EXTRA_ARGS)
 
       - name: Install pyright
         run: npm install -g pyright
 
       - name: Run linters
         run: |
-          source .venv/bin/activate
-          black --check .
-          pyright python/
+          poetry run black --check .
+          poetry run pyright python/
 
       - name: Run python tests
         run: |
-          source .venv/bin/activate
-          RUST_BACKTRACE=1 pytest -v .
+          poetry run RUST_BACKTRACE=1 pytest -v .
