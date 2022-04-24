@@ -115,7 +115,7 @@ mod tests {
             .unwrap();
         let mut dt = open_table(table_dir.to_str().unwrap()).await.unwrap();
         assert_eq!(dt.version, 0);
-        assert_eq!(dt.get_file_uris().collect::<Vec<_>>().len(), 2);
+        assert_eq!(dt.get_file_uris().count(), 2);
 
         // Append data to table
         let _ = handler
@@ -124,7 +124,7 @@ mod tests {
             .unwrap();
         dt.update().await.unwrap();
         assert_eq!(dt.version, 1);
-        assert_eq!(dt.get_file_uris().collect::<Vec<_>>().len(), 4);
+        assert_eq!(dt.get_file_uris().count(), 4);
 
         // Overwrite table
         let request = DeltaOperationRequest {
@@ -138,6 +138,6 @@ mod tests {
         let _ = handler.handle_do_put(request, plan).await.unwrap();
         dt.update().await.unwrap();
         assert_eq!(dt.version, 2);
-        assert_eq!(dt.get_file_uris().collect::<Vec<_>>().len(), 2);
+        assert_eq!(dt.get_file_uris().count(), 2);
     }
 }

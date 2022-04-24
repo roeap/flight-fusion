@@ -487,7 +487,7 @@ mod tests {
         ref_null_counts.insert("modified".to_string(), ColumnCountStat::Value(0));
 
         let mut null_counts = HashMap::new();
-        apply_null_counts(&record_batch.clone().into(), &mut null_counts, 0);
+        apply_null_counts(&record_batch.into(), &mut null_counts, 0);
 
         assert_eq!(null_counts, ref_null_counts)
     }

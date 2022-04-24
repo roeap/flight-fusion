@@ -39,7 +39,7 @@ pub fn generate_random_batch(row_count: usize, schema: ArrowSchemaRef) -> Record
     RecordBatch::try_new(schema, arrays).unwrap()
 }
 
-fn generate_values<T: Clone>(raw: &mut Vec<T>) -> Vec<T>
+fn generate_values<T: Clone>(raw: &mut [T]) -> Vec<T>
 where
     Standard: rand::distributions::Distribution<T>,
 {

@@ -79,7 +79,7 @@ pub fn generate_random_batch(row_count: usize, schema: ArrowSchemaRef) -> Record
     RecordBatch::try_new(schema, arrays).unwrap()
 }
 
-fn generate_values<T: Clone>(raw: &mut Vec<T>) -> Vec<T>
+fn generate_values<T: Clone>(raw: &mut [T]) -> Vec<T>
 where
     Standard: rand::distributions::Distribution<T>,
 {
@@ -92,8 +92,8 @@ where
 
 pub fn get_input_plan(part: Option<String>, with_null: bool) -> Arc<MemoryExec> {
     let batch = get_record_batch(part, with_null);
-    let schema = batch.schema().clone();
-    Arc::new(MemoryExec::try_new(&[vec![batch.clone()]], schema.clone(), None).unwrap())
+    let schema = batch.schema();
+    Arc::new(MemoryExec::try_new(&[vec![batch]], schema, None).unwrap())
 }
 
 pub fn get_record_batch(part: Option<String>, with_null: bool) -> RecordBatch {

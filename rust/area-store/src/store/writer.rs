@@ -491,7 +491,7 @@ mod tests {
             String::from("modified=2021-02-02/id=A"),
             String::from("modified=2021-02-02/id=B"),
         ];
-        validate_partition_map(partitions, &partition_cols.clone(), expected_keys, &writer)
+        validate_partition_map(partitions, &partition_cols, expected_keys, &writer)
     }
 
     #[tokio::test]
