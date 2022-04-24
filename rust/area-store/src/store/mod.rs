@@ -7,9 +7,7 @@ pub mod utils;
 pub mod writer;
 
 use crate::error::Result;
-use arrow_deps::arrow::{
-    datatypes::SchemaRef as ArrowSchemaRef, error::ArrowError, record_batch::RecordBatch,
-};
+use arrow_deps::arrow::{datatypes::SchemaRef as ArrowSchemaRef, record_batch::RecordBatch};
 use arrow_deps::datafusion::parquet::arrow::async_reader::ParquetRecordBatchStreamBuilder;
 use arrow_deps::datafusion::parquet::arrow::ArrowReader;
 use arrow_deps::datafusion::parquet::{arrow::ParquetFileArrowReader, basic::LogicalType};
