@@ -95,10 +95,9 @@ jobs:
         run: poetry install --no-interaction --no-root
 
       - name: Install rust backed packages
-        run: poetry run make python-develop
-
-      - name: Build fusion server for testing
-        run: cargo build
+        run: |
+          source .venv/bin/activate
+          maturin develop -m python/flight-fusion-server/Cargo.toml --extras=devel $(MATURIN_EXTRA_ARGS)
 
       - name: Run tests
         run: poetry run make python-test
