@@ -1,0 +1,30 @@
+[package]
+name = "arrow-adx"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+azure-kusto-data = { git = "https://github.com/Azure/azure-kusto-rust", rev = "fafe5b1bb392a27607b27b1b56a36bb3e205321c", features = [
+  "arrow",
+] }
+tokio = { version = "1.0", features = [
+  "macros",
+  "rt",
+  "rt-multi-thread",
+  "sync",
+] }
+pyo3 = { version = "~0.16", features = [
+  "extension-module",
+  "abi3",
+  "abi3-py37",
+] }
+arrow = { version = "*", features = ["pyarrow"] }
+
+[lib]
+name = "arrow_adx"
+crate-type = ["cdylib", "rlib"]
+
+[package.metadata.maturin]
+name = "arrow_adx._internal"
