@@ -7,7 +7,9 @@ name = "arrow-adx"
 requires-python = ">=3.7"
 keywords = ["arrow", "azure", "adx", "kusto"]
 authors = [{ name = "Robert Pack", email = "r.pack@outlook.com" }]
-license = [{ file = "LICENSE.txt" }]
+description = "High performance Kusto (Azure Data Explorer) client based on Apache Arrow and Rust."
+license = { file = "LICENSE.txt" }
+readme = "README.md"
 classifier = [
   "Development Status :: 2 - Pre-Alpha",
   "Intended Audience :: Developers",
