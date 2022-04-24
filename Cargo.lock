@@ -130,6 +130,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "arrow-adx"
+version = "0.1.0"
+dependencies = [
+ "azure-kusto-data",
+ "pyo3",
+ "tokio",
+]
+
+[[package]]
 name = "arrow-deps"
 version = "0.1.0"
 dependencies = [
@@ -169,6 +178,15 @@ dependencies = [
  "memchr",
  "pin-project-lite",
  "tokio",
+]
+
+[[package]]
+name = "async-convert"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d416feee97712e43152cd42874de162b8f9b77295b1c85e5d92725cc8310bae"
+dependencies = [
+ "async-trait",
 ]
 
 [[package]]
@@ -285,6 +303,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "azure-kusto-data"
+version = "0.1.0"
+source = "git+https://github.com/Azure/azure-kusto-rust?rev=554ba5f7a811a7b279f59bcfad10d8b3b28e6921#554ba5f7a811a7b279f59bcfad10d8b3b28e6921"
+dependencies = [
+ "arrow",
+ "async-convert",
+ "async-trait",
+ "azure_core 0.2.1 (git+https://github.com/roeap/azure-sdk-for-rust?rev=f4d7cf5899b87e59b84015044e12d4a19da40af6)",
+ "azure_identity 0.1.1 (git+https://github.com/roeap/azure-sdk-for-rust?rev=f4d7cf5899b87e59b84015044e12d4a19da40af6)",
+ "bytes",
+ "futures",
+ "hashbrown 0.12.0",
+ "http",
+ "lazy_static",
+ "regex",
+ "serde 1.0.136",
+ "serde_json",
+ "serde_with",
+ "thiserror",
+ "time 0.3.9",
+]
+
+[[package]]
 name = "azure_core"
 version = "0.2.1"
 source = "git+https://github.com/Azure/azure-sdk-for-rust?rev=389aeb64441214543c502ed6811c783c2c7c5307#389aeb64441214543c502ed6811c783c2c7c5307"
@@ -312,6 +353,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "azure_core"
+version = "0.2.1"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=f4d7cf5899b87e59b84015044e12d4a19da40af6#f4d7cf5899b87e59b84015044e12d4a19da40af6"
+dependencies = [
+ "async-trait",
+ "base64",
+ "bytes",
+ "chrono",
+ "dyn-clone",
+ "futures",
+ "getrandom",
+ "http",
+ "log",
+ "oauth2",
+ "pin-project",
+ "rand",
+ "reqwest",
+ "rustc_version",
+ "serde 1.0.136",
+ "serde_derive",
+ "serde_json",
+ "thiserror",
+ "url",
+ "uuid 1.0.0",
+]
+
+[[package]]
 name = "azure_identity"
 version = "0.1.1"
 source = "git+https://github.com/Azure/azure-sdk-for-rust?rev=389aeb64441214543c502ed6811c783c2c7c5307#389aeb64441214543c502ed6811c783c2c7c5307"
@@ -319,7 +387,7 @@ dependencies = [
  "async-lock",
  "async-timer",
  "async-trait",
- "azure_core",
+ "azure_core 0.2.1 (git+https://github.com/Azure/azure-sdk-for-rust?rev=389aeb64441214543c502ed6811c783c2c7c5307)",
  "base64",
  "chrono",
  "futures",
@@ -334,13 +402,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "azure_identity"
+version = "0.1.1"
+source = "git+https://github.com/roeap/azure-sdk-for-rust?rev=f4d7cf5899b87e59b84015044e12d4a19da40af6#f4d7cf5899b87e59b84015044e12d4a19da40af6"
+dependencies = [
+ "async-lock",
+ "async-timer",
+ "async-trait",
+ "azure_core 0.2.1 (git+https://github.com/roeap/azure-sdk-for-rust?rev=f4d7cf5899b87e59b84015044e12d4a19da40af6)",
+ "base64",
+ "chrono",
+ "futures",
+ "log",
+ "oauth2",
+ "reqwest",
+ "serde 1.0.136",
+ "serde_json",
+ "thiserror",
+ "url",
+ "uuid 1.0.0",
+]
+
+[[package]]
 name = "azure_storage"
 version = "0.1.0"
 source = "git+https://github.com/Azure/azure-sdk-for-rust?rev=389aeb64441214543c502ed6811c783c2c7c5307#389aeb64441214543c502ed6811c783c2c7c5307"
 dependencies = [
  "RustyXML",
  "async-trait",
- "azure_core",
+ "azure_core 0.2.1 (git+https://github.com/Azure/azure-sdk-for-rust?rev=389aeb64441214543c502ed6811c783c2c7c5307)",
  "base64",
  "bytes",
  "chrono",
@@ -365,7 +455,7 @@ version = "0.1.0"
 source = "git+https://github.com/Azure/azure-sdk-for-rust?rev=389aeb64441214543c502ed6811c783c2c7c5307#389aeb64441214543c502ed6811c783c2c7c5307"
 dependencies = [
  "RustyXML",
- "azure_core",
+ "azure_core 0.2.1 (git+https://github.com/Azure/azure-sdk-for-rust?rev=389aeb64441214543c502ed6811c783c2c7c5307)",
  "azure_storage",
  "base64",
  "bytes",
@@ -389,7 +479,7 @@ version = "0.1.1"
 source = "git+https://github.com/Azure/azure-sdk-for-rust?rev=389aeb64441214543c502ed6811c783c2c7c5307#389aeb64441214543c502ed6811c783c2c7c5307"
 dependencies = [
  "async-trait",
- "azure_core",
+ "azure_core 0.2.1 (git+https://github.com/Azure/azure-sdk-for-rust?rev=389aeb64441214543c502ed6811c783c2c7c5307)",
  "azure_storage",
  "base64",
  "bytes",
@@ -534,7 +624,7 @@ dependencies = [
  "num-integer",
  "num-traits 0.2.14",
  "serde 1.0.136",
- "time",
+ "time 0.1.43",
  "winapi",
 ]
 
@@ -711,6 +801,41 @@ version = "0.1.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f877be4f7c9f246b183111634f75baa039715e3f46ce860677d3b19a69fb229c"
 dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "darling"
+version = "0.13.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a01d95850c592940db9b8194bc39f4bc0e89dee5c4265e4b1807c34a9aba453c"
+dependencies = [
+ "darling_core",
+ "darling_macro",
+]
+
+[[package]]
+name = "darling_core"
+version = "0.13.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "859d65a907b6852c9361e3185c862aae7fafd2887876799fa55f5f99dc40d610"
+dependencies = [
+ "fnv",
+ "ident_case",
+ "proc-macro2",
+ "quote",
+ "strsim",
+ "syn",
+]
+
+[[package]]
+name = "darling_macro"
+version = "0.13.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c972679f83bdf9c42bd905396b6c3588a843a17f0f16dfcfa3e2c5d57441835"
+dependencies = [
+ "darling_core",
  "quote",
  "syn",
 ]
@@ -1469,6 +1594,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "ident_case"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
+
+[[package]]
 name = "idna"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1948,6 +2079,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "num_threads"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aba1801fb138d8e85e11d0fc70baf4fe1cdfffda7c6cd34a854905df588e5ed0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "oauth2"
 version = "4.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1972,8 +2112,8 @@ name = "object-store"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "azure_core",
- "azure_identity",
+ "azure_core 0.2.1 (git+https://github.com/Azure/azure-sdk-for-rust?rev=389aeb64441214543c502ed6811c783c2c7c5307)",
+ "azure_identity 0.1.1 (git+https://github.com/Azure/azure-sdk-for-rust?rev=389aeb64441214543c502ed6811c783c2c7c5307)",
  "azure_storage",
  "azure_storage_blobs",
  "azure_storage_datalake",
@@ -2865,6 +3005,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_with"
+version = "1.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b827f2113224f3f19a665136f006709194bdfdcb1fdc1e4b2b5cbac8e0cced54"
+dependencies = [
+ "rustversion",
+ "serde 1.0.136",
+ "serde_json",
+ "serde_with_macros",
+]
+
+[[package]]
+name = "serde_with_macros"
+version = "1.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e182d6ec6f05393cc0e5ed1bf81ad6db3a8feedf8ee515ecdd369809bcce8082"
+dependencies = [
+ "darling",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "serial_test"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3141,6 +3305,25 @@ dependencies = [
  "libc",
  "winapi",
 ]
+
+[[package]]
+name = "time"
+version = "0.3.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2702e08a7a860f005826c6815dcac101b19b5eb330c27fe4a5928fec1d20ddd"
+dependencies = [
+ "itoa 1.0.1",
+ "libc",
+ "num_threads",
+ "serde 1.0.136",
+ "time-macros",
+]
+
+[[package]]
+name = "time-macros"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "42657b1a6f4d817cda8e7a0ace261fe0cc946cf3a80314390b22cc61ae080792"
 
 [[package]]
 name = "tinyvec"

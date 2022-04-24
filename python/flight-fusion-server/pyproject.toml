@@ -5,16 +5,25 @@ build-backend = "maturin"
 [project]
 name = "flight-fusion-server"
 requires-python = ">=3.7"
-keywords = ["deltalake", "delta", "arrow", "datafusion", "arrow-flight"]
+keywords = ["arrow", "azure", "adx", "kusto"]
 authors = [{ name = "Robert Pack", email = "r.pack@outlook.com" }]
-classifiers = [
+classifier = [
   "Development Status :: 2 - Pre-Alpha",
   "Intended Audience :: Developers",
-  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "License :: OSI Approved",
+  "Operating System :: MacOS",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python",
   "Programming Language :: Rust",
-  "Programming Language :: Python :: Implementation :: CPython",
-  "Programming Language :: Python :: Implementation :: PyPy",
 ]
+dependencies = ["pyarrow>=4"]
 
 [project.urls]
 repository = "https://github.com/roeap/flight-fusion"
