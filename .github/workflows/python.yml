@@ -9,28 +9,52 @@ on:
     branches: [main]
 
 jobs:
-  lint:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.10"
+        toolchain:
+          - "stable"
+          # - "beta"
+
     steps:
       - uses: actions/checkout@v2
+
+      - name: Setup Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        id: rust-toolchain
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+
       - name: Setup Python
         uses: actions/setup-python@v2
+        id: setup-python
         with:
-          python-version: 3.8
+          python-version: ${{ matrix.python-version }}
 
-      - name: Install minimal stable with clippy and rustfmt
-        uses: actions-rs/toolchain@v1
+      - name: Cache Cargo
+        uses: actions/cache@v2
         with:
-          profile: default
-          toolchain: stable
-          override: true
+          path: ~/.cargo
+          key: cargo-cache-${{ steps.rust-toolchain.outputs.rustc_hash }}-${{ hashFiles('Cargo.lock') }}
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
+      - name: Check Formatting
+        uses: actions-rs/cargo@v1
+        if: ${{ matrix.python-version == '3.10' && matrix.toolchain == 'stable' }}
         with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
+          command: fmt
+          args: -- --check
+
+      - name: Run Clippy
+        uses: actions-rs/cargo@v1
+        if: ${{ matrix.python-version == '3.10' && matrix.toolchain == 'stable' }}
+        with:
+          command: clippy
+          args: --all-targets --all-features -- -D clippy::all
 
       - name: Load cached venv
         id: cached-poetry-dependencies
@@ -39,43 +63,6 @@ jobs:
           path: .venv
           key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
 
-      - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
-
-      - name: Install rust backed packages
-        run: poetry run make python-develop
-
-      - name: Install pyright
-        run: npm install -g pyright
-
-      - name: Check Rust
-        run: make rust-check
-
-      - name: Check Python
-        run: poetry run make python-check
-
-  test:
-    # TODO run tests with matrix strategy
-    # strategy:
-    #     fail-fast: false
-    #     matrix:
-    #       python-version: [3.8, 3.9, 3.10]
-    runs-on: ubuntu-latest
-    steps:
-      # actions/checkout@v2 is a node action, which runs on a fairly new
-      # version of node. however, manylinux environment's glibc is too old for
-      # that version of the node. so we will have to use v1 instead, which is a
-      # docker based action.
-      - uses: actions/checkout@v1
-
-      - name: Install minimal stable with clippy and rustfmt
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: default
-          toolchain: stable
-          override: true
-
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
@@ -83,21 +70,25 @@ jobs:
           virtualenvs-in-project: true
           installer-parallel: true
 
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v2
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+      # - name: Install dependencies
+      #   if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      #   run: poetry install --no-interaction --no-root
 
-      - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
-
-      - name: Install rust backed packages
+      - name: Install native dependencies
         run: |
           source .venv/bin/activate
           maturin develop -m python/flight-fusion-server/Cargo.toml --extras=devel $(MATURIN_EXTRA_ARGS)
 
-      - name: Run tests
-        run: poetry run make python-test
+      - name: Install pyright
+        run: npm install -g pyright
+
+      - name: Run linters
+        run: |
+          source .venv/bin/activate
+          black --check .
+          pyright python/
+
+      - name: Run python tests
+        run: |
+          source .venv/bin/activate
+          RUST_BACKTRACE=1 pytest -v .
