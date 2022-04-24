@@ -6,7 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-azure-kusto-data = { git = "https://github.com/Azure/azure-kusto-rust", rev = "554ba5f7a811a7b279f59bcfad10d8b3b28e6921" }
+azure-kusto-data = { git = "https://github.com/Azure/azure-kusto-rust", rev = "b3ca7ce4fe9988a25aa90aaadcd2db8cab885624", features = [
+  "arrow",
+] }
 tokio = { version = "1.0", features = [
   "macros",
   "rt",
@@ -18,6 +20,7 @@ pyo3 = { version = "~0.16", features = [
   "abi3",
   "abi3-py37",
 ] }
+arrow = { version = "*", features = ["pyarrow"] }
 
 [lib]
 name = "arrow_adx"

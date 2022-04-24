@@ -133,6 +133,7 @@ dependencies = [
 name = "arrow-adx"
 version = "0.1.0"
 dependencies = [
+ "arrow",
  "azure-kusto-data",
  "pyo3",
  "tokio",
@@ -305,7 +306,7 @@ dependencies = [
 [[package]]
 name = "azure-kusto-data"
 version = "0.1.0"
-source = "git+https://github.com/Azure/azure-kusto-rust?rev=554ba5f7a811a7b279f59bcfad10d8b3b28e6921#554ba5f7a811a7b279f59bcfad10d8b3b28e6921"
+source = "git+https://github.com/Azure/azure-kusto-rust?rev=b3ca7ce4fe9988a25aa90aaadcd2db8cab885624#b3ca7ce4fe9988a25aa90aaadcd2db8cab885624"
 dependencies = [
  "arrow",
  "async-convert",

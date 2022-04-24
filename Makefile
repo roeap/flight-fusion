@@ -38,8 +38,8 @@ build-docker-fusion:
 .PHONY: python-develop
 python-develop: ## Run check on Python
 	$(info Dev build for python bindings)
-	cd python/flight-fusion-server && maturin develop --extras=devel $(MATURIN_EXTRA_ARGS)
-	cd python/arrow-adx && maturin develop --extras=devel $(MATURIN_EXTRA_ARGS)
+	maturin develop -m python/flight-fusion-server/Cargo.toml --extras=devel $(MATURIN_EXTRA_ARGS)
+	maturin develop -m python/arrow-adx/Cargo.toml --extras=devel $(MATURIN_EXTRA_ARGS)
 
 .PHONY: python-check
 python-check: ## Run check on Python
