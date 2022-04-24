@@ -17,6 +17,20 @@ def test_roundtrip(fusion_client: FusionServiceClient):
     assert df.equals(df_loaded)
 
 
+def test_roundtrip_versioned(fusion_client: FusionServiceClient):
+    np.random.seed(42)
+    df = pd.DataFrame(np.random.randn(5, 3), columns=["col1", "col2", "col3"])
+
+    fds = fusion_client.get_versioned_dataset_client(
+        name="table", areas=["test_roundtrip_versioned"]
+    )
+    fds.write_into(df, SaveMode.SAVE_MODE_OVERWRITE)
+
+    df_loaded = fds.load().to_pandas()
+
+    assert df.equals(df_loaded)
+
+
 def test_save_mode(fusion_client: FusionServiceClient):
     np.random.seed(42)
     df = pd.DataFrame(np.random.randn(5, 3), columns=["col1", "col2", "col3"])
