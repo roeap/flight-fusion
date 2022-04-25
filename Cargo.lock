@@ -69,8 +69,10 @@ name = "area-store"
 version = "0.1.0"
 dependencies = [
  "arrow-deps",
+ "async-compat",
  "async-trait",
  "bytes",
+ "chrono",
  "dashmap",
  "file-cache",
  "flight-fusion-ipc",
@@ -82,6 +84,7 @@ dependencies = [
  "tempfile",
  "thiserror",
  "tokio",
+ "tokio-util 0.7.1",
  "uuid",
 ]
 
@@ -160,6 +163,19 @@ dependencies = [
  "tokio",
  "tonic",
  "tonic-build",
+]
+
+[[package]]
+name = "async-compat"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9b48b4ff0c2026db683dea961cd8ea874737f56cffca86fa84415eaddc51c00d"
+dependencies = [
+ "futures-core",
+ "futures-io",
+ "once_cell",
+ "pin-project-lite",
+ "tokio",
 ]
 
 [[package]]

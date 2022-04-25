@@ -27,7 +27,9 @@ tokio = { version = "1", features = [
   "macros",
   "rt",
   "rt-multi-thread",
-  "io-util",
+  "sync",
+  "fs",
+  "parking_lot",
 ] }
 tokio-stream = { version = "*", features = ["fs"] }
 tokio-util = { version = "0.7", features = ["compat"] }

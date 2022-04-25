@@ -5,6 +5,7 @@ use arrow_deps::arrow::record_batch::*;
 use arrow_deps::datafusion::parquet::arrow::async_reader::ParquetRecordBatchStreamBuilder;
 use arrow_deps::datafusion::{
     arrow::datatypes::SchemaRef as ArrowSchemaRef,
+    datafusion_data_access::object_store::{local::LocalFileSystem, ObjectStore as DFObjectStore},
     parquet::{
         arrow::ParquetFileArrowReader,
         file::serialized_reader::{SerializedFileReader, SliceableCursor},
@@ -21,6 +22,7 @@ use std::sync::Arc;
 
 pub struct DefaultAreaStore {
     object_store: Arc<object_store::ObjectStore>,
+    df_object_store: Arc<dyn DFObjectStore>,
     root_path: String,
     // only visible for testing purposes
     pub(crate) file_index: Arc<FileIndex>,
@@ -36,6 +38,7 @@ impl DefaultAreaStore {
             object_store,
             root_path: buf.to_str().unwrap().to_string(),
             file_index,
+            df_object_store: Arc::new(LocalFileSystem),
         })
     }
 
@@ -57,6 +60,7 @@ impl DefaultAreaStore {
             object_store,
             root_path: format!("adls2://{}", container),
             file_index,
+            df_object_store: Arc::new(LocalFileSystem),
         })
     }
 
