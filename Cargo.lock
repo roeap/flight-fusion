@@ -1149,7 +1149,6 @@ dependencies = [
  "flight-fusion-ipc",
  "futures",
  "lazy_static",
- "log",
  "object-store",
  "observability_deps",
  "parquet-format",
@@ -1166,7 +1165,6 @@ dependencies = [
  "tokio-util 0.7.1",
  "tonic",
  "tonic-health",
- "url",
  "utime",
  "uuid",
 ]
@@ -1420,6 +1418,13 @@ checksum = "6bb81d22191b89b117cd12d6549544bfcba0da741efdcec7c7d2fd06a0f56363"
 dependencies = [
  "ahash",
  "hashbrown 0.11.2",
+]
+
+[[package]]
+name = "grpc-router"
+version = "0.1.0"
+dependencies = [
+ "prost",
 ]
 
 [[package]]
