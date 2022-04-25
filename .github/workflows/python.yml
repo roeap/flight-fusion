@@ -88,4 +88,6 @@ jobs:
 
       - name: Run python tests
         run: |
-          poetry run RUST_BACKTRACE=1 pytest -v .
+          poetry run pytest -v .
+        env:
+          RUST_BACKTRACE: !
