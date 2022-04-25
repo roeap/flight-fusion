@@ -70,9 +70,9 @@ jobs:
           virtualenvs-in-project: true
           installer-parallel: true
 
-      # - name: Install dependencies
-      #   if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      #   run: poetry install --no-interaction --no-root
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
 
       - name: Install native dependencies
         run: |
@@ -88,4 +88,6 @@ jobs:
 
       - name: Run python tests
         run: |
-          poetry run RUST_BACKTRACE=1 pytest -v .
+          poetry run pytest -v .
+        env:
+          RUST_BACKTRACE: !

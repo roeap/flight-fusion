@@ -15,6 +15,7 @@ ignoreWords:
   - addinivalue
   - betterproto
   - chrono
+  - classmethod
   - clippy
   - codegen
   - dagit
