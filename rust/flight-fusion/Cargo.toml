@@ -16,14 +16,12 @@ observability_deps = { path = "../observability-deps" }
 arrow-flight = "12"
 async-trait = "0.1"
 bytes = "1"
-chrono = "^0.4"
 config = "0.13"
 dotenv = "0.15"
 futures = "^0.3"
 lazy_static = "1.4.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
-parquet-format = "4"
 prost = "0.10"
 tokio = { version = "1", features = [
   "macros",
