@@ -1,7 +1,6 @@
 //! Abstractions and implementations for writing data to delta tables
 mod basic;
 mod cache;
-pub mod df_object_store;
 pub mod file_index;
 mod stats;
 pub mod utils;
