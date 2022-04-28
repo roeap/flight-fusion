@@ -936,7 +936,7 @@ dependencies = [
 [[package]]
 name = "deltalake"
 version = "0.4.1"
-source = "git+https://github.com/roeap/delta-rs?rev=c4be81ad480f7a02698e7c2c4bf4bc4035f097d1#c4be81ad480f7a02698e7c2c4bf4bc4035f097d1"
+source = "git+https://github.com/roeap/delta-rs?rev=493497c6f27930987a73faf64de584dcf3139eb7#493497c6f27930987a73faf64de584dcf3139eb7"
 dependencies = [
  "arrow",
  "async-trait",

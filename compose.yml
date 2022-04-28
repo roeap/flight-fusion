@@ -50,22 +50,24 @@ services:
     networks:
       - fusion
 
-  # azurite:
-  #   image: mcr.microsoft.com/azure-storage/azurite
-  #   container_name: blob
-  #   hostname: azurite
-  #   ports:
-  #     - 10000:10000
-  #     - 10001:10001
-  #   command:
-  #     - "azurite"
-  #     - "--blobHost"
-  #     - "0.0.0.0"
-  #     - "--loose"
-  #   volumes:
-  #     - azurite-storage:/data
-  #   networks:
-  #     - fusion
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: blob
+    hostname: azurite
+    ports:
+      - 10000:10000
+      - 10001:10001
+    command:
+      - "azurite"
+      - "--blobHost"
+      - "0.0.0.0"
+      - "--loose"
+    volumes:
+      - ./.flight-fusion/.azurite:/data
+    networks:
+      - fusion
+    environment:
+      AZURE_STORAGE_ACCOUNT: devstoreaccount1
 
   # pgadmin:
   #   image: dpage/pgadmin4:latest
@@ -106,8 +108,8 @@ services:
       - "--port"
       - "5000"
       - "--default-artifact-root"
-      - "/opt/mlflow/mlruns/"
-      # - "wasbs://model-container@devstoreaccount1.blob.core.windows.net"
+      # - "/opt/mlflow/mlruns/"
+      - "wasbs://mlflowr@devstoreaccount1.blob.core.windows.net"
       - "--backend-store-uri"
       - "sqlite:///mlruns.sqlite"
       # - "postgresql://postgres:postgres@postgres:5432/postgres"
