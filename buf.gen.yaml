@@ -6,12 +6,10 @@ managed:
     except:
       - buf.build/googleapis/googleapis
 plugins:
-  - name: python_betterproto
+  - remote: buf.build/mlfusion/plugins/python-betterproto:v2.0.0-2
     out: ./tmp-proto/
-  - name: ts
+  - remote: buf.build/mlfusion/plugins/ts-proto:v1.110.4-1
     out: ./typescript/vscode-fusion/src/generated
-    strategy: all
-    path: ./node_modules/ts-proto/protoc-gen-ts_proto
     opt:
       - outputServices=generic-definitions
       - useExactTypes=false
