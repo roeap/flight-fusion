@@ -103,7 +103,7 @@ class GrpcModelClient(ModelClient):
     def predict(self, table: pa.Table) -> pa.Table:
         inputs = []
         for field in table.schema:
-            data = table.column(field.name).to_pylist()
+            data = table.column(field.name).to_pylist()  # type: ignore
 
             type_key = FIELD_MAP[field.type]
             if type_key == DataTypes.float64:
@@ -198,7 +198,7 @@ class RestModelClient(ModelClient):
     def predict(self, table: pa.Table) -> pa.Table:
         inputs = []
         for field in table.schema:
-            data = table.column(field.name).to_pylist()
+            data = table.column(field.name).to_pylist()  # type: ignore
             input_tensor = {
                 "name": field.name,
                 "datatype": FIELD_MAP[field.type],
@@ -214,6 +214,6 @@ class RestModelClient(ModelClient):
         arrays = []
         for out in response_data.outputs:
             fields.append(pa.field(out.name, DATATYPE_MAP[out.datatype]))
-            arrays.append(pa.array(out.data))
+            arrays.append(pa.array(out.data))  # type: ignore
 
         return pa.Table.from_arrays(arrays, schema=pa.schema(fields))

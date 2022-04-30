@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, AnyStr, Iterator
+from typing import Any, AnyStr, Callable, Iterator
 
 import pandas as pd
 
@@ -37,6 +37,8 @@ class Field:
     def metadata(self) -> dict[str, str]: ...
     @property
     def nullable(self) -> bool: ...
+    @property
+    def type(self) -> DataType: ...
 
 class Schema:
     """
@@ -629,6 +631,42 @@ class Table:
         animals: [["Horse","Centipede"]]
         """
         ...
+    def select(self, columns: list[str] | list[int]) -> Table:
+        """
+        Select columns of the Table.
+        Returns a new Table with the specified columns, and metadata
+        preserved.
+
+        Parameters
+        ----------
+        columns : list-like
+            The column names or integer indices to select.
+
+        Returns
+        -------
+        Table
+
+        Examples
+        --------
+        >>> import pyarrow as pa
+        >>> import pandas as pd
+        >>> df = pd.DataFrame({'year': [2020, 2022, 2019, 2021],
+        ...                    'n_legs': [2, 4, 5, 100],
+        ...                    'animals': ["Flamingo", "Horse", "Brittle stars", "Centipede"]})
+        >>> table = pa.Table.from_pandas(df)
+        >>> table.select([0,1])
+        pyarrow.Table
+        year: int64
+        n_legs: int64
+        ----
+        year: [[2020,2022,2019,2021]]
+        n_legs: [[2,4,5,100]]
+        >>> table.select(["year"])
+        pyarrow.Table
+        year: int64
+        ----
+        year: [[2020,2022,2019,2021]]
+        """
     def replace_schema_metadata(self, metadata: dict[AnyStr, AnyStr] | None = None) -> Table:
         """
         Create shallow copy of table by replacing schema
@@ -741,6 +779,78 @@ class Table:
         """
         ...
     @staticmethod
+    def from_arrays(
+        arrays, names: list[str] | None = None, schema: Schema | None = None, metadata=None
+    ):
+        """
+        Construct a Table from Arrow arrays.
+        Parameters
+        ----------
+        arrays : list of pyarrow.Array or pyarrow.ChunkedArray
+            Equal-length arrays that should form the table.
+        names : list of str, optional
+            Names for the table columns. If not passed, schema must be passed.
+        schema : Schema, default None
+            Schema for the created table. If not passed, names must be passed.
+        metadata : dict or Mapping, default None
+            Optional metadata for the schema (if inferred).
+        Returns
+        -------
+        Table
+        Examples
+        --------
+        >>> import pyarrow as pa
+        >>> n_legs = pa.array([2, 4, 5, 100])
+        >>> animals = pa.array(["Flamingo", "Horse", "Brittle stars", "Centipede"])
+        >>> names = ["n_legs", "animals"]
+        Construct a Table from arrays:
+        >>> pa.Table.from_arrays([n_legs, animals], names=names)
+        pyarrow.Table
+        n_legs: int64
+        animals: string
+        ----
+        n_legs: [[2,4,5,100]]
+        animals: [["Flamingo","Horse","Brittle stars","Centipede"]]
+        Construct a Table from arrays with metadata:
+        >>> my_metadata={"n_legs": "Number of legs per animal"}
+        >>> pa.Table.from_arrays([n_legs, animals],
+        ...                       names=names,
+        ...                       metadata=my_metadata)
+        pyarrow.Table
+        n_legs: int64
+        animals: string
+        ----
+        n_legs: [[2,4,5,100]]
+        animals: [["Flamingo","Horse","Brittle stars","Centipede"]]
+        >>> pa.Table.from_arrays([n_legs, animals],
+        ...                       names=names,
+        ...                       metadata=my_metadata).schema
+        n_legs: int64
+        animals: string
+        -- schema metadata --
+        n_legs: 'Number of legs per animal'
+        Construct a Table from arrays with pyarrow schema:
+        >>> my_schema = pa.schema([
+        ...     pa.field('n_legs', pa.int64()),
+        ...     pa.field('animals', pa.string())],
+        ...     metadata={"animals": "Name of the animal species"})
+        >>> pa.Table.from_arrays([n_legs, animals],
+        ...                       schema=my_schema)
+        pyarrow.Table
+        n_legs: int64
+        animals: string
+        ----
+        n_legs: [[2,4,5,100]]
+        animals: [["Flamingo","Horse","Brittle stars","Centipede"]]
+        >>> pa.Table.from_arrays([n_legs, animals],
+        ...                       schema=my_schema).schema
+        n_legs: int64
+        animals: string
+        -- schema metadata --
+        animals: 'Name of the animal species'
+        """
+        ...
+    @staticmethod
     def from_pydict(
         mapping, schema: Schema | None = None, metadata: dict[AnyStr, AnyStr] | None = None
     ) -> Table:
@@ -826,23 +936,78 @@ class Table:
         animals: [["Flamingo","Horse","Brittle stars","Centipede"],["Flamingo","Horse","Brittle stars","Centipede"]]
         """
     @property
-    def schema(self) -> Schema:
-        """Schema of the table and its columns.
+    def num_columns(self) -> int:
+        """Number of columns
 
-        Examples:
+        Examples
         --------
         >>> import pyarrow as pa
-        >>> import pandas as pd
-        >>> df = pd.DataFrame({'n_legs': [2, 4, 5, 100],
-        ...                    'animals': ["Flamingo", "Horse", "Brittle stars", "Centipede"]})
-        >>> table = pa.Table.from_pandas(df)
-        >>> table.schema
-        n_legs: int64
-        animals: string
-        -- schema metadata --
-        pandas: '{"index_columns": [{"kind": "range", "name": null, "start": 0, "' ...
+        >>> n_legs = pa.array([2, 2, 4, 4, 5, 100])
+        >>> animals = pa.array(["Flamingo", "Parrot", "Dog", "Horse", "Brittle stars", "Centipede"])
+        >>> batch = pa.Table.from_arrays([n_legs, animals],
+        ...                                     names=["n_legs", "animals"])
+        >>> batch.num_columns
+        2
         """
         ...
+    @property
+    def num_rows(self) -> int:
+        """NNumber of rows
+
+        Due to the definition of a Table, all columns have the same
+        number of rows.
+
+        Examples
+        --------
+        >>> import pyarrow as pa
+        >>> n_legs = pa.array([2, 2, 4, 4, 5, 100])
+        >>> animals = pa.array(["Flamingo", "Parrot", "Dog", "Horse", "Brittle stars", "Centipede"])
+        >>> batch = pa.Table.from_arrays([n_legs, animals],
+        ...                                     names=["n_legs", "animals"])
+        >>> batch.num_rows
+        6
+        """
+    @property
+    def schema(self) -> Schema:
+        """Schema of the Table and its columns
+
+        Examples
+        --------
+        >>> import pyarrow as pa
+        >>> n_legs = pa.array([2, 2, 4, 4, 5, 100])
+        >>> animals = pa.array(["Flamingo", "Parrot", "Dog", "Horse", "Brittle stars", "Centipede"])
+        >>> batch = pa.Table.from_arrays([n_legs, animals],
+        ...                                     names=["n_legs", "animals"])
+        >>> batch.schema
+        n_legs: int64
+        animals: string
+        """
+        ...
+    @property
+    def nbytes(self) -> int:
+        """Total number of bytes consumed by the elements of the record batch.
+
+        In other words, the sum of bytes from all buffer ranges referenced.
+        Unlike `get_total_buffer_size` this method will account for array
+        offsets.
+        If buffers are shared between arrays then the shared
+        portion will only be counted multiple times.
+        The dictionary of dictionary arrays will always be counted in their
+        entirety even if the array only references a portion of the dictionary.
+
+        Examples
+        --------
+        >>> import pyarrow as pa
+        >>> n_legs = pa.array([2, 2, 4, 4, 5, 100])
+        >>> animals = pa.array(["Flamingo", "Parrot", "Dog", "Horse", "Brittle stars", "Centipede"])
+        >>> batch = pa.Table.from_arrays([n_legs, animals],
+        ...                                     names=["n_legs", "animals"])
+        >>> batch.nbytes
+        116
+        """
+        ...
+    def to_pandas(self) -> pd.DataFrame: ...
+    def equals(self, other: Table) -> bool: ...
 
 def field(
     name: AnyStr,

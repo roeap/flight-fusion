@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import List
 
 import pyarrow as pa
+import pyarrow.flight as pa_flight
 
-from flight_fusion.clients.service import FusionServiceClient
 from flight_fusion.ipc.v1alpha1 import (
     AreaSourceReference,
     CommandExecuteQuery,
@@ -12,11 +12,18 @@ from flight_fusion.ipc.v1alpha1 import (
     SourceCollection,
 )
 
+from .._base import BaseClient, ClientOptions
 
-class ContextClient:
-    def __init__(self, client: FusionServiceClient, sources: List[AreaSourceReference]) -> None:
+
+class ContextClient(BaseClient):
+    def __init__(
+        self,
+        sources: List[AreaSourceReference],
+        client: pa_flight.FlightClient | None = None,
+        options: ClientOptions | None = None,
+    ) -> None:
+        super().__init__(client=client, options=options)
         self._sources = sources
-        self._client = client
 
     def load(self) -> List[pa.Table]:
         raise NotImplementedError
@@ -27,4 +34,4 @@ class ContextClient:
                 query=query, collection=SourceCollection(sources=self._sources)
             )
         )
-        return self._client._do_get(command)
+        return self._do_get(command)
