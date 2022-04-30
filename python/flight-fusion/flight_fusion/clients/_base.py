@@ -4,6 +4,9 @@ from betterproto import Message
 from pydantic import BaseSettings
 
 import flight_fusion.errors as errors
+from flight_fusion.ipc.v1alpha1 import AreaSourceReference, AreaTableLocation
+
+from ..asset_key import AssetKey
 
 
 class ClientOptions(BaseSettings):
@@ -48,3 +51,9 @@ class BaseClient:
         ticket = pa_flight.Ticket(ticket=command.SerializeToString())
         reader = self._flight.do_get(ticket)
         return reader.read_all()
+
+
+def asset_key_to_source(asset_key: AssetKey) -> AreaSourceReference:
+    name = asset_key.path[-1]
+    namespace = asset_key.path[:-1]
+    return AreaSourceReference(location=AreaTableLocation(name=name, areas=namespace))

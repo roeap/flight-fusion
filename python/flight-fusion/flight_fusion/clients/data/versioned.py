@@ -6,9 +6,8 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.flight as pa_flight
 
+from flight_fusion.asset_key import AssetKey
 from flight_fusion.ipc.v1alpha1 import (
-    AreaSourceReference,
-    AreaTableLocation,
     DeltaOperationRequest,
     DeltaReadOperation,
     DeltaWriteOperation,
@@ -25,18 +24,11 @@ from ._dataset import BaseDatasetClient
 class VersionedDatasetClient(BaseDatasetClient):
     def __init__(
         self,
-        reference: AreaSourceReference,
+        asset_key: AssetKey,
         client: pa_flight.FlightClient | None = None,
         options: ClientOptions | None = None,
     ):
-        super().__init__(reference, client=client, options=options)
-
-    @classmethod
-    def from_options(cls, name: str, areas: list[str], options: ClientOptions) -> BaseDatasetClient:
-        return cls(
-            reference=AreaSourceReference(location=AreaTableLocation(name=name, areas=areas)),
-            options=options,
-        )
+        super().__init__(asset_key=asset_key, client=client, options=options)
 
     def write_into(
         self,

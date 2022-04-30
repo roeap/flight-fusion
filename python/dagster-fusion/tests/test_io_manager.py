@@ -3,6 +3,7 @@ import pytest
 from dagster import Out, ResourceDefinition, graph, op
 from dagster_fusion import flight_fusion_io_manager
 from flight_fusion import FusionServiceClient
+from flight_fusion.asset_key import AssetKey
 
 
 @pytest.fixture
@@ -17,11 +18,11 @@ def test_data():
 
 @pytest.fixture
 def test_graph(test_data):
-    @op(out={"out_a": Out(dagster_type=pa.Table)})
+    @op(out={"out_a": Out(dagster_type=pa.Table, asset_key=AssetKey(["scope", "out_a"]))})
     def solid_a(_context):
         return test_data
 
-    @op(out={"out_b": Out(dagster_type=pa.Table)})
+    @op(out={"out_b": Out(dagster_type=pa.Table, asset_key=AssetKey(["scope", "out_b"]))})
     def solid_b(_context, df):
         return df
 
@@ -34,16 +35,8 @@ def test_graph(test_data):
 
 run_config = {
     "ops": {
-        "solid_a": {
-            "outputs": {
-                "out_a": {"location": {"key": "scope/out_a"}, "save_mode": "SAVE_MODE_OVERWRITE"}
-            }
-        },
-        "solid_b": {
-            "outputs": {
-                "out_b": {"location": {"key": "scope/out_b"}, "save_mode": "SAVE_MODE_OVERWRITE"}
-            }
-        },
+        "solid_a": {"outputs": {"out_a": {"save_mode": "SAVE_MODE_OVERWRITE"}}},
+        "solid_b": {"outputs": {"out_b": {"save_mode": "SAVE_MODE_OVERWRITE"}}},
     }
 }
 
@@ -64,6 +57,6 @@ def test_graph_in_out(test_graph, test_data, fusion_client: FusionServiceClient)
 
     assert out_a.equals(test_data)
 
-    fds = fusion_client.get_dataset_client(name="out_b", areas=["scope"])
+    fds = fusion_client.get_dataset_client(AssetKey(["scope", "out_b"]))
     result_table = fds.load()
     assert result_table.equals(test_data)
