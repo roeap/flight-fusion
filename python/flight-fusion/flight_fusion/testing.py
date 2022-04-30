@@ -5,9 +5,20 @@ import time
 from pathlib import Path
 from typing import Generator
 
-import pytest
-
 from flight_fusion import ClientOptions, FusionServiceClient
+
+try:
+    import pytest
+except ImportError as err:
+    print(
+        "\033[31m"
+        f"Unable to import `{err.name}` from flight_fusion plugin! "
+        "Please ensure that you've installed flight_fusion as "
+        '`pip install "flight_fusion[dev]"` so that dev dependencies '
+        "are included."
+        "\033[0m"
+    )
+    raise SystemExit(1)
 
 
 @pytest.fixture

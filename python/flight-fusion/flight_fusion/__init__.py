@@ -1,23 +1,21 @@
 from importlib.metadata import version
 
 from .clients import (
-    AreaClient,
+    BaseDatasetClient,
     ClientOptions,
     DatasetClient,
     FusionServiceClient,
     ModelServiceClient,
-    TableClient,
 )
 from .ipc.v1alpha1 import SaveMode
 
 __version__ = version(__name__)
 
 __all__ = (
-    "AreaClient",
     "ClientOptions",
-    "DatasetClient",
+    "BaseDatasetClient",
     "FusionServiceClient",
-    "TableClient",
+    "DatasetClient",
     "ModelServiceClient",
     "SaveMode",
 )

@@ -28,7 +28,7 @@ from dagster_fusion.config import (
     table_reference_to_area_source,
 )
 from dagster_fusion.errors import MissingConfiguration
-from flight_fusion import AreaClient, DatasetClient, FusionServiceClient, TableClient
+from flight_fusion import BaseDatasetClient, DatasetClient, FusionServiceClient
 from flight_fusion.ipc.v1alpha1 import SaveMode
 
 _INPUT_CONFIG_SCHEMA = {"columns": FIELD_COLUMN_SELECTION}
@@ -57,7 +57,9 @@ class TableIOManager(IOManager):
     def __init__(self, client: FusionServiceClient) -> None:
         self._fusion = client
 
-    def _get_dataset_client(self, config: OutputConfig | InputConfig | AssetKey) -> DatasetClient:
+    def _get_dataset_client(
+        self, config: OutputConfig | InputConfig | AssetKey
+    ) -> BaseDatasetClient:
         if isinstance(config, AssetKey):
             location = TableReference(
                 source=AreaConfig(name=config.path[-1], areas=config.path[:-1])  # type: ignore
@@ -68,9 +70,8 @@ class TableIOManager(IOManager):
                 raise MissingConfiguration("Field `location` must be configured")
 
         reference = table_reference_to_area_source(location)
-
-        return TableClient(
-            client=AreaClient(client=self._fusion, areas=reference.location.areas),
+        return DatasetClient(
+            client=self._fusion._flight,
             reference=reference,
         )
 
@@ -168,7 +169,7 @@ class TableIOManager(IOManager):
 
         # determine supported return types based on the type of the downstream input
         if context.dagster_type.typing_type == pl.DataFrame:
-            return pl.from_arrow(data)
+            return pl.from_arrow(data)  # type: ignore
 
         if context.dagster_type.typing_type == pd.DataFrame:
             return data.to_pandas()
