@@ -10,7 +10,7 @@ from pydantic import BaseSettings
 from flight_fusion.ipc.v1alpha1 import AreaSourceReference, AreaTableLocation
 
 if TYPE_CHECKING:
-    from flight_fusion.clients import AreaClient, ContextClient, DatasetClient
+    from flight_fusion.clients import AreaClient, BaseDatasetClient, ContextClient
 
 
 class FlightActions:
@@ -57,23 +57,23 @@ class FusionServiceClient:
         return AreaClient(self, areas)
 
     def get_context(self, refs: Iterable[Tuple[str, List[str]]]) -> ContextClient:
-        from flight_fusion.clients.context import ContextClient
+        from flight_fusion.clients.data.context import ContextClient
 
         return ContextClient(
             client=self,
             sources=[self.get_source_reference(name, areas) for name, areas in refs],
         )
 
-    def get_dataset_client(self, name: str, areas: List[str]) -> DatasetClient:
-        from flight_fusion.clients.dataset import TableClient
+    def get_dataset_client(self, name: str, areas: List[str]) -> BaseDatasetClient:
+        from flight_fusion.clients import DatasetClient
 
-        return TableClient(
+        return DatasetClient(
             client=self.get_area_client(areas),
             reference=AreaSourceReference(location=AreaTableLocation(name=name, areas=areas)),
         )
 
-    def get_versioned_dataset_client(self, name: str, areas: List[str]) -> DatasetClient:
-        from flight_fusion.clients.dataset import VersionedDatasetClient
+    def get_versioned_dataset_client(self, name: str, areas: List[str]) -> BaseDatasetClient:
+        from flight_fusion.clients import VersionedDatasetClient
 
         return VersionedDatasetClient(
             client=self.get_area_client(areas),

@@ -1,15 +1,20 @@
 from .area import AreaClient
-from .context import ContextClient
-from .dataset import DatasetClient, TableClient, VersionedDatasetClient
-from .model_service import ModelServiceClient
+from .data import (
+    BaseDatasetClient,
+    ContextClient,
+    DatasetClient,
+    VersionedDatasetClient,
+)
+from .models import ModelServiceClient
 from .service import ClientOptions, FusionServiceClient
 
 __all__ = (
     "AreaClient",
     "ContextClient",
-    "DatasetClient",
+    "BaseDatasetClient",
     "FusionServiceClient",
     "ClientOptions",
-    "TableClient",
+    "DatasetClient",
     "ModelServiceClient",
+    "VersionedDatasetClient",
 )

@@ -28,7 +28,7 @@ from dagster_fusion.config import (
     table_reference_to_area_source,
 )
 from dagster_fusion.errors import MissingConfiguration
-from flight_fusion import AreaClient, DatasetClient, FusionServiceClient, TableClient
+from flight_fusion import AreaClient, BaseDatasetClient, FusionServiceClient, DatasetClient
 from flight_fusion.ipc.v1alpha1 import SaveMode
 
 _INPUT_CONFIG_SCHEMA = {"columns": FIELD_COLUMN_SELECTION}
@@ -57,7 +57,9 @@ class TableIOManager(IOManager):
     def __init__(self, client: FusionServiceClient) -> None:
         self._fusion = client
 
-    def _get_dataset_client(self, config: OutputConfig | InputConfig | AssetKey) -> DatasetClient:
+    def _get_dataset_client(
+        self, config: OutputConfig | InputConfig | AssetKey
+    ) -> BaseDatasetClient:
         if isinstance(config, AssetKey):
             location = TableReference(
                 source=AreaConfig(name=config.path[-1], areas=config.path[:-1])  # type: ignore
@@ -69,7 +71,7 @@ class TableIOManager(IOManager):
 
         reference = table_reference_to_area_source(location)
 
-        return TableClient(
+        return DatasetClient(
             client=AreaClient(client=self._fusion, areas=reference.location.areas),
             reference=reference,
         )

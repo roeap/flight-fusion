@@ -11,7 +11,7 @@ from flight_fusion.clients.service import (
 from flight_fusion.ipc.v1alpha1 import AreaSourceMetadata
 
 if TYPE_CHECKING:
-    from .dataset import DatasetClient
+    from .data import BaseDatasetClient
 
 
 class AreaClient:
@@ -41,10 +41,10 @@ class AreaClient:
     def areas(self) -> List[str]:
         return self.areas
 
-    def get_dataset_client(self, name: str) -> DatasetClient:
-        from flight_fusion.clients import DatasetClient
+    def get_dataset_client(self, name: str) -> BaseDatasetClient:
+        from flight_fusion.clients import BaseDatasetClient
 
-        return DatasetClient(
+        return BaseDatasetClient(
             client=self,
             reference=AreaSourceReference(location=AreaTableLocation(name=name, areas=self.areas)),
         )

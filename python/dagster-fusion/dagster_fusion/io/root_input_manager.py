@@ -8,7 +8,7 @@ from dagster_fusion.config import (
     table_reference_to_area_source,
 )
 from dagster_fusion.errors import MissingConfiguration
-from flight_fusion import AreaClient, FusionServiceClient, TableClient
+from flight_fusion import AreaClient, FusionServiceClient, DatasetClient
 
 _INPUT_CONFIG_SCHEMA = {
     "location": FIELD_LOCATION,
@@ -38,7 +38,7 @@ def flight_fusion_loader(context: TypedInputContext[InputConfig, LoaderResources
         raise MissingConfiguration("An `asset_key` or config field `location` must be configured")
 
     reference = table_reference_to_area_source(context.asset_key or location)  # type: ignore
-    client = TableClient(
+    client = DatasetClient(
         client=AreaClient(client=context.resources.fusion_client, areas=reference.location.areas),
         reference=reference,
     )

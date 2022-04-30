@@ -16,11 +16,8 @@ from flight_fusion.ipc.inference.model_repository import (
     RepositoryModelUnloadResponse,
 )
 
-from .aio import (
-    AsyncGrpcInferenceServiceClient,
-    AsyncGrpcModelRepositoryServiceClient,
-    run_async,
-)
+from ..utils import run_async
+from .aio import AsyncGrpcInferenceServiceClient, AsyncGrpcModelRepositoryServiceClient
 
 IS_WINDOWS = os.name == "nt"
 
