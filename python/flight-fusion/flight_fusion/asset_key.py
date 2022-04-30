@@ -19,33 +19,6 @@ except ImportError:
         """Object representing the structure of an asset key.  Takes in a sanitized string, list of
         strings, or tuple of strings.
 
-        Example usage:
-
-        .. code-block:: python
-
-            from dagster import op
-
-            @op
-            def emit_metadata(context, df):
-                yield AssetMaterialization(
-                    asset_key=AssetKey('flat_asset_key'),
-                    metadata={"text_metadata": "Text-based metadata for this event"},
-                )
-
-            @op
-            def structured_asset_key(context, df):
-                yield AssetMaterialization(
-                    asset_key=AssetKey(['parent', 'child', 'grandchild']),
-                    metadata={"text_metadata": "Text-based metadata for this event"},
-                )
-
-            @op
-            def structured_asset_key_2(context, df):
-                yield AssetMaterialization(
-                    asset_key=AssetKey(('parent', 'child', 'grandchild')),
-                    metadata={"text_metadata": "Text-based metadata for this event"},
-                )
-
         Args:
             path (Sequence[str]): String, list of strings, or tuple of strings.  A list of strings
                 represent the hierarchical structure of the asset_key.

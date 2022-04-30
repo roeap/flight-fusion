@@ -9,9 +9,9 @@ import pyarrow.flight as pa_flight
 from betterproto import which_one_of
 
 import flight_fusion.errors as errors
+from flight_fusion.asset_key import AssetKey
 from flight_fusion.ipc.v1alpha1 import (
     AreaSourceMetadata,
-    AreaSourceReference,
     AreaTableLocation,
     CommandExecuteQuery,
     FlightDoGetRequest,
@@ -21,19 +21,19 @@ from flight_fusion.ipc.v1alpha1 import (
     SaveMode,
 )
 
-from .._base import BaseClient, ClientOptions
+from .._base import BaseClient, ClientOptions, asset_key_to_source
 
 
 class BaseDatasetClient(BaseClient):
     def __init__(
         self,
-        reference: AreaSourceReference,
+        asset_key: AssetKey,
         client: pa_flight.FlightClient | None = None,
         options: ClientOptions | None = None,
     ):
         super().__init__(client=client, options=options)
 
-        self._reference = reference
+        self._reference = asset_key_to_source(asset_key=asset_key)
         self._client = client
         self._options = options
         self._schema = None
@@ -46,7 +46,7 @@ class BaseDatasetClient(BaseClient):
         raise errors.TableSource(f"Variant {field} not yet supported.")
 
     @property
-    def areas(self) -> List[str]:
+    def namespace(self) -> List[str]:
         field, value = which_one_of(self._reference, "table")
         if isinstance(value, AreaTableLocation):
             return value.areas

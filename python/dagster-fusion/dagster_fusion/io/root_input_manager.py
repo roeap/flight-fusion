@@ -2,18 +2,11 @@ from typing import Protocol, TypedDict
 
 from dagster import root_input_manager
 from dagster_fusion._types import TableReference, TypedInputContext
-from dagster_fusion.config import (
-    FIELD_COLUMN_SELECTION,
-    FIELD_LOCATION,
-    table_reference_to_area_source,
-)
+from dagster_fusion.config import FIELD_COLUMN_SELECTION
 from dagster_fusion.errors import MissingConfiguration
 from flight_fusion import DatasetClient, FusionServiceClient
 
-_INPUT_CONFIG_SCHEMA = {
-    "location": FIELD_LOCATION,
-    "columns": FIELD_COLUMN_SELECTION,
-}
+_INPUT_CONFIG_SCHEMA = {"columns": FIELD_COLUMN_SELECTION}
 
 
 class InputConfig(TypedDict):
@@ -30,17 +23,12 @@ class LoaderResources(Protocol):
     required_resource_keys={"fusion_client"},
 )
 def flight_fusion_loader(context: TypedInputContext[InputConfig, LoaderResources, None]):
-    location = None
-    if context.config is not None:
-        location = context.config.get("location")
+    if context.asset_key is None:
+        raise MissingConfiguration("An `asset_key` must be provided")
 
-    if location is None and context.asset_key is None:
-        raise MissingConfiguration("An `asset_key` or config field `location` must be configured")
-
-    reference = table_reference_to_area_source(context.asset_key or location)  # type: ignore
     client = DatasetClient(
         client=context.resources.fusion_client._flight,
-        reference=reference,
+        asset_key=context.asset_key,
     )
 
     return client.load()

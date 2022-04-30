@@ -14,15 +14,9 @@ from dagster import (
     TableSchema,
     io_manager,
 )
-from dagster_fusion._types import (
-    AreaConfig,
-    TableReference,
-    TypedInputContext,
-    TypedOutputContext,
-)
+from dagster_fusion._types import TableReference, TypedInputContext, TypedOutputContext
 from dagster_fusion.config import (
     FIELD_COLUMN_SELECTION,
-    FIELD_LOCATION,
     FIELD_SAVE_MODE,
     area_source_to_asset_key,
     table_reference_to_area_source,
@@ -33,10 +27,7 @@ from flight_fusion.ipc.v1alpha1 import SaveMode
 
 _INPUT_CONFIG_SCHEMA = {"columns": FIELD_COLUMN_SELECTION}
 
-_OUTPUT_CONFIG_SCHEMA = {
-    "location": FIELD_LOCATION,
-    "save_mode": FIELD_SAVE_MODE,
-}
+_OUTPUT_CONFIG_SCHEMA = {"save_mode": FIELD_SAVE_MODE}
 
 
 class InputConfig(TypedDict, total=False):
@@ -57,30 +48,18 @@ class TableIOManager(IOManager):
     def __init__(self, client: FusionServiceClient) -> None:
         self._fusion = client
 
-    def _get_dataset_client(
-        self, config: OutputConfig | InputConfig | AssetKey
-    ) -> BaseDatasetClient:
-        if isinstance(config, AssetKey):
-            location = TableReference(
-                source=AreaConfig(name=config.path[-1], areas=config.path[:-1])  # type: ignore
-            )
-        else:
-            location = config.get("location")
-            if location is None:
-                raise MissingConfiguration("Field `location` must be configured")
-
-        reference = table_reference_to_area_source(location)
-        return DatasetClient(
-            client=self._fusion._flight,
-            reference=reference,
-        )
+    def _get_dataset_client(self, asset_key: AssetKey) -> BaseDatasetClient:
+        return DatasetClient(client=self._fusion._flight, asset_key=asset_key)
 
     def handle_output(
         self,
         context: TypedOutputContext[OutputConfig, IOManagerResources],
         obj: pd.DataFrame | pa.Table | pl.DataFrame,
     ) -> Iterable[MetadataEntry]:
-        client = self._get_dataset_client(config=context.asset_key or context.config)
+        if context.asset_key is None:
+            raise MissingConfiguration("'asset_key' must be provided")
+
+        client = self._get_dataset_client(asset_key=context.asset_key)
         # TODO get save_mode from metadata
         save_mode = context.config.get("save_mode") or SaveMode.SAVE_MODE_APPEND
 
@@ -150,13 +129,11 @@ class TableIOManager(IOManager):
             InputConfig, IOManagerResources, TypedOutputContext[OutputConfig, IOManagerResources]
         ],
     ) -> pa.Table | pl.DataFrame | pd.DataFrame:
-        config = (
-            context.asset_key or context.upstream_output.asset_key or context.upstream_output.config
-        )
-        if config is None:
-            raise MissingConfiguration("Filed to get source reference")
+        asset_key = context.asset_key or context.upstream_output.asset_key
+        if asset_key is None:
+            raise MissingConfiguration("'asset_key' must be provided")
 
-        client = self._get_dataset_client(config=config)
+        client = self._get_dataset_client(asset_key=asset_key)
         data = client.load()
 
         # TODO filter columns in read request
