@@ -30,7 +30,7 @@ tokio = { version = "1", features = [
   "parking_lot",
 ] }
 tokio-util = { version = "0.7", features = ["compat"] }
-dashmap = "^5.2.0"
+dashmap = "^5.3.1"
 
 [dev-dependencies]
 tempfile = "3"
