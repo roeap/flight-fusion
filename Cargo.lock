@@ -1184,25 +1184,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "flight-fusion-client"
-version = "0.1.0"
-dependencies = [
- "arrow",
- "arrow-flight",
- "async-trait",
- "flight-fusion-ipc",
- "futures",
- "http",
- "observability_deps",
- "prost",
- "rand",
- "thiserror",
- "tokio",
- "tokio-stream",
- "tonic",
-]
-
-[[package]]
 name = "flight-fusion-ipc"
 version = "0.1.0"
 dependencies = [
