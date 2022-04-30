@@ -18,8 +18,7 @@ from flight_fusion.ipc.inference.model_repository import (
     RepositoryModelUnloadResponse,
 )
 
-from .inference import GrpcInferenceServiceClient
-from .repository import GrpcModelRepositoryServiceClient
+from .inference import GrpcInferenceServiceClient, GrpcModelRepositoryServiceClient
 
 
 class DataTypes:
