@@ -37,6 +37,7 @@ mlserver-fusion = { path = "python/mlserver-fusion/", develop = true }
 hacker-news = { path = "examples/hacker-news/", develop = true }
 model-training = { path = "examples/model-training/", develop = true }
 app = { path = "examples/app/", develop = true }
+azure-storage-blob = "^12.11.0"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"

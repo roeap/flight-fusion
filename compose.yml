@@ -1,6 +1,7 @@
 version: "3.9"
 
 services:
+  # flight fusion service is the core data access and query engine
   fusion:
     build:
       context: .
@@ -15,7 +16,8 @@ services:
     env_file:
       - .env
     volumes:
-      - "./config:/config"
+      - "./config:/opt/fusion/config"
+      - "./.flight-fusion/.fusion:/opt/fusion/.flight-fusion/.fusion"
     networks:
       - fusion
 
@@ -48,22 +50,24 @@ services:
     networks:
       - fusion
 
-  # azurite:
-  #   image: mcr.microsoft.com/azure-storage/azurite
-  #   container_name: blob
-  #   hostname: azurite
-  #   ports:
-  #     - 10000:10000
-  #     - 10001:10001
-  #   command:
-  #     - "azurite"
-  #     - "--blobHost"
-  #     - "0.0.0.0"
-  #     - "--loose"
-  #   volumes:
-  #     - azurite-storage:/data
-  #   networks:
-  #     - fusion
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: blob
+    hostname: azurite
+    ports:
+      - 10000:10000
+      - 10001:10001
+    command:
+      - "azurite"
+      - "--blobHost"
+      - "0.0.0.0"
+      - "--loose"
+    volumes:
+      - ./.flight-fusion/.azurite:/data
+    networks:
+      - fusion
+    environment:
+      AZURE_STORAGE_ACCOUNT: devstoreaccount1
 
   # pgadmin:
   #   image: dpage/pgadmin4:latest
@@ -93,9 +97,9 @@ services:
       - "5000"
     networks:
       - fusion
-    depends_on:
-      - postgres
-      - azurite
+    # depends_on:
+    #   - postgres
+    #   - azurite
     command:
       - "mlflow"
       - "server"
@@ -104,9 +108,17 @@ services:
       - "--port"
       - "5000"
       - "--default-artifact-root"
-      - "wasbs://model-container@devstoreaccount1.blob.core.windows.net"
+      # - "/opt/mlflow/mlruns/"
+      - "wasbs://mlflowr@devstoreaccount1.blob.core.windows.net"
       - "--backend-store-uri"
-      - "postgresql://postgres:postgres@postgres:5432/postgres"
+      - "sqlite:///mlruns.sqlite"
+      # - "postgresql://postgres:postgres@postgres:5432/postgres"
+    volumes:
+      - ./.flight-fusion/.mlflow:/opt/mlflow
+      # - ./.flight-fusion/.mlflow/mlruns:/opt/mlflow/mlruns
+    # environment:
+    #   - BACKEND_URI=sqlite:///mlruns.sqlite
+    #   - ARTIFACT_ROOT=mlruns
 
 networks:
   fusion:

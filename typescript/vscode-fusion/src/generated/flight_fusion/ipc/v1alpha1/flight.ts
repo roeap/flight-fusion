@@ -26,11 +26,6 @@ export interface FlightGetFlightInfoRequest {
   source: AreaSourceReference | undefined;
 }
 
-export interface FlightGetSchemaRequest {
-  /** source identifier */
-  source: AreaSourceReference | undefined;
-}
-
 /** Requests submitted against the `do_get` endpoint */
 export interface FlightDoGetRequest {
   sql: CommandSqlOperation | undefined;
@@ -132,74 +127,6 @@ export const FlightGetFlightInfoRequest = {
     object: DeepPartial<FlightGetFlightInfoRequest>
   ): FlightGetFlightInfoRequest {
     const message = createBaseFlightGetFlightInfoRequest();
-    message.source =
-      object.source !== undefined && object.source !== null
-        ? AreaSourceReference.fromPartial(object.source)
-        : undefined;
-    return message;
-  },
-};
-
-function createBaseFlightGetSchemaRequest(): FlightGetSchemaRequest {
-  return { source: undefined };
-}
-
-export const FlightGetSchemaRequest = {
-  encode(
-    message: FlightGetSchemaRequest,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.source !== undefined) {
-      AreaSourceReference.encode(
-        message.source,
-        writer.uint32(10).fork()
-      ).ldelim();
-    }
-    return writer;
-  },
-
-  decode(
-    input: _m0.Reader | Uint8Array,
-    length?: number
-  ): FlightGetSchemaRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseFlightGetSchemaRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.source = AreaSourceReference.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): FlightGetSchemaRequest {
-    return {
-      source: isSet(object.source)
-        ? AreaSourceReference.fromJSON(object.source)
-        : undefined,
-    };
-  },
-
-  toJSON(message: FlightGetSchemaRequest): unknown {
-    const obj: any = {};
-    message.source !== undefined &&
-      (obj.source = message.source
-        ? AreaSourceReference.toJSON(message.source)
-        : undefined);
-    return obj;
-  },
-
-  fromPartial(
-    object: DeepPartial<FlightGetSchemaRequest>
-  ): FlightGetSchemaRequest {
-    const message = createBaseFlightGetSchemaRequest();
     message.source =
       object.source !== undefined && object.source !== null
         ? AreaSourceReference.fromPartial(object.source)
