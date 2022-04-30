@@ -1,7 +1,7 @@
 from .area import AreaClient
 from .context import ContextClient
 from .dataset import DatasetClient, TableClient, VersionedDatasetClient
-from .model import ModelServiceClient
+from .model_service import ModelServiceClient
 from .service import ClientOptions, FusionServiceClient
 
 __all__ = (
