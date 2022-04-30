@@ -65,10 +65,6 @@ rust-check: ## Run check on Rust
 	$(info --- Check Rust format ---)
 	cargo fmt -- --check
 
-.PHONY: rust-test-integration
-rust-test-integration:
-	cargo test --package flight-fusion-client --tests --features integration
-
 gen-proto:
 	$(info --- Generating proto files ---)
 	buf generate proto/flight_fusion
