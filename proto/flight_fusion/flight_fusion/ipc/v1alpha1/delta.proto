@@ -10,8 +10,8 @@ message DeltaCreateOperation {
 
 message DeltaWriteOperation {
   SaveMode save_mode = 1;
-  repeated string partition_columns = 2;
-  string predicate = 3;
+  repeated string partition_by = 2;
+  optional string predicate = 3;
 }
 
 message DeltaReadOperation {

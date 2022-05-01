@@ -17,8 +17,8 @@ export interface DeltaCreateOperation {
 
 export interface DeltaWriteOperation {
   saveMode: SaveMode;
-  partitionColumns: string[];
-  predicate: string;
+  partitionBy: string[];
+  predicate?: string | undefined;
 }
 
 export interface DeltaReadOperation {
@@ -104,7 +104,7 @@ export const DeltaCreateOperation = {
 };
 
 function createBaseDeltaWriteOperation(): DeltaWriteOperation {
-  return { saveMode: 0, partitionColumns: [], predicate: "" };
+  return { saveMode: 0, partitionBy: [], predicate: undefined };
 }
 
 export const DeltaWriteOperation = {
@@ -115,10 +115,10 @@ export const DeltaWriteOperation = {
     if (message.saveMode !== 0) {
       writer.uint32(8).int32(message.saveMode);
     }
-    for (const v of message.partitionColumns) {
+    for (const v of message.partitionBy) {
       writer.uint32(18).string(v!);
     }
-    if (message.predicate !== "") {
+    if (message.predicate !== undefined) {
       writer.uint32(26).string(message.predicate);
     }
     return writer;
@@ -135,7 +135,7 @@ export const DeltaWriteOperation = {
           message.saveMode = reader.int32() as any;
           break;
         case 2:
-          message.partitionColumns.push(reader.string());
+          message.partitionBy.push(reader.string());
           break;
         case 3:
           message.predicate = reader.string();
@@ -151,10 +151,10 @@ export const DeltaWriteOperation = {
   fromJSON(object: any): DeltaWriteOperation {
     return {
       saveMode: isSet(object.saveMode) ? saveModeFromJSON(object.saveMode) : 0,
-      partitionColumns: Array.isArray(object?.partitionColumns)
-        ? object.partitionColumns.map((e: any) => String(e))
+      partitionBy: Array.isArray(object?.partitionBy)
+        ? object.partitionBy.map((e: any) => String(e))
         : [],
-      predicate: isSet(object.predicate) ? String(object.predicate) : "",
+      predicate: isSet(object.predicate) ? String(object.predicate) : undefined,
     };
   },
 
@@ -162,10 +162,10 @@ export const DeltaWriteOperation = {
     const obj: any = {};
     message.saveMode !== undefined &&
       (obj.saveMode = saveModeToJSON(message.saveMode));
-    if (message.partitionColumns) {
-      obj.partitionColumns = message.partitionColumns.map((e) => e);
+    if (message.partitionBy) {
+      obj.partitionBy = message.partitionBy.map((e) => e);
     } else {
-      obj.partitionColumns = [];
+      obj.partitionBy = [];
     }
     message.predicate !== undefined && (obj.predicate = message.predicate);
     return obj;
@@ -174,8 +174,8 @@ export const DeltaWriteOperation = {
   fromPartial(object: DeepPartial<DeltaWriteOperation>): DeltaWriteOperation {
     const message = createBaseDeltaWriteOperation();
     message.saveMode = object.saveMode ?? 0;
-    message.partitionColumns = object.partitionColumns?.map((e) => e) || [];
-    message.predicate = object.predicate ?? "";
+    message.partitionBy = object.partitionBy?.map((e) => e) || [];
+    message.predicate = object.predicate ?? undefined;
     return message;
   },
 };

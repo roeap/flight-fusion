@@ -26,16 +26,15 @@ class VersionedDatasetClient(BaseDatasetClient):
         partition_by: list[str] | None = None,
         predicate: str | None = None,
     ) -> ResultDoPutUpdate:
-        if predicate is not None:
-            raise NotImplementedError("Write predicates not yet implemented.")
-        if partition_by is not None:
-            raise NotImplementedError("Column partitioning not yet implemented.")
         if isinstance(data, pd.DataFrame):
             data = pa.Table.from_pandas(data)
         data = data.replace_schema_metadata({})
         command = FlightDoPutRequest(
             delta=DeltaOperationRequest(
-                source=self._reference, write=DeltaWriteOperation(save_mode=save_mode)
+                source=self._reference,
+                write=DeltaWriteOperation(
+                    save_mode=save_mode, partition_by=partition_by or [], predicate=predicate
+                ),
             )
         )
         response = self._do_put(table=data, command=command)

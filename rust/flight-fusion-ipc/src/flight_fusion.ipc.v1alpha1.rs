@@ -390,9 +390,9 @@ pub struct DeltaWriteOperation {
     #[prost(enumeration="SaveMode", tag="1")]
     pub save_mode: i32,
     #[prost(string, repeated, tag="2")]
-    pub partition_columns: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(string, tag="3")]
-    pub predicate: ::prost::alloc::string::String,
+    pub partition_by: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, optional, tag="3")]
+    pub predicate: ::core::option::Option<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeltaReadOperation {

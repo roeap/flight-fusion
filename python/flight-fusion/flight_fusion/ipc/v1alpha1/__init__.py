@@ -2,7 +2,7 @@
 # sources: flight_fusion/ipc/v1alpha1/common.proto, flight_fusion/ipc/v1alpha1/delta.proto, flight_fusion/ipc/v1alpha1/flight.proto, flight_fusion/ipc/v1alpha1/message.proto, flight_fusion/ipc/v1alpha1/signals.proto
 # plugin: python-betterproto
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import betterproto
 from betterproto.grpc.grpclib_server import ServiceBase
@@ -111,8 +111,8 @@ class DeltaCreateOperation(betterproto.Message):
 @dataclass(eq=False, repr=False)
 class DeltaWriteOperation(betterproto.Message):
     save_mode: "SaveMode" = betterproto.enum_field(1)
-    partition_columns: List[str] = betterproto.string_field(2)
-    predicate: str = betterproto.string_field(3)
+    partition_by: List[str] = betterproto.string_field(2)
+    predicate: Optional[str] = betterproto.string_field(3, optional=True, group="_predicate")
 
 
 @dataclass(eq=False, repr=False)
