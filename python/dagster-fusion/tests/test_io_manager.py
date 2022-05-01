@@ -1,6 +1,7 @@
 import pyarrow as pa
 import pytest
 from dagster import Out, ResourceDefinition, graph, op
+
 from dagster_fusion import flight_fusion_io_manager
 from flight_fusion import FusionServiceClient
 from flight_fusion.asset_key import AssetKey

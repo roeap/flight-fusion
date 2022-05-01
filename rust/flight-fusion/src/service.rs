@@ -251,17 +251,13 @@ impl FlightService for FlightFusionService {
             global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
         tracing::Span::current().set_parent(parent_cx);
 
-        let request: FlightDoGetRequest =
-            FlightDoGetRequest::decode(&mut request.into_inner().ticket.as_ref())
-                .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let request = FlightDoGetRequest::decode(&mut request.into_inner().ticket.as_ref())
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
         let result = match request.command {
             Some(op) => match op {
                 DoGetCommand::Sql(sql) => self.handle_do_get(sql).await,
                 DoGetCommand::Kql(_) => {
-                    todo!()
-                }
-                DoGetCommand::Frame(_) => {
                     todo!()
                 }
                 DoGetCommand::Read(read) => self.handle_do_get(read).await,
@@ -340,10 +336,6 @@ impl FlightService for FlightFusionService {
         let body = match request_data.action {
             Some(action) => {
                 let result_body = match action {
-                    FusionAction::Register(_register) => {
-                        todo!()
-                        // serialize_message(self.handle_do_action(register).await?)
-                    }
                     FusionAction::Drop(drop) => serialize_message(
                         self.handle_do_action(drop)
                             .await

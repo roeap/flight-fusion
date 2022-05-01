@@ -14,6 +14,7 @@ from dagster import (
     TableSchema,
     io_manager,
 )
+
 from dagster_fusion._types import TableReference, TypedInputContext, TypedOutputContext
 from dagster_fusion.config import (
     FIELD_COLUMN_SELECTION,

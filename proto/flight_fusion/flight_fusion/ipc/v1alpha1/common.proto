@@ -18,43 +18,11 @@ enum FileFormat {
   FILE_FORMAT_CSV = 3;
 }
 
-// Logical format for a dataset stored on disk
-enum DatasetFormat {
-  // A single file
-  DATASET_FORMAT_FILE = 0;
-
-  // A directory or directory hierarchy (when partitioned)
-  DATASET_FORMAT_DATASET = 1;
-
-  // Table stored in teh delta lake format (delta.io)
-  DATASET_FORMAT_DELTA = 2;
-}
-
 enum SaveMode {
   SAVE_MODE_UNSPECIFIED = 0;
   SAVE_MODE_APPEND = 1;
   SAVE_MODE_OVERWRITE = 2;
   SAVE_MODE_ERROR_IF_EXISTS = 3;
-}
-
-// Type of storage
-enum StorageType {
-  STORAGE_TYPE_UNSPECIFIED = 0;
-
-  // Local filesystem storage
-  STORAGE_TYPE_LOCAL = 1;
-
-  // Hadoop file system
-  STORAGE_TYPE_HDFS = 2;
-
-  // Azure storage account Gen2 with hierarchical namespaces
-  STORAGE_TYPE_AZURE_ADLS_V2 = 3;
-
-  // Azure storage account
-  STORAGE_TYPE_AZURE_BLOB = 4;
-
-  // AWS S3 storage
-  STORAGE_TYPE_S3 = 5;
 }
 
 message FileReference {
@@ -80,14 +48,6 @@ message EntityPath {
   repeated string path = 1;
 }
 
-message AreaReference {
-  oneof area {
-    EntityId id = 1;
-    EntityUri uri = 2;
-    EntityPath path = 3;
-  }
-}
-
 message AreaTableLocation {
   string name = 1;
   repeated string areas = 2;
@@ -110,8 +70,7 @@ message AreaSourceReference {
 }
 
 message SourceCollection {
-  repeated AreaReference areas = 1;
-  repeated AreaSourceReference sources = 2;
+  repeated AreaSourceReference sources = 1;
 }
 
 message Tag {

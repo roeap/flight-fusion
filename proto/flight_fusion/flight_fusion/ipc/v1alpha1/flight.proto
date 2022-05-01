@@ -4,6 +4,7 @@ package flight_fusion.ipc.v1alpha1;
 
 import "flight_fusion/ipc/v1alpha1/message.proto";
 import "flight_fusion/ipc/v1alpha1/common.proto";
+import "flight_fusion/ipc/v1alpha1/delta.proto";
 
 message FlightGetFlightInfoRequest {
   // source identifier
@@ -13,18 +14,20 @@ message FlightGetFlightInfoRequest {
 // Requests submitted against the `do_get` endpoint
 message FlightDoGetRequest {
   oneof command {
+    // execute an sql query
     CommandSqlOperation sql = 1;
+
+    // execute a KQL query against a registered Kusto cluster
     CommandKqlOperation kql = 2;
-    SignalFrameOperation frame = 3;
 
     // Read data from a registered source
-    CommandReadDataset read = 4;
+    CommandReadDataset read = 3;
 
     // Execute a query against a pre-defined context
-    CommandExecuteQuery query = 5;
+    CommandExecuteQuery query = 4;
 
     // Perform a read operation against Delta table
-    DeltaOperationRequest delta = 6;
+    DeltaOperationRequest delta = 5;
   }
 }
 
@@ -49,9 +52,6 @@ message FlightDoPutResponse {
 message FlightActionRequest {
   // parameters for the specific action to be executed.
   oneof action {
-    // Register a new data source to service
-    CommandRegisterSource register = 1;
-
     // command to remove a dataset from the area store
     CommandDropSource drop = 2;
 

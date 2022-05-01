@@ -20,7 +20,13 @@ class DatasetClient(BaseDatasetClient):
         self,
         data: pd.DataFrame | pa.Table,
         save_mode: SaveMode = SaveMode.SAVE_MODE_APPEND,
+        partition_by: list[str] | None = None,
+        predicate: str | None = None,
     ) -> ResultDoPutUpdate:
+        if predicate is not None:
+            raise NotImplementedError("Write predicates not yet implemented.")
+        if partition_by is not None:
+            raise NotImplementedError("Column partitioning not yet implemented.")
         if isinstance(data, pd.DataFrame):
             data = pa.Table.from_pandas(data)
         data = data.replace_schema_metadata({})

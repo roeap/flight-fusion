@@ -66,6 +66,8 @@ class BaseDatasetClient(BaseClient):
         self,
         data: pd.DataFrame | pa.Table,
         save_mode: SaveMode = SaveMode.SAVE_MODE_APPEND,
+        partition_by: list[str] | None = None,
+        predicate: str | None = None,
     ) -> ResultDoPutUpdate:
         raise NotImplementedError
 

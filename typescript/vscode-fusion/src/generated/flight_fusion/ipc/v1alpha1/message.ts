@@ -3,15 +3,11 @@ import * as Long from "long";
 import * as _m0 from "protobufjs/minimal";
 import {
   SaveMode,
-  DatasetFormat,
   AreaSourceReference,
-  AreaReference,
   SourceCollection,
   Tag,
   saveModeFromJSON,
   saveModeToJSON,
-  datasetFormatFromJSON,
-  datasetFormatToJSON,
 } from "../../../flight_fusion/ipc/v1alpha1/common";
 import { SignalFrame } from "../../../flight_fusion/ipc/v1alpha1/signals";
 
@@ -69,15 +65,8 @@ export interface CommandKqlOperation {
   query: string;
 }
 
-export interface CommandGetSchema {
-  /** source identifier */
-  source: AreaSourceReference | undefined;
-}
-
 /** List all sources defined under an area node */
 export interface CommandListSources {
-  /** reference to root area to traverse from */
-  root?: AreaReference | undefined;
   /** If true, all sources in child nodes are listed as well */
   recursive: boolean;
 }
@@ -110,13 +99,6 @@ export interface CommandWriteIntoDataset {
   saveMode: SaveMode;
 }
 
-/** Command to register a new source to service */
-export interface CommandRegisterSource {
-  format: DatasetFormat;
-  path: string;
-  name: string;
-}
-
 /** Execute a query against a given context */
 export interface CommandExecuteQuery {
   query: string;
@@ -132,38 +114,6 @@ export interface ResultActionStatus {
 
 export interface ResultDoPutUpdate {
   statistics: BatchStatistics | undefined;
-}
-
-/** Describes a signal frame operation */
-export interface SignalFrameOperation {
-  frame: SignalFrame | undefined;
-}
-
-export interface DeltaCreateOperation {
-  saveMode: SaveMode;
-}
-
-export interface DeltaWriteOperation {
-  saveMode: SaveMode;
-  partitionColumns: string[];
-  predicate: string;
-}
-
-export interface DeltaReadOperation {
-  version: string;
-  timestamp: string;
-  predicate: string;
-}
-
-export interface DeltaOperationRequest {
-  source: AreaSourceReference | undefined;
-  create: DeltaCreateOperation | undefined;
-  write: DeltaWriteOperation | undefined;
-  read: DeltaReadOperation | undefined;
-}
-
-export interface DeltaOperationResponse {
-  stats: string;
 }
 
 /** Metadata associated with an area source */
@@ -343,71 +293,8 @@ export const CommandKqlOperation = {
   },
 };
 
-function createBaseCommandGetSchema(): CommandGetSchema {
-  return { source: undefined };
-}
-
-export const CommandGetSchema = {
-  encode(
-    message: CommandGetSchema,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.source !== undefined) {
-      AreaSourceReference.encode(
-        message.source,
-        writer.uint32(10).fork()
-      ).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): CommandGetSchema {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCommandGetSchema();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.source = AreaSourceReference.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): CommandGetSchema {
-    return {
-      source: isSet(object.source)
-        ? AreaSourceReference.fromJSON(object.source)
-        : undefined,
-    };
-  },
-
-  toJSON(message: CommandGetSchema): unknown {
-    const obj: any = {};
-    message.source !== undefined &&
-      (obj.source = message.source
-        ? AreaSourceReference.toJSON(message.source)
-        : undefined);
-    return obj;
-  },
-
-  fromPartial(object: DeepPartial<CommandGetSchema>): CommandGetSchema {
-    const message = createBaseCommandGetSchema();
-    message.source =
-      object.source !== undefined && object.source !== null
-        ? AreaSourceReference.fromPartial(object.source)
-        : undefined;
-    return message;
-  },
-};
-
 function createBaseCommandListSources(): CommandListSources {
-  return { root: undefined, recursive: false };
+  return { recursive: false };
 }
 
 export const CommandListSources = {
@@ -415,11 +302,8 @@ export const CommandListSources = {
     message: CommandListSources,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.root !== undefined) {
-      AreaReference.encode(message.root, writer.uint32(10).fork()).ldelim();
-    }
     if (message.recursive === true) {
-      writer.uint32(16).bool(message.recursive);
+      writer.uint32(8).bool(message.recursive);
     }
     return writer;
   },
@@ -432,9 +316,6 @@ export const CommandListSources = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.root = AreaReference.decode(reader, reader.uint32());
-          break;
-        case 2:
           message.recursive = reader.bool();
           break;
         default:
@@ -447,29 +328,18 @@ export const CommandListSources = {
 
   fromJSON(object: any): CommandListSources {
     return {
-      root: isSet(object.root)
-        ? AreaReference.fromJSON(object.root)
-        : undefined,
       recursive: isSet(object.recursive) ? Boolean(object.recursive) : false,
     };
   },
 
   toJSON(message: CommandListSources): unknown {
     const obj: any = {};
-    message.root !== undefined &&
-      (obj.root = message.root
-        ? AreaReference.toJSON(message.root)
-        : undefined);
     message.recursive !== undefined && (obj.recursive = message.recursive);
     return obj;
   },
 
   fromPartial(object: DeepPartial<CommandListSources>): CommandListSources {
     const message = createBaseCommandListSources();
-    message.root =
-      object.root !== undefined && object.root !== null
-        ? AreaReference.fromPartial(object.root)
-        : undefined;
     message.recursive = object.recursive ?? false;
     return message;
   },
@@ -762,82 +632,6 @@ export const CommandWriteIntoDataset = {
   },
 };
 
-function createBaseCommandRegisterSource(): CommandRegisterSource {
-  return { format: 0, path: "", name: "" };
-}
-
-export const CommandRegisterSource = {
-  encode(
-    message: CommandRegisterSource,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.format !== 0) {
-      writer.uint32(8).int32(message.format);
-    }
-    if (message.path !== "") {
-      writer.uint32(18).string(message.path);
-    }
-    if (message.name !== "") {
-      writer.uint32(26).string(message.name);
-    }
-    return writer;
-  },
-
-  decode(
-    input: _m0.Reader | Uint8Array,
-    length?: number
-  ): CommandRegisterSource {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCommandRegisterSource();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.format = reader.int32() as any;
-          break;
-        case 2:
-          message.path = reader.string();
-          break;
-        case 3:
-          message.name = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): CommandRegisterSource {
-    return {
-      format: isSet(object.format) ? datasetFormatFromJSON(object.format) : 0,
-      path: isSet(object.path) ? String(object.path) : "",
-      name: isSet(object.name) ? String(object.name) : "",
-    };
-  },
-
-  toJSON(message: CommandRegisterSource): unknown {
-    const obj: any = {};
-    message.format !== undefined &&
-      (obj.format = datasetFormatToJSON(message.format));
-    message.path !== undefined && (obj.path = message.path);
-    message.name !== undefined && (obj.name = message.name);
-    return obj;
-  },
-
-  fromPartial(
-    object: DeepPartial<CommandRegisterSource>
-  ): CommandRegisterSource {
-    const message = createBaseCommandRegisterSource();
-    message.format = object.format ?? 0;
-    message.path = object.path ?? "";
-    message.name = object.name ?? "";
-    return message;
-  },
-};
-
 function createBaseCommandExecuteQuery(): CommandExecuteQuery {
   return {
     query: "",
@@ -1064,462 +858,6 @@ export const ResultDoPutUpdate = {
       object.statistics !== undefined && object.statistics !== null
         ? BatchStatistics.fromPartial(object.statistics)
         : undefined;
-    return message;
-  },
-};
-
-function createBaseSignalFrameOperation(): SignalFrameOperation {
-  return { frame: undefined };
-}
-
-export const SignalFrameOperation = {
-  encode(
-    message: SignalFrameOperation,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.frame !== undefined) {
-      SignalFrame.encode(message.frame, writer.uint32(10).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(
-    input: _m0.Reader | Uint8Array,
-    length?: number
-  ): SignalFrameOperation {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseSignalFrameOperation();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.frame = SignalFrame.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): SignalFrameOperation {
-    return {
-      frame: isSet(object.frame)
-        ? SignalFrame.fromJSON(object.frame)
-        : undefined,
-    };
-  },
-
-  toJSON(message: SignalFrameOperation): unknown {
-    const obj: any = {};
-    message.frame !== undefined &&
-      (obj.frame = message.frame
-        ? SignalFrame.toJSON(message.frame)
-        : undefined);
-    return obj;
-  },
-
-  fromPartial(object: DeepPartial<SignalFrameOperation>): SignalFrameOperation {
-    const message = createBaseSignalFrameOperation();
-    message.frame =
-      object.frame !== undefined && object.frame !== null
-        ? SignalFrame.fromPartial(object.frame)
-        : undefined;
-    return message;
-  },
-};
-
-function createBaseDeltaCreateOperation(): DeltaCreateOperation {
-  return { saveMode: 0 };
-}
-
-export const DeltaCreateOperation = {
-  encode(
-    message: DeltaCreateOperation,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.saveMode !== 0) {
-      writer.uint32(8).int32(message.saveMode);
-    }
-    return writer;
-  },
-
-  decode(
-    input: _m0.Reader | Uint8Array,
-    length?: number
-  ): DeltaCreateOperation {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseDeltaCreateOperation();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.saveMode = reader.int32() as any;
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): DeltaCreateOperation {
-    return {
-      saveMode: isSet(object.saveMode) ? saveModeFromJSON(object.saveMode) : 0,
-    };
-  },
-
-  toJSON(message: DeltaCreateOperation): unknown {
-    const obj: any = {};
-    message.saveMode !== undefined &&
-      (obj.saveMode = saveModeToJSON(message.saveMode));
-    return obj;
-  },
-
-  fromPartial(object: DeepPartial<DeltaCreateOperation>): DeltaCreateOperation {
-    const message = createBaseDeltaCreateOperation();
-    message.saveMode = object.saveMode ?? 0;
-    return message;
-  },
-};
-
-function createBaseDeltaWriteOperation(): DeltaWriteOperation {
-  return { saveMode: 0, partitionColumns: [], predicate: "" };
-}
-
-export const DeltaWriteOperation = {
-  encode(
-    message: DeltaWriteOperation,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.saveMode !== 0) {
-      writer.uint32(8).int32(message.saveMode);
-    }
-    for (const v of message.partitionColumns) {
-      writer.uint32(18).string(v!);
-    }
-    if (message.predicate !== "") {
-      writer.uint32(26).string(message.predicate);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): DeltaWriteOperation {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseDeltaWriteOperation();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.saveMode = reader.int32() as any;
-          break;
-        case 2:
-          message.partitionColumns.push(reader.string());
-          break;
-        case 3:
-          message.predicate = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): DeltaWriteOperation {
-    return {
-      saveMode: isSet(object.saveMode) ? saveModeFromJSON(object.saveMode) : 0,
-      partitionColumns: Array.isArray(object?.partitionColumns)
-        ? object.partitionColumns.map((e: any) => String(e))
-        : [],
-      predicate: isSet(object.predicate) ? String(object.predicate) : "",
-    };
-  },
-
-  toJSON(message: DeltaWriteOperation): unknown {
-    const obj: any = {};
-    message.saveMode !== undefined &&
-      (obj.saveMode = saveModeToJSON(message.saveMode));
-    if (message.partitionColumns) {
-      obj.partitionColumns = message.partitionColumns.map((e) => e);
-    } else {
-      obj.partitionColumns = [];
-    }
-    message.predicate !== undefined && (obj.predicate = message.predicate);
-    return obj;
-  },
-
-  fromPartial(object: DeepPartial<DeltaWriteOperation>): DeltaWriteOperation {
-    const message = createBaseDeltaWriteOperation();
-    message.saveMode = object.saveMode ?? 0;
-    message.partitionColumns = object.partitionColumns?.map((e) => e) || [];
-    message.predicate = object.predicate ?? "";
-    return message;
-  },
-};
-
-function createBaseDeltaReadOperation(): DeltaReadOperation {
-  return { version: "", timestamp: "", predicate: "" };
-}
-
-export const DeltaReadOperation = {
-  encode(
-    message: DeltaReadOperation,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.version !== "") {
-      writer.uint32(10).string(message.version);
-    }
-    if (message.timestamp !== "") {
-      writer.uint32(18).string(message.timestamp);
-    }
-    if (message.predicate !== "") {
-      writer.uint32(26).string(message.predicate);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): DeltaReadOperation {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseDeltaReadOperation();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.version = reader.string();
-          break;
-        case 2:
-          message.timestamp = reader.string();
-          break;
-        case 3:
-          message.predicate = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): DeltaReadOperation {
-    return {
-      version: isSet(object.version) ? String(object.version) : "",
-      timestamp: isSet(object.timestamp) ? String(object.timestamp) : "",
-      predicate: isSet(object.predicate) ? String(object.predicate) : "",
-    };
-  },
-
-  toJSON(message: DeltaReadOperation): unknown {
-    const obj: any = {};
-    message.version !== undefined && (obj.version = message.version);
-    message.timestamp !== undefined && (obj.timestamp = message.timestamp);
-    message.predicate !== undefined && (obj.predicate = message.predicate);
-    return obj;
-  },
-
-  fromPartial(object: DeepPartial<DeltaReadOperation>): DeltaReadOperation {
-    const message = createBaseDeltaReadOperation();
-    message.version = object.version ?? "";
-    message.timestamp = object.timestamp ?? "";
-    message.predicate = object.predicate ?? "";
-    return message;
-  },
-};
-
-function createBaseDeltaOperationRequest(): DeltaOperationRequest {
-  return {
-    source: undefined,
-    create: undefined,
-    write: undefined,
-    read: undefined,
-  };
-}
-
-export const DeltaOperationRequest = {
-  encode(
-    message: DeltaOperationRequest,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.source !== undefined) {
-      AreaSourceReference.encode(
-        message.source,
-        writer.uint32(10).fork()
-      ).ldelim();
-    }
-    if (message.create !== undefined) {
-      DeltaCreateOperation.encode(
-        message.create,
-        writer.uint32(82).fork()
-      ).ldelim();
-    }
-    if (message.write !== undefined) {
-      DeltaWriteOperation.encode(
-        message.write,
-        writer.uint32(90).fork()
-      ).ldelim();
-    }
-    if (message.read !== undefined) {
-      DeltaReadOperation.encode(
-        message.read,
-        writer.uint32(98).fork()
-      ).ldelim();
-    }
-    return writer;
-  },
-
-  decode(
-    input: _m0.Reader | Uint8Array,
-    length?: number
-  ): DeltaOperationRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseDeltaOperationRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.source = AreaSourceReference.decode(reader, reader.uint32());
-          break;
-        case 10:
-          message.create = DeltaCreateOperation.decode(reader, reader.uint32());
-          break;
-        case 11:
-          message.write = DeltaWriteOperation.decode(reader, reader.uint32());
-          break;
-        case 12:
-          message.read = DeltaReadOperation.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): DeltaOperationRequest {
-    return {
-      source: isSet(object.source)
-        ? AreaSourceReference.fromJSON(object.source)
-        : undefined,
-      create: isSet(object.create)
-        ? DeltaCreateOperation.fromJSON(object.create)
-        : undefined,
-      write: isSet(object.write)
-        ? DeltaWriteOperation.fromJSON(object.write)
-        : undefined,
-      read: isSet(object.read)
-        ? DeltaReadOperation.fromJSON(object.read)
-        : undefined,
-    };
-  },
-
-  toJSON(message: DeltaOperationRequest): unknown {
-    const obj: any = {};
-    message.source !== undefined &&
-      (obj.source = message.source
-        ? AreaSourceReference.toJSON(message.source)
-        : undefined);
-    message.create !== undefined &&
-      (obj.create = message.create
-        ? DeltaCreateOperation.toJSON(message.create)
-        : undefined);
-    message.write !== undefined &&
-      (obj.write = message.write
-        ? DeltaWriteOperation.toJSON(message.write)
-        : undefined);
-    message.read !== undefined &&
-      (obj.read = message.read
-        ? DeltaReadOperation.toJSON(message.read)
-        : undefined);
-    return obj;
-  },
-
-  fromPartial(
-    object: DeepPartial<DeltaOperationRequest>
-  ): DeltaOperationRequest {
-    const message = createBaseDeltaOperationRequest();
-    message.source =
-      object.source !== undefined && object.source !== null
-        ? AreaSourceReference.fromPartial(object.source)
-        : undefined;
-    message.create =
-      object.create !== undefined && object.create !== null
-        ? DeltaCreateOperation.fromPartial(object.create)
-        : undefined;
-    message.write =
-      object.write !== undefined && object.write !== null
-        ? DeltaWriteOperation.fromPartial(object.write)
-        : undefined;
-    message.read =
-      object.read !== undefined && object.read !== null
-        ? DeltaReadOperation.fromPartial(object.read)
-        : undefined;
-    return message;
-  },
-};
-
-function createBaseDeltaOperationResponse(): DeltaOperationResponse {
-  return { stats: "" };
-}
-
-export const DeltaOperationResponse = {
-  encode(
-    message: DeltaOperationResponse,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.stats !== "") {
-      writer.uint32(10).string(message.stats);
-    }
-    return writer;
-  },
-
-  decode(
-    input: _m0.Reader | Uint8Array,
-    length?: number
-  ): DeltaOperationResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseDeltaOperationResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.stats = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): DeltaOperationResponse {
-    return {
-      stats: isSet(object.stats) ? String(object.stats) : "",
-    };
-  },
-
-  toJSON(message: DeltaOperationResponse): unknown {
-    const obj: any = {};
-    message.stats !== undefined && (obj.stats = message.stats);
-    return obj;
-  },
-
-  fromPartial(
-    object: DeepPartial<DeltaOperationResponse>
-  ): DeltaOperationResponse {
-    const message = createBaseDeltaOperationResponse();
-    message.stats = object.stats ?? "";
     return message;
   },
 };

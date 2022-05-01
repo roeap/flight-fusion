@@ -37,7 +37,7 @@ impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
                         _ => todo!(),
                     };
                     delta_cmd
-                        .write(batches, mode, Some(req.partition_columns))
+                        .write(batches, mode, Some(req.partition_by))
                         .await?;
                 }
                 _ => todo!(),
@@ -103,7 +103,7 @@ mod tests {
             }),
             operation: Some(Operation::Write(DeltaWriteOperation {
                 save_mode: SaveMode::Append.into(),
-                partition_columns: vec!["modified".to_string()],
+                partition_by: vec!["modified".to_string()],
                 ..Default::default()
             })),
         };
@@ -131,7 +131,7 @@ mod tests {
             source: Some(AreaSourceReference { table: Some(table) }),
             operation: Some(Operation::Write(DeltaWriteOperation {
                 save_mode: SaveMode::Overwrite.into(),
-                partition_columns: vec!["modified".to_string()],
+                partition_by: vec!["modified".to_string()],
                 ..Default::default()
             })),
         };

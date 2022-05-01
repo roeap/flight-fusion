@@ -36,23 +36,6 @@ pub struct EntityPath {
     pub path: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct AreaReference {
-    #[prost(oneof="area_reference::Area", tags="1, 2, 3")]
-    pub area: ::core::option::Option<area_reference::Area>,
-}
-/// Nested message and enum types in `AreaReference`.
-pub mod area_reference {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Area {
-        #[prost(message, tag="1")]
-        Id(super::EntityId),
-        #[prost(message, tag="2")]
-        Uri(super::EntityUri),
-        #[prost(message, tag="3")]
-        Path(super::EntityPath),
-    }
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AreaTableLocation {
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
@@ -89,8 +72,6 @@ pub mod area_source_reference {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SourceCollection {
     #[prost(message, repeated, tag="1")]
-    pub areas: ::prost::alloc::vec::Vec<AreaReference>,
-    #[prost(message, repeated, tag="2")]
     pub sources: ::prost::alloc::vec::Vec<AreaSourceReference>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -115,17 +96,6 @@ pub enum FileFormat {
     /// Csv
     Csv = 3,
 }
-/// Logical format for a dataset stored on disk
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum DatasetFormat {
-    /// A single file
-    File = 0,
-    /// A directory or directory hierarchy (when partitioned)
-    Dataset = 1,
-    /// Table stored in teh delta lake format (delta.io)
-    Delta = 2,
-}
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum SaveMode {
@@ -133,22 +103,6 @@ pub enum SaveMode {
     Append = 1,
     Overwrite = 2,
     ErrorIfExists = 3,
-}
-/// Type of storage
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum StorageType {
-    Unspecified = 0,
-    /// Local filesystem storage
-    Local = 1,
-    /// Hadoop file system
-    Hdfs = 2,
-    /// Azure storage account Gen2 with hierarchical namespaces
-    AzureAdlsV2 = 3,
-    /// Azure storage account
-    AzureBlob = 4,
-    /// AWS S3 storage
-    S3 = 5,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ExpressionReference {
@@ -273,20 +227,11 @@ pub struct CommandKqlOperation {
 }
 // Commands
 
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CommandGetSchema {
-    /// source identifier
-    #[prost(message, optional, tag="1")]
-    pub source: ::core::option::Option<AreaSourceReference>,
-}
 /// List all sources defined under an area node
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CommandListSources {
-    /// reference to root area to traverse from
-    #[prost(message, optional, tag="1")]
-    pub root: ::core::option::Option<AreaReference>,
     /// If true, all sources in child nodes are listed as well
-    #[prost(bool, tag="2")]
+    #[prost(bool, tag="1")]
     pub recursive: bool,
 }
 /// Read entire table from storage
@@ -323,16 +268,6 @@ pub struct CommandWriteIntoDataset {
     #[prost(enumeration="SaveMode", tag="3")]
     pub save_mode: i32,
 }
-/// Command to register a new source to service
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CommandRegisterSource {
-    #[prost(enumeration="DatasetFormat", tag="1")]
-    pub format: i32,
-    #[prost(string, tag="2")]
-    pub path: ::prost::alloc::string::String,
-    #[prost(string, tag="3")]
-    pub name: ::prost::alloc::string::String,
-}
 /// Execute a query against a given context
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CommandExecuteQuery {
@@ -363,63 +298,6 @@ pub struct ResultActionStatus {
 pub struct ResultDoPutUpdate {
     #[prost(message, optional, tag="1")]
     pub statistics: ::core::option::Option<BatchStatistics>,
-}
-// Signals
-
-/// Describes a signal frame operation
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SignalFrameOperation {
-    #[prost(message, optional, tag="1")]
-    pub frame: ::core::option::Option<SignalFrame>,
-}
-// Delta
-
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeltaCreateOperation {
-    #[prost(enumeration="SaveMode", tag="1")]
-    pub save_mode: i32,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeltaWriteOperation {
-    #[prost(enumeration="SaveMode", tag="1")]
-    pub save_mode: i32,
-    #[prost(string, repeated, tag="2")]
-    pub partition_columns: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(string, tag="3")]
-    pub predicate: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeltaReadOperation {
-    #[prost(string, tag="1")]
-    pub version: ::prost::alloc::string::String,
-    #[prost(string, tag="2")]
-    pub timestamp: ::prost::alloc::string::String,
-    #[prost(string, tag="3")]
-    pub predicate: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeltaOperationRequest {
-    #[prost(message, optional, tag="1")]
-    pub source: ::core::option::Option<AreaSourceReference>,
-    #[prost(oneof="delta_operation_request::Operation", tags="10, 11, 12")]
-    pub operation: ::core::option::Option<delta_operation_request::Operation>,
-}
-/// Nested message and enum types in `DeltaOperationRequest`.
-pub mod delta_operation_request {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Operation {
-        #[prost(message, tag="10")]
-        Create(super::DeltaCreateOperation),
-        #[prost(message, tag="11")]
-        Write(super::DeltaWriteOperation),
-        #[prost(message, tag="12")]
-        Read(super::DeltaReadOperation),
-    }
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeltaOperationResponse {
-    #[prost(string, tag="1")]
-    pub stats: ::prost::alloc::string::String,
 }
 // Metadata
 
@@ -501,6 +379,55 @@ pub enum ActionStatus {
     Failure = 2,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeltaCreateOperation {
+    #[prost(enumeration="SaveMode", tag="1")]
+    pub save_mode: i32,
+    #[prost(string, tag="2")]
+    pub metadata: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeltaWriteOperation {
+    #[prost(enumeration="SaveMode", tag="1")]
+    pub save_mode: i32,
+    #[prost(string, repeated, tag="2")]
+    pub partition_by: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, optional, tag="3")]
+    pub predicate: ::core::option::Option<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeltaReadOperation {
+    #[prost(string, tag="1")]
+    pub version: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub timestamp: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub predicate: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeltaOperationRequest {
+    #[prost(message, optional, tag="1")]
+    pub source: ::core::option::Option<AreaSourceReference>,
+    #[prost(oneof="delta_operation_request::Operation", tags="10, 11, 12")]
+    pub operation: ::core::option::Option<delta_operation_request::Operation>,
+}
+/// Nested message and enum types in `DeltaOperationRequest`.
+pub mod delta_operation_request {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Operation {
+        #[prost(message, tag="10")]
+        Create(super::DeltaCreateOperation),
+        #[prost(message, tag="11")]
+        Write(super::DeltaWriteOperation),
+        #[prost(message, tag="12")]
+        Read(super::DeltaReadOperation),
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeltaOperationResponse {
+    #[prost(string, tag="1")]
+    pub stats: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightGetFlightInfoRequest {
     /// source identifier
     #[prost(message, optional, tag="1")]
@@ -509,27 +436,27 @@ pub struct FlightGetFlightInfoRequest {
 /// Requests submitted against the `do_get` endpoint
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightDoGetRequest {
-    #[prost(oneof="flight_do_get_request::Command", tags="1, 2, 3, 4, 5, 6")]
+    #[prost(oneof="flight_do_get_request::Command", tags="1, 2, 3, 4, 5")]
     pub command: ::core::option::Option<flight_do_get_request::Command>,
 }
 /// Nested message and enum types in `FlightDoGetRequest`.
 pub mod flight_do_get_request {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Command {
+        /// execute an sql query
         #[prost(message, tag="1")]
         Sql(super::CommandSqlOperation),
+        /// execute a KQL query against a registered Kusto cluster
         #[prost(message, tag="2")]
         Kql(super::CommandKqlOperation),
-        #[prost(message, tag="3")]
-        Frame(super::SignalFrameOperation),
         /// Read data from a registered source
-        #[prost(message, tag="4")]
+        #[prost(message, tag="3")]
         Read(super::CommandReadDataset),
         /// Execute a query against a pre-defined context
-        #[prost(message, tag="5")]
+        #[prost(message, tag="4")]
         Query(super::CommandExecuteQuery),
         /// Perform a read operation against Delta table
-        #[prost(message, tag="6")]
+        #[prost(message, tag="5")]
         Delta(super::DeltaOperationRequest),
     }
 }
@@ -569,7 +496,7 @@ pub mod flight_do_put_response {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightActionRequest {
     /// parameters for the specific action to be executed.
-    #[prost(oneof="flight_action_request::Action", tags="1, 2, 3")]
+    #[prost(oneof="flight_action_request::Action", tags="2, 3")]
     pub action: ::core::option::Option<flight_action_request::Action>,
 }
 /// Nested message and enum types in `FlightActionRequest`.
@@ -577,9 +504,6 @@ pub mod flight_action_request {
     /// parameters for the specific action to be executed.
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Action {
-        /// Register a new data source to service
-        #[prost(message, tag="1")]
-        Register(super::CommandRegisterSource),
         /// command to remove a dataset from the area store
         #[prost(message, tag="2")]
         Drop(super::CommandDropSource),
