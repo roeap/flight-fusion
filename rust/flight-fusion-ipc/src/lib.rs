@@ -22,10 +22,6 @@ impl RequestFor for CommandSetMetadata {
     type Reply = ResultActionStatus;
 }
 
-impl RequestFor for CommandRegisterSource {
-    type Reply = ResultActionStatus;
-}
-
 impl RequestFor for CommandWriteIntoDataset {
     type Reply = ResultDoPutUpdate;
 }

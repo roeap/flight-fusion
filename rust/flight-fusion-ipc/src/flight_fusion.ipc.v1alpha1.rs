@@ -115,17 +115,6 @@ pub enum FileFormat {
     /// Csv
     Csv = 3,
 }
-/// Logical format for a dataset stored on disk
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum DatasetFormat {
-    /// A single file
-    File = 0,
-    /// A directory or directory hierarchy (when partitioned)
-    Dataset = 1,
-    /// Table stored in teh delta lake format (delta.io)
-    Delta = 2,
-}
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum SaveMode {
@@ -322,16 +311,6 @@ pub struct CommandWriteIntoDataset {
     /// denotes how to beahve for existing data - defaults to append
     #[prost(enumeration="SaveMode", tag="3")]
     pub save_mode: i32,
-}
-/// Command to register a new source to service
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CommandRegisterSource {
-    #[prost(enumeration="DatasetFormat", tag="1")]
-    pub format: i32,
-    #[prost(string, tag="2")]
-    pub path: ::prost::alloc::string::String,
-    #[prost(string, tag="3")]
-    pub name: ::prost::alloc::string::String,
 }
 /// Execute a query against a given context
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -569,7 +548,7 @@ pub mod flight_do_put_response {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightActionRequest {
     /// parameters for the specific action to be executed.
-    #[prost(oneof="flight_action_request::Action", tags="1, 2, 3")]
+    #[prost(oneof="flight_action_request::Action", tags="2, 3")]
     pub action: ::core::option::Option<flight_action_request::Action>,
 }
 /// Nested message and enum types in `FlightActionRequest`.
@@ -577,9 +556,6 @@ pub mod flight_action_request {
     /// parameters for the specific action to be executed.
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Action {
-        /// Register a new data source to service
-        #[prost(message, tag="1")]
-        Register(super::CommandRegisterSource),
         /// command to remove a dataset from the area store
         #[prost(message, tag="2")]
         Drop(super::CommandDropSource),
