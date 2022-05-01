@@ -83,4 +83,3 @@ gen-proto:
 	rm -r tmp-proto
 	rm -r ./typescript/vscode-fusion/src/generated/scalapb
 	rm -r ./typescript/vscode-fusion/src/generated/mlflow
-	rm -r ./typescript/vscode-fusion/src/generated/arrow
