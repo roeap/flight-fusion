@@ -36,23 +36,6 @@ pub struct EntityPath {
     pub path: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct AreaReference {
-    #[prost(oneof="area_reference::Area", tags="1, 2, 3")]
-    pub area: ::core::option::Option<area_reference::Area>,
-}
-/// Nested message and enum types in `AreaReference`.
-pub mod area_reference {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Area {
-        #[prost(message, tag="1")]
-        Id(super::EntityId),
-        #[prost(message, tag="2")]
-        Uri(super::EntityUri),
-        #[prost(message, tag="3")]
-        Path(super::EntityPath),
-    }
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AreaTableLocation {
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
@@ -89,8 +72,6 @@ pub mod area_source_reference {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SourceCollection {
     #[prost(message, repeated, tag="1")]
-    pub areas: ::prost::alloc::vec::Vec<AreaReference>,
-    #[prost(message, repeated, tag="2")]
     pub sources: ::prost::alloc::vec::Vec<AreaSourceReference>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -122,22 +103,6 @@ pub enum SaveMode {
     Append = 1,
     Overwrite = 2,
     ErrorIfExists = 3,
-}
-/// Type of storage
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum StorageType {
-    Unspecified = 0,
-    /// Local filesystem storage
-    Local = 1,
-    /// Hadoop file system
-    Hdfs = 2,
-    /// Azure storage account Gen2 with hierarchical namespaces
-    AzureAdlsV2 = 3,
-    /// Azure storage account
-    AzureBlob = 4,
-    /// AWS S3 storage
-    S3 = 5,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ExpressionReference {
@@ -271,11 +236,8 @@ pub struct CommandGetSchema {
 /// List all sources defined under an area node
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CommandListSources {
-    /// reference to root area to traverse from
-    #[prost(message, optional, tag="1")]
-    pub root: ::core::option::Option<AreaReference>,
     /// If true, all sources in child nodes are listed as well
-    #[prost(bool, tag="2")]
+    #[prost(bool, tag="1")]
     pub recursive: bool,
 }
 /// Read entire table from storage

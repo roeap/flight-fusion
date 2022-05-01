@@ -4,7 +4,6 @@ import * as _m0 from "protobufjs/minimal";
 import {
   SaveMode,
   AreaSourceReference,
-  AreaReference,
   SourceCollection,
   Tag,
   saveModeFromJSON,
@@ -73,8 +72,6 @@ export interface CommandGetSchema {
 
 /** List all sources defined under an area node */
 export interface CommandListSources {
-  /** reference to root area to traverse from */
-  root?: AreaReference | undefined;
   /** If true, all sources in child nodes are listed as well */
   recursive: boolean;
 }
@@ -397,7 +394,7 @@ export const CommandGetSchema = {
 };
 
 function createBaseCommandListSources(): CommandListSources {
-  return { root: undefined, recursive: false };
+  return { recursive: false };
 }
 
 export const CommandListSources = {
@@ -405,11 +402,8 @@ export const CommandListSources = {
     message: CommandListSources,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.root !== undefined) {
-      AreaReference.encode(message.root, writer.uint32(10).fork()).ldelim();
-    }
     if (message.recursive === true) {
-      writer.uint32(16).bool(message.recursive);
+      writer.uint32(8).bool(message.recursive);
     }
     return writer;
   },
@@ -422,9 +416,6 @@ export const CommandListSources = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.root = AreaReference.decode(reader, reader.uint32());
-          break;
-        case 2:
           message.recursive = reader.bool();
           break;
         default:
@@ -437,29 +428,18 @@ export const CommandListSources = {
 
   fromJSON(object: any): CommandListSources {
     return {
-      root: isSet(object.root)
-        ? AreaReference.fromJSON(object.root)
-        : undefined,
       recursive: isSet(object.recursive) ? Boolean(object.recursive) : false,
     };
   },
 
   toJSON(message: CommandListSources): unknown {
     const obj: any = {};
-    message.root !== undefined &&
-      (obj.root = message.root
-        ? AreaReference.toJSON(message.root)
-        : undefined);
     message.recursive !== undefined && (obj.recursive = message.recursive);
     return obj;
   },
 
   fromPartial(object: DeepPartial<CommandListSources>): CommandListSources {
     const message = createBaseCommandListSources();
-    message.root =
-      object.root !== undefined && object.root !== null
-        ? AreaReference.fromPartial(object.root)
-        : undefined;
     message.recursive = object.recursive ?? false;
     return message;
   },

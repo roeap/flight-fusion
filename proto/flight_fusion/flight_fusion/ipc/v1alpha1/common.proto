@@ -25,26 +25,6 @@ enum SaveMode {
   SAVE_MODE_ERROR_IF_EXISTS = 3;
 }
 
-// Type of storage
-enum StorageType {
-  STORAGE_TYPE_UNSPECIFIED = 0;
-
-  // Local filesystem storage
-  STORAGE_TYPE_LOCAL = 1;
-
-  // Hadoop file system
-  STORAGE_TYPE_HDFS = 2;
-
-  // Azure storage account Gen2 with hierarchical namespaces
-  STORAGE_TYPE_AZURE_ADLS_V2 = 3;
-
-  // Azure storage account
-  STORAGE_TYPE_AZURE_BLOB = 4;
-
-  // AWS S3 storage
-  STORAGE_TYPE_S3 = 5;
-}
-
 message FileReference {
   string path = 1;
   FileFormat format = 2;
@@ -66,14 +46,6 @@ message EntityId {
 
 message EntityPath {
   repeated string path = 1;
-}
-
-message AreaReference {
-  oneof area {
-    EntityId id = 1;
-    EntityUri uri = 2;
-    EntityPath path = 3;
-  }
 }
 
 message AreaTableLocation {
@@ -98,8 +70,7 @@ message AreaSourceReference {
 }
 
 message SourceCollection {
-  repeated AreaReference areas = 1;
-  repeated AreaSourceReference sources = 2;
+  repeated AreaSourceReference sources = 1;
 }
 
 message Tag {

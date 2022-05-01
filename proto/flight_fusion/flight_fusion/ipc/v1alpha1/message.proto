@@ -28,11 +28,8 @@ message CommandGetSchema {
 
 // List all sources defined under an area node
 message CommandListSources {
-  // reference to root area to traverse from
-  optional AreaReference root = 1;
-
   // If true, all sources in child nodes are listed as well
-  bool recursive = 2;
+  bool recursive = 1;
 }
 
 // Read entire table from storage

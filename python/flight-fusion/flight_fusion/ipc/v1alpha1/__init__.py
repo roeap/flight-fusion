@@ -2,7 +2,7 @@
 # sources: flight_fusion/ipc/v1alpha1/common.proto, flight_fusion/ipc/v1alpha1/flight.proto, flight_fusion/ipc/v1alpha1/message.proto, flight_fusion/ipc/v1alpha1/signals.proto
 # plugin: python-betterproto
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import betterproto
 from betterproto.grpc.grpclib_server import ServiceBase
@@ -26,22 +26,6 @@ class SaveMode(betterproto.Enum):
     SAVE_MODE_APPEND = 1
     SAVE_MODE_OVERWRITE = 2
     SAVE_MODE_ERROR_IF_EXISTS = 3
-
-
-class StorageType(betterproto.Enum):
-    """Type of storage"""
-
-    STORAGE_TYPE_UNSPECIFIED = 0
-    # Local filesystem storage
-    STORAGE_TYPE_LOCAL = 1
-    # Hadoop file system
-    STORAGE_TYPE_HDFS = 2
-    # Azure storage account Gen2 with hierarchical namespaces
-    STORAGE_TYPE_AZURE_ADLS_V2 = 3
-    # Azure storage account
-    STORAGE_TYPE_AZURE_BLOB = 4
-    # AWS S3 storage
-    STORAGE_TYPE_S3 = 5
 
 
 class SignalType(betterproto.Enum):
@@ -85,13 +69,6 @@ class EntityPath(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
-class AreaReference(betterproto.Message):
-    id: "EntityId" = betterproto.message_field(1, group="area")
-    uri: "EntityUri" = betterproto.message_field(2, group="area")
-    path: "EntityPath" = betterproto.message_field(3, group="area")
-
-
-@dataclass(eq=False, repr=False)
 class AreaTableLocation(betterproto.Message):
     name: str = betterproto.string_field(1)
     areas: List[str] = betterproto.string_field(2)
@@ -116,8 +93,7 @@ class AreaSourceReference(betterproto.Message):
 
 @dataclass(eq=False, repr=False)
 class SourceCollection(betterproto.Message):
-    areas: List["AreaReference"] = betterproto.message_field(1)
-    sources: List["AreaSourceReference"] = betterproto.message_field(2)
+    sources: List["AreaSourceReference"] = betterproto.message_field(1)
 
 
 @dataclass(eq=False, repr=False)
@@ -220,10 +196,8 @@ class CommandGetSchema(betterproto.Message):
 class CommandListSources(betterproto.Message):
     """List all sources defined under an area node"""
 
-    # reference to root area to traverse from
-    root: Optional["AreaReference"] = betterproto.message_field(1, optional=True, group="_root")
     # If true, all sources in child nodes are listed as well
-    recursive: bool = betterproto.bool_field(2)
+    recursive: bool = betterproto.bool_field(1)
 
 
 @dataclass(eq=False, repr=False)

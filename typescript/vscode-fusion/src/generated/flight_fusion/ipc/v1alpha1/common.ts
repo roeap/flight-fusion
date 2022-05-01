@@ -97,68 +97,6 @@ export function saveModeToJSON(object: SaveMode): string {
   }
 }
 
-/** Type of storage */
-export enum StorageType {
-  STORAGE_TYPE_UNSPECIFIED = 0,
-  /** STORAGE_TYPE_LOCAL - Local filesystem storage */
-  STORAGE_TYPE_LOCAL = 1,
-  /** STORAGE_TYPE_HDFS - Hadoop file system */
-  STORAGE_TYPE_HDFS = 2,
-  /** STORAGE_TYPE_AZURE_ADLS_V2 - Azure storage account Gen2 with hierarchical namespaces */
-  STORAGE_TYPE_AZURE_ADLS_V2 = 3,
-  /** STORAGE_TYPE_AZURE_BLOB - Azure storage account */
-  STORAGE_TYPE_AZURE_BLOB = 4,
-  /** STORAGE_TYPE_S3 - AWS S3 storage */
-  STORAGE_TYPE_S3 = 5,
-  UNRECOGNIZED = -1,
-}
-
-export function storageTypeFromJSON(object: any): StorageType {
-  switch (object) {
-    case 0:
-    case "STORAGE_TYPE_UNSPECIFIED":
-      return StorageType.STORAGE_TYPE_UNSPECIFIED;
-    case 1:
-    case "STORAGE_TYPE_LOCAL":
-      return StorageType.STORAGE_TYPE_LOCAL;
-    case 2:
-    case "STORAGE_TYPE_HDFS":
-      return StorageType.STORAGE_TYPE_HDFS;
-    case 3:
-    case "STORAGE_TYPE_AZURE_ADLS_V2":
-      return StorageType.STORAGE_TYPE_AZURE_ADLS_V2;
-    case 4:
-    case "STORAGE_TYPE_AZURE_BLOB":
-      return StorageType.STORAGE_TYPE_AZURE_BLOB;
-    case 5:
-    case "STORAGE_TYPE_S3":
-      return StorageType.STORAGE_TYPE_S3;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return StorageType.UNRECOGNIZED;
-  }
-}
-
-export function storageTypeToJSON(object: StorageType): string {
-  switch (object) {
-    case StorageType.STORAGE_TYPE_UNSPECIFIED:
-      return "STORAGE_TYPE_UNSPECIFIED";
-    case StorageType.STORAGE_TYPE_LOCAL:
-      return "STORAGE_TYPE_LOCAL";
-    case StorageType.STORAGE_TYPE_HDFS:
-      return "STORAGE_TYPE_HDFS";
-    case StorageType.STORAGE_TYPE_AZURE_ADLS_V2:
-      return "STORAGE_TYPE_AZURE_ADLS_V2";
-    case StorageType.STORAGE_TYPE_AZURE_BLOB:
-      return "STORAGE_TYPE_AZURE_BLOB";
-    case StorageType.STORAGE_TYPE_S3:
-      return "STORAGE_TYPE_S3";
-    default:
-      return "UNKNOWN";
-  }
-}
-
 export interface FileReference {
   path: string;
   format: FileFormat;
@@ -178,12 +116,6 @@ export interface EntityId {
 
 export interface EntityPath {
   path: string[];
-}
-
-export interface AreaReference {
-  id: EntityId | undefined;
-  uri: EntityUri | undefined;
-  path: EntityPath | undefined;
 }
 
 export interface AreaTableLocation {
@@ -206,7 +138,6 @@ export interface AreaSourceReference {
 }
 
 export interface SourceCollection {
-  areas: AreaReference[];
   sources: AreaSourceReference[];
 }
 
@@ -499,88 +430,6 @@ export const EntityPath = {
   },
 };
 
-function createBaseAreaReference(): AreaReference {
-  return { id: undefined, uri: undefined, path: undefined };
-}
-
-export const AreaReference = {
-  encode(
-    message: AreaReference,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.id !== undefined) {
-      EntityId.encode(message.id, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.uri !== undefined) {
-      EntityUri.encode(message.uri, writer.uint32(18).fork()).ldelim();
-    }
-    if (message.path !== undefined) {
-      EntityPath.encode(message.path, writer.uint32(26).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): AreaReference {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseAreaReference();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.id = EntityId.decode(reader, reader.uint32());
-          break;
-        case 2:
-          message.uri = EntityUri.decode(reader, reader.uint32());
-          break;
-        case 3:
-          message.path = EntityPath.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): AreaReference {
-    return {
-      id: isSet(object.id) ? EntityId.fromJSON(object.id) : undefined,
-      uri: isSet(object.uri) ? EntityUri.fromJSON(object.uri) : undefined,
-      path: isSet(object.path) ? EntityPath.fromJSON(object.path) : undefined,
-    };
-  },
-
-  toJSON(message: AreaReference): unknown {
-    const obj: any = {};
-    message.id !== undefined &&
-      (obj.id = message.id ? EntityId.toJSON(message.id) : undefined);
-    message.uri !== undefined &&
-      (obj.uri = message.uri ? EntityUri.toJSON(message.uri) : undefined);
-    message.path !== undefined &&
-      (obj.path = message.path ? EntityPath.toJSON(message.path) : undefined);
-    return obj;
-  },
-
-  fromPartial(object: DeepPartial<AreaReference>): AreaReference {
-    const message = createBaseAreaReference();
-    message.id =
-      object.id !== undefined && object.id !== null
-        ? EntityId.fromPartial(object.id)
-        : undefined;
-    message.uri =
-      object.uri !== undefined && object.uri !== null
-        ? EntityUri.fromPartial(object.uri)
-        : undefined;
-    message.path =
-      object.path !== undefined && object.path !== null
-        ? EntityPath.fromPartial(object.path)
-        : undefined;
-    return message;
-  },
-};
-
 function createBaseAreaTableLocation(): AreaTableLocation {
   return { name: "", areas: [] };
 }
@@ -842,7 +691,7 @@ export const AreaSourceReference = {
 };
 
 function createBaseSourceCollection(): SourceCollection {
-  return { areas: [], sources: [] };
+  return { sources: [] };
 }
 
 export const SourceCollection = {
@@ -850,11 +699,8 @@ export const SourceCollection = {
     message: SourceCollection,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    for (const v of message.areas) {
-      AreaReference.encode(v!, writer.uint32(10).fork()).ldelim();
-    }
     for (const v of message.sources) {
-      AreaSourceReference.encode(v!, writer.uint32(18).fork()).ldelim();
+      AreaSourceReference.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
@@ -867,9 +713,6 @@ export const SourceCollection = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.areas.push(AreaReference.decode(reader, reader.uint32()));
-          break;
-        case 2:
           message.sources.push(
             AreaSourceReference.decode(reader, reader.uint32())
           );
@@ -884,9 +727,6 @@ export const SourceCollection = {
 
   fromJSON(object: any): SourceCollection {
     return {
-      areas: Array.isArray(object?.areas)
-        ? object.areas.map((e: any) => AreaReference.fromJSON(e))
-        : [],
       sources: Array.isArray(object?.sources)
         ? object.sources.map((e: any) => AreaSourceReference.fromJSON(e))
         : [],
@@ -895,13 +735,6 @@ export const SourceCollection = {
 
   toJSON(message: SourceCollection): unknown {
     const obj: any = {};
-    if (message.areas) {
-      obj.areas = message.areas.map((e) =>
-        e ? AreaReference.toJSON(e) : undefined
-      );
-    } else {
-      obj.areas = [];
-    }
     if (message.sources) {
       obj.sources = message.sources.map((e) =>
         e ? AreaSourceReference.toJSON(e) : undefined
@@ -914,8 +747,6 @@ export const SourceCollection = {
 
   fromPartial(object: DeepPartial<SourceCollection>): SourceCollection {
     const message = createBaseSourceCollection();
-    message.areas =
-      object.areas?.map((e) => AreaReference.fromPartial(e)) || [];
     message.sources =
       object.sources?.map((e) => AreaSourceReference.fromPartial(e)) || [];
     return message;
