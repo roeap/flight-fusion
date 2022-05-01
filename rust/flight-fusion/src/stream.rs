@@ -80,6 +80,7 @@ impl FlightReceiverPlan {
                     schema.clone(),
                     &dictionaries_by_field,
                 )
+                // TODO remove panic
                 .unwrap(),
             )
         };

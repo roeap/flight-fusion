@@ -82,8 +82,8 @@ mod tests {
     use arrow_deps::deltalake::open_table;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, delta_operation_request::Operation,
-        AreaSourceReference, AreaTableLocation, DeltaOperationRequest, DeltaWriteOperation,
-        SaveMode,
+        AreaSourceReference, AreaTableLocation, DeltaOperationRequest, DeltaReadOperation,
+        DeltaWriteOperation, SaveMode,
     };
 
     #[tokio::test]
@@ -139,5 +139,43 @@ mod tests {
         dt.update().await.unwrap();
         assert_eq!(dt.version, 2);
         assert_eq!(dt.get_file_uris().count(), 2);
+    }
+
+    #[tokio::test]
+    async fn test_read_table() {
+        let root = tempfile::tempdir().unwrap();
+        let plan = get_input_plan(None, false);
+        let handler = get_fusion_handler(root.path());
+
+        let table = TableReference::Location(AreaTableLocation {
+            name: "new_table".to_string(),
+            areas: vec![],
+        });
+        let request = DeltaOperationRequest {
+            source: Some(AreaSourceReference {
+                table: Some(table.clone()),
+            }),
+            operation: Some(Operation::Write(DeltaWriteOperation {
+                save_mode: SaveMode::Append.into(),
+                partition_by: vec!["modified".to_string()],
+                ..Default::default()
+            })),
+        };
+
+        // create table and write some data
+        let _ = handler
+            .handle_do_put(request.clone(), plan.clone())
+            .await
+            .unwrap();
+
+        let request = DeltaOperationRequest {
+            source: Some(AreaSourceReference {
+                table: Some(table.clone()),
+            }),
+            operation: Some(Operation::Read(DeltaReadOperation::default())),
+        };
+
+        // read table
+        let data = handler.handle_do_get(request).await.unwrap();
     }
 }
