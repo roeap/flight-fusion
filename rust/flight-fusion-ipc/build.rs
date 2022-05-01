@@ -10,6 +10,7 @@ fn main() -> Result<()> {
     prost_build::compile_protos(
         &[
             "../../proto/flight_fusion/flight_fusion/ipc/v1alpha1/message.proto",
+            "../../proto/flight_fusion/flight_fusion/ipc/v1alpha1/delta.proto",
             "../../proto/flight_fusion/flight_fusion/ipc/v1alpha1/signals.proto",
             "../../proto/flight_fusion/flight_fusion/ipc/v1alpha1/flight.proto",
         ],

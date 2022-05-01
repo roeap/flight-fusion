@@ -5,16 +5,15 @@ import { AreaSourceReference } from "../../../flight_fusion/ipc/v1alpha1/common"
 import {
   CommandSqlOperation,
   CommandKqlOperation,
-  SignalFrameOperation,
   CommandReadDataset,
   CommandExecuteQuery,
-  DeltaOperationRequest,
   CommandWriteIntoDataset,
   ResultDoPutUpdate,
   CommandDropSource,
   CommandSetMetadata,
   ResultActionStatus,
 } from "../../../flight_fusion/ipc/v1alpha1/message";
+import { DeltaOperationRequest } from "../../../flight_fusion/ipc/v1alpha1/delta";
 
 export const protobufPackage = "flight_fusion.ipc.v1alpha1";
 
@@ -27,9 +26,10 @@ export interface FlightGetFlightInfoRequest {
 
 /** Requests submitted against the `do_get` endpoint */
 export interface FlightDoGetRequest {
+  /** execute an sql query */
   sql: CommandSqlOperation | undefined;
+  /** execute a KQL query against a registered Kusto cluster */
   kql: CommandKqlOperation | undefined;
-  frame: SignalFrameOperation | undefined;
   /** Read data from a registered source */
   read: CommandReadDataset | undefined;
   /** Execute a query against a pre-defined context */
@@ -136,7 +136,6 @@ function createBaseFlightDoGetRequest(): FlightDoGetRequest {
   return {
     sql: undefined,
     kql: undefined,
-    frame: undefined,
     read: undefined,
     query: undefined,
     delta: undefined,
@@ -160,28 +159,22 @@ export const FlightDoGetRequest = {
         writer.uint32(18).fork()
       ).ldelim();
     }
-    if (message.frame !== undefined) {
-      SignalFrameOperation.encode(
-        message.frame,
-        writer.uint32(26).fork()
-      ).ldelim();
-    }
     if (message.read !== undefined) {
       CommandReadDataset.encode(
         message.read,
-        writer.uint32(34).fork()
+        writer.uint32(26).fork()
       ).ldelim();
     }
     if (message.query !== undefined) {
       CommandExecuteQuery.encode(
         message.query,
-        writer.uint32(42).fork()
+        writer.uint32(34).fork()
       ).ldelim();
     }
     if (message.delta !== undefined) {
       DeltaOperationRequest.encode(
         message.delta,
-        writer.uint32(50).fork()
+        writer.uint32(42).fork()
       ).ldelim();
     }
     return writer;
@@ -201,15 +194,12 @@ export const FlightDoGetRequest = {
           message.kql = CommandKqlOperation.decode(reader, reader.uint32());
           break;
         case 3:
-          message.frame = SignalFrameOperation.decode(reader, reader.uint32());
-          break;
-        case 4:
           message.read = CommandReadDataset.decode(reader, reader.uint32());
           break;
-        case 5:
+        case 4:
           message.query = CommandExecuteQuery.decode(reader, reader.uint32());
           break;
-        case 6:
+        case 5:
           message.delta = DeltaOperationRequest.decode(reader, reader.uint32());
           break;
         default:
@@ -227,9 +217,6 @@ export const FlightDoGetRequest = {
         : undefined,
       kql: isSet(object.kql)
         ? CommandKqlOperation.fromJSON(object.kql)
-        : undefined,
-      frame: isSet(object.frame)
-        ? SignalFrameOperation.fromJSON(object.frame)
         : undefined,
       read: isSet(object.read)
         ? CommandReadDataset.fromJSON(object.read)
@@ -252,10 +239,6 @@ export const FlightDoGetRequest = {
     message.kql !== undefined &&
       (obj.kql = message.kql
         ? CommandKqlOperation.toJSON(message.kql)
-        : undefined);
-    message.frame !== undefined &&
-      (obj.frame = message.frame
-        ? SignalFrameOperation.toJSON(message.frame)
         : undefined);
     message.read !== undefined &&
       (obj.read = message.read
@@ -281,10 +264,6 @@ export const FlightDoGetRequest = {
     message.kql =
       object.kql !== undefined && object.kql !== null
         ? CommandKqlOperation.fromPartial(object.kql)
-        : undefined;
-    message.frame =
-      object.frame !== undefined && object.frame !== null
-        ? SignalFrameOperation.fromPartial(object.frame)
         : undefined;
     message.read =
       object.read !== undefined && object.read !== null

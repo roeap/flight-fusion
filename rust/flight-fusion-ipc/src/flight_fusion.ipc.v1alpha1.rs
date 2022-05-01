@@ -227,12 +227,6 @@ pub struct CommandKqlOperation {
 }
 // Commands
 
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CommandGetSchema {
-    /// source identifier
-    #[prost(message, optional, tag="1")]
-    pub source: ::core::option::Option<AreaSourceReference>,
-}
 /// List all sources defined under an area node
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CommandListSources {
@@ -304,63 +298,6 @@ pub struct ResultActionStatus {
 pub struct ResultDoPutUpdate {
     #[prost(message, optional, tag="1")]
     pub statistics: ::core::option::Option<BatchStatistics>,
-}
-// Signals
-
-/// Describes a signal frame operation
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct SignalFrameOperation {
-    #[prost(message, optional, tag="1")]
-    pub frame: ::core::option::Option<SignalFrame>,
-}
-// Delta
-
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeltaCreateOperation {
-    #[prost(enumeration="SaveMode", tag="1")]
-    pub save_mode: i32,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeltaWriteOperation {
-    #[prost(enumeration="SaveMode", tag="1")]
-    pub save_mode: i32,
-    #[prost(string, repeated, tag="2")]
-    pub partition_columns: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(string, tag="3")]
-    pub predicate: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeltaReadOperation {
-    #[prost(string, tag="1")]
-    pub version: ::prost::alloc::string::String,
-    #[prost(string, tag="2")]
-    pub timestamp: ::prost::alloc::string::String,
-    #[prost(string, tag="3")]
-    pub predicate: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeltaOperationRequest {
-    #[prost(message, optional, tag="1")]
-    pub source: ::core::option::Option<AreaSourceReference>,
-    #[prost(oneof="delta_operation_request::Operation", tags="10, 11, 12")]
-    pub operation: ::core::option::Option<delta_operation_request::Operation>,
-}
-/// Nested message and enum types in `DeltaOperationRequest`.
-pub mod delta_operation_request {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Operation {
-        #[prost(message, tag="10")]
-        Create(super::DeltaCreateOperation),
-        #[prost(message, tag="11")]
-        Write(super::DeltaWriteOperation),
-        #[prost(message, tag="12")]
-        Read(super::DeltaReadOperation),
-    }
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeltaOperationResponse {
-    #[prost(string, tag="1")]
-    pub stats: ::prost::alloc::string::String,
 }
 // Metadata
 
@@ -442,6 +379,55 @@ pub enum ActionStatus {
     Failure = 2,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeltaCreateOperation {
+    #[prost(enumeration="SaveMode", tag="1")]
+    pub save_mode: i32,
+    #[prost(string, tag="2")]
+    pub metadata: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeltaWriteOperation {
+    #[prost(enumeration="SaveMode", tag="1")]
+    pub save_mode: i32,
+    #[prost(string, repeated, tag="2")]
+    pub partition_columns: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, tag="3")]
+    pub predicate: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeltaReadOperation {
+    #[prost(string, tag="1")]
+    pub version: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub timestamp: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub predicate: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeltaOperationRequest {
+    #[prost(message, optional, tag="1")]
+    pub source: ::core::option::Option<AreaSourceReference>,
+    #[prost(oneof="delta_operation_request::Operation", tags="10, 11, 12")]
+    pub operation: ::core::option::Option<delta_operation_request::Operation>,
+}
+/// Nested message and enum types in `DeltaOperationRequest`.
+pub mod delta_operation_request {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Operation {
+        #[prost(message, tag="10")]
+        Create(super::DeltaCreateOperation),
+        #[prost(message, tag="11")]
+        Write(super::DeltaWriteOperation),
+        #[prost(message, tag="12")]
+        Read(super::DeltaReadOperation),
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeltaOperationResponse {
+    #[prost(string, tag="1")]
+    pub stats: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightGetFlightInfoRequest {
     /// source identifier
     #[prost(message, optional, tag="1")]
@@ -450,27 +436,27 @@ pub struct FlightGetFlightInfoRequest {
 /// Requests submitted against the `do_get` endpoint
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FlightDoGetRequest {
-    #[prost(oneof="flight_do_get_request::Command", tags="1, 2, 3, 4, 5, 6")]
+    #[prost(oneof="flight_do_get_request::Command", tags="1, 2, 3, 4, 5")]
     pub command: ::core::option::Option<flight_do_get_request::Command>,
 }
 /// Nested message and enum types in `FlightDoGetRequest`.
 pub mod flight_do_get_request {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Command {
+        /// execute an sql query
         #[prost(message, tag="1")]
         Sql(super::CommandSqlOperation),
+        /// execute a KQL query against a registered Kusto cluster
         #[prost(message, tag="2")]
         Kql(super::CommandKqlOperation),
-        #[prost(message, tag="3")]
-        Frame(super::SignalFrameOperation),
         /// Read data from a registered source
-        #[prost(message, tag="4")]
+        #[prost(message, tag="3")]
         Read(super::CommandReadDataset),
         /// Execute a query against a pre-defined context
-        #[prost(message, tag="5")]
+        #[prost(message, tag="4")]
         Query(super::CommandExecuteQuery),
         /// Perform a read operation against Delta table
-        #[prost(message, tag="6")]
+        #[prost(message, tag="5")]
         Delta(super::DeltaOperationRequest),
     }
 }

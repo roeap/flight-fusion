@@ -21,11 +21,6 @@ message CommandKqlOperation {
 
 // Commands
 
-message CommandGetSchema {
-  // source identifier
-  AreaSourceReference source = 1;
-}
-
 // List all sources defined under an area node
 message CommandListSources {
   // If true, all sources in child nodes are listed as well
@@ -87,44 +82,6 @@ message ResultActionStatus {
 
 message ResultDoPutUpdate {
   BatchStatistics statistics = 1;
-}
-
-// Signals
-
-// Describes a signal frame operation
-message SignalFrameOperation {
-  SignalFrame frame = 1;
-}
-
-// Delta
-
-message DeltaCreateOperation {
-  SaveMode save_mode = 1;
-}
-
-message DeltaWriteOperation {
-  SaveMode save_mode = 1;
-  repeated string partition_columns = 2;
-  string predicate = 3;
-}
-
-message DeltaReadOperation {
-  string version = 1;
-  string timestamp = 2;
-  string predicate = 3;
-}
-
-message DeltaOperationRequest {
-  AreaSourceReference source = 1;
-  oneof operation {
-    DeltaCreateOperation create = 10;
-    DeltaWriteOperation write = 11;
-    DeltaReadOperation read = 12;
-  }
-}
-
-message DeltaOperationResponse {
-  string stats = 1;
 }
 
 // Metadata

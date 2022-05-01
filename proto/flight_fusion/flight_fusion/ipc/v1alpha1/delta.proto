@@ -1,0 +1,34 @@
+syntax = "proto3";
+package flight_fusion.ipc.v1alpha1;
+
+import "flight_fusion/ipc/v1alpha1/common.proto";
+
+message DeltaCreateOperation {
+  SaveMode save_mode = 1;
+  string metadata = 2;
+}
+
+message DeltaWriteOperation {
+  SaveMode save_mode = 1;
+  repeated string partition_columns = 2;
+  string predicate = 3;
+}
+
+message DeltaReadOperation {
+  string version = 1;
+  string timestamp = 2;
+  string predicate = 3;
+}
+
+message DeltaOperationRequest {
+  AreaSourceReference source = 1;
+  oneof operation {
+    DeltaCreateOperation create = 10;
+    DeltaWriteOperation write = 11;
+    DeltaReadOperation read = 12;
+  }
+}
+
+message DeltaOperationResponse {
+  string stats = 1;
+}
