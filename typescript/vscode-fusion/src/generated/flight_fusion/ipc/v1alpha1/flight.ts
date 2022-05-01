@@ -11,7 +11,6 @@ import {
   DeltaOperationRequest,
   CommandWriteIntoDataset,
   ResultDoPutUpdate,
-  CommandRegisterSource,
   CommandDropSource,
   CommandSetMetadata,
   ResultActionStatus,
@@ -54,8 +53,6 @@ export interface FlightDoPutResponse {
 
 /** Requests submitted against the `do_action` endpoint */
 export interface FlightActionRequest {
-  /** Register a new data source to service */
-  register: CommandRegisterSource | undefined;
   /** command to remove a dataset from the area store */
   drop: CommandDropSource | undefined;
   /** Set the metadata for a data source */
@@ -455,7 +452,7 @@ export const FlightDoPutResponse = {
 };
 
 function createBaseFlightActionRequest(): FlightActionRequest {
-  return { register: undefined, drop: undefined, setMeta: undefined };
+  return { drop: undefined, setMeta: undefined };
 }
 
 export const FlightActionRequest = {
@@ -463,12 +460,6 @@ export const FlightActionRequest = {
     message: FlightActionRequest,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.register !== undefined) {
-      CommandRegisterSource.encode(
-        message.register,
-        writer.uint32(10).fork()
-      ).ldelim();
-    }
     if (message.drop !== undefined) {
       CommandDropSource.encode(message.drop, writer.uint32(18).fork()).ldelim();
     }
@@ -488,12 +479,6 @@ export const FlightActionRequest = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
-          message.register = CommandRegisterSource.decode(
-            reader,
-            reader.uint32()
-          );
-          break;
         case 2:
           message.drop = CommandDropSource.decode(reader, reader.uint32());
           break;
@@ -510,9 +495,6 @@ export const FlightActionRequest = {
 
   fromJSON(object: any): FlightActionRequest {
     return {
-      register: isSet(object.register)
-        ? CommandRegisterSource.fromJSON(object.register)
-        : undefined,
       drop: isSet(object.drop)
         ? CommandDropSource.fromJSON(object.drop)
         : undefined,
@@ -524,10 +506,6 @@ export const FlightActionRequest = {
 
   toJSON(message: FlightActionRequest): unknown {
     const obj: any = {};
-    message.register !== undefined &&
-      (obj.register = message.register
-        ? CommandRegisterSource.toJSON(message.register)
-        : undefined);
     message.drop !== undefined &&
       (obj.drop = message.drop
         ? CommandDropSource.toJSON(message.drop)
@@ -541,10 +519,6 @@ export const FlightActionRequest = {
 
   fromPartial(object: DeepPartial<FlightActionRequest>): FlightActionRequest {
     const message = createBaseFlightActionRequest();
-    message.register =
-      object.register !== undefined && object.register !== null
-        ? CommandRegisterSource.fromPartial(object.register)
-        : undefined;
     message.drop =
       object.drop !== undefined && object.drop !== null
         ? CommandDropSource.fromPartial(object.drop)

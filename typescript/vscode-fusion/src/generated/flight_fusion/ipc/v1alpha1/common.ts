@@ -53,48 +53,6 @@ export function fileFormatToJSON(object: FileFormat): string {
   }
 }
 
-/** Logical format for a dataset stored on disk */
-export enum DatasetFormat {
-  /** DATASET_FORMAT_FILE - A single file */
-  DATASET_FORMAT_FILE = 0,
-  /** DATASET_FORMAT_DATASET - A directory or directory hierarchy (when partitioned) */
-  DATASET_FORMAT_DATASET = 1,
-  /** DATASET_FORMAT_DELTA - Table stored in teh delta lake format (delta.io) */
-  DATASET_FORMAT_DELTA = 2,
-  UNRECOGNIZED = -1,
-}
-
-export function datasetFormatFromJSON(object: any): DatasetFormat {
-  switch (object) {
-    case 0:
-    case "DATASET_FORMAT_FILE":
-      return DatasetFormat.DATASET_FORMAT_FILE;
-    case 1:
-    case "DATASET_FORMAT_DATASET":
-      return DatasetFormat.DATASET_FORMAT_DATASET;
-    case 2:
-    case "DATASET_FORMAT_DELTA":
-      return DatasetFormat.DATASET_FORMAT_DELTA;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return DatasetFormat.UNRECOGNIZED;
-  }
-}
-
-export function datasetFormatToJSON(object: DatasetFormat): string {
-  switch (object) {
-    case DatasetFormat.DATASET_FORMAT_FILE:
-      return "DATASET_FORMAT_FILE";
-    case DatasetFormat.DATASET_FORMAT_DATASET:
-      return "DATASET_FORMAT_DATASET";
-    case DatasetFormat.DATASET_FORMAT_DELTA:
-      return "DATASET_FORMAT_DELTA";
-    default:
-      return "UNKNOWN";
-  }
-}
-
 export enum SaveMode {
   SAVE_MODE_UNSPECIFIED = 0,
   SAVE_MODE_APPEND = 1,

@@ -18,18 +18,6 @@ enum FileFormat {
   FILE_FORMAT_CSV = 3;
 }
 
-// Logical format for a dataset stored on disk
-enum DatasetFormat {
-  // A single file
-  DATASET_FORMAT_FILE = 0;
-
-  // A directory or directory hierarchy (when partitioned)
-  DATASET_FORMAT_DATASET = 1;
-
-  // Table stored in teh delta lake format (delta.io)
-  DATASET_FORMAT_DELTA = 2;
-}
-
 enum SaveMode {
   SAVE_MODE_UNSPECIFIED = 0;
   SAVE_MODE_APPEND = 1;

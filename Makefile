@@ -41,17 +41,18 @@ python-develop: ## Run check on Python
 	maturin develop -m python/flight-fusion-server/Cargo.toml --extras=devel $(MATURIN_EXTRA_ARGS)
 	maturin develop -m python/arrow-adx/Cargo.toml --extras=devel $(MATURIN_EXTRA_ARGS)
 
+.PHONY: python-build
+python-build: ## Build Python binding of flight fusion
+	$(info --- Build Python binding ---)
+	maturin build -m python/flight-fusion-server/Cargo.toml --release --no-sdist --strip
+	maturin build -m python/arrow-adx/Cargo.toml --release --no-sdist --strip
+
 .PHONY: python-check
 python-check: ## Run check on Python
 	$(info Check Python black)
 	black --check .
 	$(info Check Python pyright)
 	pyright python/
-
-.PHONY: python-build
-python-build: ## Build Python binding of flight fusion
-	$(info --- Build Python binding ---)
-	cd python/flight-fusion && maturin build --release --no-sdist --strip
 
 .PHONY: python-test
 python-test: ## Run check on Rust
@@ -75,8 +76,11 @@ gen-proto:
 	rsync -a tmp-proto/flight_fusion/ipc/v1alpha1/ python/flight-fusion/flight_fusion/ipc/v1alpha1/
 	rsync -a tmp-proto/inference/ python/flight-fusion/flight_fusion/ipc/inference/
 	rsync -a tmp-proto/mlflow/ python/flight-fusion/flight_fusion/ipc/mlflow/
-	black ./python/flight-fusion/flight_fusion/ipc --line-length 100
-	isort ./python/flight-fusion/flight_fusion/ipc
+	black .
+	isort .
 
 	$(info --- Cleanup ---)
 	rm -r tmp-proto
+	rm -r ./typescript/vscode-fusion/src/generated/scalapb
+	rm -r ./typescript/vscode-fusion/src/generated/mlflow
+	rm -r ./typescript/vscode-fusion/src/generated/arrow

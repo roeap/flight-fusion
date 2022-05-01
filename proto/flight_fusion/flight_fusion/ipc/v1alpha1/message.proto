@@ -65,13 +65,6 @@ message CommandWriteIntoDataset {
   SaveMode save_mode = 3;
 }
 
-// Command to register a new source to service
-message CommandRegisterSource {
-  DatasetFormat format = 1;
-  string path = 2;
-  string name = 3;
-}
-
 // Execute a query against a given context
 message CommandExecuteQuery {
   string query = 1;

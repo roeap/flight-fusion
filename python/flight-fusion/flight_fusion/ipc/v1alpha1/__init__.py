@@ -21,17 +21,6 @@ class FileFormat(betterproto.Enum):
     FILE_FORMAT_CSV = 3
 
 
-class DatasetFormat(betterproto.Enum):
-    """Logical format for a dataset stored on disk"""
-
-    # A single file
-    DATASET_FORMAT_FILE = 0
-    # A directory or directory hierarchy (when partitioned)
-    DATASET_FORMAT_DATASET = 1
-    # Table stored in teh delta lake format (delta.io)
-    DATASET_FORMAT_DELTA = 2
-
-
 class SaveMode(betterproto.Enum):
     SAVE_MODE_UNSPECIFIED = 0
     SAVE_MODE_APPEND = 1
@@ -274,15 +263,6 @@ class CommandWriteIntoDataset(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
-class CommandRegisterSource(betterproto.Message):
-    """Command to register a new source to service"""
-
-    format: "DatasetFormat" = betterproto.enum_field(1)
-    path: str = betterproto.string_field(2)
-    name: str = betterproto.string_field(3)
-
-
-@dataclass(eq=False, repr=False)
 class CommandExecuteQuery(betterproto.Message):
     """Execute a query against a given context"""
 
@@ -450,8 +430,6 @@ class FlightDoPutResponse(betterproto.Message):
 class FlightActionRequest(betterproto.Message):
     """Requests submitted against the `do_action` endpoint"""
 
-    # Register a new data source to service
-    register: "CommandRegisterSource" = betterproto.message_field(1, group="action")
     # command to remove a dataset from the area store
     drop: "CommandDropSource" = betterproto.message_field(2, group="action")
     # Set the metadata for a data source

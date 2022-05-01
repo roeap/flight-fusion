@@ -49,9 +49,6 @@ message FlightDoPutResponse {
 message FlightActionRequest {
   // parameters for the specific action to be executed.
   oneof action {
-    // Register a new data source to service
-    CommandRegisterSource register = 1;
-
     // command to remove a dataset from the area store
     CommandDropSource drop = 2;
 

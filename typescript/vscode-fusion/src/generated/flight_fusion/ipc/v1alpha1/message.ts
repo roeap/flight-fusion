@@ -3,15 +3,12 @@ import * as Long from "long";
 import * as _m0 from "protobufjs/minimal";
 import {
   SaveMode,
-  DatasetFormat,
   AreaSourceReference,
   AreaReference,
   SourceCollection,
   Tag,
   saveModeFromJSON,
   saveModeToJSON,
-  datasetFormatFromJSON,
-  datasetFormatToJSON,
 } from "../../../flight_fusion/ipc/v1alpha1/common";
 import { SignalFrame } from "../../../flight_fusion/ipc/v1alpha1/signals";
 
@@ -108,13 +105,6 @@ export interface CommandWriteIntoDataset {
   source: AreaSourceReference | undefined;
   /** denotes how to beahve for existing data - defaults to append */
   saveMode: SaveMode;
-}
-
-/** Command to register a new source to service */
-export interface CommandRegisterSource {
-  format: DatasetFormat;
-  path: string;
-  name: string;
 }
 
 /** Execute a query against a given context */
@@ -758,82 +748,6 @@ export const CommandWriteIntoDataset = {
         ? AreaSourceReference.fromPartial(object.source)
         : undefined;
     message.saveMode = object.saveMode ?? 0;
-    return message;
-  },
-};
-
-function createBaseCommandRegisterSource(): CommandRegisterSource {
-  return { format: 0, path: "", name: "" };
-}
-
-export const CommandRegisterSource = {
-  encode(
-    message: CommandRegisterSource,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.format !== 0) {
-      writer.uint32(8).int32(message.format);
-    }
-    if (message.path !== "") {
-      writer.uint32(18).string(message.path);
-    }
-    if (message.name !== "") {
-      writer.uint32(26).string(message.name);
-    }
-    return writer;
-  },
-
-  decode(
-    input: _m0.Reader | Uint8Array,
-    length?: number
-  ): CommandRegisterSource {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCommandRegisterSource();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.format = reader.int32() as any;
-          break;
-        case 2:
-          message.path = reader.string();
-          break;
-        case 3:
-          message.name = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): CommandRegisterSource {
-    return {
-      format: isSet(object.format) ? datasetFormatFromJSON(object.format) : 0,
-      path: isSet(object.path) ? String(object.path) : "",
-      name: isSet(object.name) ? String(object.name) : "",
-    };
-  },
-
-  toJSON(message: CommandRegisterSource): unknown {
-    const obj: any = {};
-    message.format !== undefined &&
-      (obj.format = datasetFormatToJSON(message.format));
-    message.path !== undefined && (obj.path = message.path);
-    message.name !== undefined && (obj.name = message.name);
-    return obj;
-  },
-
-  fromPartial(
-    object: DeepPartial<CommandRegisterSource>
-  ): CommandRegisterSource {
-    const message = createBaseCommandRegisterSource();
-    message.format = object.format ?? 0;
-    message.path = object.path ?? "";
-    message.name = object.name ?? "";
     return message;
   },
 };
