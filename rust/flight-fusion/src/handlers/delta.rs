@@ -79,12 +79,31 @@ impl DoGetHandler<DeltaOperationRequest> for FlightFusionService {
 mod tests {
     use super::*;
     use crate::test_utils::{get_fusion_handler, get_input_plan};
+    use arrow_deps::arrow::{
+        datatypes::{Schema, SchemaRef},
+        record_batch::RecordBatch,
+    };
+    use arrow_deps::arrow_flight::FlightData;
     use arrow_deps::deltalake::open_table;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, delta_operation_request::Operation,
         AreaSourceReference, AreaTableLocation, DeltaOperationRequest, DeltaReadOperation,
         DeltaWriteOperation, SaveMode,
     };
+    use futures::StreamExt;
+
+    fn flight_data_to_arrow_batch(flight_data: FlightData, schema: SchemaRef) -> Arc<RecordBatch> {
+        let dictionaries_by_field = vec![None; schema.fields().len()];
+        Arc::new(
+            arrow_flight::utils::flight_data_to_arrow_batch(
+                &flight_data,
+                schema.clone(),
+                &dictionaries_by_field,
+            )
+            // TODO remove panic
+            .unwrap(),
+        )
+    }
 
     #[tokio::test]
     async fn test_put_append_overwrite() {
@@ -176,6 +195,14 @@ mod tests {
         };
 
         // read table
-        let data = handler.handle_do_get(request).await.unwrap();
+        let mut data = handler.handle_do_get(request).await.unwrap();
+
+        let schema = Arc::new(Schema::try_from(&data.next().await.unwrap().unwrap()).unwrap());
+        let batches = data
+            .map(|d| flight_data_to_arrow_batch(d.unwrap(), schema.clone()))
+            .collect::<Vec<_>>()
+            .await;
+
+        assert_eq!(batches.len(), 2)
     }
 }

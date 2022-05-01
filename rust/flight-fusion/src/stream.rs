@@ -200,6 +200,7 @@ impl Stream for FlightTonicRecordBatchStream {
                     schema,
                     &dictionaries_by_field,
                 )
+                // TODO remove panic
                 .unwrap();
                 Poll::Ready(Some(Ok(batch)))
             }
