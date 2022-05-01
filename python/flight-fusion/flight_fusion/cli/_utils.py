@@ -2,7 +2,6 @@ import subprocess  # nosec
 from pathlib import Path
 from typing import Dict, Optional
 
-import toml
 import yaml
 from typer import get_app_dir
 
@@ -37,12 +36,6 @@ def _read_config_data(app_root: Path) -> Dict:
             with path.open(encoding="utf-8") as f_:
                 return yaml.safe_load(f_)
 
-    for suffix in ["toml"]:
-        path = app_root / f"{_CONFIG_FILE_STEM}.{suffix}"
-        if path.exists():
-            with path.open(encoding="utf-8") as f_:
-                return toml.load(f_)  # type: ignore
-
     raise FlightFusionError("Unsupported file format for config file")
 
 
@@ -73,5 +66,5 @@ def get_app_directory() -> Path:
     if directory is not None and directory.exists():
         return directory
 
+    # TODO return get_global_directory()
     raise NotImplementedError("Global dir not supported yet.")
-    return get_global_directory()
