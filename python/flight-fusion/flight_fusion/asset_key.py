@@ -27,8 +27,6 @@ except ImportError:
         def __new__(cls, path: Sequence[str]):
             if isinstance(path, str):
                 path = [path]
-            else:
-                path = path
 
             return super(AssetKey, cls).__new__(cls, path=path)  # type: ignore
 
