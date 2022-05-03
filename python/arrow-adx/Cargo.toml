@@ -11,7 +11,7 @@ license = "MIT"
 azure-kusto-data = { git = "https://github.com/Azure/azure-kusto-rust", rev = "a43fe73b7cda51e358540e9ec33bc07bccaf6cd6", features = [
   "arrow",
 ] }
-tokio = { version = "1.0", features = [
+tokio = { version = "1.18", features = [
   "macros",
   "rt",
   "rt-multi-thread",
