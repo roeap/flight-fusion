@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mlflow.fullname" . }}
+  labels:
+    {{- include "mlflow.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "mlflow.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "mlflow.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "mlflow.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.initContainers }}
+      initContainers: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["mlflow"]
+          args:
+            - server
+            - --host=0.0.0.0
+            - --port=5000
+          {{- if .Values.backendStore.postgres.enabled }}
+            - --backend-store-uri=postgresql://
+          {{- else }}
+            - --backend-store-uri=sqlite:///:memory
+          {{- end }}
+          {{- if .Values.artifactRoot.azureBlob.enabled }}
+            - --default-artifact-root=wasbs://{{ .Values.artifactRoot.azureBlob.container }}@{{ .Values.artifactRoot.azureBlob.storageAccount }}.blob.core.windows.net/{{ .Values.artifactRoot.azureBlob.path }}
+          {{- else if .Values.artifactRoot.s3.enabled }}
+            - --default-artifact-root=s3://{{ .Values.artifactRoot.s3.bucket }}/{{ .Values.artifactRoot.s3.path }}
+          {{- else if .Values.artifactRoot.gcs.enabled }}
+            - --default-artifact-root=gs://{{ .Values.artifactRoot.gcs.bucket }}/{{ .Values.artifactRoot.gcs.path }}
+          {{- else }}
+            - --default-artifact-root=./mlruns
+          {{- end }}
+          {{- if .Values.serviceMonitor.enabled }}
+            - --expose-prometheus=/mlflow/metrics
+          {{- end }}
+          {{- range $key, $value := .Values.extraArgs }}
+            - --{{ kebabcase $key }}={{ $value }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: MLFLOW_VERSION
+              value: {{ .Values.image.tag | default .Chart.AppVersion | quote }}
+          {{- range $key, $value := .Values.extraEnvVars }}
+            - name: {{ upper $key }}
+              value: {{ $value | quote }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ template "mlflow.fullname" . }}-env-configmap
+            - secretRef:
+                name: {{ template "mlflow.fullname" . }}-env-secret
+          {{- range .Values.extraSecretNamesForEnvFrom }}
+            - secretRef:
+                name: {{ . }}
+          {{- end }}
+          {{- with .Values.extraVolumeMounts }}
+          volumeMounts:
+            {{ toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.extraContainers }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.extraVolumes }}
+      volumes:
+        {{ toYaml . | nindent 8 }}
+      {{- end }}
