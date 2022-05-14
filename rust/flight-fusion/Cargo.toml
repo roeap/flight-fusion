@@ -13,7 +13,7 @@ object-store = { path = "../object-store" }
 observability_deps = { path = "../observability-deps" }
 
 # Crates.io dependencies
-arrow-flight = "12"
+arrow-flight = "13"
 async-trait = "0.1"
 bytes = "1"
 config = "0.13"
@@ -22,6 +22,7 @@ futures = "^0.3"
 lazy_static = "1.4.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
+pin-project-lite = "0.2"
 prost = "0.10"
 tokio = { version = "1", features = [
   "macros",
