@@ -53,7 +53,7 @@ pub enum AreaStoreError {
     ObjectStore {
         /// The wrapped [`object_store::Error`]
         #[from]
-        source: object_store::error::Error,
+        source: object_store::Error,
     },
 
     #[error("Error in file cache: {source}")]

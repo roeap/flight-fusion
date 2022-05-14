@@ -1,10 +1,8 @@
 import pyarrow as pa
 import pytest
-from dagster import Out, ResourceDefinition, graph, op
-
+from dagster import AssetKey, Out, ResourceDefinition, graph, op
 from dagster_fusion import flight_fusion_io_manager
 from flight_fusion import FusionServiceClient
-from flight_fusion.asset_key import AssetKey
 
 
 @pytest.fixture
@@ -58,6 +56,6 @@ def test_graph_in_out(test_graph, test_data, fusion_client: FusionServiceClient)
 
     assert out_a.equals(test_data)
 
-    fds = fusion_client.get_dataset_client(AssetKey(["scope", "out_b"]))
+    fds = fusion_client.get_dataset_client(AssetKey(["scope", "out_b"]))  # type: ignore
     result_table = fds.load()
     assert result_table.equals(test_data)

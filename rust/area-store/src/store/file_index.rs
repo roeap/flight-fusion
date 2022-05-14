@@ -1,4 +1,3 @@
-use crate::store::flatten_list_stream;
 use arrow_deps::datafusion::arrow::datatypes::SchemaRef as ArrowSchemaRef;
 use arrow_deps::datafusion::parquet::arrow::{
     async_reader::ParquetRecordBatchStreamBuilder, parquet_to_arrow_schema,
@@ -6,10 +5,9 @@ use arrow_deps::datafusion::parquet::arrow::{
 use arrow_deps::datafusion::parquet::file::metadata::ParquetMetaData;
 use dashmap::DashMap;
 use futures::future::try_join_all;
-use object_store::ObjectStoreApi;
 use object_store::{
-    path::{parsed::DirsAndFileName, parts::PathPart, Path},
-    ObjectStore,
+    path::{DirsAndFileName, Path, PathPart},
+    DynObjectStore, ObjectStore,
 };
 use observability_deps::tracing::info;
 use std::sync::Arc;
@@ -27,7 +25,7 @@ impl ToCacheKey for DirsAndFileName {
     }
 }
 
-impl ToCacheKey for Vec<PathPart> {
+impl ToCacheKey for Vec<PathPart<'_>> {
     fn to_key(&self) -> Vec<PathPart> {
         self.clone()
     }
@@ -41,7 +39,7 @@ impl ToCacheKey for Path {
 }
 
 pub struct FileIndex {
-    store: Arc<ObjectStore>,
+    store: Arc<DynObjectStore>,
     index: Arc<DashMap<Vec<PathPart>, Vec<IndexEntry>>>,
 }
 
@@ -55,29 +53,29 @@ impl FileIndex {
 
     pub async fn build_index(&self) -> crate::error::Result<()> {
         info!("Building file index");
-        let stats: Vec<JoinHandle<crate::error::Result<IndexEntry>>> =
-            flatten_list_stream(&self.store, None)
-                .await?
-                .into_iter()
-                .map(|f| {
-                    let object_store = self.store.clone();
-                    spawn(async move {
-                        let file = object_store.open_file(&f).await?;
-                        let builder = ParquetRecordBatchStreamBuilder::new(file).await?;
-                        Ok((f, builder.metadata().clone()))
-                    })
-                })
-                .collect();
-
-        let outputs = try_join_all(stats).await.unwrap();
-
-        for (file, schema) in outputs.into_iter().flatten() {
-            let parsed = DirsAndFileName::from(file.clone());
-            let mut area = self.index.entry(parsed.directories).or_insert(Vec::new());
-            area.push((file, schema))
-        }
-
-        Ok(())
+        todo!()
+        // let stats: Vec<JoinHandle<crate::error::Result<IndexEntry>>> =
+        //     flatten_list_stream(&self.store, None)
+        //         .await?
+        //         .into_iter()
+        //         .map(|f| {
+        //             let object_store = self.store.clone();
+        //             spawn(async move {
+        //                 let file = object_store.open_file(&f).await?;
+        //                 let builder = ParquetRecordBatchStreamBuilder::new(file).await?;
+        //                 Ok((f, builder.metadata().clone()))
+        //             })
+        //         })
+        //         .collect();
+        //
+        // let outputs = try_join_all(stats).await.unwrap();
+        //
+        // for (file, schema) in outputs.into_iter().flatten() {
+        //     let parsed = DirsAndFileName::from(file.clone());
+        //     let mut area = self.index.entry(parsed.directories).or_insert(Vec::new());
+        //     area.push((file, schema))
+        // }
+        // Ok(())
     }
 
     pub async fn scan_area(&self) {
@@ -139,7 +137,6 @@ mod tests {
     use crate::store::AreaStore;
     use crate::store::DefaultAreaStore;
     use flight_fusion_ipc::SaveMode;
-    use object_store::path::ObjectStorePath;
 
     #[tokio::test]
     async fn create_index() {

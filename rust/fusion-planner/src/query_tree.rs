@@ -185,11 +185,13 @@ impl FrameQueryPlanner {
 
         let state = self.ctx.state.read().clone();
         let query_planner = SqlToRel::new(&state);
-
+        let mut ctes = hashbrown::HashMap::new();
         let expression = match &select_items[0] {
-            SelectItem::UnnamedExpr(expr) => Ok(query_planner.sql_to_rex(expr.clone(), schema)?),
+            SelectItem::UnnamedExpr(expr) => {
+                Ok(query_planner.sql_to_rex(expr.clone(), schema, &mut ctes)?)
+            }
             SelectItem::ExprWithAlias { expr, alias } => Ok(Expr::Alias(
-                Box::new(query_planner.sql_to_rex(expr.clone(), schema)?),
+                Box::new(query_planner.sql_to_rex(expr.clone(), schema, &mut ctes)?),
                 alias.value.clone(),
             )),
             _ => Err(FusionPlannerError::PlanningError(

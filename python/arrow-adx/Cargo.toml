@@ -8,7 +8,7 @@ readme = "README.md"
 license = "MIT"
 
 [dependencies]
-azure-kusto-data = { git = "https://github.com/Azure/azure-kusto-rust", rev = "a43fe73b7cda51e358540e9ec33bc07bccaf6cd6", features = [
+azure-kusto-data = { git = "https://github.com/Azure/azure-kusto-rust", rev = "827271472a51c71931e42d0b70f503574c7e0a47", features = [
   "arrow",
 ] }
 tokio = { version = "1.0", features = [

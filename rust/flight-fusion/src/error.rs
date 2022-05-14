@@ -1,5 +1,6 @@
 use area_store::error::AreaStoreError;
 use arrow_deps::{
+    arrow::error::ArrowError,
     datafusion::error::DataFusionError,
     deltalake::{operations::DeltaCommandError, DeltaTableError},
 };
@@ -16,10 +17,6 @@ pub enum FusionServiceError {
     /// Error returned when trying to execute an unknown flight action
     #[error("No actions available for {0}")]
     UnknownAction(String),
-
-    /// Error returned when no return data is generated
-    #[error("Empty dataset evaluation query {0}")]
-    NoReturnData(String),
 
     /// Error returned when when no more specific error is defined
     #[error("Generic error: {0}")]
@@ -42,6 +39,9 @@ pub enum FusionServiceError {
 
     #[error(transparent)]
     DeltaTable(#[from] DeltaTableError),
+
+    #[error(transparent)]
+    Arrow(#[from] ArrowError),
 }
 
 impl FusionServiceError {

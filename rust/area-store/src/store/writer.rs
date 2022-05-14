@@ -14,8 +14,7 @@ use arrow_deps::datafusion::parquet::{
     arrow::ArrowWriter, basic::Compression, errors::ParquetError,
     file::properties::WriterProperties, file::writer::InMemoryWriteableCursor,
 };
-use object_store::path::ObjectStorePath;
-use object_store::{ObjectStore, ObjectStoreApi};
+use object_store::{path::Path, DynObjectStore};
 use std::collections::HashMap;
 use std::io::Write;
 use std::sync::Arc;
@@ -24,7 +23,7 @@ use uuid::Uuid;
 const NULL_PARTITION_VALUE_DATA_PATH: &str = "__HIVE_DEFAULT_PARTITION__";
 
 pub struct DeltaWriter {
-    pub(crate) storage: Arc<ObjectStore>,
+    pub(crate) storage: Arc<DynObjectStore>,
     pub(crate) arrow_schema_ref: Arc<ArrowSchema>,
     pub(crate) writer_properties: WriterProperties,
     pub(crate) partition_columns: Vec<String>,
@@ -40,7 +39,7 @@ impl std::fmt::Debug for DeltaWriter {
 impl DeltaWriter {
     /// Create a new DeltaWriter instance
     pub fn new(
-        storage: Arc<ObjectStore>,
+        storage: Arc<DynObjectStore>,
         schema: ArrowSchemaRef,
         partition_columns: Option<Vec<String>>,
     ) -> Self {
@@ -89,14 +88,14 @@ impl DeltaWriter {
     }
 
     /// Writes the existing parquet bytes to storage and resets internal state to handle another file.
-    pub async fn flush(&mut self, location: &object_store::path::Path) -> Result<Vec<Add>> {
+    pub async fn flush(&mut self, location: &Path) -> Result<Vec<Add>> {
         let writers = std::mem::take(&mut self.arrow_writers);
         let mut actions = Vec::new();
 
         for (_, mut writer) in writers {
             let metadata = writer.arrow_writer.close()?;
-            let mut file_loc = location.clone();
-            self.next_data_path(&mut file_loc, &writer.partition_values, None)?;
+            let file_loc = self.next_data_path(&location, &writer.partition_values, None)?;
+
             let obj_bytes = bytes::Bytes::from(writer.cursor.data());
             let file_size = obj_bytes.len() as i64;
             self.storage.put(&file_loc, obj_bytes).await.unwrap();
@@ -107,7 +106,7 @@ impl DeltaWriter {
             actions.push(create_add(
                 &writer.partition_values,
                 null_counts,
-                location.to_raw(),
+                location.to_raw().to_string(),
                 file_size,
                 &metadata,
             )?);
@@ -128,10 +127,10 @@ impl DeltaWriter {
     // I have not been able to find documentation for yet.
     fn next_data_path(
         &self,
-        location: &mut object_store::path::Path,
+        location: &Path,
         partition_values: &HashMap<String, Option<String>>,
         part: Option<i32>,
-    ) -> Result<()> {
+    ) -> Result<Path> {
         // TODO: what does 00000 mean?
         // TODO (roeap): my understanding is, that the values are used as a counter - i.e. if a single batch of
         // data written to one partition needs to be split due to desired file size constraints.
@@ -149,17 +148,20 @@ impl DeltaWriter {
             first_part, uuid_part, last_part
         );
 
+        let mut new_path = location.parts().collect::<Vec<_>>();
+
         if self.partition_columns.is_empty() {
-            location.set_file_name(file_name);
-            return Ok(());
+            new_path.push(file_name.into());
+            return Ok(Path::from_iter(new_path));
         }
 
         self.get_partition_key(&self.partition_columns.clone(), partition_values)?
-            .iter()
-            .for_each(|s| location.push_dir(s));
-        location.set_file_name(file_name);
+            .into_iter()
+            .for_each(|s| new_path.push(s.into()));
 
-        Ok(())
+        new_path.push(file_name.into());
+
+        Ok(Path::from_iter(new_path))
     }
 
     pub(crate) fn get_partition_key(
@@ -439,12 +441,13 @@ fn stringified_partition_value(arr: &Arc<dyn Array>) -> Result<Option<String>> {
 mod tests {
     use super::*;
     use crate::test_utils::get_record_batch;
+    use object_store::local::LocalFileSystem;
     use tempfile::TempDir;
 
     #[tokio::test]
     async fn test_divide_record_batch_no_partition() {
         let root = TempDir::new().unwrap();
-        let storage = ObjectStore::new_file(root.path());
+        let storage = LocalFileSystem::new(root.path());
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
         let partition_cols = vec![];
@@ -458,7 +461,7 @@ mod tests {
     #[tokio::test]
     async fn test_divide_record_batch_single_partition() {
         let root = TempDir::new().unwrap();
-        let storage = ObjectStore::new_file(root.path());
+        let storage = LocalFileSystem::new(root.path());
 
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
@@ -477,7 +480,7 @@ mod tests {
     #[tokio::test]
     async fn test_divide_record_batch_multiple_partitions() {
         let root = TempDir::new().unwrap();
-        let storage = ObjectStore::new_file(root.path());
+        let storage = LocalFileSystem::new(root.path());
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
         let partition_cols = vec!["modified".to_string(), "id".to_string()];
@@ -497,8 +500,8 @@ mod tests {
     #[tokio::test]
     async fn test_write_no_partitions() {
         let root = TempDir::new().unwrap();
-        let storage = ObjectStore::new_file(root.path());
-        let location = storage.new_path();
+        let storage = LocalFileSystem::new(root.path());
+        let location = Path::default();
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
         let partition_cols = vec![];
@@ -512,8 +515,8 @@ mod tests {
     #[tokio::test]
     async fn test_write_multiple_partitions() {
         let root = TempDir::new().unwrap();
-        let storage = ObjectStore::new_file(root.path());
-        let location = storage.new_path();
+        let storage = LocalFileSystem::new(root.path());
+        let location = Path::default();
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
         let partition_cols = vec!["modified".to_string(), "id".to_string()];

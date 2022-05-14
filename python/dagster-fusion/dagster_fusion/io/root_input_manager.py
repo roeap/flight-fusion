@@ -1,7 +1,6 @@
 from typing import Protocol, TypedDict
 
 from dagster import root_input_manager
-
 from dagster_fusion._types import TableReference, TypedInputContext
 from dagster_fusion.config import FIELD_COLUMN_SELECTION
 from dagster_fusion.errors import MissingConfiguration
@@ -29,7 +28,7 @@ def flight_fusion_loader(context: TypedInputContext[InputConfig, LoaderResources
 
     client = DatasetClient(
         client=context.resources.fusion_client._flight,
-        asset_key=context.asset_key,
+        asset_key=context.asset_key,  # type: ignore
     )
 
     return client.load()

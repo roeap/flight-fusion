@@ -1,38 +1,74 @@
 //! Abstractions and implementations for writing data to delta tables
 mod basic;
 mod cache;
-pub mod file_index;
 mod stats;
 pub mod utils;
 pub mod writer;
 
 use crate::error::Result;
-use arrow_deps::arrow::{datatypes::SchemaRef as ArrowSchemaRef, record_batch::RecordBatch};
-use arrow_deps::datafusion::parquet::arrow::async_reader::ParquetRecordBatchStreamBuilder;
-use arrow_deps::datafusion::parquet::arrow::ArrowReader;
-use arrow_deps::datafusion::parquet::{arrow::ParquetFileArrowReader, basic::LogicalType};
-use arrow_deps::datafusion::physical_plan::SendableRecordBatchStream;
+use arrow_deps::arrow::{
+    datatypes::SchemaRef as ArrowSchemaRef,
+    error::{ArrowError, Result as ArrowResult},
+    record_batch::RecordBatch,
+};
+use arrow_deps::datafusion::arrow::record_batch::RecordBatchReader;
+use arrow_deps::datafusion::parquet::arrow::async_reader::ParquetRecordBatchStream;
+use arrow_deps::datafusion::parquet::arrow::{ArrowReader, ParquetFileArrowReader};
+use arrow_deps::datafusion::parquet::{
+    basic::LogicalType,
+    file::serialized_reader::{SerializedFileReader, SliceableCursor},
+};
+use arrow_deps::datafusion::physical_plan::{
+    stream::RecordBatchStreamAdapter, RecordBatchStream, SendableRecordBatchStream,
+};
 use async_trait::async_trait;
 pub use basic::DefaultAreaStore;
 pub use cache::CachedAreaStore;
 use flight_fusion_ipc::{AreaSourceReference, SaveMode};
+use futures::Stream;
 use futures::StreamExt;
-use object_store::path::{parsed::DirsAndFileName, Path};
-use object_store::ObjectStoreApi;
-use std::collections::HashSet;
+use futures::TryStreamExt;
+use object_store::{path::Path, DynObjectStore};
+use std::pin::Pin;
 use std::sync::Arc;
+use std::task::{Context, Poll};
+use tokio::io::{AsyncRead, AsyncSeek};
 pub use utils::*;
 pub use writer::*;
 
 const DATA_FOLDER_NAME: &str = "_ff_data";
 const DEFAULT_READ_BATCH_SIZE: usize = 1024;
 
+pub trait AsyncReader: AsyncRead + AsyncSeek + Send {}
+
+pub struct FileReaderStream(ParquetRecordBatchStream<Box<dyn AsyncReader + Unpin>>);
+
+impl Stream for FileReaderStream {
+    type Item = ArrowResult<RecordBatch>;
+
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        match self.0.poll_next_unpin(cx) {
+            Poll::Ready(opt) => Poll::Ready(match opt {
+                Some(data) => Some(data.map_err(|err| ArrowError::ParquetError(err.to_string()))),
+                None => None,
+            }),
+            Poll::Pending => Poll::Pending,
+        }
+    }
+}
+
+impl RecordBatchStream for FileReaderStream {
+    fn schema(&self) -> ArrowSchemaRef {
+        self.0.schema().clone()
+    }
+}
+
 #[async_trait]
 pub trait AreaStore: Send + Sync {
     // path manipulation
 
     /// Get a reference to the underlying object store
-    fn object_store(&self) -> Arc<object_store::ObjectStore>;
+    fn object_store(&self) -> Arc<DynObjectStore>;
 
     fn get_path_from_raw(&self, raw: String) -> Path;
 
@@ -63,11 +99,16 @@ pub trait AreaStore: Send + Sync {
     }
 
     async fn open_file(&self, file: &Path) -> Result<SendableRecordBatchStream> {
-        let reader = self.object_store().open_file(file).await?;
-        let builder = ParquetRecordBatchStreamBuilder::new(reader).await?;
-        let rb_stream = builder.build()?;
-        let _asd = rb_stream.then(|ps| async { ps.unwrap() });
-        todo!()
+        let bytes = self.object_store().get(file).await?.bytes().await?;
+        let cursor = SliceableCursor::new(Arc::new(bytes));
+        let file_reader = Arc::new(SerializedFileReader::new(cursor)?);
+        let mut arrow_reader = ParquetFileArrowReader::new(file_reader);
+        let record_batch_reader = arrow_reader.get_record_reader(2048)?;
+
+        Ok(Box::pin(RecordBatchStreamAdapter::new(
+            record_batch_reader.schema(),
+            futures::stream::iter(record_batch_reader),
+        )))
     }
 
     /// Resolve an [`AreaSourceReference`] to the files relevant for source reference
@@ -77,17 +118,18 @@ pub trait AreaStore: Send + Sync {
     }
 
     async fn get_location_files(&self, location: &Path) -> Result<Vec<Path>> {
-        flatten_list_stream(&self.object_store(), Some(location)).await
-    }
-
-    async fn list_table_locations(&self) -> Result<Vec<AreaSourceReference>> {
-        Ok(flatten_list_stream(&self.object_store(), None)
+        Ok(self
+            .object_store()
+            .list(Some(location))
+            .await?
+            .try_collect::<Vec<_>>()
             .await?
             .into_iter()
-            .map(|p| DirsAndFileName::from(p).directories)
-            .collect::<HashSet<_>>()
-            .into_iter()
-            .filter_map(path_to_source)
+            .map(|f| f.location)
             .collect::<Vec<_>>())
+    }
+
+    async fn delete_location(&self, _location: &Path) -> Result<()> {
+        todo!()
     }
 }

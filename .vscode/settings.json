@@ -10,6 +10,9 @@
     }
   },
   "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportPrivateImportUsage": "none"
+  },
   "python.linting.banditEnabled": true,
   "python.linting.banditArgs": ["--configfile", ".bandit"],
   "python.testing.pytestEnabled": true

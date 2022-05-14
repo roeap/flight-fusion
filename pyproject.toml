@@ -68,6 +68,7 @@ exclude = [
   "**/__pycache__",
   "python/flight-fusion/flight_fusion/ipc/",
 ]
+reportPrivateImportUsage = false
 
 [tool.pytest.ini_options]
 markers = [

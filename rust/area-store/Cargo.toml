@@ -9,7 +9,7 @@ async-compat = "*"
 arrow-deps = { path = "../arrow-deps/", features = ["delta"] }
 file-cache = { path = "../file-cache/" }
 flight-fusion-ipc = { path = "../flight-fusion-ipc/" }
-object-store = { path = "../object-store/" }
+object_store = { version = "*", features = ["azure"] }
 observability_deps = { path = "../observability-deps" }
 
 # Crates.io dependencies
