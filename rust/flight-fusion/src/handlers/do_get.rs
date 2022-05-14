@@ -1,11 +1,13 @@
-use super::{utils::create_response_stream, *};
+use super::DoGetHandler;
 use crate::{
     error::{FusionServiceError, Result},
     service::FlightFusionService,
 };
 use area_store::store::AreaStore;
-use arrow_deps::datafusion::prelude::{SessionConfig, SessionContext};
-use arrow_flight::FlightData;
+use arrow_deps::datafusion::{
+    physical_plan::SendableRecordBatchStream,
+    prelude::{SessionConfig, SessionContext},
+};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
     command_execute_query::Context as QueryContext, CommandExecuteQuery, CommandReadDataset,
@@ -14,31 +16,32 @@ use flight_fusion_ipc::{
 
 #[async_trait]
 impl DoGetHandler<CommandSqlOperation> for FlightFusionService {
-    async fn handle_do_get(
+    async fn execute_do_get(
         &self,
         ticket: CommandSqlOperation,
-    ) -> Result<BoxedFlightStream<FlightData>> {
+    ) -> Result<SendableRecordBatchStream> {
         let config = SessionConfig::new().with_information_schema(true);
         let ctx = SessionContext::with_config(config);
         ctx.register_catalog("catalog", self.catalog.clone());
 
         // execute the query
-        let df = ctx.sql(ticket.query.as_str()).await?;
-        let results = df.collect().await?;
-        create_response_stream(results).await
+        Ok(ctx
+            .sql(ticket.query.as_str())
+            .await?
+            .execute_stream()
+            .await?)
     }
 }
 
 #[async_trait]
 impl DoGetHandler<CommandReadDataset> for FlightFusionService {
-    async fn handle_do_get(
+    async fn execute_do_get(
         &self,
         ticket: CommandReadDataset,
-    ) -> Result<BoxedFlightStream<FlightData>> {
+    ) -> Result<SendableRecordBatchStream> {
         if let Some(table) = ticket.source {
             let location = self.area_store.get_table_location(&table)?;
-            let batches = self.area_store.get_batches(&location).await?;
-            create_response_stream(batches).await
+            Ok(self.area_store.open_file(&location).await?)
         } else {
             Err(FusionServiceError::InputError(
                 "missing table reference".to_string(),
@@ -49,10 +52,10 @@ impl DoGetHandler<CommandReadDataset> for FlightFusionService {
 
 #[async_trait]
 impl DoGetHandler<CommandExecuteQuery> for FlightFusionService {
-    async fn handle_do_get(
+    async fn execute_do_get(
         &self,
         ticket: CommandExecuteQuery,
-    ) -> Result<BoxedFlightStream<FlightData>> {
+    ) -> Result<SendableRecordBatchStream> {
         let mut ctx = SessionContext::new();
         match ticket.context {
             Some(QueryContext::Source(source)) => {
@@ -65,6 +68,6 @@ impl DoGetHandler<CommandExecuteQuery> for FlightFusionService {
             }
             _ => todo!(),
         };
-        create_response_stream(ctx.sql(&ticket.query).await?.collect().await?).await
+        Ok(ctx.sql(&ticket.query).await?.execute_stream().await?)
     }
 }

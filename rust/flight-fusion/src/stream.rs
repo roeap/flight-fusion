@@ -10,11 +10,12 @@ use arrow_deps::datafusion::{
 use arrow_deps::datafusion::{
     arrow::{
         datatypes::{Schema as ArrowSchema, SchemaRef as ArrowSchemaRef},
-        error::{ArrowError, Result as ArrowResult},
+        error::Result as ArrowResult,
         record_batch::RecordBatch,
     },
     execution::context::TaskContext,
     physical_plan::{
+        common::AbortOnDropMany,
         expressions::PhysicalSortExpr,
         metrics::{ExecutionPlanMetricsSet, MemTrackingMetrics},
         RecordBatchStream,
@@ -24,11 +25,12 @@ use arrow_flight::{flight_descriptor::DescriptorType, FlightData};
 use async_trait::async_trait;
 use core::any::Any;
 use flight_fusion_ipc::FlightDoPutRequest;
-use futures::{stream::Stream, StreamExt, TryStreamExt};
+use futures::channel::mpsc;
+use futures::{stream::Stream, TryStreamExt};
+use pin_project_lite::pin_project;
 use prost::Message;
-use std::pin::Pin;
 use std::sync::Arc;
-use std::task::{Context, Poll};
+use std::task::Poll;
 use tonic::Streaming;
 
 /// Execution plan for processing request streams
@@ -147,7 +149,7 @@ impl ExecutionPlan for FlightReceiverPlan {
         todo!()
     }
 
-    async fn execute(
+    fn execute(
         &self,
         partition: usize,
         _context: Arc<TaskContext>,
@@ -164,51 +166,43 @@ impl ExecutionPlan for FlightReceiverPlan {
     }
 }
 
-pub struct FlightTonicRecordBatchStream {
-    /// The original Tonic stream
-    inner: Streaming<FlightData>,
-    /// Schema
-    schema: ArrowSchemaRef,
+pin_project! {
+    pub struct MergeStream {
+        schema: ArrowSchemaRef,
+        #[pin]
+        input: mpsc::Receiver<ArrowResult<RecordBatch>>,
+        drop_helper: AbortOnDropMany<()>,
+    }
 }
 
-impl FlightTonicRecordBatchStream {
-    /// Create an empty RecordBatchStream
-    pub async fn _new(schema: ArrowSchemaRef, stream: Streaming<FlightData>) -> Result<Self> {
-        Ok(Self {
-            inner: stream,
+impl MergeStream {
+    pub fn new(
+        schema: ArrowSchemaRef,
+        input: mpsc::Receiver<ArrowResult<RecordBatch>>,
+        drop_helper: AbortOnDropMany<()>,
+    ) -> Self {
+        Self {
             schema,
-        })
+            input,
+            drop_helper,
+        }
     }
 }
 
-impl RecordBatchStream for FlightTonicRecordBatchStream {
-    fn schema(&self) -> ArrowSchemaRef {
-        self.schema.clone()
-    }
-}
-
-impl Stream for FlightTonicRecordBatchStream {
+impl Stream for MergeStream {
     type Item = ArrowResult<RecordBatch>;
 
-    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        let schema = self.schema();
-        match self.get_mut().inner.poll_next_unpin(cx) {
-            Poll::Ready(Some(Ok(flight_data))) => {
-                let dictionaries_by_field = vec![None; schema.fields().len()];
-                let batch = arrow_flight::utils::flight_data_to_arrow_batch(
-                    &flight_data,
-                    schema,
-                    &dictionaries_by_field,
-                )
-                // TODO remove panic
-                .unwrap();
-                Poll::Ready(Some(Ok(batch)))
-            }
-            Poll::Ready(Some(Err(_))) => Poll::Ready(Some(Err(ArrowError::IoError(
-                "Failed to generate batch form flight stream".to_string(),
-            )))),
-            Poll::Ready(None) => Poll::Ready(None),
-            Poll::Pending => Poll::Pending,
-        }
+    fn poll_next(
+        self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> Poll<Option<Self::Item>> {
+        let this = self.project();
+        this.input.poll_next(cx)
+    }
+}
+
+impl RecordBatchStream for MergeStream {
+    fn schema(&self) -> ArrowSchemaRef {
+        self.schema.clone()
     }
 }

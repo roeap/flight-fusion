@@ -92,7 +92,7 @@ impl DirsAndFileName {
     /// Returns all directory and file name `PathParts` in `self` after the
     /// specified `prefix`. Ignores any `file_name` part of `prefix`.
     /// Returns `None` if `self` dosen't start with `prefix`.
-    pub(crate) fn parts_after_prefix(&self, prefix: &Self) -> Option<Vec<PathPart>> {
+    pub fn parts_after_prefix(&self, prefix: &Self) -> Option<Vec<PathPart>> {
         let mut dirs_iter = self.directories.iter();
         let mut prefix_dirs_iter = prefix.directories.iter();
 
@@ -126,7 +126,7 @@ impl DirsAndFileName {
     }
 
     /// Remove the file name, if any.
-    pub(crate) fn unset_file_name(&mut self) {
+    pub fn unset_file_name(&mut self) {
         self.file_name = None;
     }
 }

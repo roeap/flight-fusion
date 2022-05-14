@@ -1,5 +1,5 @@
-use crate::handlers::*;
 use crate::stream::FlightReceiverPlan;
+use crate::{error::FusionServiceError, handlers::*};
 use area_store::store::{AreaStore, DefaultAreaStore};
 use arrow_deps::datafusion::{
     arrow::ipc::writer::IpcWriteOptions,
@@ -8,6 +8,7 @@ use arrow_deps::datafusion::{
         schema::MemorySchemaProvider,
     },
     datasource::MemTable,
+    physical_plan::{common::collect, SendableRecordBatchStream},
     prelude::SessionContext,
 };
 use arrow_flight::{
@@ -22,10 +23,9 @@ use flight_fusion_ipc::{
     FlightDoGetRequest, FlightGetFlightInfoRequest,
 };
 use futures::Stream;
-use observability_deps::instrument;
 use observability_deps::opentelemetry::{global, propagation::Extractor};
-use observability_deps::tracing;
 use observability_deps::tracing_opentelemetry::OpenTelemetrySpanExt;
+use observability_deps::{instrument, tracing};
 use prost::Message;
 use std::path::PathBuf;
 use std::pin::Pin;
@@ -256,21 +256,29 @@ impl FlightService for FlightFusionService {
 
         let result = match request.command {
             Some(op) => match op {
-                DoGetCommand::Sql(sql) => self.handle_do_get(sql).await,
+                DoGetCommand::Sql(sql) => self.execute_do_get(sql).await,
                 DoGetCommand::Kql(_) => {
                     todo!()
                 }
-                DoGetCommand::Read(read) => self.handle_do_get(read).await,
-                DoGetCommand::Query(query) => self.handle_do_get(query).await,
-                DoGetCommand::Delta(operation) => self.handle_do_get(operation).await,
+                DoGetCommand::Read(read) => self.execute_do_get(read).await,
+                DoGetCommand::Query(query) => self.execute_do_get(query).await,
+                DoGetCommand::Delta(operation) => self.execute_do_get(operation).await,
             },
             None => Err(crate::error::FusionServiceError::unknown_action(
                 "No operation data passed",
             )),
         }
-        .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        .map_err(to_tonic_err)?;
 
-        Ok(Response::new(result))
+        let options = arrow_deps::datafusion::arrow::ipc::writer::IpcWriteOptions::default();
+        let schema_flight_data = SchemaAsIpc::new(&result.schema().clone(), &options).into();
+        let mut flights: Vec<Result<FlightData, Status>> = vec![Ok(schema_flight_data)];
+
+        // TODO it would be great if we could directly return a stream rather than collecting all data first.
+        flights.append(&mut collect_response_stream(result).await?);
+        let output = futures::stream::iter(flights);
+
+        Ok(Response::new(Box::pin(output) as Self::DoGetStream))
     }
 
     #[instrument(skip(self, request))]
@@ -397,6 +405,30 @@ where
             "`get_schema` requires command to be defined on flight descriptor".to_string(),
         )),
     }
+}
+
+fn to_tonic_err(e: FusionServiceError) -> Status {
+    Status::internal(format!("{:?}", e))
+}
+
+/// Create a vector of record batches from a stream
+async fn collect_response_stream(
+    stream: SendableRecordBatchStream,
+) -> Result<Vec<Result<FlightData, Status>>, Status> {
+    let options = arrow_deps::datafusion::arrow::ipc::writer::IpcWriteOptions::default();
+    Ok(collect(stream)
+        .await
+        .map_err(|e| tonic::Status::internal(e.to_string()))?
+        .iter()
+        .flat_map(|batch| {
+            let (flight_dictionaries, flight_batch) =
+                arrow_flight::utils::flight_data_from_arrow_batch(batch, &options);
+            flight_dictionaries
+                .into_iter()
+                .chain(std::iter::once(flight_batch))
+                .map(Ok)
+        })
+        .collect())
 }
 
 #[cfg(test)]
