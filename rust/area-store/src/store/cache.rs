@@ -7,15 +7,12 @@ use arrow_deps::{
         ipc::{reader::StreamReader, writer::StreamWriter},
         record_batch::RecordBatch,
     },
-    datafusion::parquet::arrow::{ArrowReader, ParquetRecordBatchStreamBuilder},
+    datafusion::parquet::arrow::ArrowReader,
 };
 use async_trait::async_trait;
 use file_cache::LruDiskCache;
 use flight_fusion_ipc::{AreaSourceReference, SaveMode};
-use object_store::{
-    path::{ObjectStorePath, Path},
-    ObjectStoreApi,
-};
+use object_store::{path::Path, DynObjectStore};
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::RwLock;
@@ -79,7 +76,7 @@ impl CachedAreaStore {
 
 #[async_trait]
 impl AreaStore for CachedAreaStore {
-    fn object_store(&self) -> Arc<object_store::ObjectStore> {
+    fn object_store(&self) -> Arc<DynObjectStore> {
         self.store.object_store()
     }
 
@@ -105,9 +102,7 @@ impl AreaStore for CachedAreaStore {
             let file_reader = StreamReader::try_new(cache.get(location.to_raw())?, None)?;
             Ok(file_reader.schema())
         } else {
-            let reader = self.store.object_store().open_file(&location).await?;
-            let builder = ParquetRecordBatchStreamBuilder::new(reader).await?;
-            Ok(builder.schema().clone())
+            self.store.get_schema(source).await
         }
     }
 
@@ -144,7 +139,6 @@ mod tests {
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
         SaveMode,
     };
-    use object_store::ObjectStoreApi;
 
     #[tokio::test]
     async fn put_cache_on_read() {
@@ -155,8 +149,7 @@ mod tests {
         let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
         let cached_store = CachedAreaStore::try_new(area_store, cache_root, 10000).unwrap();
 
-        let mut path = cached_store.object_store().new_path();
-        path.push_dir("asd");
+        let mut path = Path::from_raw("asd");
 
         let batch = get_record_batch(None, false);
         cached_store
@@ -182,9 +175,7 @@ mod tests {
         let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
         let cached_store = CachedAreaStore::try_new(area_store, cache_root, 10000).unwrap();
 
-        let mut path = cached_store.object_store().new_path();
-        path.push_dir("_ff_data");
-        path.push_dir("asd");
+        let mut path = Path::from_raw("_ff_data/asd");
 
         let batch = get_record_batch(None, false);
         cached_store

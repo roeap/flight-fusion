@@ -4,7 +4,10 @@ use crate::{
     service::FlightFusionService,
     stream::MergeStream,
 };
-use area_store::store::{AreaStore, DefaultAreaStore};
+use area_store::{
+    store::{AreaStore, DefaultAreaStore},
+    Path,
+};
 use arrow_deps::arrow::{
     datatypes::{Field as ArrowField, SchemaRef as ArrowSchemaRef},
     error::{ArrowError, Result as ArrowResult},
@@ -25,7 +28,6 @@ use flight_fusion_ipc::{
 };
 use futures::channel::mpsc;
 use futures::{SinkExt, StreamExt};
-use object_store::path::Path;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::task::JoinHandle;

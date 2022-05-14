@@ -1,8 +1,6 @@
-use super::{stats, utils::*, writer::*, AreaStore, DATA_FOLDER_NAME};
+use super::{stats, writer::*, AreaStore, DATA_FOLDER_NAME};
 use crate::error::{AreaStoreError, Result};
-use crate::store::file_index::FileIndex;
 use arrow_deps::arrow::record_batch::*;
-use arrow_deps::datafusion::parquet::arrow::async_reader::ParquetRecordBatchStreamBuilder;
 use arrow_deps::datafusion::{
     arrow::datatypes::SchemaRef as ArrowSchemaRef,
     parquet::{
@@ -14,30 +12,31 @@ use async_trait::async_trait;
 use flight_fusion_ipc::{
     area_source_reference::Table as TableReference, AreaSourceReference, SaveMode,
 };
+use futures::TryStreamExt;
 use object_store::path::Path;
-use object_store::{path::ObjectStorePath, ObjectStoreApi};
+use object_store::DynObjectStore;
 use std::path::PathBuf;
 use std::sync::Arc;
 
 const DEFAULT_PARQUET_SUFFIX: &str = ".parquet";
 
 pub struct DefaultAreaStore {
-    object_store: Arc<object_store::ObjectStore>,
+    object_store: Arc<DynObjectStore>,
     root_path: String,
     // only visible for testing purposes
-    pub(crate) file_index: Arc<FileIndex>,
+    // pub(crate) file_index: Arc<FileIndex>,
 }
 
 impl DefaultAreaStore {
     pub fn try_new(root: impl Into<PathBuf>) -> Result<Self> {
         let buf: PathBuf = root.into();
-        let object_store = Arc::new(object_store::ObjectStore::new_file(buf.clone()));
-        let file_index = Arc::new(FileIndex::new(object_store.clone()));
+        let object_store = Arc::new(object_store::local::LocalFileSystem::new(buf.clone()));
+        // let file_index = Arc::new(FileIndex::new(object_store.clone()));
 
         Ok(Self {
             object_store,
             root_path: buf.to_str().unwrap().to_string(),
-            file_index,
+            // file_index,
         })
     }
 
@@ -47,18 +46,18 @@ impl DefaultAreaStore {
         container_name: impl Into<String>,
     ) -> Result<Self> {
         let container: String = container_name.into();
-        let object_store = Arc::new(object_store::ObjectStore::new_microsoft_azure(
+        let object_store = Arc::new(object_store::azure::new_azure(
             account,
             access_key,
             container.clone(),
             false,
         )?);
-        let file_index = Arc::new(FileIndex::new(object_store.clone()));
+        // let file_index = Arc::new(FileIndex::new(object_store.clone()));
 
         Ok(Self {
             object_store,
             root_path: format!("adls2://{}", container),
-            file_index,
+            // file_index,
         })
     }
 
@@ -68,13 +67,14 @@ impl DefaultAreaStore {
     }
 
     pub async fn build_index(&self) -> Result<()> {
-        self.file_index.build_index().await
+        // self.file_index.build_index().await
+        Ok(())
     }
 }
 
 #[async_trait]
 impl AreaStore for DefaultAreaStore {
-    fn object_store(&self) -> Arc<object_store::ObjectStore> {
+    fn object_store(&self) -> Arc<DynObjectStore> {
         self.object_store.clone()
     }
 
@@ -82,25 +82,24 @@ impl AreaStore for DefaultAreaStore {
         let trimmed_raw = raw
             .trim_start_matches(&self.root_path)
             .trim_start_matches('/');
-        if let Some((first, last)) = trimmed_raw.rsplit_once('/') {
-            if last.ends_with(DEFAULT_PARQUET_SUFFIX) {
-                let mut path = self.object_store.path_from_raw(first);
-                path.set_file_name(last);
-                return path;
-            }
-        }
-        self.object_store.path_from_raw(trimmed_raw)
+        // if let Some((first, last)) = trimmed_raw.rsplit_once('/') {
+        //     if last.ends_with(DEFAULT_PARQUET_SUFFIX) {
+        //         let mut path = Path::from_raw(first);
+        //         path.set_file_name(last);
+        //         return path;
+        //     }
+        // }
+        Path::from_raw(trimmed_raw)
     }
 
     fn get_table_location(&self, source: &AreaSourceReference) -> Result<object_store::path::Path> {
         match source {
             AreaSourceReference { table: Some(tbl) } => match tbl {
                 TableReference::Location(loc) => {
-                    let mut location = self.object_store().new_path();
-                    loc.areas.iter().for_each(|p| location.push_dir(p));
-                    location.push_dir(DATA_FOLDER_NAME);
-                    location.push_dir(&loc.name);
-                    Ok(location)
+                    let mut parts = loc.areas.clone();
+                    parts.push(DATA_FOLDER_NAME.to_string());
+                    parts.push(loc.name.to_string());
+                    Ok(Path::from_iter(parts))
                 }
                 TableReference::Uri(_uri) => {
                     todo!()
@@ -116,9 +115,8 @@ impl AreaStore for DefaultAreaStore {
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {
         // TODO only actually load first file and also make this work for delta
         let files = self.get_source_files(source).await?;
-        let reader = self.object_store.open_file(&files[0]).await?;
-        let builder = ParquetRecordBatchStreamBuilder::new(reader).await?;
-        Ok(builder.schema().clone())
+        let reader = self.open_file(&files[0]).await?;
+        Ok(reader.schema().clone())
     }
 
     // TODO use some sort of borrowed reference
@@ -136,14 +134,21 @@ impl AreaStore for DefaultAreaStore {
         }
         match save_mode {
             SaveMode::Overwrite => {
-                let files = flatten_list_stream(&self.object_store(), Some(location)).await?;
+                let files = &self
+                    .object_store()
+                    .list(Some(location))
+                    .await?
+                    .try_collect::<Vec<_>>()
+                    .await?;
                 for file in files {
-                    self.object_store().delete(&file).await?;
+                    self.object_store().delete(&file.location).await?;
                 }
                 writer.flush(location).await
             }
             // TODO actually check if exists
-            SaveMode::ErrorIfExists => Err(AreaStoreError::TableAlreadyExists(location.to_raw())),
+            SaveMode::ErrorIfExists => Err(AreaStoreError::TableAlreadyExists(
+                location.to_raw().to_string(),
+            )),
             _ => writer.flush(location).await,
         }
     }
@@ -177,13 +182,12 @@ mod tests {
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
         SaveMode,
     };
-    use object_store::path::ObjectStorePath;
 
     #[tokio::test]
     async fn test_put_get_batches() {
         let root = tempfile::tempdir().unwrap();
         let area_store = DefaultAreaStore::try_new(root.path()).unwrap();
-        let location = area_store.object_store().new_path();
+        let location = Path::default();
 
         let batch = crate::test_utils::get_record_batch(None, false);
         area_store
@@ -201,9 +205,7 @@ mod tests {
         let area_root = root.path().join(".tmp");
         let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
 
-        let mut path = area_store.object_store().new_path();
-        path.push_dir("_ff_data");
-        path.push_dir("asd");
+        let mut path = Path::from_raw("_ff_data/asd");
 
         let batch = get_record_batch(None, false);
         area_store

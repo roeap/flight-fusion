@@ -77,7 +77,7 @@ dependencies = [
  "file-cache",
  "flight-fusion-ipc",
  "futures",
- "object-store",
+ "object_store",
  "observability_deps",
  "parquet-format",
  "serde_json",
@@ -321,7 +321,7 @@ dependencies = [
  "arrow",
  "async-convert",
  "async-trait",
- "azure_core",
+ "azure_core 0.2.1",
  "azure_identity",
  "bytes",
  "futures",
@@ -364,6 +364,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "azure_core"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ca4393afee90ad13c987a2cbfeb5bbb0b9fb3c86585e42ed3ed151babaa93da1"
+dependencies = [
+ "async-trait",
+ "base64",
+ "bytes",
+ "chrono",
+ "dyn-clone",
+ "futures",
+ "getrandom",
+ "http",
+ "log",
+ "oauth2",
+ "pin-project",
+ "rand",
+ "reqwest",
+ "rustc_version",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "thiserror",
+ "url",
+ "uuid",
+]
+
+[[package]]
 name = "azure_identity"
 version = "0.1.1"
 source = "git+https://github.com/Azure/azure-sdk-for-rust?rev=66db4b485ce56b68be148708d9c810960a50be51#66db4b485ce56b68be148708d9c810960a50be51"
@@ -371,7 +399,7 @@ dependencies = [
  "async-lock",
  "async-timer",
  "async-trait",
- "azure_core",
+ "azure_core 0.2.1",
  "base64",
  "chrono",
  "futures",
@@ -387,12 +415,13 @@ dependencies = [
 
 [[package]]
 name = "azure_storage"
-version = "0.1.0"
-source = "git+https://github.com/Azure/azure-sdk-for-rust?rev=66db4b485ce56b68be148708d9c810960a50be51#66db4b485ce56b68be148708d9c810960a50be51"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a9f2aee687da9817f7b332e1e01dda51cd9f7a0a68a5abcfec7c4c494a65546"
 dependencies = [
  "RustyXML",
  "async-trait",
- "azure_core",
+ "azure_core 0.2.2",
  "base64",
  "bytes",
  "chrono",
@@ -413,11 +442,12 @@ dependencies = [
 
 [[package]]
 name = "azure_storage_blobs"
-version = "0.1.0"
-source = "git+https://github.com/Azure/azure-sdk-for-rust?rev=66db4b485ce56b68be148708d9c810960a50be51#66db4b485ce56b68be148708d9c810960a50be51"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d17982127c4a34736a60656ddbd05b1714420686b6e6304145ee3b4501395e75"
 dependencies = [
  "RustyXML",
- "azure_core",
+ "azure_core 0.2.2",
  "azure_storage",
  "base64",
  "bytes",
@@ -431,28 +461,6 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "thiserror",
- "url",
- "uuid",
-]
-
-[[package]]
-name = "azure_storage_datalake"
-version = "0.1.1"
-source = "git+https://github.com/Azure/azure-sdk-for-rust?rev=66db4b485ce56b68be148708d9c810960a50be51#66db4b485ce56b68be148708d9c810960a50be51"
-dependencies = [
- "async-trait",
- "azure_core",
- "azure_storage",
- "base64",
- "bytes",
- "chrono",
- "futures",
- "http",
- "log",
- "serde",
- "serde-xml-rs",
- "serde_derive",
- "serde_json",
  "url",
  "uuid",
 ]
@@ -1000,6 +1008,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0688c2a7f92e427f44895cd63841bff7b29f8d7a1648b9e7e07a4a365b2e1257"
 
 [[package]]
+name = "doc-comment"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fea41bba32d969b513997752735605054bc0dfa92b4c56bf1189f2e174be7a10"
+
+[[package]]
 name = "dotenv"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1160,7 +1174,6 @@ dependencies = [
  "flight-fusion-ipc",
  "futures",
  "lazy_static",
- "object-store",
  "observability_deps",
  "pin-project-lite",
  "pretty_assertions",
@@ -1326,23 +1339,6 @@ name = "futures-task"
 version = "0.3.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57c66a976bf5909d801bbef33416c41372779507e7a6b3a5e25e4749c58f776a"
-
-[[package]]
-name = "futures-test"
-version = "0.3.21"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c3e9379dbbfb35dd6df79e895d73c0f75558827fe68eb853b858ff417a8ee98"
-dependencies = [
- "futures-core",
- "futures-executor",
- "futures-io",
- "futures-macro",
- "futures-sink",
- "futures-task",
- "futures-util",
- "pin-project",
- "pin-utils",
-]
 
 [[package]]
 name = "futures-util"
@@ -1576,6 +1572,19 @@ dependencies = [
  "tower-service",
  "tracing",
  "want",
+]
+
+[[package]]
+name = "hyper-rustls"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d87c48c02e0dc5e3b849a2041db3029fd066650f8f717c07bf8ed78ccb895cac"
+dependencies = [
+ "http",
+ "hyper",
+ "rustls",
+ "tokio",
+ "tokio-rustls",
 ]
 
 [[package]]
@@ -2115,28 +2124,26 @@ dependencies = [
 ]
 
 [[package]]
-name = "object-store"
-version = "0.1.0"
+name = "object_store"
+version = "0.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "71fc15440e94ba9b3a8bc83c8f94a0d5a2861d72254cdb9ede72fbbd18e015db"
 dependencies = [
  "async-trait",
- "azure_core",
- "azure_identity",
+ "azure_core 0.2.2",
  "azure_storage",
  "azure_storage_blobs",
- "azure_storage_datalake",
  "bytes",
  "chrono",
- "dotenv",
  "futures",
- "futures-test",
  "itertools",
  "percent-encoding",
- "pretty_assertions",
  "reqwest",
+ "snafu",
  "tempfile",
- "thiserror",
  "tokio",
  "tokio-util 0.7.1",
+ "tracing",
  "walkdir",
 ]
 
@@ -2794,6 +2801,7 @@ dependencies = [
  "http",
  "http-body",
  "hyper",
+ "hyper-rustls",
  "hyper-tls",
  "ipnet",
  "js-sys",
@@ -2804,16 +2812,20 @@ dependencies = [
  "native-tls",
  "percent-encoding",
  "pin-project-lite",
+ "rustls",
+ "rustls-pemfile 0.3.0",
  "serde",
  "serde_json",
  "serde_urlencoded",
  "tokio",
  "tokio-native-tls",
+ "tokio-rustls",
  "tokio-util 0.6.9",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
+ "webpki-roots",
  "winreg",
 ]
 
@@ -2915,9 +2927,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0167bac7a9f490495f3c33013e7722b53cb087ecbe082fb0c6387c96f634ea50"
 dependencies = [
  "openssl-probe",
- "rustls-pemfile",
+ "rustls-pemfile 1.0.0",
  "schannel",
  "security-framework",
+]
+
+[[package]]
+name = "rustls-pemfile"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1ee86d63972a7c661d1536fefe8c3c8407321c3df668891286de28abcd087360"
+dependencies = [
+ "base64",
 ]
 
 [[package]]
@@ -3170,6 +3191,28 @@ name = "smallvec"
 version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2dd574626839106c320a323308629dcb1acfc96e32a8cba364ddc61ac23ee83"
+
+[[package]]
+name = "snafu"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5177903bf45656592d9eb5c0e22f408fc023aae51dbe2088889b71633ba451f2"
+dependencies = [
+ "doc-comment",
+ "snafu-derive",
+]
+
+[[package]]
+name = "snafu-derive"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "410b26ed97440d90ced3e2488c868d56a86e2064f5d7d6f417909b286afe25e5"
+dependencies = [
+ "heck 0.4.0",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "snap"
@@ -3539,7 +3582,7 @@ dependencies = [
  "prost",
  "prost-derive",
  "rustls-native-certs",
- "rustls-pemfile",
+ "rustls-pemfile 1.0.0",
  "tokio",
  "tokio-rustls",
  "tokio-stream",
@@ -3956,6 +3999,15 @@ checksum = "f095d78192e208183081cc07bc5515ef55216397af48b873e5edcd72637fa1bd"
 dependencies = [
  "ring",
  "untrusted",
+]
+
+[[package]]
+name = "webpki-roots"
+version = "0.22.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "44d8de8415c823c8abd270ad483c6feeac771fad964890779f9a8cb24fbbc1bf"
+dependencies = [
+ "webpki",
 ]
 
 [[package]]

@@ -5,7 +5,6 @@ use arrow_deps::datafusion::{
 };
 use async_trait::async_trait;
 use flight_fusion_ipc::RequestFor;
-pub use object_store::{path::ObjectStorePath, ObjectStoreApi};
 use std::sync::Arc;
 
 pub mod actions;

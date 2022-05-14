@@ -41,7 +41,6 @@ impl DoPutHandler<CommandWriteIntoDataset> for FlightFusionService {
 mod tests {
     use super::*;
     use crate::test_utils::{get_fusion_handler, get_input_plan};
-    use area_store::store::flatten_list_stream;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
         SaveMode,
@@ -101,7 +100,9 @@ mod tests {
         assert!(table_dir.is_dir());
 
         let table_location = handler.area_store.get_table_location(&table_ref).unwrap();
-        let files = flatten_list_stream(&handler.area_store.object_store(), Some(&table_location))
+        let files = handler
+            .area_store
+            .get_location_files(&table_location)
             .await
             .unwrap();
         assert!(files.len() == 1);
@@ -110,7 +111,9 @@ mod tests {
             .handle_do_put(request.clone(), plan.clone())
             .await
             .unwrap();
-        let files = flatten_list_stream(&handler.area_store.object_store(), Some(&table_location))
+        let files = handler
+            .area_store
+            .get_location_files(&table_location)
             .await
             .unwrap();
         assert!(files.len() == 2);
@@ -124,7 +127,9 @@ mod tests {
             .handle_do_put(request.clone(), plan.clone())
             .await
             .unwrap();
-        let files = flatten_list_stream(&handler.area_store.object_store(), Some(&table_location))
+        let files = handler
+            .area_store
+            .get_location_files(&table_location)
             .await
             .unwrap();
         assert!(files.len() == 1)
