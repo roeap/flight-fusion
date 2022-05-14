@@ -1,5 +1,6 @@
 use area_store::error::AreaStoreError;
 use arrow_deps::{
+    arrow::error::ArrowError,
     datafusion::error::DataFusionError,
     deltalake::{operations::DeltaCommandError, DeltaTableError},
 };
@@ -42,6 +43,9 @@ pub enum FusionServiceError {
 
     #[error(transparent)]
     DeltaTable(#[from] DeltaTableError),
+
+    #[error(transparent)]
+    Arrow(#[from] ArrowError),
 }
 
 impl FusionServiceError {

@@ -7,25 +7,57 @@ pub mod utils;
 pub mod writer;
 
 use crate::error::Result;
-use arrow_deps::arrow::{datatypes::SchemaRef as ArrowSchemaRef, record_batch::RecordBatch};
-use arrow_deps::datafusion::parquet::arrow::async_reader::ParquetRecordBatchStreamBuilder;
+use arrow_deps::arrow::{
+    datatypes::SchemaRef as ArrowSchemaRef,
+    error::{ArrowError, Result as ArrowResult},
+    record_batch::RecordBatch,
+};
+use arrow_deps::datafusion::parquet::arrow::async_reader::{
+    ParquetRecordBatchStream, ParquetRecordBatchStreamBuilder,
+};
 use arrow_deps::datafusion::parquet::arrow::ArrowReader;
 use arrow_deps::datafusion::parquet::{arrow::ParquetFileArrowReader, basic::LogicalType};
-use arrow_deps::datafusion::physical_plan::SendableRecordBatchStream;
+use arrow_deps::datafusion::physical_plan::{RecordBatchStream, SendableRecordBatchStream};
 use async_trait::async_trait;
 pub use basic::DefaultAreaStore;
 pub use cache::CachedAreaStore;
 use flight_fusion_ipc::{AreaSourceReference, SaveMode};
+use futures::Stream;
 use futures::StreamExt;
 use object_store::path::{parsed::DirsAndFileName, Path};
+use object_store::AsyncReader;
 use object_store::ObjectStoreApi;
 use std::collections::HashSet;
+use std::pin::Pin;
 use std::sync::Arc;
+use std::task::{Context, Poll};
 pub use utils::*;
 pub use writer::*;
 
 const DATA_FOLDER_NAME: &str = "_ff_data";
 const DEFAULT_READ_BATCH_SIZE: usize = 1024;
+
+pub struct FileReaderStream(ParquetRecordBatchStream<Box<dyn AsyncReader + Unpin>>);
+
+impl Stream for FileReaderStream {
+    type Item = ArrowResult<RecordBatch>;
+
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        match self.0.poll_next_unpin(cx) {
+            Poll::Ready(opt) => Poll::Ready(match opt {
+                Some(data) => Some(data.map_err(|err| ArrowError::ParquetError(err.to_string()))),
+                None => None,
+            }),
+            Poll::Pending => Poll::Pending,
+        }
+    }
+}
+
+impl RecordBatchStream for FileReaderStream {
+    fn schema(&self) -> ArrowSchemaRef {
+        self.0.schema().clone()
+    }
+}
 
 #[async_trait]
 pub trait AreaStore: Send + Sync {
@@ -65,9 +97,7 @@ pub trait AreaStore: Send + Sync {
     async fn open_file(&self, file: &Path) -> Result<SendableRecordBatchStream> {
         let reader = self.object_store().open_file(file).await?;
         let builder = ParquetRecordBatchStreamBuilder::new(reader).await?;
-        let rb_stream = builder.build()?;
-        let _asd = rb_stream.then(|ps| async { ps.unwrap() });
-        todo!()
+        Ok(Box::pin(FileReaderStream(builder.build()?)))
     }
 
     /// Resolve an [`AreaSourceReference`] to the files relevant for source reference

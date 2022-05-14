@@ -5,7 +5,6 @@ use arrow_deps::arrow::record_batch::*;
 use arrow_deps::datafusion::parquet::arrow::async_reader::ParquetRecordBatchStreamBuilder;
 use arrow_deps::datafusion::{
     arrow::datatypes::SchemaRef as ArrowSchemaRef,
-    datafusion_data_access::object_store::{local::LocalFileSystem, ObjectStore as DFObjectStore},
     parquet::{
         arrow::ParquetFileArrowReader,
         file::serialized_reader::{SerializedFileReader, SliceableCursor},
@@ -20,9 +19,10 @@ use object_store::{path::ObjectStorePath, ObjectStoreApi};
 use std::path::PathBuf;
 use std::sync::Arc;
 
+const DEFAULT_PARQUET_SUFFIX: &str = ".parquet";
+
 pub struct DefaultAreaStore {
     object_store: Arc<object_store::ObjectStore>,
-    df_object_store: Arc<dyn DFObjectStore>,
     root_path: String,
     // only visible for testing purposes
     pub(crate) file_index: Arc<FileIndex>,
@@ -38,7 +38,6 @@ impl DefaultAreaStore {
             object_store,
             root_path: buf.to_str().unwrap().to_string(),
             file_index,
-            df_object_store: Arc::new(LocalFileSystem),
         })
     }
 
@@ -60,7 +59,6 @@ impl DefaultAreaStore {
             object_store,
             root_path: format!("adls2://{}", container),
             file_index,
-            df_object_store: Arc::new(LocalFileSystem),
         })
     }
 
@@ -84,6 +82,13 @@ impl AreaStore for DefaultAreaStore {
         let trimmed_raw = raw
             .trim_start_matches(&self.root_path)
             .trim_start_matches('/');
+        if let Some((first, last)) = trimmed_raw.rsplit_once('/') {
+            if last.ends_with(DEFAULT_PARQUET_SUFFIX) {
+                let mut path = self.object_store.path_from_raw(first);
+                path.set_file_name(last);
+                return path;
+            }
+        }
         self.object_store.path_from_raw(trimmed_raw)
     }
 

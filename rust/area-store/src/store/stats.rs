@@ -305,7 +305,7 @@ fn apply_min_max_for_column(
 
 #[inline]
 fn is_utf8(opt: Option<LogicalType>) -> bool {
-    matches!(opt.as_ref(), Some(LogicalType::STRING(_)))
+    matches!(opt.as_ref(), Some(LogicalType::String))
 }
 
 fn min_and_max_from_parquet_statistics(
@@ -387,7 +387,7 @@ fn min_and_max_from_parquet_statistics(
             let max = arrow::compute::max(max_array);
 
             match column_descr.logical_type().as_ref() {
-                Some(LogicalType::TIMESTAMP(TimestampType { unit, .. })) => {
+                Some(LogicalType::Timestamp { unit, .. }) => {
                     let min =
                         min.map(|n| Value::String(utils::timestamp_to_delta_stats_string(n, unit)));
                     let max =
