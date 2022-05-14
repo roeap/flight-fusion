@@ -18,10 +18,6 @@ pub enum FusionServiceError {
     #[error("No actions available for {0}")]
     UnknownAction(String),
 
-    /// Error returned when no return data is generated
-    #[error("Empty dataset evaluation query {0}")]
-    NoReturnData(String),
-
     /// Error returned when when no more specific error is defined
     #[error("Generic error: {0}")]
     Generic(String),

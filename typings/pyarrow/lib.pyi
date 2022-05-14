@@ -555,6 +555,8 @@ class Table:
     animals: [["Flamingo","Horse","Brittle stars","Centipede"]]
     """
 
+    @property
+    def shape(self) -> tuple[int, int]: ...
     def filter(self, mask, null_selection_behavior="drop") -> Table:
         """
         Select rows from the table.

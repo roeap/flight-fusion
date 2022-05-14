@@ -5,16 +5,10 @@ from typing import Iterable, List, Optional, Protocol, Set, TypedDict
 import pandas as pd
 import polars as pl
 import pyarrow as pa
-from dagster import (
-    AssetKey,
-    IOManager,
-    MetadataEntry,
-    MetadataValue,
-    TableColumn,
-    TableSchema,
-    io_manager,
-)
-
+from dagster import AssetKey, IOManager, io_manager
+from dagster.core.definitions.metadata import MetadataEntry, MetadataValue
+from dagster.core.definitions.metadata.table import TableColumn, TableSchema
+from dagster.core.errors import DagsterInvariantViolationError
 from dagster_fusion._types import TableReference, TypedInputContext, TypedOutputContext
 from dagster_fusion.config import (
     FIELD_COLUMN_SELECTION,
@@ -50,7 +44,7 @@ class TableIOManager(IOManager):
         self._fusion = client
 
     def _get_dataset_client(self, asset_key: AssetKey) -> BaseDatasetClient:
-        return DatasetClient(client=self._fusion._flight, asset_key=asset_key)
+        return DatasetClient(client=self._fusion._flight, asset_key=asset_key)  # type: ignore
 
     def handle_output(
         self,
@@ -130,7 +124,11 @@ class TableIOManager(IOManager):
             InputConfig, IOManagerResources, TypedOutputContext[OutputConfig, IOManagerResources]
         ],
     ) -> pa.Table | pl.DataFrame | pd.DataFrame:
-        asset_key = context.asset_key or context.upstream_output.asset_key
+        try:
+            asset_key = context.asset_key
+        except DagsterInvariantViolationError:
+            asset_key = context.upstream_output.asset_key
+
         if asset_key is None:
             raise MissingConfiguration("'asset_key' must be provided")
 
