@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "mlflow.fullname" . }}-env-configmap
+  labels:
+    app: {{ template "mlflow.name" . }}
+    chart: {{ template "mlflow.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+{{- if .Values.backendStore.postgres.enabled }}
+  PGHOST: {{ required "postgres host must be specified" .Values.backendStore.postgres.host }}
+  PGPORT: {{ required "postgres port must be specified" .Values.backendStore.postgres.port | quote }}
+  PGDATABASE: {{ required "postgres database must be specified" .Values.backendStore.postgres.database }}
+{{- end }}
+---
+{{- if .Values.backendStore.postgres.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "mlflow.fullname" . }}-migrations
+  labels:
+    app: {{ template "mlflow.name" . }}
+    chart: {{ template "mlflow.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  migrations.py: |-
+    from mlflow.store.db import utils
+    engine = utils.create_sqlalchemy_engine_with_retry("postgresql://")
+    utils._initialize_tables(engine)
+{{- end }}
