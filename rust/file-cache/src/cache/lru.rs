@@ -5,7 +5,7 @@
 //!
 //! # Examples
 //!
-//! ```rust,ignore
+//! ```rust
 //! use file_cache::{Cache, LruCache};
 //!
 //! let mut cache = LruCache::new(2);
@@ -66,7 +66,7 @@ impl<K: Eq + Hash, V> LruCache<K, V> {
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust
     /// use file_cache::{Cache, LruCache};
     /// let mut cache: LruCache<i32, &str> = LruCache::new(10);
     /// ```
@@ -89,7 +89,7 @@ impl<K: Eq + Hash, V, M: CountableMeter<K, V>> LruCache<K, V, DefaultHashBuilder
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust
     /// use file_cache::{Cache, LruCache, Meter};
     /// use std::borrow::Borrow;
     ///
@@ -158,7 +158,7 @@ impl<K: Eq + Hash, V, S: BuildHasher, M: CountableMeter<K, V>> Cache<K, V, S, M>
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust
     /// use file_cache::{Cache, LruCache};
     ///
     /// let mut cache = LruCache::new(2);
@@ -187,7 +187,7 @@ impl<K: Eq + Hash, V, S: BuildHasher, M: CountableMeter<K, V>> Cache<K, V, S, M>
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust
     /// use file_cache::{Cache, LruCache};
     ///
     /// let mut cache = LruCache::new(2);
@@ -214,7 +214,7 @@ impl<K: Eq + Hash, V, S: BuildHasher, M: CountableMeter<K, V>> Cache<K, V, S, M>
     ///
     /// # Example
     ///
-    /// ```rust,ignore
+    /// ```rust
     /// use file_cache::{Cache, LruCache};
     /// let mut cache = LruCache::new(2);
     ///
@@ -238,7 +238,7 @@ impl<K: Eq + Hash, V, S: BuildHasher, M: CountableMeter<K, V>> Cache<K, V, S, M>
     ///
     /// # Example
     ///
-    /// ```rust,ignore
+    /// ```rust
     /// use file_cache::{Cache, LruCache};
     /// let mut cache = LruCache::new(2);
     ///
@@ -262,7 +262,7 @@ impl<K: Eq + Hash, V, S: BuildHasher, M: CountableMeter<K, V>> Cache<K, V, S, M>
     ///
     /// # Example
     ///
-    /// ```rust,ignore
+    /// ```rust
     /// use file_cache::{Cache, LruCache};
     /// let mut cache = LruCache::new(2);
     ///
@@ -279,7 +279,7 @@ impl<K: Eq + Hash, V, S: BuildHasher, M: CountableMeter<K, V>> Cache<K, V, S, M>
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust
     /// use file_cache::{Cache, LruCache};
     ///
     /// let mut cache = LruCache::new(1);
@@ -300,7 +300,7 @@ impl<K: Eq + Hash, V, S: BuildHasher, M: CountableMeter<K, V>> Cache<K, V, S, M>
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust
     /// use file_cache::{Cache, LruCache};
     ///
     /// let mut cache = LruCache::new(2);
@@ -329,7 +329,7 @@ impl<K: Eq + Hash, V, S: BuildHasher, M: CountableMeter<K, V>> Cache<K, V, S, M>
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust
     /// use file_cache::{Cache, LruCache};
     ///
     /// let mut cache = LruCache::new(2);
@@ -358,7 +358,7 @@ impl<K: Eq + Hash, V, S: BuildHasher, M: CountableMeter<K, V>> Cache<K, V, S, M>
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust
     /// use file_cache::{Cache, LruCache};
     ///
     /// let mut cache = LruCache::new(2);
@@ -386,7 +386,7 @@ impl<K: Eq + Hash, V, S: BuildHasher, M: CountableMeter<K, V>> Cache<K, V, S, M>
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust
     /// use file_cache::{Cache, LruCache};
     ///
     /// let mut cache = LruCache::new(2);
@@ -438,7 +438,7 @@ impl<K: Eq + Hash, V, S: BuildHasher, M: CountableMeter<K, V>> Cache<K, V, S, M>
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust
     /// use file_cache::{Cache, LruCache};
     /// let mut cache: LruCache<i32, &str> = LruCache::new(2);
     /// assert_eq!(cache.capacity(), 2);
@@ -466,7 +466,7 @@ impl<K: Eq + Hash, V, S: BuildHasher, M: CountableMeter<K, V>> LruCache<K, V, S,
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust
     /// use file_cache::{Cache, LruCache};
     ///
     /// let mut cache = LruCache::new(2);
@@ -491,7 +491,7 @@ impl<K: Eq + Hash, V, S: BuildHasher, M: CountableMeter<K, V>> LruCache<K, V, S,
     ///
     /// # Examples
     ///
-    /// ```rust,ignore
+    /// ```rust
     /// use file_cache::{Cache, LruCache};
     ///
     /// let mut cache = LruCache::new(2);
@@ -571,7 +571,7 @@ impl<'a, K: Eq + Hash, V, S: BuildHasher, M: CountableMeter<K, V>> IntoIterator
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust
 /// use file_cache::{Cache, LruCache};
 ///
 /// let mut cache = LruCache::new(2);
