@@ -18,8 +18,6 @@ use object_store::DynObjectStore;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-const DEFAULT_PARQUET_SUFFIX: &str = ".parquet";
-
 pub struct DefaultAreaStore {
     object_store: Arc<DynObjectStore>,
     root_path: String,
@@ -205,7 +203,7 @@ mod tests {
         let area_root = root.path().join(".tmp");
         let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
 
-        let mut path = Path::from_raw("_ff_data/asd");
+        let path = Path::from_raw("_ff_data/asd");
 
         let batch = get_record_batch(None, false);
         area_store

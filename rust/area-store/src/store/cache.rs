@@ -149,7 +149,7 @@ mod tests {
         let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
         let cached_store = CachedAreaStore::try_new(area_store, cache_root, 10000).unwrap();
 
-        let mut path = Path::from_raw("asd");
+        let path = Path::from_raw("asd");
 
         let batch = get_record_batch(None, false);
         cached_store
@@ -175,7 +175,7 @@ mod tests {
         let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
         let cached_store = CachedAreaStore::try_new(area_store, cache_root, 10000).unwrap();
 
-        let mut path = Path::from_raw("_ff_data/asd");
+        let path = Path::from_raw("_ff_data/asd");
 
         let batch = get_record_batch(None, false);
         cached_store
