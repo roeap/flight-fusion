@@ -1,2 +1,2 @@
 [workspace]
-members = ["rust/*", "python/flight-fusion-server/", "python/arrow-adx/"]
+members = ["rust/*", "python/flight-fusion-server/"]
