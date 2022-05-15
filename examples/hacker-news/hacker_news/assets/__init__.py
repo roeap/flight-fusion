@@ -1,16 +1,16 @@
 from dagster import AssetGroup, in_process_executor
+
+from dagster_fusion import (
+    flight_fusion_io_manager,
+    flight_fusion_loader,
+    flight_fusion_resource,
+)
 from hacker_news.resources import RESOURCES_LOCAL  # , RESOURCES_PROD, RESOURCES_STAGING
 from hacker_news.resources.hn_resource import (
     hn_api_subsample_client,
     hn_snapshot_client,
 )
 from hacker_news.resources.partition_bounds import partition_bounds
-
-from dagster_fusion import (  # noqa
-    flight_fusion_io_manager,
-    flight_fusion_loader,
-    flight_fusion_resource,
-)
 
 from .comment_stories import comment_stories
 from .id_range_for_time import id_range_for_time

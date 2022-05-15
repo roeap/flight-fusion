@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable, List, Tuple
+from typing import TYPE_CHECKING, Iterable
 
 from flight_fusion.asset_key import AssetKey
 from flight_fusion.clients import ContextClient, DatasetClient, VersionedDatasetClient
@@ -24,10 +24,10 @@ class FusionServiceClient(BaseClient):
     ) -> None:
         super().__init__(options=options)
 
-    def get_source_reference(self, name: str, areas: List[str]) -> AreaSourceReference:
+    def get_source_reference(self, name: str, areas: list[str]) -> AreaSourceReference:
         return AreaSourceReference(location=AreaTableLocation(name=name, areas=areas))
 
-    def get_context(self, refs: Iterable[Tuple[str, List[str]]]) -> ContextClient:
+    def get_context(self, refs: Iterable[tuple[str, list[str]]]) -> ContextClient:
         return ContextClient(
             sources=[self.get_source_reference(name, areas) for name, areas in refs],
             client=self._flight,

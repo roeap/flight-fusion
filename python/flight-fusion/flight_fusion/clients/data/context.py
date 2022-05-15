@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import List
-
 import pyarrow as pa
 import pyarrow.flight as pa_flight
 
@@ -18,14 +16,14 @@ from .._base import BaseClient, ClientOptions
 class ContextClient(BaseClient):
     def __init__(
         self,
-        sources: List[AreaSourceReference],
+        sources: list[AreaSourceReference],
         client: pa_flight.FlightClient | None = None,
         options: ClientOptions | None = None,
     ) -> None:
         super().__init__(client=client, options=options)
         self._sources = sources
 
-    def load(self) -> List[pa.Table]:
+    def load(self) -> list[pa.Table]:
         raise NotImplementedError
 
     def query(self, query: str) -> pa.Table:
