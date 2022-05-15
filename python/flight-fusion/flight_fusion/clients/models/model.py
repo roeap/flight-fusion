@@ -46,14 +46,21 @@ FIELD_MAP = {
 
 class ModelClient:
     @property
-    @abstractmethod
     def input_schema(self) -> pa.Schema:
-        raise NotImplementedError
+        if self._input_schema is None:
+            self._input_schema = pa.schema(
+                pa.field(f.name, DATATYPE_MAP[f.datatype]) for f in self.get_metadata().inputs or []
+            )
+        return self._input_schema
 
     @property
-    @abstractmethod
     def output_schema(self) -> pa.Schema:
-        raise NotImplementedError
+        if self._output_schema is None:
+            self._output_schema = pa.schema(
+                pa.field(f.name, DATATYPE_MAP[f.datatype])
+                for f in self.get_metadata().outputs or []
+            )
+        return self._output_schema
 
     @abstractmethod
     def get_metadata(self) -> ModelMetadataResponse:
@@ -74,23 +81,6 @@ class GrpcModelClient(ModelClient):
         self._metadata = None
         self._input_schema = None
         self._output_schema = None
-
-    @property
-    def input_schema(self) -> pa.Schema:
-        if self._input_schema is None:
-            self._input_schema = pa.schema(
-                pa.field(f.name, DATATYPE_MAP[f.datatype]) for f in self.get_metadata().inputs or []
-            )
-        return self._input_schema
-
-    @property
-    def output_schema(self) -> pa.Schema:
-        if self._output_schema is None:
-            self._output_schema = pa.schema(
-                pa.field(f.name, DATATYPE_MAP[f.datatype])
-                for f in self.get_metadata().outputs or []
-            )
-        return self._output_schema
 
     def get_metadata(self) -> ModelMetadataResponse:
         if self._metadata is None:
@@ -167,23 +157,6 @@ class RestModelClient(ModelClient):
         if self._version:
             return f"{self._base_url}/v2/models/{self._name}/versions/{self._version}/infer"
         return f"{self._base_url}/v2/models/{self._name}/infer"
-
-    @property
-    def input_schema(self) -> pa.Schema:
-        if self._input_schema is None:
-            self._input_schema = pa.schema(
-                pa.field(f.name, DATATYPE_MAP[f.datatype]) for f in self.get_metadata().inputs or []
-            )
-        return self._input_schema
-
-    @property
-    def output_schema(self) -> pa.Schema:
-        if self._output_schema is None:
-            self._output_schema = pa.schema(
-                pa.field(f.name, DATATYPE_MAP[f.datatype])
-                for f in self.get_metadata().outputs or []
-            )
-        return self._output_schema
 
     def load(self) -> None:
         pass
