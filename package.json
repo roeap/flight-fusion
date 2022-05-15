@@ -9,6 +9,7 @@
   "private": true,
   "dependencies": {
     "lodash": "^4.17.21",
+    "prettier": "^2.6.2",
     "quicktype-core": "^6.0.70"
   },
   "devDependencies": {

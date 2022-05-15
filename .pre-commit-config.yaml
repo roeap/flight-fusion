@@ -13,6 +13,32 @@ repos:
       - id: mixed-line-ending
       - id: trailing-whitespace
 
+  - repo: https://github.com/pycqa/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort
+  - repo: https://github.com/pycqa/flake8
+    rev: 4.0.1
+    hooks:
+      - id: flake8
+  - repo: https://github.com/psf/black
+    rev: 22.3.0
+    hooks:
+      - id: black
+  - repo: https://github.com/MarcoGorelli/absolufy-imports
+    rev: v0.3.1
+    hooks:
+      - id: absolufy-imports
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v2.6.2
+    hooks:
+      - id: prettier
+    types_or:
+      - json
+      - toml
+      - yaml
+      - markdown
+
   - repo: local
     hooks:
       - id: pyright
@@ -23,6 +49,14 @@ repos:
         pass_filenames: false
         types: [python]
         additional_dependencies: ["pyright@1.1.210"]
+      - id: just
+        name: just
+        language: system
+        entry: just --fmt --unstable --check
+        files: ^justfile$
+        pass_filenames: false
+        types:
+          - file
 
   # - repo: https://github.com/doublify/pre-commit-rust
   #   rev: v1.0
