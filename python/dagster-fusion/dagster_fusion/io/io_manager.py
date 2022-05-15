@@ -5,9 +5,15 @@ from typing import Iterable, List, Optional, Protocol, Set, TypedDict
 import pandas as pd
 import polars as pl
 import pyarrow as pa
-from dagster import AssetKey, IOManager, io_manager
-from dagster.core.definitions.metadata import MetadataEntry, MetadataValue
-from dagster.core.definitions.metadata.table import TableColumn, TableSchema
+from dagster import (
+    AssetKey,
+    IOManager,
+    MetadataEntry,
+    MetadataValue,
+    TableColumn,
+    TableSchema,
+    io_manager,
+)
 from dagster.core.errors import DagsterInvariantViolationError
 from dagster_fusion._types import TableReference, TypedInputContext, TypedOutputContext
 from dagster_fusion.config import (
@@ -103,13 +109,6 @@ class TableIOManager(IOManager):
                 .with_column(pl.Series(name="column_name", values=df_series.columns[1:]))
             )
 
-            # rows = [TableRecord(**dict(zip(df_stats.columns, row))) for row in df_stats.rows()]
-            # yield MetadataEntry("column_statistics", value=TableMetadataEntryData(rows, None))
-
-            # yield MetadataEntry(
-            #     "column_statistics",
-            #     value=MetadataValue.json({"stats": df_stats.to_dicts()}),
-            # )
             yield MetadataEntry(
                 "column_statistics",
                 value=MetadataValue.md(df_stats.to_pandas().to_markdown()),

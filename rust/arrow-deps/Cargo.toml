@@ -11,7 +11,7 @@ parquet = { version = "13", features = ["async"] }
 # Git dependencies
 datafusion = { git = "https://github.com/apache/arrow-datafusion.git", rev = "f943b6a65291c3de6403dde827cb411a050f4fa0" }
 datafusion-data-access = { git = "https://github.com/apache/arrow-datafusion.git", rev = "f943b6a65291c3de6403dde827cb411a050f4fa0" }
-deltalake = { git = "https://github.com/delta-io/delta-rs", rev = "359c2fa5965e73dd55a8633388985f94f70c1161", features = [
+deltalake = { git = "https://github.com/roeap/delta-rs", rev = "d852f439125c01b0109dc4ccb2418ec155160ade", features = [
   "datafusion-ext",
 ], optional = true }
 

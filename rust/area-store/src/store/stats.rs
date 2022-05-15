@@ -11,7 +11,6 @@ use arrow_deps::arrow::{
 };
 use arrow_deps::datafusion::parquet::{
     self,
-    basic::TimestampType,
     errors::ParquetError,
     file::{metadata::RowGroupMetaData, statistics::Statistics},
     schema::types::{ColumnDescriptor, SchemaDescriptor},
