@@ -94,7 +94,7 @@ impl DeltaWriter {
 
         for (_, mut writer) in writers {
             let metadata = writer.arrow_writer.close()?;
-            let file_loc = self.next_data_path(&location, &writer.partition_values, None)?;
+            let file_loc = self.next_data_path(location, &writer.partition_values, None)?;
 
             let obj_bytes = bytes::Bytes::from(writer.cursor.data());
             let file_size = obj_bytes.len() as i64;

@@ -271,7 +271,7 @@ impl FlightService for FlightFusionService {
         .map_err(to_tonic_err)?;
 
         let options = arrow_deps::datafusion::arrow::ipc::writer::IpcWriteOptions::default();
-        let schema_flight_data = SchemaAsIpc::new(&result.schema().clone(), &options).into();
+        let schema_flight_data = SchemaAsIpc::new(&result.schema(), &options).into();
         let mut flights: Vec<Result<FlightData, Status>> = vec![Ok(schema_flight_data)];
 
         // TODO it would be great if we could directly return a stream rather than collecting all data first.

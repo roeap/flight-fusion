@@ -48,10 +48,9 @@ impl Stream for FileReaderStream {
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         match self.0.poll_next_unpin(cx) {
-            Poll::Ready(opt) => Poll::Ready(match opt {
-                Some(data) => Some(data.map_err(|err| ArrowError::ParquetError(err.to_string()))),
-                None => None,
-            }),
+            Poll::Ready(opt) => Poll::Ready(
+                opt.map(|data| data.map_err(|err| ArrowError::ParquetError(err.to_string()))),
+            ),
             Poll::Pending => Poll::Pending,
         }
     }

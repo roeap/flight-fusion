@@ -114,7 +114,7 @@ impl AreaStore for DefaultAreaStore {
         // TODO only actually load first file and also make this work for delta
         let files = self.get_source_files(source).await?;
         let reader = self.open_file(&files[0]).await?;
-        Ok(reader.schema().clone())
+        Ok(reader.schema())
     }
 
     // TODO use some sort of borrowed reference

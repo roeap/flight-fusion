@@ -1,6 +1,13 @@
-# build python bindings
+# Initialize development envoronment
+init:
+    poetry install --no-root
+
+# build python bindings in development mode
 python-develop:
     maturin develop -m python/flight-fusion-server/Cargo.toml --extras=devel $(MATURIN_EXTRA_ARGS)
+
+python-build:
+    maturin build -m python/flight-fusion-server/Cargo.toml --release --no-sdist --strip
 
 # compile proto files
 generate-proto:
@@ -22,3 +29,21 @@ generate-proto:
     rm -r tmp-proto
     rm -r ./typescript/vscode-fusion/src/generated/scalapb
     rm -r ./typescript/vscode-fusion/src/generated/mlflow
+
+generate-test-data:
+    python scripts/generate_test_data.py
+
+check-rust:
+    cargo fmt -- --check
+    cargo clippy
+
+check-python:
+    black --check .
+    pyright python/
+
+# run python tests
+test-python:
+    pytest python/
+
+docker-build:
+    docker build -f rust/flight-fusion/Dockerfile -t flight-fusion .
