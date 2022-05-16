@@ -80,13 +80,6 @@ impl AreaStore for DefaultAreaStore {
         let trimmed_raw = raw
             .trim_start_matches(&self.root_path)
             .trim_start_matches('/');
-        // if let Some((first, last)) = trimmed_raw.rsplit_once('/') {
-        //     if last.ends_with(DEFAULT_PARQUET_SUFFIX) {
-        //         let mut path = Path::from_raw(first);
-        //         path.set_file_name(last);
-        //         return path;
-        //     }
-        // }
         Path::from_raw(trimmed_raw)
     }
 
