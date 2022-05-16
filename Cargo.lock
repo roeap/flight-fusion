@@ -788,7 +788,7 @@ dependencies = [
 [[package]]
 name = "deltalake"
 version = "0.4.1"
-source = "git+https://github.com/delta-io/delta-rs?rev=359c2fa5965e73dd55a8633388985f94f70c1161#359c2fa5965e73dd55a8633388985f94f70c1161"
+source = "git+https://github.com/roeap/delta-rs?rev=d852f439125c01b0109dc4ccb2418ec155160ade#d852f439125c01b0109dc4ccb2418ec155160ade"
 dependencies = [
  "arrow",
  "async-trait",
@@ -811,6 +811,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-stream",
+ "tokio-util 0.7.1",
  "uuid",
 ]
 
@@ -3155,6 +3156,7 @@ dependencies = [
  "futures-core",
  "futures-io",
  "futures-sink",
+ "futures-util",
  "pin-project-lite",
  "tokio",
  "tracing",

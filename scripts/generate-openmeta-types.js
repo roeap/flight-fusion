@@ -17,22 +17,28 @@ async function* walk(dir) {
 
 function updateLine(line) {
   if (line.includes("#[derive(Serialize, Deserialize)]")) {
-    return "#[derive(Clone, Debug, Serialize, Deserialize)]"
+    return "#[derive(Clone, Debug, Serialize, Deserialize)]";
   }
   if (line.includes("updated_at: Option<String>")) {
-    return line.replace("Option<String>", "Option<i64>")
+    return line.replace("Option<String>", "Option<i64>");
   }
   if (line.includes("<IngestionScheduleClass>")) {
-    return line.replace("<IngestionScheduleClass>", "<Schedule>")
+    return line.replace("<IngestionScheduleClass>", "<Schedule>");
   }
-  return line
+  return line;
 }
 
 async function main() {
   const schemaInput = new JSONSchemaInput(new JSONSchemaStore());
   const targetLanguage = "rust";
 
-  const schemaRoot = path.join(__dirname, "..", "rust", "open-metadata", "schema");
+  const schemaRoot = path.join(
+    __dirname,
+    "..",
+    "rust",
+    "open-metadata",
+    "schema"
+  );
 
   for await (const p of walk(schemaRoot)) {
     const schema = await fs.readFile(p, "utf-8");
@@ -45,7 +51,11 @@ async function main() {
   const { lines: generatedLines } = await quicktype({
     inputData,
     lang: targetLanguage,
-    rendererOptions: { density: "normal", deriveDebug: true, visibility: "public" },
+    rendererOptions: {
+      density: "normal",
+      deriveDebug: true,
+      visibility: "public",
+    },
   });
 
   const newLines = generatedLines.map(updateLine);

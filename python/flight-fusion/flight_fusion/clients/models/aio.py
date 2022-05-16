@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Generic, Type, TypeVar
+from typing import AsyncGenerator, Generic, TypeVar
 
 from betterproto import ServiceStub
 from grpclib.client import Channel
@@ -29,7 +29,7 @@ T = TypeVar("T", bound=ServiceStub)
 class _BaseGrpcClient(Generic[T]):
     def __init__(
         self,
-        stub_type: Type[T],
+        stub_type: type[T],
         host: str = "localhost",
         port: int = 8081,
         use_ssl: bool = False,

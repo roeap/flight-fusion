@@ -17,7 +17,6 @@ use observability_deps::{
     tracing_subscriber::{self, layer::SubscriberExt, prelude::*},
 };
 use service::FlightFusionService;
-use tokio::task;
 use tonic::transport::Server;
 
 lazy_static! {
@@ -65,8 +64,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )),
     }?;
 
-    let spawner = service.clone();
-    task::spawn(async move { spawner.build_index().await });
+    // let spawner = service.clone();
+    // tokio::task::spawn(async move { spawner.build_index().await });
 
     let svc = FlightServiceServer::new(service);
     info!(

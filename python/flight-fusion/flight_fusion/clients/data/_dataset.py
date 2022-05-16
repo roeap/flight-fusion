@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import List, Optional
 
 import pandas as pd
 import pyarrow as pa
@@ -46,7 +45,7 @@ class BaseDatasetClient(BaseClient):
         raise errors.TableSource(f"Variant {field} not yet supported.")
 
     @property
-    def namespace(self) -> List[str]:
+    def namespace(self) -> list[str]:
         field, value = which_one_of(self._reference, "table")
         if isinstance(value, AreaTableLocation):
             return value.areas
@@ -88,5 +87,5 @@ class BaseDatasetClient(BaseClient):
         )
         return self._flight.get_flight_info(request)
 
-    def set_metadata(self, metadata: Optional[AreaSourceMetadata] = None) -> None:
+    def set_metadata(self, metadata: AreaSourceMetadata | None = None) -> None:
         raise NotImplementedError

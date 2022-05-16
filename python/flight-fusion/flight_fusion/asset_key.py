@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Mapping, NamedTuple, Optional, Sequence
+from typing import Mapping, NamedTuple, Sequence
 
 try:  # noqa: C901
     from dagster import AssetKey
@@ -28,13 +28,13 @@ except ImportError:
             if isinstance(path, str):
                 path = [path]
 
-            return super(AssetKey, cls).__new__(cls, path=path)  # type: ignore
+            return super().__new__(cls, path=path)  # type: ignore
 
         def __str__(self):
-            return "AssetKey({})".format(self.path)
+            return f"AssetKey({self.path})"
 
         def __repr__(self):
-            return "AssetKey({})".format(self.path)
+            return f"AssetKey({self.path})"
 
         def __hash__(self):
             return hash(tuple(self.path))
@@ -44,7 +44,7 @@ except ImportError:
                 return False
             return self.to_string() == other.to_string()
 
-        def to_string(self, legacy: Optional[bool] = False) -> Optional[str]:
+        def to_string(self, legacy: bool | None = False) -> str | None:
             if not self.path:
                 return None
             if legacy:
@@ -52,7 +52,7 @@ except ImportError:
             return json.dumps(self.path)
 
         @staticmethod
-        def from_db_string(asset_key_string: Optional[str]) -> Optional["AssetKey"]:
+        def from_db_string(asset_key_string: str | None) -> AssetKey | None:
             if not asset_key_string:
                 return None
             if asset_key_string[0] == "[":
@@ -66,13 +66,13 @@ except ImportError:
             return AssetKey(path)
 
         @staticmethod
-        def get_db_prefix(path: list[str], legacy: Optional[bool] = False):
+        def get_db_prefix(path: list[str], legacy: bool | None = False):
             if legacy:
                 return ASSET_KEY_STRUCTURED_DELIMITER.join(path)
             return json.dumps(path)[:-2]  # strip trailing '"]' from json string
 
         @staticmethod
-        def from_graphql_input(asset_key: Mapping[str, list[str]]) -> Optional["AssetKey"]:
+        def from_graphql_input(asset_key: Mapping[str, list[str]]) -> AssetKey | None:
             if asset_key and asset_key.get("path"):
                 return AssetKey(asset_key["path"])
             return None

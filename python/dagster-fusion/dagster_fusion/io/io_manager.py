@@ -1,14 +1,21 @@
 from __future__ import annotations
 
-from typing import Iterable, List, Optional, Protocol, Set, TypedDict
+from typing import Iterable, Protocol, TypedDict
 
 import pandas as pd
 import polars as pl
 import pyarrow as pa
-from dagster import AssetKey, IOManager, io_manager
-from dagster.core.definitions.metadata import MetadataEntry, MetadataValue
-from dagster.core.definitions.metadata.table import TableColumn, TableSchema
+from dagster import (
+    AssetKey,
+    IOManager,
+    MetadataEntry,
+    MetadataValue,
+    TableColumn,
+    TableSchema,
+    io_manager,
+)
 from dagster.core.errors import DagsterInvariantViolationError
+
 from dagster_fusion._types import TableReference, TypedInputContext, TypedOutputContext
 from dagster_fusion.config import (
     FIELD_COLUMN_SELECTION,
@@ -26,13 +33,13 @@ _OUTPUT_CONFIG_SCHEMA = {"save_mode": FIELD_SAVE_MODE}
 
 
 class InputConfig(TypedDict, total=False):
-    columns: List[str]
+    columns: list[str]
 
 
 class OutputConfig(TypedDict, total=False):
     location: TableReference
     save_mode: SaveMode
-    partition_columns: List[str]
+    partition_columns: list[str]
 
 
 class IOManagerResources(Protocol):
@@ -83,7 +90,7 @@ class TableIOManager(IOManager):
         try:
             df: pl.DataFrame = pl.from_arrow(data)  # type: ignore
 
-            stats: List[pl.DataFrame] = []
+            stats: list[pl.DataFrame] = []
             for col in df.columns:
                 try:
                     series_stats = df.get_column(col).describe()
@@ -103,13 +110,6 @@ class TableIOManager(IOManager):
                 .with_column(pl.Series(name="column_name", values=df_series.columns[1:]))
             )
 
-            # rows = [TableRecord(**dict(zip(df_stats.columns, row))) for row in df_stats.rows()]
-            # yield MetadataEntry("column_statistics", value=TableMetadataEntryData(rows, None))
-
-            # yield MetadataEntry(
-            #     "column_statistics",
-            #     value=MetadataValue.json({"stats": df_stats.to_dicts()}),
-            # )
             yield MetadataEntry(
                 "column_statistics",
                 value=MetadataValue.md(df_stats.to_pandas().to_markdown()),
@@ -154,7 +154,7 @@ class TableIOManager(IOManager):
 
     def get_output_asset_key(
         self, context: TypedOutputContext[OutputConfig, IOManagerResources]
-    ) -> Optional[AssetKey]:
+    ) -> AssetKey | None:
         """Associates outputs handled by this IOManager with a particular AssetKey."""
         if context.asset_key is not None:
             return None
@@ -166,7 +166,7 @@ class TableIOManager(IOManager):
         reference = table_reference_to_area_source(location)
         return area_source_to_asset_key(reference)
 
-    def get_output_asset_partitions(self, _context) -> Set[str]:
+    def get_output_asset_partitions(self, _context) -> set[str]:
         """User-defined method that associates outputs handled by this IOManager with a set of
         partitions of an AssetKey.
 
@@ -180,7 +180,7 @@ class TableIOManager(IOManager):
         context: TypedInputContext[
             InputConfig, IOManagerResources, TypedOutputContext[OutputConfig, IOManagerResources]
         ],
-    ) -> Optional[AssetKey]:
+    ) -> AssetKey | None:
         """Associates inputs handled by this IOManager with a particular AssetKey."""
         if context.upstream_output is None:
             return None
