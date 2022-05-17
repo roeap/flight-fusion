@@ -14,8 +14,10 @@ use arrow_deps::arrow::{
     record_batch::RecordBatch,
 };
 use arrow_deps::datafusion::{
-    physical_plan::{collect, common::AbortOnDropMany, ExecutionPlan, SendableRecordBatchStream},
-    prelude::SessionContext,
+    physical_plan::{
+        common::{collect, AbortOnDropMany},
+        SendableRecordBatchStream,
+    },
     scalar::ScalarValue,
 };
 use arrow_deps::deltalake::{
@@ -37,14 +39,12 @@ impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
     async fn handle_do_put(
         &self,
         ticket: DeltaOperationRequest,
-        input: Arc<dyn ExecutionPlan>,
+        input: SendableRecordBatchStream,
     ) -> Result<DeltaOperationResponse> {
         if let Some(source) = ticket.source {
             let full_path = self.area_store.get_full_table_path(&source)?;
             let mut delta_cmd = DeltaCommands::try_from_uri(full_path).await?;
-            let session_ctx = SessionContext::new();
-            let task_ctx = session_ctx.task_ctx();
-            let batches = collect(input, task_ctx).await?;
+            let batches = collect(input).await?;
 
             match ticket.operation {
                 Some(DeltaOperation::Write(req)) => {
@@ -154,7 +154,7 @@ pub(crate) fn spawn_execution(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{get_fusion_handler, get_input_plan};
+    use crate::test_utils::{get_fusion_handler, get_input_stream};
     use arrow_deps::deltalake::open_table;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, delta_operation_request::Operation,
@@ -165,7 +165,7 @@ mod tests {
     #[tokio::test]
     async fn test_put_append_overwrite() {
         let root = tempfile::tempdir().unwrap();
-        let plan = get_input_plan(None, false);
+        let plan = get_input_stream(None, false);
         let handler = get_fusion_handler(root.path());
         let table_dir = root.path().join("_ff_data/new_table");
 
@@ -185,19 +185,14 @@ mod tests {
         };
 
         // create table and write some data
-        let _ = handler
-            .handle_do_put(request.clone(), plan.clone())
-            .await
-            .unwrap();
+        let _ = handler.handle_do_put(request.clone(), plan).await.unwrap();
         let mut dt = open_table(table_dir.to_str().unwrap()).await.unwrap();
         assert_eq!(dt.version, 0);
         assert_eq!(dt.get_file_uris().count(), 2);
 
         // Append data to table
-        let _ = handler
-            .handle_do_put(request.clone(), plan.clone())
-            .await
-            .unwrap();
+        let plan = get_input_stream(None, false);
+        let _ = handler.handle_do_put(request.clone(), plan).await.unwrap();
         dt.update().await.unwrap();
         assert_eq!(dt.version, 1);
         assert_eq!(dt.get_file_uris().count(), 4);
@@ -211,6 +206,7 @@ mod tests {
                 ..Default::default()
             })),
         };
+        let plan = get_input_stream(None, false);
         let _ = handler.handle_do_put(request, plan).await.unwrap();
         dt.update().await.unwrap();
         assert_eq!(dt.version, 2);
@@ -220,7 +216,8 @@ mod tests {
     #[tokio::test]
     async fn test_read_table() {
         let root = tempfile::tempdir().unwrap();
-        let plan = get_input_plan(None, false);
+        let plan = get_input_stream(None, false);
+        let ref_schema = plan.schema().clone();
         let handler = get_fusion_handler(root.path());
 
         let table = TableReference::Location(AreaTableLocation {
@@ -239,10 +236,7 @@ mod tests {
         };
 
         // create table and write some data
-        let _ = handler
-            .handle_do_put(request.clone(), plan.clone())
-            .await
-            .unwrap();
+        let _ = handler.handle_do_put(request.clone(), plan).await.unwrap();
 
         let request = DeltaOperationRequest {
             source: Some(AreaSourceReference {
@@ -256,6 +250,6 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(data[0].schema(), plan.schema())
+        assert_eq!(data[0].schema(), ref_schema)
     }
 }

@@ -4,23 +4,20 @@ use crate::{
     service::FlightFusionService,
 };
 use area_store::store::AreaStore;
-use arrow_deps::datafusion::physical_plan::{collect, ExecutionPlan};
+use arrow_deps::datafusion::physical_plan::{common::collect, SendableRecordBatchStream};
 use async_trait::async_trait;
 use flight_fusion_ipc::{CommandWriteIntoDataset, ResultDoPutUpdate, SaveMode};
-use std::sync::Arc;
 
 #[async_trait]
 impl DoPutHandler<CommandWriteIntoDataset> for FlightFusionService {
     async fn handle_do_put(
         &self,
         ticket: CommandWriteIntoDataset,
-        input: Arc<dyn ExecutionPlan>,
+        input: SendableRecordBatchStream,
     ) -> Result<ResultDoPutUpdate> {
         if let Some(source) = ticket.source {
             let location = self.area_store.get_table_location(&source)?;
-            let session_ctx = SessionContext::new();
-            let task_ctx = session_ctx.task_ctx();
-            let batches = collect(input, task_ctx).await?;
+            let batches = collect(input).await?;
             let _adds = self
                 .area_store
                 .put_batches(
@@ -40,7 +37,7 @@ impl DoPutHandler<CommandWriteIntoDataset> for FlightFusionService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{get_fusion_handler, get_input_plan};
+    use crate::test_utils::{get_fusion_handler, get_input_stream};
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
         SaveMode,
@@ -49,7 +46,7 @@ mod tests {
     #[tokio::test]
     async fn test_put_table() {
         let root = tempfile::tempdir().unwrap();
-        let plan = get_input_plan(None, false);
+        let plan = get_input_stream(None, false);
         let handler = get_fusion_handler(root.path());
         let table_dir = root.path().join("_ff_data/new_table");
 
@@ -64,10 +61,7 @@ mod tests {
 
         assert!(!table_dir.exists());
 
-        let _response = handler
-            .handle_do_put(request.clone(), plan.clone())
-            .await
-            .unwrap();
+        let _response = handler.handle_do_put(request.clone(), plan).await.unwrap();
 
         assert!(table_dir.is_dir())
     }
@@ -75,7 +69,7 @@ mod tests {
     #[tokio::test]
     async fn test_put_table_append_overwrite() {
         let root = tempfile::tempdir().unwrap();
-        let plan = get_input_plan(None, false);
+        let plan = get_input_stream(None, false);
         let handler = get_fusion_handler(root.path());
         let table_dir = root.path().join("_ff_data/new_table");
 
@@ -92,10 +86,7 @@ mod tests {
 
         assert!(!table_dir.exists());
 
-        let _response = handler
-            .handle_do_put(request.clone(), plan.clone())
-            .await
-            .unwrap();
+        let _response = handler.handle_do_put(request.clone(), plan).await.unwrap();
 
         assert!(table_dir.is_dir());
 
@@ -107,10 +98,8 @@ mod tests {
             .unwrap();
         assert!(files.len() == 1);
 
-        let _response = handler
-            .handle_do_put(request.clone(), plan.clone())
-            .await
-            .unwrap();
+        let plan = get_input_stream(None, false);
+        let _response = handler.handle_do_put(request.clone(), plan).await.unwrap();
         let files = handler
             .area_store
             .get_location_files(&table_location)
@@ -123,10 +112,8 @@ mod tests {
             save_mode: SaveMode::Overwrite.into(),
         };
 
-        let _response = handler
-            .handle_do_put(request.clone(), plan.clone())
-            .await
-            .unwrap();
+        let plan = get_input_stream(None, false);
+        let _response = handler.handle_do_put(request.clone(), plan).await.unwrap();
         let files = handler
             .area_store
             .get_location_files(&table_location)

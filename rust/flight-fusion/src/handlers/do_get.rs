@@ -129,9 +129,8 @@ impl DoGetHandler<CommandExecuteQuery> for FlightFusionService {
 mod tests {
     use crate::handlers::DoGetHandler;
     use crate::handlers::DoPutHandler;
-    use crate::test_utils::{get_fusion_handler, get_input_plan};
+    use crate::test_utils::{get_fusion_handler, get_input_stream};
     use arrow_deps::datafusion::physical_plan::common::collect;
-    use arrow_deps::datafusion::physical_plan::ExecutionPlan;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
         CommandReadDataset, CommandWriteIntoDataset, SaveMode,
@@ -140,7 +139,8 @@ mod tests {
     #[tokio::test]
     async fn test_put_get() {
         let root = tempfile::tempdir().unwrap();
-        let plan = get_input_plan(None, false);
+        let plan = get_input_stream(None, false);
+        let ref_schema = plan.schema().clone();
         let handler = get_fusion_handler(root.path());
         // let table_dir = root.path().join("_ff_data/new_table");
 
@@ -157,7 +157,7 @@ mod tests {
         };
 
         let _ = handler
-            .handle_do_put(put_request.clone(), plan.clone())
+            .handle_do_put(put_request.clone(), plan)
             .await
             .unwrap();
 
@@ -168,6 +168,6 @@ mod tests {
         let response = handler.execute_do_get(get_request.clone()).await.unwrap();
         let data = collect(response).await.unwrap();
 
-        assert_eq!(data[0].schema(), plan.schema())
+        assert_eq!(data[0].schema(), ref_schema)
     }
 }

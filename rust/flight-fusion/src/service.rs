@@ -1,5 +1,6 @@
-use crate::stream::FlightReceiverPlan;
-use crate::stream::{stream_flight_data, FlightDataReceiver, FlightDataSender};
+use crate::stream::{
+    raw_stream_to_flight_data_stream, stream_flight_data, FlightDataReceiver, FlightDataSender,
+};
 use crate::{error::FusionServiceError, handlers::*};
 use area_store::store::{AreaStore, DefaultAreaStore};
 use arrow_deps::datafusion::{
@@ -9,7 +10,6 @@ use arrow_deps::datafusion::{
         schema::MemorySchemaProvider,
     },
     datasource::MemTable,
-    physical_plan::{common::collect, SendableRecordBatchStream},
     prelude::SessionContext,
 };
 use arrow_flight::{
@@ -275,8 +275,7 @@ impl FlightService for FlightFusionService {
 
         let (tx, rx): (FlightDataSender, FlightDataReceiver) = channel(2);
 
-        // Arrow IPC reader does not implement Sync + Send so we need to use a channel
-        // to communicate
+        // Arrow IPC reader does not implement Sync + Send so we need to use a channel to communicate
         tokio::task::spawn(async move {
             if let Err(e) = stream_flight_data(result, tx).await {
                 tracing::warn!("Error streaming results: {:?}", e);
@@ -297,23 +296,23 @@ impl FlightService for FlightFusionService {
             global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
         tracing::Span::current().set_parent(parent_cx);
 
-        let rec_plan = Arc::new(
-            FlightReceiverPlan::try_new(request.into_inner())
-                .await
-                .map_err(|e| tonic::Status::internal(e.to_string()))?,
-        );
+        let stream = request.into_inner();
 
-        let request_data = rec_plan.ticket();
+        // the schema should be the first message returned, else client should error
+        let (data_stream, request_data) = raw_stream_to_flight_data_stream(stream)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
         let body = match &request_data.command {
             Some(action) => {
                 let result_body = match action {
                     DoPutCommand::Storage(storage) => serialize_message(
-                        self.handle_do_put(storage.clone(), rec_plan)
+                        self.handle_do_put(storage.clone(), data_stream)
                             .await
                             .map_err(|e| tonic::Status::internal(e.to_string()))?,
                     ),
                     DoPutCommand::Delta(delta) => serialize_message(
-                        self.handle_do_put(delta.clone(), rec_plan)
+                        self.handle_do_put(delta.clone(), data_stream)
                             .await
                             .map_err(|e| tonic::Status::internal(e.to_string()))?,
                     ),
@@ -418,26 +417,6 @@ fn to_tonic_err(e: FusionServiceError) -> Status {
     Status::internal(format!("{:?}", e))
 }
 
-/// Create a vector of record batches from a stream
-async fn collect_response_stream(
-    stream: SendableRecordBatchStream,
-) -> Result<Vec<Result<FlightData, Status>>, Status> {
-    let options = arrow_deps::datafusion::arrow::ipc::writer::IpcWriteOptions::default();
-    Ok(collect(stream)
-        .await
-        .map_err(|e| tonic::Status::internal(e.to_string()))?
-        .iter()
-        .flat_map(|batch| {
-            let (flight_dictionaries, flight_batch) =
-                arrow_flight::utils::flight_data_from_arrow_batch(batch, &options);
-            flight_dictionaries
-                .into_iter()
-                .chain(std::iter::once(flight_batch))
-                .map(Ok)
-        })
-        .collect())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -450,7 +429,7 @@ mod tests {
     #[tokio::test]
     async fn test_table_put_drop() {
         let root = crate::test_utils::workspace_test_data_folder();
-        let plan = crate::test_utils::get_input_plan(None, false);
+        let plan = crate::test_utils::get_input_stream(None, false);
         let handler = crate::test_utils::get_fusion_handler(root.clone());
         let table_dir = root.join("_ff_data/new_table");
 
