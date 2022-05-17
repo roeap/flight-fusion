@@ -126,6 +126,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "arrow"
+version = "14.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0612b6a634de6c3f5e63fdaa6932f7bc598f92de0462ac6e69b0aebd77e093aa"
+dependencies = [
+ "bitflags",
+ "chrono",
+ "csv",
+ "flatbuffers",
+ "half",
+ "hex",
+ "indexmap",
+ "lazy_static",
+ "lexical-core",
+ "multiversion",
+ "num",
+ "rand",
+ "regex",
+ "serde",
+ "serde_derive",
+ "serde_json",
+]
+
+[[package]]
 name = "arrow-deps"
 version = "0.1.0"
 dependencies = [
@@ -138,11 +162,11 @@ dependencies = [
 
 [[package]]
 name = "arrow-flight"
-version = "13.0.0"
+version = "14.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0a3666d2dbc637fa979d1f0bf3031d39a80e709f3b9ec88e3d573c1d666bf553"
+checksum = "ce7b7cfa8eb0dcb0691f18b6a1d9c81cfe3c42726c254be5128d15ebe7580a1d"
 dependencies = [
- "arrow",
+ "arrow 14.0.0",
  "base64",
  "bytes",
  "futures",
@@ -687,7 +711,7 @@ version = "7.0.0"
 source = "git+https://github.com/apache/arrow-datafusion.git?rev=f943b6a65291c3de6403dde827cb411a050f4fa0#f943b6a65291c3de6403dde827cb411a050f4fa0"
 dependencies = [
  "ahash",
- "arrow",
+ "arrow 13.0.0",
  "async-trait",
  "chrono",
  "datafusion-common",
@@ -719,7 +743,7 @@ name = "datafusion-common"
 version = "7.0.0"
 source = "git+https://github.com/apache/arrow-datafusion.git?rev=f943b6a65291c3de6403dde827cb411a050f4fa0#f943b6a65291c3de6403dde827cb411a050f4fa0"
 dependencies = [
- "arrow",
+ "arrow 13.0.0",
  "ordered-float 3.0.0",
  "parquet",
  "sqlparser",
@@ -745,7 +769,7 @@ version = "7.0.0"
 source = "git+https://github.com/apache/arrow-datafusion.git?rev=f943b6a65291c3de6403dde827cb411a050f4fa0#f943b6a65291c3de6403dde827cb411a050f4fa0"
 dependencies = [
  "ahash",
- "arrow",
+ "arrow 13.0.0",
  "datafusion-common",
  "sqlparser",
 ]
@@ -756,7 +780,7 @@ version = "7.0.0"
 source = "git+https://github.com/apache/arrow-datafusion.git?rev=f943b6a65291c3de6403dde827cb411a050f4fa0#f943b6a65291c3de6403dde827cb411a050f4fa0"
 dependencies = [
  "ahash",
- "arrow",
+ "arrow 13.0.0",
  "blake2",
  "blake3",
  "chrono",
@@ -779,7 +803,7 @@ name = "datafusion-row"
 version = "7.0.0"
 source = "git+https://github.com/apache/arrow-datafusion.git?rev=f943b6a65291c3de6403dde827cb411a050f4fa0#f943b6a65291c3de6403dde827cb411a050f4fa0"
 dependencies = [
- "arrow",
+ "arrow 13.0.0",
  "datafusion-common",
  "paste",
  "rand",
@@ -790,7 +814,7 @@ name = "deltalake"
 version = "0.4.1"
 source = "git+https://github.com/delta-io/delta-rs?rev=9216a8e2f068cba7c7a965f51ab608ee1f55d773#9216a8e2f068cba7c7a965f51ab608ee1f55d773"
 dependencies = [
- "arrow",
+ "arrow 13.0.0",
  "async-trait",
  "bytes",
  "cfg-if",
@@ -2141,7 +2165,7 @@ version = "13.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c6d737baed48775e87a69aa262f1fa2f1d6bd074dedbe9cac244b9aabf2a0b4"
 dependencies = [
- "arrow",
+ "arrow 13.0.0",
  "base64",
  "brotli",
  "byteorder",
