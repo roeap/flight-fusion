@@ -28,3 +28,4 @@ int8 = _datatype_fn
 int16 = _datatype_fn
 int32 = _datatype_fn
 int64 = _datatype_fn
+string = _datatype_fn
