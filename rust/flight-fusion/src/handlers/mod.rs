@@ -1,11 +1,7 @@
 use crate::error::Result;
-use arrow_deps::datafusion::{
-    physical_plan::{ExecutionPlan, SendableRecordBatchStream},
-    prelude::*,
-};
+use arrow_deps::datafusion::physical_plan::SendableRecordBatchStream;
 use async_trait::async_trait;
 use flight_fusion_ipc::RequestFor;
-use std::sync::Arc;
 
 pub mod actions;
 mod delta;
@@ -33,5 +29,5 @@ pub trait DoPutHandler<T>: Sync + Send
 where
     T: RequestFor,
 {
-    async fn handle_do_put(&self, req: T, input: Arc<dyn ExecutionPlan>) -> Result<T::Reply>;
+    async fn handle_do_put(&self, req: T, input: SendableRecordBatchStream) -> Result<T::Reply>;
 }

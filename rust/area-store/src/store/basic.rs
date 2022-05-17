@@ -80,13 +80,6 @@ impl AreaStore for DefaultAreaStore {
         let trimmed_raw = raw
             .trim_start_matches(&self.root_path)
             .trim_start_matches('/');
-        // if let Some((first, last)) = trimmed_raw.rsplit_once('/') {
-        //     if last.ends_with(DEFAULT_PARQUET_SUFFIX) {
-        //         let mut path = Path::from_raw(first);
-        //         path.set_file_name(last);
-        //         return path;
-        //     }
-        // }
         Path::from_raw(trimmed_raw)
     }
 
@@ -114,7 +107,7 @@ impl AreaStore for DefaultAreaStore {
         // TODO only actually load first file and also make this work for delta
         let files = self.get_source_files(source).await?;
         let reader = self.open_file(&files[0]).await?;
-        Ok(reader.schema().clone())
+        Ok(reader.schema())
     }
 
     // TODO use some sort of borrowed reference

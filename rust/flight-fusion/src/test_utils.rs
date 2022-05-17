@@ -1,8 +1,4 @@
 //! Utilities for writing unit tests
-// use super::*;
-// use crate::{
-//     action::Protocol, DeltaTable, DeltaTableConfig, DeltaTableMetaData, SchemaDataType, SchemaField,
-// };
 use crate::service::FlightFusionService;
 use arrow_deps::datafusion::{
     arrow::{
@@ -13,7 +9,12 @@ use arrow_deps::datafusion::{
         datatypes::{DataType, Field, Schema as ArrowSchema, SchemaRef as ArrowSchemaRef},
         record_batch::RecordBatch,
     },
-    physical_plan::memory::MemoryExec,
+    physical_plan::{
+        common::SizedRecordBatchStream,
+        memory::MemoryExec,
+        metrics::{ExecutionPlanMetricsSet, MemTrackingMetrics},
+        SendableRecordBatchStream,
+    },
 };
 use rand::distributions::Standard;
 use rand::prelude::*;
@@ -94,6 +95,18 @@ pub fn get_input_plan(part: Option<String>, with_null: bool) -> Arc<MemoryExec> 
     let batch = get_record_batch(part, with_null);
     let schema = batch.schema();
     Arc::new(MemoryExec::try_new(&[vec![batch]], schema, None).unwrap())
+}
+
+pub fn get_input_stream(part: Option<String>, with_null: bool) -> SendableRecordBatchStream {
+    let batch = Arc::new(get_record_batch(part, with_null));
+    let schema = batch.schema();
+    let metrics = ExecutionPlanMetricsSet::new();
+    let tracking_metrics = MemTrackingMetrics::new(&metrics, 0);
+    Box::pin(SizedRecordBatchStream::new(
+        schema,
+        vec![batch],
+        tracking_metrics,
+    ))
 }
 
 pub fn get_record_batch(part: Option<String>, with_null: bool) -> RecordBatch {
