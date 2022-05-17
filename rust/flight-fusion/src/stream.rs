@@ -189,17 +189,6 @@ pub async fn stream_flight_data(
         }
     }
 
-    // for batch in batch_stream {
-    //     if let Ok(x) = &batch {
-    //         row_count += x.num_rows();
-    //     }
-    //     let batch_flight_data: Vec<_> = batch
-    //         .map(|b| create_flight_iter(&b, &options).collect())
-    //         .map_err(|e| from_arrow_err(&e))?;
-    //     for batch in batch_flight_data.into_iter() {
-    //         send_response(&tx, batch).await?;
-    //     }
-    // }
     info!("FetchPartition streamed {} rows", row_count);
     Ok(())
 }
