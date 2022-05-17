@@ -63,6 +63,7 @@ impl DoGetHandler<CommandReadDataset> for FlightFusionService {
                     sender.clone(),
                     self.area_store.clone(),
                     file_path,
+                    None,
                 ));
             }
 
@@ -85,6 +86,7 @@ pub(crate) fn spawn_execution(
     mut output: mpsc::Sender<ArrowResult<RecordBatch>>,
     area_store: Arc<DefaultAreaStore>,
     path: Path,
+    column_indices: Option<Vec<usize>>,
 ) -> JoinHandle<()> {
     tokio::spawn(async move {
         let mut stream = match area_store.open_file(&path).await {

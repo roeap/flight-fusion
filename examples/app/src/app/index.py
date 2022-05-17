@@ -11,9 +11,9 @@ documentation: https://dash.plot.ly/urls
 import dash
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
-from app.themes import theme_light
 from dash import Input, Output, dcc, html
 
+from app.themes import theme_light
 from flight_fusion.clients.model import ModelServiceClient
 
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])

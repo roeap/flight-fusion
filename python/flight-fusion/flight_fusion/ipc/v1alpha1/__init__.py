@@ -233,6 +233,8 @@ class CommandReadDataset(betterproto.Message):
 
     # source identifier
     source: "AreaSourceReference" = betterproto.message_field(1)
+    # column selection to load
+    column_names: List[str] = betterproto.string_field(2)
 
 
 @dataclass(eq=False, repr=False)
