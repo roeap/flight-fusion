@@ -1,4 +1,5 @@
 use crate::stream::FlightReceiverPlan;
+use crate::stream::{stream_flight_data, FlightDataReceiver, FlightDataSender};
 use crate::{error::FusionServiceError, handlers::*};
 use area_store::store::{AreaStore, DefaultAreaStore};
 use arrow_deps::datafusion::{
@@ -30,6 +31,8 @@ use prost::Message;
 use std::path::PathBuf;
 use std::pin::Pin;
 use std::sync::Arc;
+use tokio::sync::mpsc::channel;
+use tokio_stream::wrappers::ReceiverStream;
 use tonic::{Request, Response, Status, Streaming};
 
 pub type BoxedFlightStream<T> =
@@ -270,15 +273,19 @@ impl FlightService for FlightFusionService {
         }
         .map_err(to_tonic_err)?;
 
-        let options = arrow_deps::datafusion::arrow::ipc::writer::IpcWriteOptions::default();
-        let schema_flight_data = SchemaAsIpc::new(&result.schema(), &options).into();
-        let mut flights: Vec<Result<FlightData, Status>> = vec![Ok(schema_flight_data)];
+        let (tx, rx): (FlightDataSender, FlightDataReceiver) = channel(2);
 
-        // TODO it would be great if we could directly return a stream rather than collecting all data first.
-        flights.append(&mut collect_response_stream(result).await?);
-        let output = futures::stream::iter(flights);
+        // Arrow IPC reader does not implement Sync + Send so we need to use a channel
+        // to communicate
+        tokio::task::spawn(async move {
+            if let Err(e) = stream_flight_data(result, tx).await {
+                tracing::warn!("Error streaming results: {:?}", e);
+            }
+        });
 
-        Ok(Response::new(Box::pin(output) as Self::DoGetStream))
+        Ok(Response::new(
+            Box::pin(ReceiverStream::new(rx)) as Self::DoGetStream
+        ))
     }
 
     #[instrument(skip(self, request))]

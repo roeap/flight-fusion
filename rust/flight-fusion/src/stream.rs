@@ -1,16 +1,21 @@
 use crate::error::{FusionServiceError, Result};
+use arrow_deps::arrow_flight::{
+    flight_descriptor::DescriptorType, utils::flight_data_to_arrow_batch, FlightData, SchemaAsIpc,
+};
 use arrow_deps::datafusion::{
     arrow::datatypes::SchemaRef,
     error::Result as DataFusionResult,
     physical_plan::{
-        common::{compute_record_batch_statistics, SizedRecordBatchStream},
+        common::{collect, compute_record_batch_statistics, SizedRecordBatchStream},
         Distribution, ExecutionPlan, Partitioning, SendableRecordBatchStream, Statistics,
     },
 };
 use arrow_deps::datafusion::{
     arrow::{
+        array::ArrayRef,
         datatypes::{Schema as ArrowSchema, SchemaRef as ArrowSchemaRef},
-        error::Result as ArrowResult,
+        error::{ArrowError, Result as ArrowResult},
+        ipc::writer::IpcWriteOptions,
         record_batch::RecordBatch,
     },
     execution::context::TaskContext,
@@ -21,17 +26,20 @@ use arrow_deps::datafusion::{
         RecordBatchStream,
     },
 };
-use arrow_flight::{flight_descriptor::DescriptorType, FlightData};
 use async_trait::async_trait;
 use core::any::Any;
 use flight_fusion_ipc::FlightDoPutRequest;
-use futures::channel::mpsc;
-use futures::{stream::Stream, TryStreamExt};
+use futures::{channel::mpsc, stream::Stream, StreamExt, TryStreamExt};
+use observability_deps::tracing::info;
 use pin_project_lite::pin_project;
 use prost::Message;
 use std::sync::Arc;
 use std::task::Poll;
-use tonic::Streaming;
+use tokio::sync::mpsc::{Receiver, Sender};
+use tonic::{Status, Streaming};
+
+pub type FlightDataSender = Sender<std::result::Result<FlightData, Status>>;
+pub type FlightDataReceiver = Receiver<std::result::Result<FlightData, Status>>;
 
 /// Execution plan for processing request streams
 pub struct FlightReceiverPlan {
@@ -205,4 +213,118 @@ impl RecordBatchStream for MergeStream {
     fn schema(&self) -> ArrowSchemaRef {
         self.schema.clone()
     }
+}
+
+struct FlightDataStream {
+    stream: Streaming<FlightData>,
+    schema: SchemaRef,
+    // dictionaries_by_id: HashMap<i64, ArrayRef>,
+}
+
+impl FlightDataStream {
+    pub fn new(stream: Streaming<FlightData>, schema: SchemaRef) -> Self {
+        Self {
+            stream,
+            schema,
+            // dictionaries_by_id: HashMap::new(),
+        }
+    }
+}
+
+impl Stream for FlightDataStream {
+    type Item = ArrowResult<RecordBatch>;
+
+    fn poll_next(
+        mut self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> Poll<Option<Self::Item>> {
+        self.stream.poll_next_unpin(cx).map(|x| match x {
+            Some(flight_data_chunk_result) => {
+                let converted_chunk = flight_data_chunk_result
+                    .map_err(|e| ArrowError::from_external_error(Box::new(e)))
+                    .and_then(|flight_data_chunk| {
+                        flight_data_to_arrow_batch(
+                            &flight_data_chunk,
+                            self.schema.clone(),
+                            &[],
+                            // &self.dictionaries_by_id,
+                        )
+                    });
+                Some(converted_chunk)
+            }
+            None => None,
+        })
+    }
+}
+
+impl RecordBatchStream for FlightDataStream {
+    fn schema(&self) -> SchemaRef {
+        self.schema.clone()
+    }
+}
+
+/// Convert a single RecordBatch into an iterator of FlightData (containing
+/// dictionaries and batches)
+fn create_flight_iter(
+    batch: &RecordBatch,
+    options: &IpcWriteOptions,
+) -> Box<dyn Iterator<Item = std::result::Result<FlightData, Status>>> {
+    let (flight_dictionaries, flight_batch) =
+        arrow_flight::utils::flight_data_from_arrow_batch(batch, options);
+    Box::new(
+        flight_dictionaries
+            .into_iter()
+            .chain(std::iter::once(flight_batch))
+            .map(Ok),
+    )
+}
+
+pub async fn stream_flight_data(
+    mut batch_stream: SendableRecordBatchStream,
+    tx: FlightDataSender,
+) -> std::result::Result<(), Status> {
+    let options = IpcWriteOptions::default();
+    let schema_flight_data = SchemaAsIpc::new(batch_stream.schema().as_ref(), &options).into();
+    send_response(&tx, Ok(schema_flight_data)).await?;
+
+    let mut row_count = 0;
+
+    while let Some(batch) = batch_stream.next().await {
+        if let Ok(x) = &batch {
+            row_count += x.num_rows();
+        }
+        let batch_flight_data: Vec<_> = batch
+            .map(|b| create_flight_iter(&b, &options).collect())
+            .map_err(|e| from_arrow_err(&e))?;
+        for batch in batch_flight_data.into_iter() {
+            send_response(&tx, batch).await?;
+        }
+    }
+
+    // for batch in batch_stream {
+    //     if let Ok(x) = &batch {
+    //         row_count += x.num_rows();
+    //     }
+    //     let batch_flight_data: Vec<_> = batch
+    //         .map(|b| create_flight_iter(&b, &options).collect())
+    //         .map_err(|e| from_arrow_err(&e))?;
+    //     for batch in batch_flight_data.into_iter() {
+    //         send_response(&tx, batch).await?;
+    //     }
+    // }
+    info!("FetchPartition streamed {} rows", row_count);
+    Ok(())
+}
+
+async fn send_response(
+    tx: &FlightDataSender,
+    data: std::result::Result<FlightData, Status>,
+) -> std::result::Result<(), Status> {
+    tx.send(data)
+        .await
+        .map_err(|e| Status::internal(format!("{:?}", e)))
+}
+
+fn from_arrow_err(e: &ArrowError) -> Status {
+    Status::internal(format!("ArrowError: {:?}", e))
 }
