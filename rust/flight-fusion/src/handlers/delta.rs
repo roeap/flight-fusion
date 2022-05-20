@@ -26,7 +26,7 @@ use arrow_deps::deltalake::{
 use async_trait::async_trait;
 use flight_fusion_ipc::{
     delta_operation_request::Operation as DeltaOperation, DeltaOperationRequest,
-    DeltaOperationResponse, SaveMode,
+    DeltaOperationResponse, DeltaReadOperation, SaveMode,
 };
 use futures::channel::mpsc;
 use futures::{SinkExt, StreamExt};
@@ -70,7 +70,6 @@ impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
 }
 
 fn to_scalar_value(field: &ArrowField, serialized_value: &Option<String>) -> ScalarValue {
-    println!("FIELD TYPE -> {:?}", field);
     ScalarValue::Utf8(serialized_value.to_owned())
 }
 
@@ -90,6 +89,26 @@ impl DoGetHandler<DeltaOperationRequest> for FlightFusionService {
 
             let schema: ArrowSchemaRef = Arc::new(table.get_schema()?.try_into()?);
 
+            let column_indices = if let Some(operation) = ticket.operation {
+                match operation {
+                    DeltaOperation::Read(DeltaReadOperation { column_names, .. }) => {
+                        if column_names.is_empty() {
+                            None
+                        } else {
+                            Some(
+                                column_names
+                                    .iter()
+                                    .map(|c| schema.index_of(c))
+                                    .collect::<std::result::Result<Vec<_>, _>>()?,
+                            )
+                        }
+                    }
+                    _ => unimplemented!("unexpected operation"),
+                }
+            } else {
+                None
+            };
+
             let (sender, receiver) = mpsc::channel::<ArrowResult<RecordBatch>>(files.len());
             let mut join_handles = Vec::with_capacity(files.len());
 
@@ -101,6 +120,7 @@ impl DoGetHandler<DeltaOperationRequest> for FlightFusionService {
                     path,
                     schema.clone(),
                     partition_values.clone(),
+                    column_indices.clone(),
                 ));
             }
             Ok(Box::pin(MergeStream::new(
@@ -121,11 +141,11 @@ pub(crate) fn spawn_execution(
     area_store: Arc<DefaultAreaStore>,
     path: Path,
     projected_schema: ArrowSchemaRef,
-    // partition_cols: Vec<String>,
     partition_values: HashMap<String, Option<String>>,
+    column_indices: Option<Vec<usize>>,
 ) -> JoinHandle<()> {
     tokio::spawn(async move {
-        let mut stream = match area_store.open_file(&path).await {
+        let mut stream = match area_store.open_file(&path, column_indices).await {
             Err(e) => {
                 // If send fails, plan being torn
                 // down, no place to send the error
@@ -251,5 +271,51 @@ mod tests {
             .unwrap();
 
         assert_eq!(data[0].schema(), ref_schema)
+    }
+
+    #[tokio::test]
+    async fn test_read_table_columns() {
+        let root = tempfile::tempdir().unwrap();
+        let plan = get_input_stream(None, false);
+        let ref_schema = plan.schema().clone();
+        let handler = get_fusion_handler(root.path());
+
+        let table = TableReference::Location(AreaTableLocation {
+            name: "new_table".to_string(),
+            areas: vec![],
+        });
+        let request = DeltaOperationRequest {
+            source: Some(AreaSourceReference {
+                table: Some(table.clone()),
+            }),
+            operation: Some(Operation::Write(DeltaWriteOperation {
+                save_mode: SaveMode::Append.into(),
+                partition_by: vec!["modified".to_string()],
+                ..Default::default()
+            })),
+        };
+
+        // create table and write some data
+        let _ = handler.handle_do_put(request.clone(), plan).await.unwrap();
+
+        let request = DeltaOperationRequest {
+            source: Some(AreaSourceReference {
+                table: Some(table.clone()),
+            }),
+            operation: Some(Operation::Read(DeltaReadOperation {
+                column_names: vec!["id".to_string()],
+                ..DeltaReadOperation::default()
+            })),
+        };
+
+        let data_stream = handler.execute_do_get(request).await.unwrap();
+        let data = arrow_deps::datafusion::physical_plan::common::collect(data_stream)
+            .await
+            .unwrap();
+
+        assert_eq!(
+            data[0].schema(),
+            std::sync::Arc::new(ref_schema.project(&[0]).unwrap())
+        )
     }
 }

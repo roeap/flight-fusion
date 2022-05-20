@@ -97,12 +97,19 @@ pub trait AreaStore: Send + Sync {
             .collect::<std::result::Result<Vec<_>, _>>()?)
     }
 
-    async fn open_file(&self, file: &Path) -> Result<SendableRecordBatchStream> {
+    async fn open_file(
+        &self,
+        file: &Path,
+        column_indices: Option<Vec<usize>>,
+    ) -> Result<SendableRecordBatchStream> {
         let bytes = self.object_store().get(file).await?.bytes().await?;
         let cursor = SliceableCursor::new(Arc::new(bytes));
         let file_reader = Arc::new(SerializedFileReader::new(cursor)?);
         let mut arrow_reader = ParquetFileArrowReader::new(file_reader);
-        let record_batch_reader = arrow_reader.get_record_reader(2048)?;
+        let record_batch_reader = match column_indices {
+            Some(indices) => arrow_reader.get_record_reader_by_columns(indices, 2048),
+            None => arrow_reader.get_record_reader(2048),
+        }?;
 
         Ok(Box::pin(RecordBatchStreamAdapter::new(
             record_batch_reader.schema(),
