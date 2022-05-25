@@ -53,3 +53,7 @@ test-python:
 
 docker-build:
     docker build -f rust/flight-fusion/Dockerfile -t flight-fusion .
+
+# run example app
+run-app:
+    python -m app
