@@ -1898,9 +1898,9 @@ dependencies = [
 
 [[package]]
 name = "object_store"
-version = "0.0.1"
+version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "71fc15440e94ba9b3a8bc83c8f94a0d5a2861d72254cdb9ede72fbbd18e015db"
+checksum = "e8dcd74d8c1c0d2699d82b62c69cc5374260aa4e3a5f95330572f14822557529"
 dependencies = [
  "async-trait",
  "azure_core",
@@ -1913,10 +1913,9 @@ dependencies = [
  "percent-encoding",
  "reqwest",
  "snafu",
- "tempfile",
  "tokio",
- "tokio-util 0.7.1",
  "tracing",
+ "url",
  "walkdir",
 ]
 
