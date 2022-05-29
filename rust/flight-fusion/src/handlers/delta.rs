@@ -5,6 +5,7 @@ use crate::{
     stream::MergeStream,
 };
 use area_store::{
+    projection::{PartitionColumnProjector, SchemaAdapter},
     store::{AreaStore, DefaultAreaStore},
     Path,
 };
@@ -69,7 +70,7 @@ impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
     }
 }
 
-fn to_scalar_value(field: &ArrowField, serialized_value: &Option<String>) -> ScalarValue {
+fn to_scalar_value(_field: &ArrowField, serialized_value: &Option<String>) -> ScalarValue {
     ScalarValue::Utf8(serialized_value.to_owned())
 }
 
@@ -140,12 +141,12 @@ pub(crate) fn spawn_execution(
     mut output: mpsc::Sender<ArrowResult<RecordBatch>>,
     area_store: Arc<DefaultAreaStore>,
     path: Path,
-    projected_schema: ArrowSchemaRef,
+    table_schema: ArrowSchemaRef,
     partition_values: HashMap<String, Option<String>>,
     column_indices: Option<Vec<usize>>,
 ) -> JoinHandle<()> {
     tokio::spawn(async move {
-        let mut stream = match area_store.open_file(&path, column_indices).await {
+        let mut stream = match area_store.open_file(&path, None).await {
             Err(e) => {
                 // If send fails, plan being torn
                 // down, no place to send the error
@@ -156,19 +157,33 @@ pub(crate) fn spawn_execution(
             Ok(stream) => stream,
         };
 
-        while let Some(item) = stream.next().await {
-            let file_batch = item.unwrap();
-            let mut cols = file_batch.columns().to_vec();
+        let adapter = SchemaAdapter::new(table_schema.clone());
 
+        while let Some(item) = stream.next().await {
+            let file_batch = if let Some(indices) = &column_indices {
+                // TODO remove panics
+                let mapped = adapter.map_projections(&stream.schema(), indices).unwrap();
+                item.unwrap().project(&mapped).unwrap()
+            } else {
+                item.unwrap()
+            };
+
+            let table_partition_cols = partition_values.keys().cloned().collect::<Vec<_>>();
+            let projected_schema = match &column_indices {
+                Some(indices) => Arc::new(table_schema.project(indices).unwrap()),
+                None => table_schema.clone(),
+            };
+            let mut proj = PartitionColumnProjector::new(projected_schema, &table_partition_cols);
+
+            let mut partition_scalars = vec![];
             for (key, val) in partition_values.iter() {
-                let field = projected_schema.field_with_name(key).unwrap();
+                let field = table_schema.field_with_name(key).unwrap();
                 let scalar = to_scalar_value(field, val);
-                cols.push(scalar.to_array_of_size(file_batch.num_rows()));
+                partition_scalars.push(scalar);
             }
 
-            println!("DONE READING items: {:?}", partition_values);
+            let new_batch = proj.project(file_batch, &partition_scalars);
 
-            let new_batch = RecordBatch::try_new(Arc::clone(&projected_schema), cols);
             output.send(new_batch).await.ok();
         }
     })
@@ -334,6 +349,99 @@ mod tests {
             operation: Some(Operation::Write(DeltaWriteOperation {
                 save_mode: SaveMode::Append.into(),
                 partition_by: vec!["modified".to_string()],
+                ..Default::default()
+            })),
+        };
+
+        // create table and write some data
+        let _ = handler.handle_do_put(request.clone(), plan).await.unwrap();
+
+        let request = DeltaOperationRequest {
+            source: Some(AreaSourceReference {
+                table: Some(table.clone()),
+            }),
+            operation: Some(Operation::Read(DeltaReadOperation {
+                column_names: vec!["id".to_string(), "modified".to_string()],
+                ..DeltaReadOperation::default()
+            })),
+        };
+
+        let data_stream = handler.execute_do_get(request).await.unwrap();
+        let data = arrow_deps::datafusion::physical_plan::common::collect(data_stream)
+            .await
+            .unwrap();
+
+        assert_eq!(
+            data[0].schema(),
+            std::sync::Arc::new(ref_schema.project(&[0, 2]).unwrap())
+        )
+    }
+
+    #[tokio::test]
+    async fn test_read_table_columns_no_partition() {
+        let root = tempfile::tempdir().unwrap();
+        let plan = get_input_stream(None, false);
+        let ref_schema = plan.schema().clone();
+        let handler = get_fusion_handler(root.path());
+
+        let table = TableReference::Location(AreaTableLocation {
+            name: "new_table".to_string(),
+            areas: vec![],
+        });
+        let request = DeltaOperationRequest {
+            source: Some(AreaSourceReference {
+                table: Some(table.clone()),
+            }),
+            operation: Some(Operation::Write(DeltaWriteOperation {
+                save_mode: SaveMode::Append.into(),
+                partition_by: vec!["modified".to_string()],
+                ..Default::default()
+            })),
+        };
+
+        // create table and write some data
+        let _ = handler.handle_do_put(request.clone(), plan).await.unwrap();
+
+        let request = DeltaOperationRequest {
+            source: Some(AreaSourceReference {
+                table: Some(table.clone()),
+            }),
+            operation: Some(Operation::Read(DeltaReadOperation {
+                column_names: vec!["id".to_string()],
+                ..DeltaReadOperation::default()
+            })),
+        };
+
+        let data_stream = handler.execute_do_get(request).await.unwrap();
+        let data = arrow_deps::datafusion::physical_plan::common::collect(data_stream)
+            .await
+            .unwrap();
+
+        assert_eq!(
+            data[0].schema(),
+            std::sync::Arc::new(ref_schema.project(&[0]).unwrap())
+        )
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_read_table_columns_partition_only() {
+        let root = tempfile::tempdir().unwrap();
+        let plan = get_input_stream(None, false);
+        let ref_schema = plan.schema().clone();
+        let handler = get_fusion_handler(root.path());
+
+        let table = TableReference::Location(AreaTableLocation {
+            name: "new_table".to_string(),
+            areas: vec![],
+        });
+        let request = DeltaOperationRequest {
+            source: Some(AreaSourceReference {
+                table: Some(table.clone()),
+            }),
+            operation: Some(Operation::Write(DeltaWriteOperation {
+                save_mode: SaveMode::Append.into(),
+                partition_by: vec!["id".to_string()],
                 ..Default::default()
             })),
         };

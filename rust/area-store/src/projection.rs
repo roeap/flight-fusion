@@ -1,7 +1,6 @@
 use arrow_deps::arrow::{
-    array::{new_null_array, ArrayData, ArrayRef, DictionaryArray, UInt16BufferBuilder},
-    buffer::Buffer,
-    datatypes::{DataType, Field, Schema, SchemaRef, UInt16Type},
+    array::{new_null_array, ArrayRef},
+    datatypes::{Field, Schema, SchemaRef},
     error::{ArrowError, Result as ArrowResult},
     record_batch::{RecordBatch, RecordBatchOptions},
 };
@@ -9,14 +8,8 @@ use arrow_deps::datafusion::{
     error::{DataFusionError, Result as DFResult},
     scalar::ScalarValue,
 };
-use lazy_static::lazy_static;
 use observability_deps::tracing::info;
 use std::{collections::HashMap, sync::Arc, vec};
-
-lazy_static! {
-    /// The datatype used for all partitioning columns for now
-    pub static ref DEFAULT_PARTITION_COLUMN_DATATYPE: DataType = DataType::Dictionary(Box::new(DataType::UInt16), Box::new(DataType::Utf8));
-}
 
 /// The base configurations to provide when creating a physical plan for
 /// any given file format.
@@ -29,12 +22,12 @@ pub struct FileScanConfig {
     /// number of columns of `file_schema` refer to `table_partition_cols`.
     pub projection: Option<Vec<usize>>,
     /// The partitioning column names
-    pub table_partition_cols: Vec<String>,
+    pub table_partition_cols: Vec<Field>,
 }
 
 impl FileScanConfig {
     /// Project the schema and the statistics on the given column indices
-    fn project(&self) -> SchemaRef {
+    pub fn project(&self) -> SchemaRef {
         if self.projection.is_none() && self.table_partition_cols.is_empty() {
             return Arc::clone(&self.file_schema);
         }
@@ -52,18 +45,14 @@ impl FileScanConfig {
                 table_fields.push(self.file_schema.field(idx).clone());
             } else {
                 let partition_idx = idx - self.file_schema.fields().len();
-                table_fields.push(Field::new(
-                    &self.table_partition_cols[partition_idx],
-                    DEFAULT_PARTITION_COLUMN_DATATYPE.clone(),
-                    false,
-                ));
+                table_fields.push(self.table_partition_cols[partition_idx].clone());
             }
         }
 
         Arc::new(Schema::new(table_fields))
     }
 
-    fn projected_file_column_names(&self) -> Option<Vec<String>> {
+    pub fn projected_file_column_names(&self) -> Option<Vec<String>> {
         self.projection.as_ref().map(|p| {
             p.iter()
                 .filter(|col_idx| **col_idx < self.file_schema.fields().len())
@@ -73,7 +62,7 @@ impl FileScanConfig {
         })
     }
 
-    fn file_column_projection_indices(&self) -> Option<Vec<usize>> {
+    pub fn file_column_projection_indices(&self) -> Option<Vec<usize>> {
         self.projection.as_ref().map(|p| {
             p.iter()
                 .filter(|col_idx| **col_idx < self.file_schema.fields().len())
@@ -97,20 +86,20 @@ impl FileScanConfig {
 ///    indexes and insert null-valued columns wherever the file schema was missing a colum present
 ///    in the table schema.
 #[derive(Clone, Debug)]
-pub(crate) struct SchemaAdapter {
+pub struct SchemaAdapter {
     /// Schema for the table
     table_schema: SchemaRef,
 }
 
 impl SchemaAdapter {
-    pub(crate) fn new(table_schema: SchemaRef) -> SchemaAdapter {
+    pub fn new(table_schema: SchemaRef) -> SchemaAdapter {
         Self { table_schema }
     }
 
     /// Map a column index in the table schema to a column index in a particular
     /// file schema
     /// Panics if index is not in range for the table schema
-    pub(crate) fn map_column_index(&self, index: usize, file_schema: &Schema) -> Option<usize> {
+    pub fn map_column_index(&self, index: usize, file_schema: &Schema) -> Option<usize> {
         let field = self.table_schema.field(index);
         file_schema.index_of(field.name()).ok()
     }
@@ -175,16 +164,8 @@ impl SchemaAdapter {
 }
 
 /// A helper that projects partition columns into the file record batches.
-///
-/// One interesting trick is the usage of a cache for the key buffers of the partition column
-/// dictionaries. Indeed, the partition columns are constant, so the dictionaries that represent them
-/// have all their keys equal to 0. This enables us to re-use the same "all-zero" buffer across batches,
-/// which makes the space consumption of the partition columns O(batch_size) instead of O(record_count).
+#[derive(Debug)]
 pub struct PartitionColumnProjector {
-    /// An Arrow buffer initialized to zeros that represents the key array of all partition
-    /// columns (partition columns are materialized by dictionary arrays with only one
-    /// value in the dictionary, thus all the keys are equal to zero).
-    key_buffer_cache: Option<Buffer>,
     /// Mapping between the indexes in the list of partition columns and the target
     /// schema. Sorted by index in the target schema so that we can iterate on it to
     /// insert the partition columns in the target record batch.
@@ -197,7 +178,7 @@ impl PartitionColumnProjector {
     // Create a projector to insert the partitioning columns into batches read from files
     // - projected_schema: the target schema with both file and partitioning columns
     // - table_partition_cols: all the partitioning column names
-    fn new(projected_schema: SchemaRef, table_partition_cols: &[String]) -> Self {
+    pub fn new(projected_schema: SchemaRef, table_partition_cols: &[String]) -> Self {
         let mut idx_map = HashMap::new();
         for (partition_idx, partition_name) in table_partition_cols.iter().enumerate() {
             if let Ok(schema_idx) = projected_schema.index_of(partition_name) {
@@ -210,7 +191,6 @@ impl PartitionColumnProjector {
 
         Self {
             projected_partition_indexes,
-            key_buffer_cache: None,
             projected_schema,
         }
     }
@@ -219,7 +199,7 @@ impl PartitionColumnProjector {
     // to the right positions as deduced from `projected_schema`
     // - file_batch: batch read from the file, with internal projection applied
     // - partition_values: the list of partition values, one for each partition column
-    fn project(
+    pub fn project(
         &mut self,
         file_batch: RecordBatch,
         partition_values: &[ScalarValue],
@@ -234,59 +214,23 @@ impl PartitionColumnProjector {
                 file_batch.columns().len()
             )));
         }
+
         let mut cols = file_batch.columns().to_vec();
         for &(pidx, sidx) in &self.projected_partition_indexes {
             cols.insert(
                 sidx,
-                create_dict_array(
-                    &mut self.key_buffer_cache,
-                    &partition_values[pidx],
-                    file_batch.num_rows(),
-                ),
+                partition_values[pidx].to_array_of_size(file_batch.num_rows()),
             )
         }
         RecordBatch::try_new(Arc::clone(&self.projected_schema), cols)
     }
 }
 
-fn create_dict_array(
-    key_buffer_cache: &mut Option<Buffer>,
-    val: &ScalarValue,
-    len: usize,
-) -> ArrayRef {
-    // build value dictionary
-    let dict_vals = val.to_array();
-
-    // build keys array
-    let sliced_key_buffer = match key_buffer_cache {
-        Some(buf) if buf.len() >= len * 2 => buf.slice(buf.len() - len * 2),
-        _ => {
-            let mut key_buffer_builder = UInt16BufferBuilder::new(len * 2);
-            key_buffer_builder.advance(len * 2); // keys are all 0
-            key_buffer_cache.insert(key_buffer_builder.finish()).clone()
-        }
-    };
-
-    // create data type
-    let data_type = DataType::Dictionary(Box::new(DataType::UInt16), Box::new(val.get_datatype()));
-
-    debug_assert_eq!(data_type, *DEFAULT_PARTITION_COLUMN_DATATYPE);
-
-    // assemble pieces together
-    let mut builder = ArrayData::builder(data_type)
-        .len(len)
-        .add_buffer(sliced_key_buffer);
-    builder = builder.add_child_data(dict_vals.data().clone());
-    Arc::new(DictionaryArray::<UInt16Type>::from(
-        builder.build().unwrap(),
-    ))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::test_utils::build_table_i32;
-    use arrow_deps::arrow;
+    use arrow_deps::arrow::{self, datatypes::DataType};
     use arrow_deps::datafusion::{assert_batches_eq, test_util::aggr_test_schema};
 
     #[test]
@@ -295,7 +239,7 @@ mod tests {
         let conf = FileScanConfig {
             file_schema: Arc::clone(&file_schema),
             projection: None,
-            table_partition_cols: vec!["date".to_owned()],
+            table_partition_cols: vec![Field::new("date", DataType::Utf8, true)],
         };
 
         let proj_schema = conf.project();
@@ -319,7 +263,7 @@ mod tests {
         let conf = FileScanConfig {
             file_schema: Arc::clone(&file_schema),
             projection: Some(vec![file_schema.fields().len(), 0]),
-            table_partition_cols: vec!["date".to_owned()],
+            table_partition_cols: vec![Field::new("date", DataType::Utf8, true)],
         };
 
         let proj_schema = conf.project();
@@ -346,7 +290,13 @@ mod tests {
             ("b", &vec![-2, -1, 0]),
             ("c", &vec![10, 11, 12]),
         );
-        let partition_cols = vec!["year".to_owned(), "month".to_owned(), "day".to_owned()];
+        // let partition_cols = vec!["year".to_owned(), "month".to_owned(), "day".to_owned()];
+        let partition_cols = vec![
+            Field::new("year", DataType::Utf8, true),
+            Field::new("month", DataType::Utf8, true),
+            Field::new("day", DataType::Utf8, true),
+        ];
+
         // create a projected schema
         let conf = FileScanConfig {
             file_schema: file_batch.schema(),
@@ -362,7 +312,11 @@ mod tests {
         };
         let proj_schema = conf.project();
         // created a projector for that projected schema
-        let mut proj = PartitionColumnProjector::new(proj_schema, &partition_cols);
+        let partition_col_names = partition_cols
+            .iter()
+            .map(|c| c.name().clone())
+            .collect::<Vec<_>>();
+        let mut proj = PartitionColumnProjector::new(proj_schema, &partition_col_names);
 
         // project first batch
         let projected_batch = proj
