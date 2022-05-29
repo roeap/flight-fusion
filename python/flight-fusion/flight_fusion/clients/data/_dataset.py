@@ -71,11 +71,13 @@ class BaseDatasetClient(BaseClient):
         raise NotImplementedError
 
     @abstractmethod
-    def load(self) -> pa.Table:
+    def load(self, columns: list[str] | None = None) -> pa.Table:
         raise NotImplementedError
 
     def query(self, query: str) -> pa.Table:
-        command = FlightDoGetRequest(query=CommandExecuteQuery(query=query, source=self._reference))
+        command = FlightDoGetRequest(
+            query=CommandExecuteQuery(query=query, source=self._reference)
+        )
         return self._do_get(command)
 
     def drop(self) -> ResultActionStatus:

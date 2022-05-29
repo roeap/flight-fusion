@@ -36,6 +36,8 @@ class DatasetClient(BaseDatasetClient):
         response = self._do_put(table=data, command=command)
         return ResultDoPutUpdate().parse(response)
 
-    def load(self) -> pa.Table:
-        command = FlightDoGetRequest(read=CommandReadDataset(source=self._reference))
+    def load(self, columns: list[str] | None = None) -> pa.Table:
+        command = FlightDoGetRequest(
+            read=CommandReadDataset(source=self._reference, column_names=columns or [])
+        )
         return self._do_get(command)

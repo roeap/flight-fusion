@@ -124,8 +124,13 @@ impl DoGetHandler<DeltaOperationRequest> for FlightFusionService {
                     column_indices.clone(),
                 ));
             }
+
+            let partitioned_schema = match column_indices {
+                Some(indices) => Arc::new(schema.project(&indices)?),
+                None => schema,
+            };
             Ok(Box::pin(MergeStream::new(
-                schema,
+                partitioned_schema,
                 receiver,
                 AbortOnDropMany(join_handles),
             )))
