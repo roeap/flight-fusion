@@ -79,8 +79,13 @@ impl DoGetHandler<CommandReadDataset> for FlightFusionService {
                 ));
             }
 
+            let projected_schema = match column_indices {
+                Some(indices) => Arc::new(schema.project(&indices)?),
+                None => schema,
+            };
+
             Ok(Box::pin(MergeStream::new(
-                schema,
+                projected_schema,
                 receiver,
                 AbortOnDropMany(join_handles),
             )))
