@@ -1,4 +1,4 @@
-use super::DoGetHandler;
+use super::{DoGetHandler, DoPutHandler};
 use crate::{
     error::{FusionServiceError, Result},
     service::FlightFusionService,
@@ -10,19 +10,43 @@ use arrow_deps::arrow::{
     error::{ArrowError, Result as ArrowResult},
     record_batch::RecordBatch,
 };
-use arrow_deps::datafusion::{
-    physical_plan::{common::AbortOnDropMany, SendableRecordBatchStream},
-    prelude::SessionContext,
+use arrow_deps::datafusion::physical_plan::{
+    common::{collect, AbortOnDropMany},
+    SendableRecordBatchStream,
 };
 use async_trait::async_trait;
-use flight_fusion_ipc::{
-    command_execute_query::Context as QueryContext, CommandExecuteQuery, CommandReadDataset,
-};
+use flight_fusion_ipc::{CommandReadDataset, CommandWriteIntoDataset, ResultDoPutUpdate, SaveMode};
 use futures::channel::mpsc;
 use futures::SinkExt;
 use futures::StreamExt;
 use std::sync::Arc;
 use tokio::task::JoinHandle;
+
+#[async_trait]
+impl DoPutHandler<CommandWriteIntoDataset> for FlightFusionService {
+    async fn handle_do_put(
+        &self,
+        ticket: CommandWriteIntoDataset,
+        input: SendableRecordBatchStream,
+    ) -> Result<ResultDoPutUpdate> {
+        if let Some(source) = ticket.source {
+            let location = self.area_store.get_table_location(&source)?;
+            let batches = collect(input).await?;
+            let _adds = self
+                .area_store
+                .put_batches(
+                    batches,
+                    &location,
+                    SaveMode::from_i32(ticket.save_mode).unwrap_or(SaveMode::Overwrite),
+                )
+                .await?;
+            Ok(ResultDoPutUpdate { statistics: None })
+        } else {
+            // TODO migrate errors and raise something more meaningful
+            Err(FusionServiceError::generic("Source not found"))
+        }
+    }
+}
 
 #[async_trait]
 impl DoGetHandler<CommandReadDataset> for FlightFusionService {
@@ -102,38 +126,96 @@ pub(crate) fn spawn_execution(
     })
 }
 
-#[async_trait]
-impl DoGetHandler<CommandExecuteQuery> for FlightFusionService {
-    async fn execute_do_get(
-        &self,
-        ticket: CommandExecuteQuery,
-    ) -> Result<SendableRecordBatchStream> {
-        let mut ctx = SessionContext::new();
-        match ticket.context {
-            Some(QueryContext::Source(source)) => {
-                self.register_source(&mut ctx, &source).await?;
-            }
-            Some(QueryContext::Collection(collection)) => {
-                for source in collection.sources {
-                    self.register_source(&mut ctx, &source).await?
-                }
-            }
-            _ => todo!(),
-        };
-        Ok(ctx.sql(&ticket.query).await?.execute_stream().await?)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use crate::handlers::DoGetHandler;
     use crate::handlers::DoPutHandler;
     use crate::test_utils::{get_fusion_handler, get_input_stream};
+    use area_store::store::AreaStore;
     use arrow_deps::datafusion::physical_plan::common::collect;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
         CommandReadDataset, CommandWriteIntoDataset, SaveMode,
     };
+
+    #[tokio::test]
+    async fn test_put_table() {
+        let root = tempfile::tempdir().unwrap();
+        let plan = get_input_stream(None, false);
+        let handler = get_fusion_handler(root.path());
+        let table_dir = root.path().join("_ff_data/new_table");
+
+        let table = TableReference::Location(AreaTableLocation {
+            name: "new_table".to_string(),
+            areas: vec![],
+        });
+        let request = CommandWriteIntoDataset {
+            source: Some(AreaSourceReference { table: Some(table) }),
+            save_mode: SaveMode::Overwrite.into(),
+        };
+
+        assert!(!table_dir.exists());
+
+        let _response = handler.handle_do_put(request.clone(), plan).await.unwrap();
+
+        assert!(table_dir.is_dir())
+    }
+
+    #[tokio::test]
+    async fn test_put_table_append_overwrite() {
+        let root = tempfile::tempdir().unwrap();
+        let plan = get_input_stream(None, false);
+        let handler = get_fusion_handler(root.path());
+        let table_dir = root.path().join("_ff_data/new_table");
+
+        let table_ref = AreaSourceReference {
+            table: Some(TableReference::Location(AreaTableLocation {
+                name: "new_table".to_string(),
+                areas: vec![],
+            })),
+        };
+        let request = CommandWriteIntoDataset {
+            source: Some(table_ref.clone()),
+            save_mode: SaveMode::Append.into(),
+        };
+
+        assert!(!table_dir.exists());
+
+        let _response = handler.handle_do_put(request.clone(), plan).await.unwrap();
+
+        assert!(table_dir.is_dir());
+
+        let table_location = handler.area_store.get_table_location(&table_ref).unwrap();
+        let files = handler
+            .area_store
+            .get_location_files(&table_location)
+            .await
+            .unwrap();
+        assert!(files.len() == 1);
+
+        let plan = get_input_stream(None, false);
+        let _response = handler.handle_do_put(request.clone(), plan).await.unwrap();
+        let files = handler
+            .area_store
+            .get_location_files(&table_location)
+            .await
+            .unwrap();
+        assert!(files.len() == 2);
+
+        let request = CommandWriteIntoDataset {
+            source: Some(table_ref.clone()),
+            save_mode: SaveMode::Overwrite.into(),
+        };
+
+        let plan = get_input_stream(None, false);
+        let _response = handler.handle_do_put(request.clone(), plan).await.unwrap();
+        let files = handler
+            .area_store
+            .get_location_files(&table_location)
+            .await
+            .unwrap();
+        assert!(files.len() == 1)
+    }
 
     #[tokio::test]
     async fn test_put_get() {
