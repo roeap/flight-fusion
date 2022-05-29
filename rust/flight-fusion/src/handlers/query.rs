@@ -35,8 +35,8 @@ mod tests {
     use arrow_deps::datafusion::physical_plan::common::collect;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, command_execute_query::Context,
-        AreaSourceReference, AreaTableLocation, CommandReadDataset, CommandWriteIntoDataset,
-        SaveMode, SourceCollection,
+        AreaSourceReference, AreaTableLocation, CommandWriteIntoDataset, SaveMode,
+        SourceCollection,
     };
 
     #[tokio::test]
