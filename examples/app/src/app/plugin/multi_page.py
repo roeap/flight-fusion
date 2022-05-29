@@ -136,9 +136,7 @@ def register_page(
     page = dict(
         module=module,
         supplied_path=path,
-        path_template=None
-        if path_template is None
-        else _validate_template(path_template),
+        path_template=None if path_template is None else _validate_template(path_template),
         path=(path if path is not None else _infer_path(module, path_template)),
         supplied_name=name,
         name=(name if name is not None else _filename_to_name(module)),
@@ -167,14 +165,10 @@ def register_page(
         dash.page_registry[module]["layout"] = layout
 
     # set home page order
-    order_supplied = any(
-        p["supplied_order"] is not None for p in dash.page_registry.values()
-    )
+    order_supplied = any(p["supplied_order"] is not None for p in dash.page_registry.values())
 
     for p in dash.page_registry.values():
-        p["order"] = (
-            0 if p["path"] == "/" and not order_supplied else p["supplied_order"]
-        )
+        p["order"] = 0 if p["path"] == "/" and not order_supplied else p["supplied_order"]
 
     # sorted by order then by module name
     page_registry_list = sorted(
@@ -206,10 +200,7 @@ def _infer_image(module):
     for fn in files_in_assets:
         fn_without_extension, _, extension = fn.partition(".")
         if extension.lower() in valid_extensions:
-            if (
-                fn_without_extension == page_id
-                or fn_without_extension == page_id.replace("_", "-")
-            ):
+            if fn_without_extension == page_id or fn_without_extension == page_id.replace("_", "-"):
                 return fn
 
             if fn_without_extension == "app":
@@ -253,9 +244,7 @@ def _infer_path(filename, template):
     else:
         # replace the variables in the template with "none" to create a default path if no path is supplied
         path_segments = template.split("/")
-        default_template_path = [
-            "none" if s.startswith("<") else s for s in path_segments
-        ]
+        default_template_path = ["none" if s.startswith("<") else s for s in path_segments]
         return "/".join(default_template_path)
 
 
@@ -281,9 +270,7 @@ def _import_layouts_from_pages(pages_folder, module=None):
             page_module = importlib.import_module(import_key)
 
             if import_key in dash.page_registry:
-                dash.page_registry[import_key]["layout"] = getattr(
-                    page_module, "layout"
-                )
+                dash.page_registry[import_key]["layout"] = getattr(page_module, "layout")
                 if hasattr(page_module, "controls"):
                     dash.controls_registry[import_key]["controls"] = getattr(
                         page_module, "controls"
@@ -408,9 +395,7 @@ def plug(app):  # noqa: C901
             # The flask.request.path doesn't include the pathname prefix
             # when inside DE Workspaces or deployed environments,
             # so we don't need to call `app.strip_relative_path` on it.
-            start_page, path_variables = _path_to_page(
-                app, flask.request.path.strip("/")
-            )
+            start_page, path_variables = _path_to_page(app, flask.request.path.strip("/"))
             image = start_page.get("image", "")
             if image:
                 image = app.get_asset_url(image)
@@ -421,9 +406,7 @@ def plug(app):  # noqa: C901
 
             description = start_page.get("description", "")
             if callable(description):
-                description = (
-                    description(**path_variables) if path_variables else description()
-                )
+                description = description(**path_variables) if path_variables else description()
 
             return dedent(
                 """

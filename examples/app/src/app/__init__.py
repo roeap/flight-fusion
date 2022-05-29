@@ -44,9 +44,7 @@ app.layout = dadc.Layout(
                     },
                     theme="light",
                     children=[
-                        dadc.Menu(
-                            id="page-nav", items=nav_items, selected_keys=["page-1"]
-                        ),
+                        dadc.Menu(id="page-nav", items=nav_items, selected_keys=["page-1"]),
                         dadc.Divider("Controls"),
                     ],
                 ),

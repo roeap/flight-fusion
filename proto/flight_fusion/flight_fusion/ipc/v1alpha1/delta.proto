@@ -15,7 +15,7 @@ message DeltaWriteOperation {
 }
 
 message DeltaReadOperation {
-  string version = 1;
+  int64 version = 1;
   string timestamp = 2;
   string predicate = 3;
   // column selection to load

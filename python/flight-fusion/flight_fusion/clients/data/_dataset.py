@@ -75,9 +75,7 @@ class BaseDatasetClient(BaseClient):
         raise NotImplementedError
 
     def query(self, query: str) -> pa.Table:
-        command = FlightDoGetRequest(
-            query=CommandExecuteQuery(query=query, source=self._reference)
-        )
+        command = FlightDoGetRequest(query=CommandExecuteQuery(query=query, source=self._reference))
         return self._do_get(command)
 
     def drop(self) -> ResultActionStatus:
