@@ -155,6 +155,7 @@ pub(crate) fn spawn_execution(
             }
             Ok(stream) => stream,
         };
+
         while let Some(item) = stream.next().await {
             let file_batch = item.unwrap();
             let mut cols = file_batch.columns().to_vec();
@@ -164,6 +165,8 @@ pub(crate) fn spawn_execution(
                 let scalar = to_scalar_value(field, val);
                 cols.push(scalar.to_array_of_size(file_batch.num_rows()));
             }
+
+            println!("DONE READING items: {:?}", partition_values);
 
             let new_batch = RecordBatch::try_new(Arc::clone(&projected_schema), cols);
             output.send(new_batch).await.ok();
@@ -251,6 +254,46 @@ mod tests {
             operation: Some(Operation::Write(DeltaWriteOperation {
                 save_mode: SaveMode::Append.into(),
                 partition_by: vec!["modified".to_string()],
+                ..Default::default()
+            })),
+        };
+
+        // create table and write some data
+        let _ = handler.handle_do_put(request.clone(), plan).await.unwrap();
+
+        let request = DeltaOperationRequest {
+            source: Some(AreaSourceReference {
+                table: Some(table.clone()),
+            }),
+            operation: Some(Operation::Read(DeltaReadOperation::default())),
+        };
+
+        let data_stream = handler.execute_do_get(request).await.unwrap();
+        let data = arrow_deps::datafusion::physical_plan::common::collect(data_stream)
+            .await
+            .unwrap();
+
+        assert_eq!(data[0].schema(), ref_schema)
+    }
+
+    #[tokio::test]
+    async fn test_read_table_partitioned() {
+        let root = tempfile::tempdir().unwrap();
+        let plan = get_input_stream(None, false);
+        let ref_schema = plan.schema().clone();
+        let handler = get_fusion_handler(root.path());
+
+        let table = TableReference::Location(AreaTableLocation {
+            name: "new_table".to_string(),
+            areas: vec![],
+        });
+        let request = DeltaOperationRequest {
+            source: Some(AreaSourceReference {
+                table: Some(table.clone()),
+            }),
+            operation: Some(Operation::Write(DeltaWriteOperation {
+                save_mode: SaveMode::Append.into(),
+                partition_by: vec!["id".to_string()],
                 ..Default::default()
             })),
         };

@@ -103,7 +103,7 @@ pub trait AreaStore: Send + Sync {
         column_indices: Option<Vec<usize>>,
     ) -> Result<SendableRecordBatchStream> {
         let bytes = self.object_store().get(file).await?.bytes().await?;
-        let cursor = SliceableCursor::new(Arc::new(bytes));
+        let cursor = SliceableCursor::new(Arc::new(bytes.to_vec()));
         let file_reader = Arc::new(SerializedFileReader::new(cursor)?);
         let mut arrow_reader = ParquetFileArrowReader::new(file_reader);
         let record_batch_reader = match column_indices {

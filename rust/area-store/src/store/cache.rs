@@ -33,7 +33,7 @@ impl CachedAreaStore {
 
     async fn file_in_cache(&self, location: &Path) -> bool {
         let cache = self.cache.read().unwrap();
-        cache.contains_key(location.to_raw())
+        cache.contains_key(location.as_ref())
     }
 
     async fn load_or_cache(&self, location: &Path) -> Result<Vec<RecordBatch>> {
@@ -41,7 +41,7 @@ impl CachedAreaStore {
         if self.file_in_cache(location).await {
             // TODO remove panic
             let mut cache = self.cache.write().unwrap();
-            let file_reader = StreamReader::try_new(cache.get(location.to_raw())?, None)?;
+            let file_reader = StreamReader::try_new(cache.get(location.as_ref())?, None)?;
             let mut batches = Vec::new();
             for batch in file_reader {
                 batches.push(batch?);
@@ -67,7 +67,7 @@ impl CachedAreaStore {
             }
             let batch_bytes = stream_writer.into_inner()?;
             let mut cache = self.cache.write().unwrap();
-            cache.insert_bytes(location.to_raw(), batch_bytes)?;
+            cache.insert_bytes(location.as_ref(), batch_bytes)?;
         }
 
         Ok(batches)
@@ -99,7 +99,7 @@ impl AreaStore for CachedAreaStore {
             // TODO remove panic
             // TODO use async ArrowReader as well
             let mut cache = self.cache.write().unwrap();
-            let file_reader = StreamReader::try_new(cache.get(location.to_raw())?, None)?;
+            let file_reader = StreamReader::try_new(cache.get(location.as_ref())?, None)?;
             Ok(file_reader.schema())
         } else {
             self.store.get_schema(source).await
@@ -143,13 +143,13 @@ mod tests {
     #[tokio::test]
     async fn put_cache_on_read() {
         let root = tempfile::tempdir().unwrap();
-        let area_root = root.path().join(".tmp");
-        let cache_root = root.path().join(".tmp/_ff_cache");
+        let area_root = root.path();
+        let cache_root = area_root.join("_ff_cache");
 
         let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
         let cached_store = CachedAreaStore::try_new(area_store, cache_root, 10000).unwrap();
 
-        let path = Path::from_raw("asd");
+        let path = Path::parse("asd").unwrap();
 
         let batch = get_record_batch(None, false);
         cached_store
@@ -169,13 +169,13 @@ mod tests {
     #[tokio::test]
     async fn read_schema() {
         let root = tempfile::tempdir().unwrap();
-        let area_root = root.path().join(".tmp");
-        let cache_root = root.path().join(".tmp/_ff_cache");
+        let area_root = root.path();
+        let cache_root = area_root.join("_ff_cache");
 
         let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
         let cached_store = CachedAreaStore::try_new(area_store, cache_root, 10000).unwrap();
 
-        let path = Path::from_raw("_ff_data/asd");
+        let path = Path::parse("_ff_data/asd").unwrap();
 
         let batch = get_record_batch(None, false);
         cached_store
