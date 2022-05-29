@@ -14,20 +14,17 @@ message FlightGetFlightInfoRequest {
 // Requests submitted against the `do_get` endpoint
 message FlightDoGetRequest {
   oneof command {
-    // execute an sql query
-    CommandSqlOperation sql = 1;
-
     // execute a KQL query against a registered Kusto cluster
-    CommandKqlOperation kql = 2;
+    CommandKqlOperation kql = 1;
 
     // Read data from a registered source
-    CommandReadDataset read = 3;
+    CommandReadDataset read = 2;
 
     // Execute a query against a pre-defined context
-    CommandExecuteQuery query = 4;
+    CommandExecuteQuery query = 3;
 
     // Perform a read operation against Delta table
-    DeltaOperationRequest delta = 5;
+    DeltaOperationRequest delta = 4;
   }
 }
 

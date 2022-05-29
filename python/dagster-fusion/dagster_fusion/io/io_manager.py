@@ -15,7 +15,6 @@ from dagster import (
     io_manager,
 )
 from dagster.core.errors import DagsterInvariantViolationError
-
 from dagster_fusion._types import TableReference, TypedInputContext, TypedOutputContext
 from dagster_fusion.config import (
     FIELD_COLUMN_SELECTION,
@@ -133,15 +132,7 @@ class TableIOManager(IOManager):
             raise MissingConfiguration("'asset_key' must be provided")
 
         client = self._get_dataset_client(asset_key=asset_key)
-        data = client.load()
-
-        # TODO filter columns in read request
-        columns = (context.metadata or {}).get("columns")
-        if columns is not None:
-            context.log.debug(f"Selecting columns {columns}")
-            if not isinstance(columns, list):
-                raise ValueError("metadata value 'columns' must be list of column names")
-            data = data.select(columns)
+        data = client.load(columns=(context.metadata or {}).get("columns"))
 
         # determine supported return types based on the type of the downstream input
         if context.dagster_type.typing_type == pl.DataFrame:

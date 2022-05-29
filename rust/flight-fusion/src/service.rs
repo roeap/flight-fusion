@@ -259,7 +259,6 @@ impl FlightService for FlightFusionService {
 
         let result = match request.command {
             Some(op) => match op {
-                DoGetCommand::Sql(sql) => self.execute_do_get(sql).await,
                 DoGetCommand::Kql(_) => {
                     todo!()
                 }

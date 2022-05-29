@@ -119,7 +119,9 @@ class DeltaWriteOperation(betterproto.Message):
 
 @dataclass(eq=False, repr=False)
 class DeltaReadOperation(betterproto.Message):
-    version: str = betterproto.string_field(1)
+    # version of delta table to load
+    version: int = betterproto.int64_field(1)
+    # load delta version from point in time
     timestamp: str = betterproto.string_field(2)
     predicate: str = betterproto.string_field(3)
     # column selection to load
@@ -205,14 +207,6 @@ class SignalFrame(betterproto.Message):
     name: str = betterproto.string_field(2)
     description: str = betterproto.string_field(3)
     providers: List["SignalProvider"] = betterproto.message_field(4)
-
-
-@dataclass(eq=False, repr=False)
-class CommandSqlOperation(betterproto.Message):
-    """Describes an SQL query operation"""
-
-    # The SQL syntax.
-    query: str = betterproto.string_field(1)
 
 
 @dataclass(eq=False, repr=False)
@@ -368,16 +362,14 @@ class FlightGetFlightInfoRequest(betterproto.Message):
 class FlightDoGetRequest(betterproto.Message):
     """Requests submitted against the `do_get` endpoint"""
 
-    # execute an sql query
-    sql: "CommandSqlOperation" = betterproto.message_field(1, group="command")
     # execute a KQL query against a registered Kusto cluster
-    kql: "CommandKqlOperation" = betterproto.message_field(2, group="command")
+    kql: "CommandKqlOperation" = betterproto.message_field(1, group="command")
     # Read data from a registered source
-    read: "CommandReadDataset" = betterproto.message_field(3, group="command")
+    read: "CommandReadDataset" = betterproto.message_field(2, group="command")
     # Execute a query against a pre-defined context
-    query: "CommandExecuteQuery" = betterproto.message_field(4, group="command")
+    query: "CommandExecuteQuery" = betterproto.message_field(3, group="command")
     # Perform a read operation against Delta table
-    delta: "DeltaOperationRequest" = betterproto.message_field(5, group="command")
+    delta: "DeltaOperationRequest" = betterproto.message_field(4, group="command")
 
 
 @dataclass(eq=False, repr=False)

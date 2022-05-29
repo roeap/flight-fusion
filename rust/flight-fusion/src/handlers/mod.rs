@@ -4,9 +4,9 @@ use async_trait::async_trait;
 use flight_fusion_ipc::RequestFor;
 
 pub mod actions;
+pub mod dataset;
 mod delta;
-pub mod do_get;
-pub mod do_put;
+pub mod query;
 
 #[async_trait]
 pub trait ActionHandler<T>: Sync + Send
