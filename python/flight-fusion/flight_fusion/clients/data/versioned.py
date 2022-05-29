@@ -51,8 +51,14 @@ class VersionedDatasetClient(BaseDatasetClient):
         )
         return self._do_get(command)
 
-    def load_version(self, version: int | None) -> pa.Table:
-        raise NotImplementedError
+    def load_version(self, version: int, columns: list[str] | None = None) -> pa.Table:
+        command = FlightDoGetRequest(
+            delta=DeltaOperationRequest(
+                source=self._reference,
+                read=DeltaReadOperation(version=version, column_names=columns or []),
+            )
+        )
+        return self._do_get(command)
 
     def load_timetravel(self, before_or_at: dt.datetime | pd.Timestamp) -> pa.Table:
         raise NotImplementedError
