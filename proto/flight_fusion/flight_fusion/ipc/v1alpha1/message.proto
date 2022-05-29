@@ -4,12 +4,6 @@ package flight_fusion.ipc.v1alpha1;
 import "flight_fusion/ipc/v1alpha1/common.proto";
 import "flight_fusion/ipc/v1alpha1/signals.proto";
 
-// Describes an SQL query operation
-message CommandSqlOperation {
-  // The SQL syntax.
-  string query = 1;
-}
-
 // Describes a KQL query operation
 message CommandKqlOperation {
   // name of the Kusto service to be queried

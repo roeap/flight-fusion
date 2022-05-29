@@ -210,14 +210,6 @@ class SignalFrame(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
-class CommandSqlOperation(betterproto.Message):
-    """Describes an SQL query operation"""
-
-    # The SQL syntax.
-    query: str = betterproto.string_field(1)
-
-
-@dataclass(eq=False, repr=False)
 class CommandKqlOperation(betterproto.Message):
     """Describes a KQL query operation"""
 
@@ -370,16 +362,14 @@ class FlightGetFlightInfoRequest(betterproto.Message):
 class FlightDoGetRequest(betterproto.Message):
     """Requests submitted against the `do_get` endpoint"""
 
-    # execute an sql query
-    sql: "CommandSqlOperation" = betterproto.message_field(1, group="command")
     # execute a KQL query against a registered Kusto cluster
-    kql: "CommandKqlOperation" = betterproto.message_field(2, group="command")
+    kql: "CommandKqlOperation" = betterproto.message_field(1, group="command")
     # Read data from a registered source
-    read: "CommandReadDataset" = betterproto.message_field(3, group="command")
+    read: "CommandReadDataset" = betterproto.message_field(2, group="command")
     # Execute a query against a pre-defined context
-    query: "CommandExecuteQuery" = betterproto.message_field(4, group="command")
+    query: "CommandExecuteQuery" = betterproto.message_field(3, group="command")
     # Perform a read operation against Delta table
-    delta: "DeltaOperationRequest" = betterproto.message_field(5, group="command")
+    delta: "DeltaOperationRequest" = betterproto.message_field(4, group="command")
 
 
 @dataclass(eq=False, repr=False)

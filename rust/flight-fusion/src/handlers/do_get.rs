@@ -12,37 +12,17 @@ use arrow_deps::arrow::{
 };
 use arrow_deps::datafusion::{
     physical_plan::{common::AbortOnDropMany, SendableRecordBatchStream},
-    prelude::{SessionConfig, SessionContext},
+    prelude::SessionContext,
 };
 use async_trait::async_trait;
 use flight_fusion_ipc::{
     command_execute_query::Context as QueryContext, CommandExecuteQuery, CommandReadDataset,
-    CommandSqlOperation,
 };
 use futures::channel::mpsc;
 use futures::SinkExt;
 use futures::StreamExt;
 use std::sync::Arc;
 use tokio::task::JoinHandle;
-
-#[async_trait]
-impl DoGetHandler<CommandSqlOperation> for FlightFusionService {
-    async fn execute_do_get(
-        &self,
-        ticket: CommandSqlOperation,
-    ) -> Result<SendableRecordBatchStream> {
-        let config = SessionConfig::new().with_information_schema(true);
-        let ctx = SessionContext::with_config(config);
-        ctx.register_catalog("catalog", self.catalog.clone());
-
-        // execute the query
-        Ok(ctx
-            .sql(ticket.query.as_str())
-            .await?
-            .execute_stream()
-            .await?)
-    }
-}
 
 #[async_trait]
 impl DoGetHandler<CommandReadDataset> for FlightFusionService {
