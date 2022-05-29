@@ -112,7 +112,9 @@ class DeltaCreateOperation(betterproto.Message):
 class DeltaWriteOperation(betterproto.Message):
     save_mode: "SaveMode" = betterproto.enum_field(1)
     partition_by: List[str] = betterproto.string_field(2)
-    predicate: Optional[str] = betterproto.string_field(3, optional=True, group="_predicate")
+    predicate: Optional[str] = betterproto.string_field(
+        3, optional=True, group="_predicate"
+    )
 
 
 @dataclass(eq=False, repr=False)
@@ -120,6 +122,8 @@ class DeltaReadOperation(betterproto.Message):
     version: str = betterproto.string_field(1)
     timestamp: str = betterproto.string_field(2)
     predicate: str = betterproto.string_field(3)
+    # column selection to load
+    column_names: List[str] = betterproto.string_field(4)
 
 
 @dataclass(eq=False, repr=False)
@@ -158,7 +162,9 @@ class Signal(betterproto.Message):
 class SignalTrait(betterproto.Message):
     sensitive: "SensitiveDataTrait" = betterproto.message_field(1, group="trait")
     time_series: "TimeSeriesTrait" = betterproto.message_field(2, group="trait")
-    entity_reference: "EntityReferenceTrait" = betterproto.message_field(3, group="trait")
+    entity_reference: "EntityReferenceTrait" = betterproto.message_field(
+        3, group="trait"
+    )
 
 
 @dataclass(eq=False, repr=False)
@@ -233,6 +239,8 @@ class CommandReadDataset(betterproto.Message):
 
     # source identifier
     source: "AreaSourceReference" = betterproto.message_field(1)
+    # column selection to load
+    column_names: List[str] = betterproto.string_field(2)
 
 
 @dataclass(eq=False, repr=False)

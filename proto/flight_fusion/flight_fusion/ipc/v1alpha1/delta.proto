@@ -18,6 +18,8 @@ message DeltaReadOperation {
   string version = 1;
   string timestamp = 2;
   string predicate = 3;
+  // column selection to load
+  repeated string column_names = 4;
 }
 
 message DeltaOperationRequest {

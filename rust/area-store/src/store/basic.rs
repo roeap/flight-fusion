@@ -28,7 +28,8 @@ pub struct DefaultAreaStore {
 impl DefaultAreaStore {
     pub fn try_new(root: impl Into<PathBuf>) -> Result<Self> {
         let buf: PathBuf = root.into();
-        let object_store = Arc::new(object_store::local::LocalFileSystem::new(buf.clone()));
+        let object_store =
+            Arc::new(object_store::local::LocalFileSystem::new_with_prefix(buf.clone()).unwrap());
         // let file_index = Arc::new(FileIndex::new(object_store.clone()));
 
         Ok(Self {
@@ -61,7 +62,7 @@ impl DefaultAreaStore {
 
     pub fn get_full_table_path(&self, source: &AreaSourceReference) -> Result<String> {
         let location = self.get_table_location(source)?;
-        Ok(format!("{}/{}", self.root_path, location.to_raw()))
+        Ok(format!("{}/{}", self.root_path, location.as_ref()))
     }
 
     pub async fn build_index(&self) -> Result<()> {
@@ -80,7 +81,8 @@ impl AreaStore for DefaultAreaStore {
         let trimmed_raw = raw
             .trim_start_matches(&self.root_path)
             .trim_start_matches('/');
-        Path::from_raw(trimmed_raw)
+        // TODO remove panic
+        Path::parse(trimmed_raw).unwrap()
     }
 
     fn get_table_location(&self, source: &AreaSourceReference) -> Result<object_store::path::Path> {
@@ -106,7 +108,7 @@ impl AreaStore for DefaultAreaStore {
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {
         // TODO only actually load first file and also make this work for delta
         let files = self.get_source_files(source).await?;
-        let reader = self.open_file(&files[0]).await?;
+        let reader = self.open_file(&files[0], None).await?;
         Ok(reader.schema())
     }
 
@@ -138,7 +140,7 @@ impl AreaStore for DefaultAreaStore {
             }
             // TODO actually check if exists
             SaveMode::ErrorIfExists => Err(AreaStoreError::TableAlreadyExists(
-                location.to_raw().to_string(),
+                location.as_ref().to_string(),
             )),
             _ => writer.flush(location).await,
         }
@@ -159,7 +161,7 @@ impl AreaStore for DefaultAreaStore {
         location: &object_store::path::Path,
     ) -> Result<ParquetFileArrowReader> {
         let bytes = self.object_store().get(location).await?.bytes().await?;
-        let cursor = SliceableCursor::new(Arc::new(bytes));
+        let cursor = SliceableCursor::new(Arc::new(bytes.to_vec()));
         let file_reader = Arc::new(SerializedFileReader::new(cursor)?);
         Ok(ParquetFileArrowReader::new(file_reader))
     }
@@ -193,10 +195,10 @@ mod tests {
     #[tokio::test]
     async fn read_schema() {
         let root = tempfile::tempdir().unwrap();
-        let area_root = root.path().join(".tmp");
+        let area_root = root.path();
         let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
 
-        let path = Path::from_raw("_ff_data/asd");
+        let path = Path::parse("_ff_data/asd").unwrap();
 
         let batch = get_record_batch(None, false);
         area_store

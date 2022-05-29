@@ -31,6 +31,8 @@ message CommandListSources {
 message CommandReadDataset {
   // source identifier
   AreaSourceReference source = 1;
+  // column selection to load
+  repeated string column_names = 2;
 }
 
 // Drop a source (e.g. a Table) from the service

@@ -143,3 +143,26 @@ fn data_without_null() -> (Int32Array, StringArray, StringArray) {
 
     (base_int, base_str, base_mod)
 }
+
+/// returns a table with 3 columns of i32 in memory
+pub fn build_table_i32(
+    a: (&str, &Vec<i32>),
+    b: (&str, &Vec<i32>),
+    c: (&str, &Vec<i32>),
+) -> RecordBatch {
+    let schema = ArrowSchema::new(vec![
+        Field::new(a.0, DataType::Int32, false),
+        Field::new(b.0, DataType::Int32, false),
+        Field::new(c.0, DataType::Int32, false),
+    ]);
+
+    RecordBatch::try_new(
+        Arc::new(schema),
+        vec![
+            Arc::new(Int32Array::from(a.1.clone())),
+            Arc::new(Int32Array::from(b.1.clone())),
+            Arc::new(Int32Array::from(c.1.clone())),
+        ],
+    )
+    .unwrap()
+}

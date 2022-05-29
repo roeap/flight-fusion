@@ -47,11 +47,11 @@ pub fn timestamp_to_delta_stats_string(n: i64, time_unit: &TimeUnit) -> String {
 
 pub fn path_to_source(parts: Vec<PathPart>) -> Option<AreaSourceReference> {
     let mut split = parts.rsplit(|p| p == &PathPart::from("_ff_data"));
-    let name = split.next()?.first()?.to_string();
+    let name = split.next()?.first()?.as_ref().to_string();
     let areas = split
         .next()?
         .iter()
-        .map(|p| p.to_string())
+        .map(|p| p.as_ref().to_string())
         .collect::<Vec<_>>();
     Some(AreaSourceReference {
         table: Some(Table::Location(AreaTableLocation { areas, name })),

@@ -27,8 +27,14 @@ generate-proto:
 
     @echo 'cleaning up'
     rm -r tmp-proto
-    rm -r ./typescript/vscode-fusion/src/generated/scalapb
-    rm -r ./typescript/vscode-fusion/src/generated/mlflow
+    rm rust/flight-fusion-ipc/src/gen/mlflow.tonic.rs
+    rm rust/flight-fusion-ipc/src/gen/mlflow.rs
+    rm rust/flight-fusion-ipc/src/gen/mlflow.artifacts.rs
+    rm rust/flight-fusion-ipc/src/gen/mlflow.artifacts.tonic.rs
+    rm rust/flight-fusion-ipc/src/gen/inference.model_repository.rs
+    rm rust/flight-fusion-ipc/src/gen/inference.model_repository.tonic.rs
+    rm rust/flight-fusion-ipc/src/gen/inference.rs
+    rm rust/flight-fusion-ipc/src/gen/inference.tonic.rs
 
 generate-test-data:
     python scripts/generate_test_data.py
@@ -47,3 +53,7 @@ test-python:
 
 docker-build:
     docker build -f rust/flight-fusion/Dockerfile -t flight-fusion .
+
+# run example app
+run-app:
+    python -m app

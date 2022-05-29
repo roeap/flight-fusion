@@ -937,6 +937,8 @@ class Table:
         n_legs: [[2,4,5,100],[2,4,5,100]]
         animals: [["Flamingo","Horse","Brittle stars","Centipede"],["Flamingo","Horse","Brittle stars","Centipede"]]
         """
+    @staticmethod
+    def from_pylist(list: list, schema: Schema | None = None) -> Table: ...
     @property
     def num_columns(self) -> int:
         """Number of columns
@@ -1008,8 +1010,11 @@ class Table:
         116
         """
         ...
+    @property
+    def column_names(self) -> list[str]: ...
     def to_pandas(self) -> pd.DataFrame: ...
     def equals(self, other: Table) -> bool: ...
+    def rename_columns(self, names: list[str]) -> Table: ...
 
 def field(
     name: AnyStr,

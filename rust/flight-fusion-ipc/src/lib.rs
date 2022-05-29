@@ -2,7 +2,7 @@ pub mod error;
 mod macros;
 #[rustfmt::skip]
 mod gen {
-    include!("flight_fusion.ipc.v1alpha1.rs");
+    include!("gen/flight_fusion.ipc.v1alpha1.rs");
 }
 pub mod utils;
 

@@ -106,7 +106,7 @@ impl DeltaWriter {
             actions.push(create_add(
                 &writer.partition_values,
                 null_counts,
-                location.to_raw().to_string(),
+                location.as_ref().to_string(),
                 file_size,
                 &metadata,
             )?);
@@ -447,7 +447,7 @@ mod tests {
     #[tokio::test]
     async fn test_divide_record_batch_no_partition() {
         let root = TempDir::new().unwrap();
-        let storage = LocalFileSystem::new(root.path());
+        let storage = LocalFileSystem::new_with_prefix(root.path()).unwrap();
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
         let partition_cols = vec![];
@@ -461,7 +461,7 @@ mod tests {
     #[tokio::test]
     async fn test_divide_record_batch_single_partition() {
         let root = TempDir::new().unwrap();
-        let storage = LocalFileSystem::new(root.path());
+        let storage = LocalFileSystem::new_with_prefix(root.path()).unwrap();
 
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
@@ -480,7 +480,7 @@ mod tests {
     #[tokio::test]
     async fn test_divide_record_batch_multiple_partitions() {
         let root = TempDir::new().unwrap();
-        let storage = LocalFileSystem::new(root.path());
+        let storage = LocalFileSystem::new_with_prefix(root.path()).unwrap();
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
         let partition_cols = vec!["modified".to_string(), "id".to_string()];
@@ -500,7 +500,7 @@ mod tests {
     #[tokio::test]
     async fn test_write_no_partitions() {
         let root = TempDir::new().unwrap();
-        let storage = LocalFileSystem::new(root.path());
+        let storage = LocalFileSystem::new_with_prefix(root.path()).unwrap();
         let location = Path::default();
         let batch = get_record_batch(None, false);
         let schema = batch.schema();
@@ -515,7 +515,7 @@ mod tests {
     #[tokio::test]
     async fn test_write_multiple_partitions() {
         let root = TempDir::new().unwrap();
-        let storage = LocalFileSystem::new(root.path());
+        let storage = LocalFileSystem::new_with_prefix(root.path()).unwrap();
         let location = Path::default();
         let batch = get_record_batch(None, false);
         let schema = batch.schema();

@@ -55,6 +55,18 @@ impl DoGetHandler<CommandReadDataset> for FlightFusionService {
             let files = self.area_store.get_location_files(&location).await?;
             let schema = self.area_store.get_schema(&table).await?;
 
+            let column_indices = if ticket.column_names.is_empty() {
+                None
+            } else {
+                Some(
+                    ticket
+                        .column_names
+                        .iter()
+                        .map(|c| schema.index_of(c))
+                        .collect::<std::result::Result<Vec<_>, _>>()?,
+                )
+            };
+
             let (sender, receiver) = mpsc::channel::<ArrowResult<RecordBatch>>(files.len());
             let mut join_handles = Vec::with_capacity(files.len());
 
@@ -63,11 +75,17 @@ impl DoGetHandler<CommandReadDataset> for FlightFusionService {
                     sender.clone(),
                     self.area_store.clone(),
                     file_path,
+                    column_indices.clone(),
                 ));
             }
 
+            let projected_schema = match column_indices {
+                Some(indices) => Arc::new(schema.project(&indices)?),
+                None => schema,
+            };
+
             Ok(Box::pin(MergeStream::new(
-                schema,
+                projected_schema,
                 receiver,
                 AbortOnDropMany(join_handles),
             )))
@@ -85,9 +103,10 @@ pub(crate) fn spawn_execution(
     mut output: mpsc::Sender<ArrowResult<RecordBatch>>,
     area_store: Arc<DefaultAreaStore>,
     path: Path,
+    column_indices: Option<Vec<usize>>,
 ) -> JoinHandle<()> {
     tokio::spawn(async move {
-        let mut stream = match area_store.open_file(&path).await {
+        let mut stream = match area_store.open_file(&path, column_indices).await {
             Err(e) => {
                 // If send fails, plan being torn
                 // down, no place to send the error
@@ -163,11 +182,56 @@ mod tests {
 
         let get_request = CommandReadDataset {
             source: Some(table_ref.clone()),
+            ..CommandReadDataset::default()
         };
 
         let response = handler.execute_do_get(get_request.clone()).await.unwrap();
         let data = collect(response).await.unwrap();
 
         assert_eq!(data[0].schema(), ref_schema)
+    }
+
+    #[tokio::test]
+    async fn test_get_columns() {
+        let root = tempfile::tempdir().unwrap();
+        let plan = get_input_stream(None, false);
+        let ref_schema = plan.schema().clone();
+        let handler = get_fusion_handler(root.path());
+
+        let table_ref = AreaSourceReference {
+            table: Some(TableReference::Location(AreaTableLocation {
+                name: "new_table".to_string(),
+                areas: vec![],
+            })),
+        };
+
+        let put_request = CommandWriteIntoDataset {
+            source: Some(table_ref.clone()),
+            save_mode: SaveMode::Append.into(),
+        };
+
+        let _ = handler
+            .handle_do_put(put_request.clone(), plan)
+            .await
+            .unwrap();
+
+        let cols = ref_schema
+            .fields()
+            .iter()
+            .map(|c| c.name().clone())
+            .collect::<Vec<_>>();
+
+        let get_request = CommandReadDataset {
+            source: Some(table_ref.clone()),
+            column_names: vec![cols[0].clone()],
+        };
+
+        let response = handler.execute_do_get(get_request.clone()).await.unwrap();
+        let data = collect(response).await.unwrap();
+
+        assert_eq!(
+            data[0].schema(),
+            std::sync::Arc::new(ref_schema.project(&[0]).unwrap())
+        )
     }
 }
