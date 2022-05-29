@@ -14,6 +14,7 @@
     "Popen",
     "Timespan",
     "addinivalue",
+    "antd",
     "betterproto",
     "chrono",
     "classmethod",

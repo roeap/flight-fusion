@@ -22,7 +22,7 @@ _ID_DUMMY = "_pages_plugin_dummy"
 page_container = html.Div(
     [
         dcc.Location(id=_ID_LOCATION),
-        html.Div(id=_ID_CONTENT, style={"overflow": "auto"}),
+        html.Div(id=_ID_CONTENT),
         dcc.Store(id=_ID_STORE),
         html.Div(id=_ID_DUMMY),
     ]
@@ -284,6 +284,10 @@ def _import_layouts_from_pages(pages_folder, module=None):
                 dash.page_registry[import_key]["layout"] = getattr(
                     page_module, "layout"
                 )
+                if hasattr(page_module, "controls"):
+                    dash.controls_registry[import_key]["controls"] = getattr(
+                        page_module, "controls"
+                    )
 
 
 def _path_to_page(app, path_id):
@@ -299,8 +303,22 @@ def _path_to_page(app, path_id):
     return {}, None
 
 
+def _path_to_controls(app, path_id):
+    path_variables = None
+    for page in dash.page_registry.values():
+        if page["path_template"]:
+            template_id = page["path_template"].strip("/")
+            path_variables = _parse_path_variables(path_id, template_id)
+            if path_variables:
+                return page.get("controls"), path_variables
+        if path_id == page["path"].strip("/"):
+            return page.get("controls"), path_variables
+    return None, None
+
+
 def plug(app):  # noqa: C901
     dash.page_registry = OrderedDict()
+    dash.controls_registry = OrderedDict()
 
     frm = inspect.stack()[2]
     mod = inspect.getmodule(frm[0])

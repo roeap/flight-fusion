@@ -1,7 +1,11 @@
+from xml.sax.handler import feature_external_ges
+
 import dash
 import dash_antd as dadc
 
 from app.plugin import multi_page
+
+HEADER_HEIGHT = "50px"
 
 app = dash.Dash(__name__, plugins=[multi_page])
 
@@ -21,40 +25,34 @@ nav_items = [get_nav_item(page) for page in dash.page_registry.values()]  # type
 
 
 app.layout = dadc.Layout(
-    has_sidebar=True,
+    has_sidebar=False,
+    style={"height": "100vh", "overflow": "auto"},
     children=[
-        dadc.Sidebar(
-            style={
-                "overflow": "auto",
-                "height": "100vh",
-                "position": "fixed",
-                "left": 0,
-                "top": 0,
-                "bottom": 0,
-                "borderRight": "1px solid rgba(0,0,0,.06)",
-            },
-            theme="light",
-            children=[
-                dadc.Menu(id="page-nav", items=nav_items, selected_keys=["page-1"]),
-                dadc.Divider("Controls"),
-            ],
+        dadc.Header(
+            dadc.Icon(
+                icon_name="BorderRightOutlined",
+                style={"color": "red", "fontSize": 50, "marginLeft": -50},
+            ),
+            style={"background": "#004A96", "height": HEADER_HEIGHT},
         ),
         dadc.Layout(
-            style={"marginLeft": 200, "height": "100vh"},
             children=[
-                dadc.Header(
+                dadc.Sidebar(
                     style={
-                        "borderBottom": "1px solid rgba(0,0,0,.06)",
-                        "background": "white",
-                    }
+                        "overflow": "auto",
+                        "borderRight": "1px solid rgba(0,0,0,.06)",
+                    },
+                    theme="light",
+                    children=[
+                        dadc.Menu(
+                            id="page-nav", items=nav_items, selected_keys=["page-1"]
+                        ),
+                        dadc.Divider("Controls"),
+                    ],
                 ),
                 dadc.Content(
                     multi_page.page_container,
                     id="page-content",
-                    style={"margin": "24px 16px 0", "overflow": "auto"},
-                ),
-                dadc.Footer(
-                    "Dash Ant Design Components", style={"textAlign": "center"}
                 ),
             ],
         ),
