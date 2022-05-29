@@ -39,6 +39,8 @@ def fusion_client(datadir: Path) -> Generator[FusionServiceClient, None, None]:
     port = sock.getsockname()[1]
     sock.close()
 
+    (datadir / ".fusion").mkdir(exist_ok=True)
+
     ds_proc = subprocess.Popen(  # nosec: running only in tests
         [str(exec_path.absolute()), "--host", "127.0.0.1", "--port", str(port)],
         stdout=subprocess.PIPE,

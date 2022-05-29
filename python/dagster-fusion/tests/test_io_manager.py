@@ -1,7 +1,6 @@
 import pyarrow as pa
 import pytest
-from dagster import AssetKey, Out, ResourceDefinition, graph, op
-
+from dagster import AssetKey, In, Out, ResourceDefinition, graph, op
 from dagster_fusion import flight_fusion_io_manager
 from flight_fusion import FusionServiceClient
 
@@ -33,6 +32,28 @@ def test_graph(test_data):
     return asset_pipeline
 
 
+@pytest.fixture
+def test_graph_columns(test_data):
+    @op(
+        ins={
+            "df": In(
+                dagster_type=pa.Table,
+                asset_key=AssetKey(["scope", "out_b"]),
+                metadata={"columns": ["b"]},
+            )
+        },
+        out={"out_c": Out(dagster_type=pa.Table, asset_key=AssetKey(["scope", "out_c"]))},
+    )
+    def solid_load(_context, df):
+        return df
+
+    @graph
+    def asset_pipeline():
+        solid_load()
+
+    return asset_pipeline
+
+
 run_config = {
     "ops": {
         "solid_a": {"outputs": {"out_a": {"save_mode": "SAVE_MODE_OVERWRITE"}}},
@@ -60,3 +81,26 @@ def test_graph_in_out(test_graph, test_data, fusion_client: FusionServiceClient)
     fds = fusion_client.get_dataset_client(AssetKey(["scope", "out_b"]))  # type: ignore
     result_table = fds.load()
     assert result_table.equals(test_data)
+
+
+def test_column_selection(
+    test_graph, test_graph_columns, test_data: pa.Table, fusion_client: FusionServiceClient
+):
+    client = ResourceDefinition.hardcoded_resource(fusion_client)
+    job = test_graph.to_job(
+        resource_defs={"io_manager": flight_fusion_io_manager, "fusion_client": client},
+        config=run_config,
+    )
+
+    result = job.execute_in_process()
+    assert result.success
+
+    job_cols = test_graph_columns.to_job(
+        resource_defs={"io_manager": flight_fusion_io_manager, "fusion_client": client},
+    )
+
+    result = job_cols.execute_in_process()
+    assert result.success
+
+    out = result.output_for_node("solid_load", "out_c")
+    assert out.equals(test_data.select(["b"]))
