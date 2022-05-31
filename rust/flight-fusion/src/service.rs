@@ -206,8 +206,10 @@ impl FlightService for FlightFusionService {
             global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
         tracing::Span::current().set_parent(parent_cx);
 
-        let command = message_from_descriptor::<AreaSourceReference>(request)
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let command: AreaSourceReference = request
+            .into_inner()
+            .try_into()
+            .map_err(|_| tonic::Status::invalid_argument("failed to decode command".to_string()))?;
 
         let schema = self
             .area_store
@@ -244,8 +246,10 @@ impl FlightService for FlightFusionService {
             global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
         tracing::Span::current().set_parent(parent_cx);
 
-        let command = message_from_descriptor::<AreaSourceReference>(request)
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let command: AreaSourceReference = request
+            .into_inner()
+            .try_into()
+            .map_err(|_| tonic::Status::invalid_argument("failed to decode command".to_string()))?;
 
         let schema = self
             .area_store
@@ -407,25 +411,6 @@ impl FlightService for FlightFusionService {
         _request: Request<Streaming<FlightData>>,
     ) -> Result<Response<Self::DoExchangeStream>, Status> {
         Err(Status::unimplemented("Not implemented"))
-    }
-}
-
-fn message_from_descriptor<M>(
-    data: Request<FlightDescriptor>,
-) -> Result<M, crate::error::FusionServiceError>
-where
-    M: prost::Message + Default,
-{
-    let descriptor = data.into_inner();
-    match DescriptorType::from_i32(descriptor.r#type) {
-        Some(DescriptorType::Cmd) => {
-            let request_data = M::decode(&mut descriptor.cmd.as_ref())
-                .map_err(|e| tonic::Status::internal(e.to_string()))?;
-            Ok(request_data)
-        }
-        _ => Err(crate::error::FusionServiceError::InputError(
-            "`get_schema` requires command to be defined on flight descriptor".to_string(),
-        )),
     }
 }
 
