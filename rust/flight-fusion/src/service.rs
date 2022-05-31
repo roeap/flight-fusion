@@ -170,9 +170,10 @@ impl FlightService for FlightFusionService {
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
         let infos = files.into_iter().map(|a| {
+            let source: AreaSourceReference = a.into();
             let descriptor = FlightDescriptor {
                 r#type: DescriptorType::Cmd.into(),
-                cmd: vec![],
+                cmd: source.encode_to_vec(),
                 ..FlightDescriptor::default()
             };
 

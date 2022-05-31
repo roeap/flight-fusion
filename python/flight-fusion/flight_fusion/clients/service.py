@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterable
+
+import pyarrow.flight as pa_flight
 
 from flight_fusion.asset_key import AssetKey
 from flight_fusion.clients import ContextClient, DatasetClient, VersionedDatasetClient
@@ -15,6 +18,12 @@ if TYPE_CHECKING:
 class FlightActions:
     REGISTER_TABLE = b"register-table"
     REGISTER_DELTA_TABLE = b"register-delta-table"
+
+
+@dataclass
+class AreaInfo:
+    source: AreaSourceReference
+    info: pa_flight.FlightInfo  # type: ignore
 
 
 class FusionServiceClient(BaseClient):
@@ -38,3 +47,11 @@ class FusionServiceClient(BaseClient):
 
     def get_versioned_dataset_client(self, asset_key: AssetKey) -> BaseDatasetClient:
         return VersionedDatasetClient(asset_key=asset_key, client=self._flight)
+
+    def list_datasets(self) -> list[AreaInfo]:
+        return [
+            AreaInfo(
+                source=AreaSourceReference.FromString(fi.descriptor.command), info=fi
+            )
+            for fi in self._flight.list_flights()
+        ]
