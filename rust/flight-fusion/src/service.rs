@@ -436,10 +436,7 @@ fn to_tonic_err(e: FusionServiceError) -> Status {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use flight_fusion_ipc::{
-        area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
-        CommandDropSource, CommandWriteIntoDataset, SaveMode,
-    };
+    use flight_fusion_ipc::{AreaTableLocation, CommandWriteIntoDataset, SaveMode};
     use futures::TryStreamExt;
 
     #[tokio::test]
@@ -464,14 +461,12 @@ mod tests {
 
         assert_eq!(flights.len(), 0);
 
-        let table_ref = AreaSourceReference {
-            table: Some(TableReference::Location(AreaTableLocation {
-                name: "new_table".to_string(),
-                areas: vec![],
-            })),
+        let location = AreaTableLocation {
+            name: "new_table".to_string(),
+            areas: vec![],
         };
         let put_request = CommandWriteIntoDataset {
-            source: Some(table_ref.clone()),
+            source: Some(location.into()),
             save_mode: SaveMode::Overwrite.into(),
         };
         let _ = handler.handle_do_put(put_request, plan).await.unwrap();
@@ -494,14 +489,12 @@ mod tests {
         let plan = crate::test_utils::get_input_stream(None, false);
         let handler = crate::test_utils::get_fusion_handler(root.path());
 
-        let table_ref = AreaSourceReference {
-            table: Some(TableReference::Location(AreaTableLocation {
-                name: "new_table".to_string(),
-                areas: vec![],
-            })),
+        let location = AreaTableLocation {
+            name: "new_table".to_string(),
+            areas: vec![],
         };
         let put_request = CommandWriteIntoDataset {
-            source: Some(table_ref.clone()),
+            source: Some(location.into()),
             save_mode: SaveMode::Overwrite.into(),
         };
         let _ = handler.handle_do_put(put_request, plan).await.unwrap();
