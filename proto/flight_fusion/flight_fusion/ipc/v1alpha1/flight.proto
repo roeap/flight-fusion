@@ -6,11 +6,6 @@ import "flight_fusion/ipc/v1alpha1/message.proto";
 import "flight_fusion/ipc/v1alpha1/common.proto";
 import "flight_fusion/ipc/v1alpha1/delta.proto";
 
-message FlightGetFlightInfoRequest {
-  // source identifier
-  AreaSourceReference source = 1;
-}
-
 // Requests submitted against the `do_get` endpoint
 message FlightDoGetRequest {
   oneof command {

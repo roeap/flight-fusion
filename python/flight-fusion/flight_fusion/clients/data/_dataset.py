@@ -14,7 +14,6 @@ from flight_fusion.ipc.v1alpha1 import (
     AreaTableLocation,
     CommandExecuteQuery,
     FlightDoGetRequest,
-    FlightGetFlightInfoRequest,
     ResultActionStatus,
     ResultDoPutUpdate,
     SaveMode,
@@ -54,7 +53,7 @@ class BaseDatasetClient(BaseClient):
     def schema(self) -> pa.Schema:
         if self._schema is None:
             request = pa_flight.FlightDescriptor.for_command(
-                FlightGetFlightInfoRequest(source=self._reference).SerializeToString()
+                self._reference.SerializeToString()
             )
             response = self._flight.get_schema(request)
             self._schema = response.schema
@@ -75,7 +74,9 @@ class BaseDatasetClient(BaseClient):
         raise NotImplementedError
 
     def query(self, query: str) -> pa.Table:
-        command = FlightDoGetRequest(query=CommandExecuteQuery(query=query, source=self._reference))
+        command = FlightDoGetRequest(
+            query=CommandExecuteQuery(query=query, source=self._reference)
+        )
         return self._do_get(command)
 
     def drop(self) -> ResultActionStatus:
@@ -83,7 +84,7 @@ class BaseDatasetClient(BaseClient):
 
     def get_metadata(self) -> AreaSourceMetadata:
         request = pa_flight.FlightDescriptor.for_command(
-            FlightGetFlightInfoRequest(source=self._reference).SerializeToString()
+            self._reference.SerializeToString()
         )
         return self._flight.get_flight_info(request)
 

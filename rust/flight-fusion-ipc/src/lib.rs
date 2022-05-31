@@ -6,8 +6,10 @@ mod gen {
 }
 pub mod utils;
 
+use arrow_flight::{flight_descriptor::DescriptorType, FlightDescriptor};
 pub use error::*;
 pub use gen::*;
+use prost::Message;
 pub use utils::*;
 
 pub trait RequestFor {

@@ -353,12 +353,6 @@ class ColumnStatistics(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
-class FlightGetFlightInfoRequest(betterproto.Message):
-    # source identifier
-    source: "AreaSourceReference" = betterproto.message_field(1)
-
-
-@dataclass(eq=False, repr=False)
 class FlightDoGetRequest(betterproto.Message):
     """Requests submitted against the `do_get` endpoint"""
 

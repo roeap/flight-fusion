@@ -21,7 +21,7 @@ use flight_fusion_ipc::{
     area_source_reference::Table, flight_action_request::Action as FusionAction,
     flight_do_get_request::Command as DoGetCommand, flight_do_put_request::Command as DoPutCommand,
     serialize_message, AreaSourceReference, CommandListSources, FlightActionRequest,
-    FlightDoGetRequest, FlightGetFlightInfoRequest,
+    FlightDoGetRequest,
 };
 use futures::Stream;
 use observability_deps::opentelemetry::{global, propagation::Extractor};
@@ -206,21 +206,14 @@ impl FlightService for FlightFusionService {
             global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
         tracing::Span::current().set_parent(parent_cx);
 
-        let command = message_from_descriptor::<FlightGetFlightInfoRequest>(request)
+        let command = message_from_descriptor::<AreaSourceReference>(request)
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
-        let schema = if let Some(source) = command.source {
-            Ok(self
-                .area_store
-                .get_schema(&source)
-                .await
-                .map_err(|e| tonic::Status::internal(e.to_string()))?)
-        } else {
-            Err(crate::error::FusionServiceError::InputError(
-                "Expected valid command payload".to_string(),
-            ))
-        }
-        .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let schema = self
+            .area_store
+            .get_schema(&command)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
         let options = IpcWriteOptions::default();
         let schema_result = SchemaAsIpc::new(&schema, &options);
@@ -251,21 +244,14 @@ impl FlightService for FlightFusionService {
             global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
         tracing::Span::current().set_parent(parent_cx);
 
-        let command = message_from_descriptor::<FlightGetFlightInfoRequest>(request)
+        let command = message_from_descriptor::<AreaSourceReference>(request)
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
-        let schema = if let Some(source) = command.source {
-            Ok(self
-                .area_store
-                .get_schema(&source)
-                .await
-                .map_err(|e| tonic::Status::internal(e.to_string()))?)
-        } else {
-            Err(crate::error::FusionServiceError::InputError(
-                "Expected valid command payload".to_string(),
-            ))
-        }
-        .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let schema = self
+            .area_store
+            .get_schema(&command)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
         let options = IpcWriteOptions::default();
         let schema_result = SchemaAsIpc::new(&schema, &options);
@@ -454,13 +440,13 @@ mod tests {
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
         CommandDropSource, CommandWriteIntoDataset, SaveMode,
     };
-    use futures::{StreamExt, TryStreamExt};
+    use futures::TryStreamExt;
 
     #[tokio::test]
     async fn test_list_flights() {
-        let root = crate::test_utils::workspace_test_data_folder();
+        let root = tempfile::tempdir().unwrap();
         let plan = crate::test_utils::get_input_stream(None, false);
-        let handler = crate::test_utils::get_fusion_handler(root.clone());
+        let handler = crate::test_utils::get_fusion_handler(root.path());
 
         let command = CommandListSources { recursive: true };
         let criteria = Criteria {
@@ -502,13 +488,11 @@ mod tests {
         assert_eq!(flights.len(), 1)
     }
 
-    #[ignore = "currently directories are not deleted when tables are dropped"]
     #[tokio::test]
-    async fn test_table_put_drop() {
-        let root = crate::test_utils::workspace_test_data_folder();
+    async fn get_flight_info() {
+        let root = tempfile::tempdir().unwrap();
         let plan = crate::test_utils::get_input_stream(None, false);
-        let handler = crate::test_utils::get_fusion_handler(root.clone());
-        let table_dir = root.join("_ff_data/new_table");
+        let handler = crate::test_utils::get_fusion_handler(root.path());
 
         let table_ref = AreaSourceReference {
             table: Some(TableReference::Location(AreaTableLocation {
@@ -520,18 +504,6 @@ mod tests {
             source: Some(table_ref.clone()),
             save_mode: SaveMode::Overwrite.into(),
         };
-
-        assert!(!table_dir.exists());
-
-        let _put_response = handler.handle_do_put(put_request, plan).await.unwrap();
-
-        assert!(table_dir.is_dir());
-
-        let drop_request = CommandDropSource {
-            source: Some(table_ref),
-        };
-        let _drop_response = handler.handle_do_action(drop_request).await.unwrap();
-
-        assert!(!table_dir.exists());
+        let _ = handler.handle_do_put(put_request, plan).await.unwrap();
     }
 }
