@@ -4,7 +4,7 @@ use crate::stream::{
 use crate::{error::FusionServiceError, handlers::*};
 use area_store::store::{AreaStore, DefaultAreaStore};
 use arrow_deps::datafusion::{
-    arrow::ipc::writer::IpcWriteOptions,
+    arrow::{datatypes::Schema, ipc::writer::IpcWriteOptions},
     catalog::{
         catalog::{CatalogProvider, MemoryCatalogProvider},
         schema::MemorySchemaProvider,
@@ -60,7 +60,9 @@ impl<'a> Extractor for MetadataMap<'a> {
 
 #[derive(Clone)]
 pub struct FlightFusionService {
+    #[allow(unused)]
     pub(crate) catalog: Arc<MemoryCatalogProvider>,
+    /// the area store provides high level access to registered datasets.
     pub(crate) area_store: Arc<DefaultAreaStore>,
 }
 
@@ -161,8 +163,36 @@ impl FlightService for FlightFusionService {
         let _command = CommandListSources::decode(&mut criteria.expression.as_ref())
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
+        let files = self
+            .area_store
+            .list_areas(None)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        let infos = files.into_iter().map(|a| {
+            let descriptor = FlightDescriptor {
+                r#type: DescriptorType::Cmd.into(),
+                cmd: vec![],
+                ..FlightDescriptor::default()
+            };
+
+            let options = IpcWriteOptions::default();
+            let schema = Schema::new(vec![]);
+            let schema_result = SchemaAsIpc::new(&schema, &options);
+
+            Ok(FlightInfo::new(
+                IpcMessage::try_from(schema_result)
+                    .map_err(|e| tonic::Status::internal(e.to_string()))
+                    .unwrap(),
+                Some(descriptor),
+                vec![],
+                -1,
+                -1,
+            ))
+        });
+
         Ok(Response::new(
-            Box::pin(futures::stream::iter(vec![])) as BoxedFlightStream<FlightInfo>
+            Box::pin(futures::stream::iter(infos)) as BoxedFlightStream<FlightInfo>
         ))
     }
 
@@ -423,6 +453,53 @@ mod tests {
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
         CommandDropSource, CommandWriteIntoDataset, SaveMode,
     };
+    use futures::{StreamExt, TryStreamExt};
+
+    #[tokio::test]
+    async fn test_list_flights() {
+        let root = crate::test_utils::workspace_test_data_folder();
+        let plan = crate::test_utils::get_input_stream(None, false);
+        let handler = crate::test_utils::get_fusion_handler(root.clone());
+
+        let command = CommandListSources { recursive: true };
+        let criteria = Criteria {
+            expression: command.encode_to_vec(),
+        };
+
+        let flights = handler
+            .list_flights(Request::new(criteria.clone()))
+            .await
+            .unwrap()
+            .into_inner()
+            .try_collect::<Vec<_>>()
+            .await
+            .unwrap();
+
+        assert_eq!(flights.len(), 0);
+
+        let table_ref = AreaSourceReference {
+            table: Some(TableReference::Location(AreaTableLocation {
+                name: "new_table".to_string(),
+                areas: vec![],
+            })),
+        };
+        let put_request = CommandWriteIntoDataset {
+            source: Some(table_ref.clone()),
+            save_mode: SaveMode::Overwrite.into(),
+        };
+        let _ = handler.handle_do_put(put_request, plan).await.unwrap();
+
+        let flights = handler
+            .list_flights(Request::new(criteria))
+            .await
+            .unwrap()
+            .into_inner()
+            .try_collect::<Vec<_>>()
+            .await
+            .unwrap();
+
+        assert_eq!(flights.len(), 1)
+    }
 
     #[ignore = "currently directories are not deleted when tables are dropped"]
     #[tokio::test]

@@ -6,7 +6,7 @@ use arrow_deps::datafusion::parquet::file::metadata::ParquetMetaData;
 use dashmap::DashMap;
 use futures::future::try_join_all;
 use object_store::{
-    path::{DirsAndFileName, Path, PathPart},
+    path::{Path, PathPart},
     DynObjectStore, ObjectStore,
 };
 use observability_deps::tracing::info;
@@ -17,12 +17,6 @@ pub type IndexEntry = (Path, Arc<ParquetMetaData>);
 
 pub trait ToCacheKey {
     fn to_key(&self) -> Vec<PathPart>;
-}
-
-impl ToCacheKey for DirsAndFileName {
-    fn to_key(&self) -> Vec<PathPart> {
-        self.directories.clone()
-    }
 }
 
 impl ToCacheKey for Vec<PathPart<'_>> {
@@ -40,11 +34,11 @@ impl ToCacheKey for Path {
 
 pub struct FileIndex {
     store: Arc<DynObjectStore>,
-    index: Arc<DashMap<Vec<PathPart>, Vec<IndexEntry>>>,
+    index: Arc<DashMap<String, Vec<IndexEntry>>>,
 }
 
 impl FileIndex {
-    pub fn new(store: Arc<ObjectStore>) -> Self {
+    pub fn new(store: Arc<dyn ObjectStore>) -> Self {
         Self {
             store,
             index: Arc::new(DashMap::new()),
@@ -86,12 +80,13 @@ impl FileIndex {
         todo!()
     }
 
-    pub fn get_area_files(&self, area_ref: &impl ToCacheKey) -> Option<Vec<IndexEntry>> {
-        Some(self.index.get(&area_ref.to_key())?.value().to_vec())
+    pub fn get_area_files(&self, area_ref: Path) -> Option<Vec<IndexEntry>> {
+        todo!()
+        // Some(self.index.get(&area_ref.to_key())?.value().to_vec())
     }
 
-    pub fn get_schema(&self, area_ref: &impl ToCacheKey) -> Option<ArrowSchemaRef> {
-        let reference = self.index.get(&area_ref.to_key()).unwrap();
+    pub fn get_schema(&self, area_ref: Path) -> Option<ArrowSchemaRef> {
+        let reference = self.index.get(area_ref.as_ref()).unwrap();
         let (_, metadata) = reference.value().first()?;
         let schema = Arc::new(
             parquet_to_arrow_schema(
@@ -103,19 +98,20 @@ impl FileIndex {
         Some(schema)
     }
 
-    pub fn get_area_counts(&self, area_ref: &impl ToCacheKey) -> Option<(usize, usize)> {
-        Some(self.index.get(&area_ref.to_key())?.value().iter().fold(
-            (0, 0),
-            |(n_rows, size), f| {
-                let (n, s) =
-                    f.1.row_groups()
-                        .iter()
-                        .fold((0, 0), |(i_n_rows, i_size), meta| {
-                            (i_n_rows + meta.num_rows(), i_size + meta.total_byte_size())
-                        });
-                (n_rows + n as usize, size + s as usize)
-            },
-        ))
+    pub fn get_area_counts(&self, area_ref: Path) -> Option<(usize, usize)> {
+        todo!()
+        // Some(self.index.get(&area_ref.to_key())?.value().iter().fold(
+        //     (0, 0),
+        //     |(n_rows, size), f| {
+        //         let (n, s) =
+        //             f.1.row_groups()
+        //                 .iter()
+        //                 .fold((0, 0), |(i_n_rows, i_size), meta| {
+        //                     (i_n_rows + meta.num_rows(), i_size + meta.total_byte_size())
+        //                 });
+        //         (n_rows + n as usize, size + s as usize)
+        //     },
+        // ))
     }
 
     pub fn len(&self) -> usize {
@@ -126,8 +122,8 @@ impl FileIndex {
         self.index.is_empty()
     }
 
-    pub fn contains_key(&self, key: &impl ToCacheKey) -> bool {
-        self.index.contains_key(&key.to_key())
+    pub fn contains_key(&self, key: Path) -> bool {
+        self.index.contains_key(key.as_ref())
     }
 }
 
@@ -141,30 +137,7 @@ mod tests {
     #[tokio::test]
     async fn create_index() {
         let root = tempfile::tempdir().unwrap();
-        let area_root = root.path().join(".tmp");
+        let area_root = root.path();
         let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
-
-        let mut location = area_store.object_store().new_path();
-        location.push_dir("_ff_data");
-        location.push_dir("asd");
-
-        let batch = crate::test_utils::get_record_batch(None, false);
-        area_store
-            .put_batches(vec![batch.clone()], &location, SaveMode::Append)
-            .await
-            .unwrap();
-
-        assert!(!area_store.file_index.contains_key(&location));
-
-        area_store.build_index().await.unwrap();
-        assert_eq!(area_store.file_index.len(), 1);
-        assert!(area_store.file_index.contains_key(&location));
-        assert_eq!(
-            batch.schema(),
-            area_store.file_index.get_schema(&location).unwrap()
-        );
-
-        let (n_rows, _) = area_store.file_index.get_area_counts(&location).unwrap();
-        assert_eq!(n_rows, batch.num_rows())
     }
 }

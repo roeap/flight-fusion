@@ -1,11 +1,14 @@
 //! Abstractions and implementations for writing data to delta tables
 mod basic;
 mod cache;
+// mod file_index;
+mod area_path;
 mod stats;
 pub mod utils;
 pub mod writer;
 
 use crate::error::Result;
+use area_path::AreaPath;
 use arrow_deps::arrow::{
     datatypes::SchemaRef as ArrowSchemaRef,
     error::{ArrowError, Result as ArrowResult},
@@ -126,7 +129,7 @@ pub trait AreaStore: Send + Sync {
     async fn get_location_files(&self, location: &Path) -> Result<Vec<Path>> {
         Ok(self
             .object_store()
-            .list(Some(location))
+            .list(Some(location.into()))
             .await?
             .try_collect::<Vec<_>>()
             .await?
@@ -137,5 +140,22 @@ pub trait AreaStore: Send + Sync {
 
     async fn delete_location(&self, _location: &Path) -> Result<()> {
         todo!()
+    }
+
+    async fn list_areas(&self, prefix: Option<&Path>) -> Result<Vec<AreaPath>> {
+        let areas = self.object_store().list_with_delimiter(prefix).await?;
+        let folders = areas.common_prefixes.into_iter().map(|p| AreaPath::from(p));
+
+        let mut data_roots = Vec::new();
+        for folder in folders {
+            if folder.is_table_root() {
+                data_roots.push(folder);
+            } else {
+                let nested = self.list_areas(Some(&folder.into())).await?;
+                data_roots.extend(nested);
+            };
+        }
+
+        Ok(data_roots)
     }
 }
