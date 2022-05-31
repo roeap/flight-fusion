@@ -25,6 +25,10 @@ class AreaInfo:
     source: AreaSourceReference
     info: pa_flight.FlightInfo  # type: ignore
 
+    @property
+    def asset_key(self) -> AssetKey:
+        return AssetKey(self.source.location.areas + [self.source.location.name])
+
 
 class FusionServiceClient(BaseClient):
     def __init__(
