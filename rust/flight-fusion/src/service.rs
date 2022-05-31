@@ -473,15 +473,22 @@ mod tests {
         let root = tempfile::tempdir().unwrap();
         let plan = crate::test_utils::get_input_stream(None, false);
         let handler = crate::test_utils::get_fusion_handler(root.path());
+        let ref_schema = plan.schema();
 
         let location = AreaTableLocation {
             name: "new_table".to_string(),
             areas: vec![],
         };
         let put_request = CommandWriteIntoDataset {
-            source: Some(location.into()),
+            source: Some(location.clone().into()),
             save_mode: SaveMode::Overwrite.into(),
         };
         let _ = handler.handle_do_put(put_request, plan).await.unwrap();
+
+        let request: Request<FlightDescriptor> = Request::new(location.into());
+        let info = handler.get_flight_info(request).await.unwrap().into_inner();
+
+        let arrow_schema: Arc<Schema> = Arc::new(IpcMessage(info.schema).try_into().unwrap());
+        assert_eq!(ref_schema, arrow_schema)
     }
 }
