@@ -2,12 +2,7 @@ use super::{stats, writer::*, AreaStore, DATA_FOLDER_NAME};
 use crate::error::{AreaStoreError, Result};
 use arrow_deps::arrow::record_batch::*;
 use arrow_deps::datafusion::{
-    arrow::datatypes::SchemaRef as ArrowSchemaRef,
-    parquet::{
-        arrow::ParquetFileArrowReader,
-        file::serialized_reader::{SerializedFileReader, SliceableCursor},
-    },
-    physical_plan::common::collect,
+    arrow::datatypes::SchemaRef as ArrowSchemaRef, physical_plan::common::collect,
 };
 use async_trait::async_trait;
 use flight_fusion_ipc::{
@@ -156,13 +151,6 @@ impl AreaStore for DefaultAreaStore {
             batches.append(&mut batch);
         }
         Ok(batches)
-    }
-
-    async fn get_arrow_reader(&self, location: &Path) -> Result<ParquetFileArrowReader> {
-        let bytes = self.object_store().get(location).await?.bytes().await?;
-        let cursor = SliceableCursor::new(Arc::new(bytes.to_vec()));
-        let file_reader = Arc::new(SerializedFileReader::new(cursor)?);
-        Ok(ParquetFileArrowReader::new(file_reader))
     }
 }
 

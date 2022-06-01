@@ -90,8 +90,6 @@ pub trait AreaStore: Send + Sync {
     /// Read batches from location
     async fn get_batches(&self, location: &Path) -> Result<Vec<RecordBatch>>;
 
-    async fn get_arrow_reader(&self, location: &Path) -> Result<ParquetFileArrowReader>;
-
     async fn open_file(
         &self,
         file: &Path,

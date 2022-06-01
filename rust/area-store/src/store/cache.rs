@@ -1,4 +1,4 @@
-use super::{stats, AreaStore, DEFAULT_READ_BATCH_SIZE};
+use super::{stats, AreaStore};
 use crate::error::Result;
 use arrow_deps::datafusion::parquet::arrow::ParquetFileArrowReader;
 use arrow_deps::{
@@ -7,7 +7,7 @@ use arrow_deps::{
         ipc::{reader::StreamReader, writer::StreamWriter},
         record_batch::RecordBatch,
     },
-    datafusion::parquet::arrow::ArrowReader,
+    datafusion::physical_plan::common::collect,
 };
 use async_trait::async_trait;
 use file_cache::LruDiskCache;
@@ -51,11 +51,7 @@ impl CachedAreaStore {
 
         // read record patches form location (file)
         let mut batches = Vec::new();
-        let mut reader = self.get_arrow_reader(location).await?;
-        let batch_reader = reader.get_record_reader(DEFAULT_READ_BATCH_SIZE)?;
-        let mut file_batches = batch_reader
-            .into_iter()
-            .collect::<std::result::Result<Vec<_>, _>>()?;
+        let mut file_batches = collect(self.open_file(location, None).await?).await?;
         batches.append(&mut file_batches);
 
         // Write record batches to cache in IPC format
@@ -123,10 +119,6 @@ impl AreaStore for CachedAreaStore {
             batches.append(&mut file_batches);
         }
         Ok(batches)
-    }
-
-    async fn get_arrow_reader(&self, location: &Path) -> Result<ParquetFileArrowReader> {
-        self.store.get_arrow_reader(location).await
     }
 }
 
