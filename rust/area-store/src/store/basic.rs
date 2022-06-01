@@ -1,17 +1,11 @@
-use super::{stats, writer::*, AreaStore, DATA_FOLDER_NAME};
+use super::{stats, writer::*, AreaPath, AreaStore};
 use crate::error::{AreaStoreError, Result};
 use arrow_deps::arrow::record_batch::*;
 use arrow_deps::datafusion::{
-    arrow::datatypes::SchemaRef as ArrowSchemaRef,
-    parquet::{
-        arrow::ParquetFileArrowReader,
-        file::serialized_reader::{SerializedFileReader, SliceableCursor},
-    },
+    arrow::datatypes::SchemaRef as ArrowSchemaRef, physical_plan::common::collect,
 };
 use async_trait::async_trait;
-use flight_fusion_ipc::{
-    area_source_reference::Table as TableReference, AreaSourceReference, SaveMode,
-};
+use flight_fusion_ipc::{AreaSourceReference, SaveMode};
 use futures::TryStreamExt;
 use object_store::path::Path;
 use object_store::DynObjectStore;
@@ -61,7 +55,7 @@ impl DefaultAreaStore {
     }
 
     pub fn get_full_table_path(&self, source: &AreaSourceReference) -> Result<String> {
-        let location = self.get_table_location(source)?;
+        let location: AreaPath = source.into();
         Ok(format!("{}/{}", self.root_path, location.as_ref()))
     }
 
@@ -85,38 +79,19 @@ impl AreaStore for DefaultAreaStore {
         Path::parse(trimmed_raw).unwrap()
     }
 
-    fn get_table_location(&self, source: &AreaSourceReference) -> Result<object_store::path::Path> {
-        match source {
-            AreaSourceReference { table: Some(tbl) } => match tbl {
-                TableReference::Location(loc) => {
-                    let mut parts = loc.areas.clone();
-                    parts.push(DATA_FOLDER_NAME.to_string());
-                    parts.push(loc.name.to_string());
-                    Ok(Path::from_iter(parts))
-                }
-                TableReference::Uri(_uri) => {
-                    todo!()
-                }
-                TableReference::Id(_id) => {
-                    todo!()
-                }
-            },
-            _ => todo!(),
-        }
-    }
-
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {
         // TODO only actually load first file and also make this work for delta
-        let files = self.get_source_files(source).await?;
-        let reader = self.open_file(&files[0], None).await?;
+        let area_path = AreaPath::from(source);
+        let files = self.get_location_files(&area_path).await?;
+        let reader = self.open_file(&files[0].clone().into(), None).await?;
         Ok(reader.schema())
     }
 
-    // TODO use some sort of borrowed reference
+    // TODO use SendableRecordBatchStream as input
     async fn put_batches(
         &self,
         batches: Vec<RecordBatch>,
-        location: &object_store::path::Path,
+        location: &Path,
         save_mode: SaveMode,
     ) -> Result<Vec<stats::Add>> {
         let schema = batches[0].schema();
@@ -147,23 +122,14 @@ impl AreaStore for DefaultAreaStore {
     }
 
     /// Read batches from location
-    async fn get_batches(&self, location: &object_store::path::Path) -> Result<Vec<RecordBatch>> {
+    async fn get_batches(&self, location: &AreaPath) -> Result<Vec<RecordBatch>> {
         let files = self.get_location_files(location).await?;
         let mut batches = Vec::new();
         for file in files {
-            batches.append(&mut self.read_file(&file).await?);
+            let mut batch = collect(self.open_file(&file.into(), None).await?).await?;
+            batches.append(&mut batch);
         }
         Ok(batches)
-    }
-
-    async fn get_arrow_reader(
-        &self,
-        location: &object_store::path::Path,
-    ) -> Result<ParquetFileArrowReader> {
-        let bytes = self.object_store().get(location).await?.bytes().await?;
-        let cursor = SliceableCursor::new(Arc::new(bytes.to_vec()));
-        let file_reader = Arc::new(SerializedFileReader::new(cursor)?);
-        Ok(ParquetFileArrowReader::new(file_reader))
     }
 }
 
@@ -180,11 +146,15 @@ mod tests {
     async fn test_put_get_batches() {
         let root = tempfile::tempdir().unwrap();
         let area_store = DefaultAreaStore::try_new(root.path()).unwrap();
-        let location = Path::default();
+        let location = AreaPath::default();
 
         let batch = crate::test_utils::get_record_batch(None, false);
         area_store
-            .put_batches(vec![batch.clone()], &location, SaveMode::Append)
+            .put_batches(
+                vec![batch.clone()],
+                &location.clone().into(),
+                SaveMode::Append,
+            )
             .await
             .unwrap();
 

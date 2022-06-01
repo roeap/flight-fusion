@@ -1,13 +1,12 @@
-use super::{stats, AreaStore, DEFAULT_READ_BATCH_SIZE};
+use super::{stats, AreaPath, AreaStore};
 use crate::error::Result;
-use arrow_deps::datafusion::parquet::arrow::ParquetFileArrowReader;
 use arrow_deps::{
     arrow::{
         datatypes::SchemaRef as ArrowSchemaRef,
         ipc::{reader::StreamReader, writer::StreamWriter},
         record_batch::RecordBatch,
     },
-    datafusion::parquet::arrow::ArrowReader,
+    datafusion::physical_plan::common::collect,
 };
 use async_trait::async_trait;
 use file_cache::LruDiskCache;
@@ -50,12 +49,9 @@ impl CachedAreaStore {
         }
 
         // read record patches form location (file)
+        let area_path = location.clone().into();
         let mut batches = Vec::new();
-        let mut reader = self.get_arrow_reader(location).await?;
-        let batch_reader = reader.get_record_reader(DEFAULT_READ_BATCH_SIZE)?;
-        let mut file_batches = batch_reader
-            .into_iter()
-            .collect::<std::result::Result<Vec<_>, _>>()?;
+        let mut file_batches = collect(self.open_file(&area_path, None).await?).await?;
         batches.append(&mut file_batches);
 
         // Write record batches to cache in IPC format
@@ -84,13 +80,10 @@ impl AreaStore for CachedAreaStore {
         self.store.get_path_from_raw(raw)
     }
 
-    fn get_table_location(&self, source: &AreaSourceReference) -> Result<Path> {
-        self.store.get_table_location(source)
-    }
-
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {
+        let area_path = AreaPath::from(source);
         let location = self
-            .get_source_files(source)
+            .get_location_files(&area_path)
             .await?
             .first()
             .unwrap()
@@ -115,7 +108,7 @@ impl AreaStore for CachedAreaStore {
         self.store.put_batches(batches, location, save_mode).await
     }
 
-    async fn get_batches(&self, location: &Path) -> Result<Vec<RecordBatch>> {
+    async fn get_batches(&self, location: &AreaPath) -> Result<Vec<RecordBatch>> {
         let files = self.get_location_files(location).await?;
         let mut batches = Vec::new();
         for file in files {
@@ -123,10 +116,6 @@ impl AreaStore for CachedAreaStore {
             batches.append(&mut file_batches);
         }
         Ok(batches)
-    }
-
-    async fn get_arrow_reader(&self, location: &Path) -> Result<ParquetFileArrowReader> {
-        self.store.get_arrow_reader(location).await
     }
 }
 
@@ -149,11 +138,15 @@ mod tests {
         let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
         let cached_store = CachedAreaStore::try_new(area_store, cache_root, 10000).unwrap();
 
-        let path = Path::parse("asd").unwrap();
+        let path = AreaPath::from("asd");
 
         let batch = get_record_batch(None, false);
         cached_store
-            .put_batches(vec![batch.clone()], &path, SaveMode::Overwrite)
+            .put_batches(
+                vec![batch.clone()],
+                &path.clone().into(),
+                SaveMode::Overwrite,
+            )
             .await
             .unwrap();
 
@@ -175,11 +168,15 @@ mod tests {
         let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
         let cached_store = CachedAreaStore::try_new(area_store, cache_root, 10000).unwrap();
 
-        let path = Path::parse("_ff_data/asd").unwrap();
+        let path = AreaPath::from("_ff_data/asd");
 
         let batch = get_record_batch(None, false);
         cached_store
-            .put_batches(vec![batch.clone()], &path, SaveMode::Overwrite)
+            .put_batches(
+                vec![batch.clone()],
+                &path.clone().into(),
+                SaveMode::Overwrite,
+            )
             .await
             .unwrap();
 

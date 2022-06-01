@@ -2,13 +2,13 @@ use super::DATA_FOLDER_NAME;
 use flight_fusion_ipc::{area_source_reference::Table, AreaSourceReference, AreaTableLocation};
 use object_store::path::{Path, PathPart};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct AreaPath(Path);
 
 impl AreaPath {
     pub fn is_data_root(&self) -> bool {
         let data_part = PathPart::from(DATA_FOLDER_NAME);
-        self.0.parts().find(|p| p == &data_part).is_some()
+        self.0.parts().any(|p| p == data_part)
     }
 
     pub fn is_table_root(&self) -> bool {
@@ -51,15 +51,15 @@ impl From<AreaSourceReference> for AreaPath {
     }
 }
 
-impl Into<AreaSourceReference> for AreaPath {
-    fn into(self: AreaPath) -> AreaSourceReference {
-        let parts = self.0.parts().collect::<Vec<_>>();
+impl From<AreaPath> for AreaSourceReference {
+    fn from(value: AreaPath) -> Self {
+        let parts = value.0.parts().collect::<Vec<_>>();
         let mut spl = parts.split(|p| p.as_ref() == DATA_FOLDER_NAME);
         let areas = spl
             .next()
             .unwrap_or_default()
-            .to_vec()
-            .into_iter()
+            .iter()
+            .cloned()
             .map(|p| p.as_ref().to_string())
             .collect::<Vec<_>>();
         let name = spl
@@ -88,15 +88,21 @@ impl From<&AreaSourceReference> for AreaPath {
     }
 }
 
-impl Into<Path> for AreaPath {
-    fn into(self) -> Path {
-        self.0
+impl From<AreaPath> for Path {
+    fn from(path: AreaPath) -> Self {
+        path.0
+    }
+}
+
+impl From<&AreaPath> for Path {
+    fn from(path: &AreaPath) -> Self {
+        path.0.clone()
     }
 }
 
 impl AsRef<str> for AreaPath {
     fn as_ref(&self) -> &str {
-        &self.0.as_ref()
+        self.0.as_ref()
     }
 }
 

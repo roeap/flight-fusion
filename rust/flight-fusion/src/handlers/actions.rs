@@ -3,16 +3,15 @@ use crate::{
     error::{FusionServiceError, Result},
     service::FlightFusionService,
 };
-use area_store::store::AreaStore;
+use area_store::store::{AreaPath, AreaStore};
 use flight_fusion_ipc::{ActionStatus, CommandDropSource, CommandSetMetadata, ResultActionStatus};
 
 #[async_trait::async_trait]
 impl ActionHandler<CommandDropSource> for FlightFusionService {
     async fn handle_do_action(&self, action: CommandDropSource) -> Result<ResultActionStatus> {
         if let Some(source) = action.source {
-            // TODO remove panic
-            let location = self.area_store.get_table_location(&source)?;
-            self.area_store.delete_location(&location).await?;
+            let location = AreaPath::from(source);
+            self.area_store.delete_location(&location.into()).await?;
             // TODO return a more meaningful message
             Ok(ResultActionStatus {
                 status: ActionStatus::Success.into(),

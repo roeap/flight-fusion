@@ -2,7 +2,7 @@ use crate::stream::{
     raw_stream_to_flight_data_stream, stream_flight_data, FlightDataReceiver, FlightDataSender,
 };
 use crate::{error::FusionServiceError, handlers::*};
-use area_store::store::{AreaStore, DefaultAreaStore};
+use area_store::store::{AreaPath, AreaStore, DefaultAreaStore};
 use arrow_deps::datafusion::{
     arrow::{datatypes::Schema, ipc::writer::IpcWriteOptions},
     catalog::{
@@ -108,7 +108,7 @@ impl FlightFusionService {
         ctx: &mut SessionContext,
         source: &AreaSourceReference,
     ) -> crate::error::Result<()> {
-        let location = self.area_store.get_table_location(&source.clone())?;
+        let location: AreaPath = source.clone().into();
         let batches = self.area_store.get_batches(&location).await?;
         let table_provider = Arc::new(MemTable::try_new(batches[0].schema(), vec![batches])?);
         let name = match &source {

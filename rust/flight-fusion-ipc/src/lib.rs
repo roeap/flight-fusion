@@ -32,20 +32,20 @@ impl RequestFor for DeltaOperationRequest {
     type Reply = DeltaOperationResponse;
 }
 
-impl Into<FlightDescriptor> for AreaSourceReference {
-    fn into(self) -> FlightDescriptor {
+impl From<AreaSourceReference> for FlightDescriptor {
+    fn from(value: AreaSourceReference) -> FlightDescriptor {
         FlightDescriptor {
             r#type: DescriptorType::Cmd.into(),
-            cmd: self.encode_to_vec(),
+            cmd: value.encode_to_vec(),
             ..FlightDescriptor::default()
         }
     }
 }
 
-impl Into<AreaSourceReference> for AreaTableLocation {
-    fn into(self) -> AreaSourceReference {
+impl From<AreaTableLocation> for AreaSourceReference {
+    fn from(value: AreaTableLocation) -> AreaSourceReference {
         AreaSourceReference {
-            table: Some(area_source_reference::Table::Location(self)),
+            table: Some(area_source_reference::Table::Location(value)),
         }
     }
 }
@@ -66,9 +66,9 @@ impl TryFrom<FlightDescriptor> for AreaSourceReference {
     }
 }
 
-impl Into<FlightDescriptor> for AreaTableLocation {
-    fn into(self) -> FlightDescriptor {
-        let source: AreaSourceReference = self.into();
+impl From<AreaTableLocation> for FlightDescriptor {
+    fn from(value: AreaTableLocation) -> FlightDescriptor {
+        let source: AreaSourceReference = value.into();
         FlightDescriptor {
             r#type: DescriptorType::Cmd.into(),
             cmd: source.encode_to_vec(),

@@ -4,7 +4,7 @@ use crate::{
     service::FlightFusionService,
     stream::MergeStream,
 };
-use area_store::store::AreaStore;
+use area_store::store::{AreaPath, AreaStore};
 use area_store::{store::DefaultAreaStore, Path};
 use arrow_deps::arrow::{
     error::{ArrowError, Result as ArrowResult},
@@ -30,13 +30,13 @@ impl DoPutHandler<CommandWriteIntoDataset> for FlightFusionService {
         input: SendableRecordBatchStream,
     ) -> Result<ResultDoPutUpdate> {
         if let Some(source) = ticket.source {
-            let location = self.area_store.get_table_location(&source)?;
+            let location: AreaPath = source.into();
             let batches = collect(input).await?;
             let _adds = self
                 .area_store
                 .put_batches(
                     batches,
-                    &location,
+                    &location.into(),
                     SaveMode::from_i32(ticket.save_mode).unwrap_or(SaveMode::Overwrite),
                 )
                 .await?;
@@ -55,9 +55,12 @@ impl DoGetHandler<CommandReadDataset> for FlightFusionService {
         ticket: CommandReadDataset,
     ) -> Result<SendableRecordBatchStream> {
         if let Some(table) = ticket.source {
-            let location = self.area_store.get_table_location(&table)?;
-            let files = self.area_store.get_location_files(&location).await?;
-            let schema = self.area_store.get_schema(&table).await?;
+            let location: AreaPath = table.into();
+            let files = self
+                .area_store
+                .get_location_files(&location.clone())
+                .await?;
+            let schema = self.area_store.get_schema(&location.into()).await?;
 
             let column_indices = if ticket.column_names.is_empty() {
                 None
@@ -93,8 +96,6 @@ impl DoGetHandler<CommandReadDataset> for FlightFusionService {
                 receiver,
                 AbortOnDropMany(join_handles),
             )))
-
-            // Ok(self.area_store.open_file(&location).await?)
         } else {
             Err(FusionServiceError::InputError(
                 "missing table reference".to_string(),
@@ -110,7 +111,7 @@ pub(crate) fn spawn_execution(
     column_indices: Option<Vec<usize>>,
 ) -> JoinHandle<()> {
     tokio::spawn(async move {
-        let mut stream = match area_store.open_file(&path, column_indices).await {
+        let mut stream = match area_store.open_file(&path.into(), column_indices).await {
             Err(e) => {
                 // If send fails, plan being torn
                 // down, no place to send the error
@@ -131,6 +132,7 @@ mod tests {
     use crate::handlers::DoGetHandler;
     use crate::handlers::DoPutHandler;
     use crate::test_utils::{get_fusion_handler, get_input_stream};
+    use area_store::store::AreaPath;
     use area_store::store::AreaStore;
     use arrow_deps::datafusion::physical_plan::common::collect;
     use flight_fusion_ipc::{
@@ -185,10 +187,10 @@ mod tests {
 
         assert!(table_dir.is_dir());
 
-        let table_location = handler.area_store.get_table_location(&table_ref).unwrap();
+        let table_location: AreaPath = table_ref.clone().into();
         let files = handler
             .area_store
-            .get_location_files(&table_location)
+            .get_location_files(&table_location.clone())
             .await
             .unwrap();
         assert!(files.len() == 1);
@@ -197,7 +199,7 @@ mod tests {
         let _response = handler.handle_do_put(request.clone(), plan).await.unwrap();
         let files = handler
             .area_store
-            .get_location_files(&table_location)
+            .get_location_files(&table_location.clone())
             .await
             .unwrap();
         assert!(files.len() == 2);
@@ -211,7 +213,7 @@ mod tests {
         let _response = handler.handle_do_put(request.clone(), plan).await.unwrap();
         let files = handler
             .area_store
-            .get_location_files(&table_location)
+            .get_location_files(&table_location.clone())
             .await
             .unwrap();
         assert!(files.len() == 1)

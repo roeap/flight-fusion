@@ -8,3 +8,5 @@ coverage:
         informational: true
 ignore:
   - "rust/flight-fusion-ipc"
+  - "rust/flight-fusion/src/test_utils.rs"
+  - "rust/area-store/src/test_utils.rs"
