@@ -9,60 +9,27 @@ pub mod writer;
 
 use crate::error::Result;
 pub use area_path::*;
-use arrow_deps::arrow::{
-    datatypes::SchemaRef as ArrowSchemaRef,
-    error::{ArrowError, Result as ArrowResult},
-    record_batch::RecordBatch,
-};
+use arrow_deps::arrow::{datatypes::SchemaRef as ArrowSchemaRef, record_batch::RecordBatch};
 use arrow_deps::datafusion::arrow::record_batch::RecordBatchReader;
-use arrow_deps::datafusion::parquet::arrow::async_reader::ParquetRecordBatchStream;
 use arrow_deps::datafusion::parquet::arrow::{ArrowReader, ParquetFileArrowReader};
 use arrow_deps::datafusion::parquet::{
     basic::LogicalType,
     file::serialized_reader::{SerializedFileReader, SliceableCursor},
 };
 use arrow_deps::datafusion::physical_plan::{
-    stream::RecordBatchStreamAdapter, RecordBatchStream, SendableRecordBatchStream,
+    stream::RecordBatchStreamAdapter, SendableRecordBatchStream,
 };
 use async_trait::async_trait;
 pub use basic::DefaultAreaStore;
 pub use cache::CachedAreaStore;
 use flight_fusion_ipc::{AreaSourceReference, SaveMode};
-use futures::Stream;
-use futures::StreamExt;
 use futures::TryStreamExt;
 use object_store::{path::Path, DynObjectStore};
-use std::pin::Pin;
 use std::sync::Arc;
-use std::task::{Context, Poll};
-use tokio::io::{AsyncRead, AsyncSeek};
 pub use utils::*;
 pub use writer::*;
 
 const DATA_FOLDER_NAME: &str = "_ff_data";
-
-pub trait AsyncReader: AsyncRead + AsyncSeek + Send {}
-
-pub struct FileReaderStream(ParquetRecordBatchStream<Box<dyn AsyncReader + Unpin>>);
-
-impl Stream for FileReaderStream {
-    type Item = ArrowResult<RecordBatch>;
-
-    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        match self.0.poll_next_unpin(cx) {
-            Poll::Ready(opt) => Poll::Ready(
-                opt.map(|data| data.map_err(|err| ArrowError::ParquetError(err.to_string()))),
-            ),
-            Poll::Pending => Poll::Pending,
-        }
-    }
-}
-
-impl RecordBatchStream for FileReaderStream {
-    fn schema(&self) -> ArrowSchemaRef {
-        self.0.schema().clone()
-    }
-}
 
 #[async_trait]
 pub trait AreaStore: Send + Sync {
