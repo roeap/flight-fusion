@@ -66,8 +66,6 @@ impl RecordBatchStream for FileReaderStream {
 
 #[async_trait]
 pub trait AreaStore: Send + Sync {
-    // path manipulation
-
     /// Get a reference to the underlying object store
     fn object_store(&self) -> Arc<DynObjectStore>;
 
@@ -86,6 +84,7 @@ pub trait AreaStore: Send + Sync {
     /// Read batches from location
     async fn get_batches(&self, location: &AreaPath) -> Result<Vec<RecordBatch>>;
 
+    /// Stream RecordBatches from a parquet file
     async fn open_file(
         &self,
         file: &Path,
@@ -107,7 +106,6 @@ pub trait AreaStore: Send + Sync {
     }
 
     async fn get_location_files(&self, location: &AreaPath) -> Result<Vec<Path>> {
-        let path: Path = location.into();
         Ok(self
             .object_store()
             .list(Some(&location.into()))
@@ -125,7 +123,7 @@ pub trait AreaStore: Send + Sync {
 
     async fn list_areas(&self, prefix: Option<&Path>) -> Result<Vec<AreaPath>> {
         let areas = self.object_store().list_with_delimiter(prefix).await?;
-        let folders = areas.common_prefixes.into_iter().map(|p| AreaPath::from(p));
+        let folders = areas.common_prefixes.into_iter().map(AreaPath::from);
 
         let mut data_roots = Vec::new();
         for folder in folders {

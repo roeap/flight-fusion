@@ -82,7 +82,7 @@ impl AreaStore for DefaultAreaStore {
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {
         // TODO only actually load first file and also make this work for delta
         let area_path = AreaPath::from(source);
-        let files = self.get_location_files(&area_path.into()).await?;
+        let files = self.get_location_files(&area_path).await?;
         let reader = self.open_file(&files[0], None).await?;
         Ok(reader.schema())
     }

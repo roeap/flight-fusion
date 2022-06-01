@@ -192,7 +192,7 @@ mod tests {
         let table_location: AreaPath = table_ref.clone().into();
         let files = handler
             .area_store
-            .get_location_files(&table_location.clone().into())
+            .get_location_files(&table_location.clone())
             .await
             .unwrap();
         assert!(files.len() == 1);
