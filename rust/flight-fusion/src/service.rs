@@ -10,6 +10,7 @@ use arrow_deps::datafusion::{
         schema::MemorySchemaProvider,
     },
     datasource::MemTable,
+    physical_plan::common::collect,
     prelude::SessionContext,
 };
 use arrow_flight::{
@@ -109,7 +110,7 @@ impl FlightFusionService {
         source: &AreaSourceReference,
     ) -> crate::error::Result<()> {
         let location: AreaPath = source.clone().into();
-        let batches = self.area_store.get_batches(&location).await?;
+        let batches = collect(self.area_store.open_file(&location, None).await?).await?;
         let table_provider = Arc::new(MemTable::try_new(batches[0].schema(), vec![batches])?);
         let name = match &source {
             AreaSourceReference {

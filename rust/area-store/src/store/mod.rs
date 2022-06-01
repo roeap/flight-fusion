@@ -31,6 +31,7 @@ pub use writer::*;
 
 const DATA_FOLDER_NAME: &str = "_ff_data";
 const DELTA_LOG_FOLDER_NAME: &str = "_delta_log";
+const DEFAULT_BATCH_SIZE: usize = 2048;
 
 #[async_trait]
 pub trait AreaStore: Send + Sync {
@@ -49,9 +50,6 @@ pub trait AreaStore: Send + Sync {
         save_mode: SaveMode,
     ) -> Result<Vec<stats::Add>>;
 
-    /// Read batches from location
-    async fn get_batches(&self, location: &AreaPath) -> Result<Vec<RecordBatch>>;
-
     /// Stream RecordBatches from a parquet file
     async fn open_file(
         &self,
@@ -63,8 +61,8 @@ pub trait AreaStore: Send + Sync {
         let file_reader = Arc::new(SerializedFileReader::new(cursor)?);
         let mut arrow_reader = ParquetFileArrowReader::new(file_reader);
         let record_batch_reader = match column_indices {
-            Some(indices) => arrow_reader.get_record_reader_by_columns(indices, 2048),
-            None => arrow_reader.get_record_reader(2048),
+            Some(indices) => arrow_reader.get_record_reader_by_columns(indices, DEFAULT_BATCH_SIZE),
+            None => arrow_reader.get_record_reader(DEFAULT_BATCH_SIZE),
         }?;
 
         Ok(Box::pin(RecordBatchStreamAdapter::new(

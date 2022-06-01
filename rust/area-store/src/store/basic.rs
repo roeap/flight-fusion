@@ -1,9 +1,7 @@
 use super::{is_delta_location, stats, writer::*, AreaPath, AreaStore};
 use crate::error::{AreaStoreError, Result};
 use arrow_deps::arrow::record_batch::*;
-use arrow_deps::datafusion::{
-    arrow::datatypes::SchemaRef as ArrowSchemaRef, physical_plan::common::collect,
-};
+use arrow_deps::datafusion::arrow::datatypes::SchemaRef as ArrowSchemaRef;
 use arrow_deps::deltalake::open_table;
 use async_trait::async_trait;
 use flight_fusion_ipc::{AreaSourceReference, SaveMode};
@@ -128,23 +126,13 @@ impl AreaStore for DefaultAreaStore {
             _ => writer.flush(location).await,
         }
     }
-
-    /// Read batches from location
-    async fn get_batches(&self, location: &AreaPath) -> Result<Vec<RecordBatch>> {
-        let files = self.get_location_files(location).await?;
-        let mut batches = Vec::new();
-        for file in files {
-            let mut batch = collect(self.open_file(&file.into(), None).await?).await?;
-            batches.append(&mut batch);
-        }
-        Ok(batches)
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::test_utils::get_record_batch;
+    use arrow_deps::datafusion::physical_plan::common::collect;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
         SaveMode,
@@ -166,7 +154,9 @@ mod tests {
             .await
             .unwrap();
 
-        let read_batch = area_store.get_batches(&location).await.unwrap();
+        let read_batch = collect(area_store.open_file(&location, None).await.unwrap())
+            .await
+            .unwrap();
         assert_eq!(batch, read_batch[0])
     }
 
