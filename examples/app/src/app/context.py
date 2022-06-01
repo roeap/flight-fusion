@@ -51,20 +51,14 @@ class CallbackContext(_CallbackContext):
         return getattr(flask.g, "_fusion")
 
     @has_context
-    def get_dataset_client(
-        self, asset_key: AssetKey | list[str] | str
-    ) -> DashAssetClient:
+    def get_dataset_client(self, asset_key: AssetKey | list[str] | str) -> DashAssetClient:
         asset_key = _assert_asset_key(asset_key)
         return DashAssetClient(self.fusion.get_dataset_client(asset_key=asset_key))
 
     @has_context
-    def get_versioned_dataset_client(
-        self, asset_key: AssetKey | list[str] | str
-    ) -> DashAssetClient:
+    def get_versioned_dataset_client(self, asset_key: AssetKey | list[str] | str) -> DashAssetClient:
         asset_key = _assert_asset_key(asset_key)
-        return DashAssetClient(
-            self.fusion.get_versioned_dataset_client(asset_key=asset_key)
-        )
+        return DashAssetClient(self.fusion.get_versioned_dataset_client(asset_key=asset_key))
 
 
 ctx = CallbackContext()

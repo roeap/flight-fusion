@@ -36,9 +36,7 @@ def get_layout(dataset_options):
                             ),
                         ]
                     ),
-                    dadc.PageHeaderOperation(
-                        dadc.Button("Update Plot", id="update-plot", type="primary")
-                    ),
+                    dadc.PageHeaderOperation(dadc.Button("Update Plot", id="update-plot", type="primary")),
                     dadc.Tag("Delta", color="green"),
                 ],
                 title="Dataset",
@@ -96,9 +94,7 @@ def update_selects(asset_key: str):
     State("columns-y", "value"),
     prevent_initial_call=True,
 )
-def update_plot(
-    n_clicks: int | None, asset_key: str | None, x_col: str | None, y_col: str | None
-):
+def update_plot(n_clicks: int | None, asset_key: str | None, x_col: str | None, y_col: str | None):
     if x_col is None or y_col is None or asset_key is None:
         return no_update
     asset = ctx.get_dataset_client(asset_key)
