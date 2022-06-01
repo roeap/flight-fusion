@@ -84,7 +84,7 @@ pub trait AreaStore: Send + Sync {
     ) -> Result<Vec<stats::Add>>;
 
     /// Read batches from location
-    async fn get_batches(&self, location: &Path) -> Result<Vec<RecordBatch>>;
+    async fn get_batches(&self, location: &AreaPath) -> Result<Vec<RecordBatch>>;
 
     async fn open_file(
         &self,
@@ -106,16 +106,11 @@ pub trait AreaStore: Send + Sync {
         )))
     }
 
-    /// Resolve an [`AreaSourceReference`] to the files relevant for source reference
-    async fn get_source_files(&self, source: &AreaSourceReference) -> Result<Vec<Path>> {
-        let area_path: AreaPath = source.into();
-        self.get_location_files(&area_path.into()).await
-    }
-
-    async fn get_location_files(&self, location: &Path) -> Result<Vec<Path>> {
+    async fn get_location_files(&self, location: &AreaPath) -> Result<Vec<Path>> {
+        let path: Path = location.into();
         Ok(self
             .object_store()
-            .list(Some(location.into()))
+            .list(Some(&location.into()))
             .await?
             .try_collect::<Vec<_>>()
             .await?

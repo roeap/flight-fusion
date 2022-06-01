@@ -109,7 +109,7 @@ impl FlightFusionService {
         source: &AreaSourceReference,
     ) -> crate::error::Result<()> {
         let location: AreaPath = source.clone().into();
-        let batches = self.area_store.get_batches(&location.into()).await?;
+        let batches = self.area_store.get_batches(&location).await?;
         let table_provider = Arc::new(MemTable::try_new(batches[0].schema(), vec![batches])?);
         let name = match &source {
             AreaSourceReference {

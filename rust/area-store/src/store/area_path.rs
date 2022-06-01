@@ -2,7 +2,7 @@ use super::DATA_FOLDER_NAME;
 use flight_fusion_ipc::{area_source_reference::Table, AreaSourceReference, AreaTableLocation};
 use object_store::path::{Path, PathPart};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct AreaPath(Path);
 
 impl AreaPath {
@@ -91,6 +91,12 @@ impl From<&AreaSourceReference> for AreaPath {
 impl Into<Path> for AreaPath {
     fn into(self) -> Path {
         self.0
+    }
+}
+
+impl Into<Path> for &AreaPath {
+    fn into(self) -> Path {
+        self.0.clone()
     }
 }
 

@@ -81,7 +81,8 @@ impl AreaStore for DefaultAreaStore {
 
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {
         // TODO only actually load first file and also make this work for delta
-        let files = self.get_source_files(source).await?;
+        let area_path = AreaPath::from(source);
+        let files = self.get_location_files(&area_path.into()).await?;
         let reader = self.open_file(&files[0], None).await?;
         Ok(reader.schema())
     }
@@ -121,7 +122,7 @@ impl AreaStore for DefaultAreaStore {
     }
 
     /// Read batches from location
-    async fn get_batches(&self, location: &Path) -> Result<Vec<RecordBatch>> {
+    async fn get_batches(&self, location: &AreaPath) -> Result<Vec<RecordBatch>> {
         let files = self.get_location_files(location).await?;
         let mut batches = Vec::new();
         for file in files {
@@ -145,11 +146,15 @@ mod tests {
     async fn test_put_get_batches() {
         let root = tempfile::tempdir().unwrap();
         let area_store = DefaultAreaStore::try_new(root.path()).unwrap();
-        let location = Path::default();
+        let location = AreaPath::default();
 
         let batch = crate::test_utils::get_record_batch(None, false);
         area_store
-            .put_batches(vec![batch.clone()], &location, SaveMode::Append)
+            .put_batches(
+                vec![batch.clone()],
+                &location.clone().into(),
+                SaveMode::Append,
+            )
             .await
             .unwrap();
 

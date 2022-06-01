@@ -58,7 +58,7 @@ impl DoGetHandler<CommandReadDataset> for FlightFusionService {
             let location: AreaPath = table.into();
             let files = self
                 .area_store
-                .get_location_files(&location.clone().into())
+                .get_location_files(&location.clone())
                 .await?;
             let schema = self.area_store.get_schema(&location.into()).await?;
 
@@ -201,7 +201,7 @@ mod tests {
         let _response = handler.handle_do_put(request.clone(), plan).await.unwrap();
         let files = handler
             .area_store
-            .get_location_files(&table_location.clone().into())
+            .get_location_files(&table_location.clone())
             .await
             .unwrap();
         assert!(files.len() == 2);
@@ -215,7 +215,7 @@ mod tests {
         let _response = handler.handle_do_put(request.clone(), plan).await.unwrap();
         let files = handler
             .area_store
-            .get_location_files(&table_location.clone().into())
+            .get_location_files(&table_location.clone())
             .await
             .unwrap();
         assert!(files.len() == 1)

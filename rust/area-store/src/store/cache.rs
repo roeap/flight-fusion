@@ -1,4 +1,4 @@
-use super::{stats, AreaStore};
+use super::{stats, AreaPath, AreaStore};
 use crate::error::Result;
 use arrow_deps::{
     arrow::{
@@ -80,8 +80,9 @@ impl AreaStore for CachedAreaStore {
     }
 
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {
+        let area_path = AreaPath::from(source);
         let location = self
-            .get_source_files(source)
+            .get_location_files(&area_path)
             .await?
             .first()
             .unwrap()
@@ -106,7 +107,7 @@ impl AreaStore for CachedAreaStore {
         self.store.put_batches(batches, location, save_mode).await
     }
 
-    async fn get_batches(&self, location: &Path) -> Result<Vec<RecordBatch>> {
+    async fn get_batches(&self, location: &AreaPath) -> Result<Vec<RecordBatch>> {
         let files = self.get_location_files(location).await?;
         let mut batches = Vec::new();
         for file in files {
@@ -136,11 +137,15 @@ mod tests {
         let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
         let cached_store = CachedAreaStore::try_new(area_store, cache_root, 10000).unwrap();
 
-        let path = Path::parse("asd").unwrap();
+        let path = AreaPath::from("asd");
 
         let batch = get_record_batch(None, false);
         cached_store
-            .put_batches(vec![batch.clone()], &path, SaveMode::Overwrite)
+            .put_batches(
+                vec![batch.clone()],
+                &path.clone().into(),
+                SaveMode::Overwrite,
+            )
             .await
             .unwrap();
 
@@ -162,11 +167,15 @@ mod tests {
         let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
         let cached_store = CachedAreaStore::try_new(area_store, cache_root, 10000).unwrap();
 
-        let path = Path::parse("_ff_data/asd").unwrap();
+        let path = AreaPath::from("_ff_data/asd");
 
         let batch = get_record_batch(None, false);
         cached_store
-            .put_batches(vec![batch.clone()], &path, SaveMode::Overwrite)
+            .put_batches(
+                vec![batch.clone()],
+                &path.clone().into(),
+                SaveMode::Overwrite,
+            )
             .await
             .unwrap();
 
