@@ -92,14 +92,6 @@ pub trait AreaStore: Send + Sync {
 
     async fn get_arrow_reader(&self, location: &Path) -> Result<ParquetFileArrowReader>;
 
-    async fn read_file(&self, file: &Path) -> Result<Vec<RecordBatch>> {
-        let mut reader = self.get_arrow_reader(file).await?;
-        let batch_reader = reader.get_record_reader(DEFAULT_READ_BATCH_SIZE)?;
-        Ok(batch_reader
-            .into_iter()
-            .collect::<std::result::Result<Vec<_>, _>>()?)
-    }
-
     async fn open_file(
         &self,
         file: &Path,

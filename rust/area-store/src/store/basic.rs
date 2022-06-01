@@ -7,6 +7,7 @@ use arrow_deps::datafusion::{
         arrow::ParquetFileArrowReader,
         file::serialized_reader::{SerializedFileReader, SliceableCursor},
     },
+    physical_plan::common::collect,
 };
 use async_trait::async_trait;
 use flight_fusion_ipc::{
@@ -85,7 +86,7 @@ impl AreaStore for DefaultAreaStore {
         Path::parse(trimmed_raw).unwrap()
     }
 
-    fn get_table_location(&self, source: &AreaSourceReference) -> Result<object_store::path::Path> {
+    fn get_table_location(&self, source: &AreaSourceReference) -> Result<Path> {
         match source {
             AreaSourceReference { table: Some(tbl) } => match tbl {
                 TableReference::Location(loc) => {
@@ -112,11 +113,11 @@ impl AreaStore for DefaultAreaStore {
         Ok(reader.schema())
     }
 
-    // TODO use some sort of borrowed reference
+    // TODO use SendableRecordBatchStream as input
     async fn put_batches(
         &self,
         batches: Vec<RecordBatch>,
-        location: &object_store::path::Path,
+        location: &Path,
         save_mode: SaveMode,
     ) -> Result<Vec<stats::Add>> {
         let schema = batches[0].schema();
@@ -147,19 +148,17 @@ impl AreaStore for DefaultAreaStore {
     }
 
     /// Read batches from location
-    async fn get_batches(&self, location: &object_store::path::Path) -> Result<Vec<RecordBatch>> {
+    async fn get_batches(&self, location: &Path) -> Result<Vec<RecordBatch>> {
         let files = self.get_location_files(location).await?;
         let mut batches = Vec::new();
         for file in files {
-            batches.append(&mut self.read_file(&file).await?);
+            let mut batch = collect(self.open_file(&file, None).await?).await?;
+            batches.append(&mut batch);
         }
         Ok(batches)
     }
 
-    async fn get_arrow_reader(
-        &self,
-        location: &object_store::path::Path,
-    ) -> Result<ParquetFileArrowReader> {
+    async fn get_arrow_reader(&self, location: &Path) -> Result<ParquetFileArrowReader> {
         let bytes = self.object_store().get(location).await?.bytes().await?;
         let cursor = SliceableCursor::new(Arc::new(bytes.to_vec()));
         let file_reader = Arc::new(SerializedFileReader::new(cursor)?);

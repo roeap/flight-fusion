@@ -1,6 +1,6 @@
 use arrow_deps::{
     arrow::{datatypes::SchemaRef, error::ArrowError},
-    datafusion::parquet::errors::ParquetError,
+    datafusion::{error::DataFusionError, parquet::errors::ParquetError},
 };
 use file_cache::DiskCacheError;
 use std::sync::Arc;
@@ -61,6 +61,13 @@ pub enum AreaStoreError {
         /// The wrapped [`DiskCacheError`]
         #[from]
         source: DiskCacheError,
+    },
+
+    #[error("Error in Datafusion: {source}")]
+    Datafusion {
+        /// The wrapped [`DataFusionError`]
+        #[from]
+        source: DataFusionError,
     },
 }
 
