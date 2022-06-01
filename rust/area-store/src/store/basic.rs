@@ -1,13 +1,11 @@
-use super::{stats, writer::*, AreaStore, DATA_FOLDER_NAME};
+use super::{stats, writer::*, AreaPath, AreaStore};
 use crate::error::{AreaStoreError, Result};
 use arrow_deps::arrow::record_batch::*;
 use arrow_deps::datafusion::{
     arrow::datatypes::SchemaRef as ArrowSchemaRef, physical_plan::common::collect,
 };
 use async_trait::async_trait;
-use flight_fusion_ipc::{
-    area_source_reference::Table as TableReference, AreaSourceReference, SaveMode,
-};
+use flight_fusion_ipc::{AreaSourceReference, SaveMode};
 use futures::TryStreamExt;
 use object_store::path::Path;
 use object_store::DynObjectStore;
@@ -57,7 +55,7 @@ impl DefaultAreaStore {
     }
 
     pub fn get_full_table_path(&self, source: &AreaSourceReference) -> Result<String> {
-        let location = self.get_table_location(source)?;
+        let location: AreaPath = source.into();
         Ok(format!("{}/{}", self.root_path, location.as_ref()))
     }
 
@@ -79,26 +77,6 @@ impl AreaStore for DefaultAreaStore {
             .trim_start_matches('/');
         // TODO remove panic
         Path::parse(trimmed_raw).unwrap()
-    }
-
-    fn get_table_location(&self, source: &AreaSourceReference) -> Result<Path> {
-        match source {
-            AreaSourceReference { table: Some(tbl) } => match tbl {
-                TableReference::Location(loc) => {
-                    let mut parts = loc.areas.clone();
-                    parts.push(DATA_FOLDER_NAME.to_string());
-                    parts.push(loc.name.to_string());
-                    Ok(Path::from_iter(parts))
-                }
-                TableReference::Uri(_uri) => {
-                    todo!()
-                }
-                TableReference::Id(_id) => {
-                    todo!()
-                }
-            },
-            _ => todo!(),
-        }
     }
 
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {

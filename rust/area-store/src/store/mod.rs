@@ -8,7 +8,7 @@ pub mod utils;
 pub mod writer;
 
 use crate::error::Result;
-use area_path::AreaPath;
+pub use area_path::*;
 use arrow_deps::arrow::{
     datatypes::SchemaRef as ArrowSchemaRef,
     error::{ArrowError, Result as ArrowResult},
@@ -40,7 +40,6 @@ pub use utils::*;
 pub use writer::*;
 
 const DATA_FOLDER_NAME: &str = "_ff_data";
-const DEFAULT_READ_BATCH_SIZE: usize = 1024;
 
 pub trait AsyncReader: AsyncRead + AsyncSeek + Send {}
 
@@ -73,9 +72,6 @@ pub trait AreaStore: Send + Sync {
     fn object_store(&self) -> Arc<DynObjectStore>;
 
     fn get_path_from_raw(&self, raw: String) -> Path;
-
-    /// Resolve an [`AreaSourceReference`] to a storage location
-    fn get_table_location(&self, source: &AreaSourceReference) -> Result<Path>;
 
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef>;
 
@@ -112,8 +108,8 @@ pub trait AreaStore: Send + Sync {
 
     /// Resolve an [`AreaSourceReference`] to the files relevant for source reference
     async fn get_source_files(&self, source: &AreaSourceReference) -> Result<Vec<Path>> {
-        let location = self.get_table_location(source)?;
-        self.get_location_files(&location).await
+        let area_path: AreaPath = source.into();
+        self.get_location_files(&area_path.into()).await
     }
 
     async fn get_location_files(&self, location: &Path) -> Result<Vec<Path>> {

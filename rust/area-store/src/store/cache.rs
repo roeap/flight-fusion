@@ -1,6 +1,5 @@
 use super::{stats, AreaStore};
 use crate::error::Result;
-use arrow_deps::datafusion::parquet::arrow::ParquetFileArrowReader;
 use arrow_deps::{
     arrow::{
         datatypes::SchemaRef as ArrowSchemaRef,
@@ -78,10 +77,6 @@ impl AreaStore for CachedAreaStore {
 
     fn get_path_from_raw(&self, raw: String) -> Path {
         self.store.get_path_from_raw(raw)
-    }
-
-    fn get_table_location(&self, source: &AreaSourceReference) -> Result<Path> {
-        self.store.get_table_location(source)
     }
 
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {
