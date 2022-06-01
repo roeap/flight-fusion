@@ -13,7 +13,6 @@ from mlserver.registry import MultiModelRegistry
 # from mlserver.repository import ModelRepository
 from mlserver.rest import RESTServer
 from mlserver.settings import ModelSettings, Settings
-
 from mlserver_fusion.repository import MlFlowRepository
 
 HANDLED_SIGNALS = [signal.SIGINT, signal.SIGTERM]
@@ -42,16 +41,10 @@ class MLServer:
     async def start(self, models_settings: List[ModelSettings] = []):
         self._add_signal_handlers()
 
-        self._rest_server = RESTServer(
-            self._settings, self._data_plane, self._model_repository_handlers
-        )
-        self._grpc_server = GRPCServer(
-            self._settings, self._data_plane, self._model_repository_handlers
-        )
+        self._rest_server = RESTServer(self._settings, self._data_plane, self._model_repository_handlers)
+        self._grpc_server = GRPCServer(self._settings, self._data_plane, self._model_repository_handlers)
 
-        await asyncio.gather(
-            *[self._model_registry.load(model_settings) for model_settings in models_settings]
-        )
+        await asyncio.gather(*[self._model_registry.load(model_settings) for model_settings in models_settings])
 
         await asyncio.gather(self._rest_server.start(), self._grpc_server.start())
 

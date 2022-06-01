@@ -30,14 +30,10 @@ class DatasetClient(BaseDatasetClient):
         if isinstance(data, pd.DataFrame):
             data = pa.Table.from_pandas(data)
         data = data.replace_schema_metadata({})
-        command = FlightDoPutRequest(
-            storage=CommandWriteIntoDataset(source=self._reference, save_mode=save_mode)
-        )
+        command = FlightDoPutRequest(storage=CommandWriteIntoDataset(source=self._reference, save_mode=save_mode))
         response = self._do_put(table=data, command=command)
         return ResultDoPutUpdate().parse(response)
 
     def load(self, columns: list[str] | None = None) -> pa.Table:
-        command = FlightDoGetRequest(
-            read=CommandReadDataset(source=self._reference, column_names=columns or [])
-        )
+        command = FlightDoGetRequest(read=CommandReadDataset(source=self._reference, column_names=columns or []))
         return self._do_get(command)

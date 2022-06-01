@@ -57,8 +57,7 @@ class ModelClient:
     def output_schema(self) -> pa.Schema:
         if self._output_schema is None:
             self._output_schema = pa.schema(
-                pa.field(f.name, DATATYPE_MAP[f.datatype])
-                for f in self.get_metadata().outputs or []
+                pa.field(f.name, DATATYPE_MAP[f.datatype]) for f in self.get_metadata().outputs or []
             )
         return self._output_schema
 
@@ -72,9 +71,7 @@ class ModelClient:
 
 
 class GrpcModelClient(ModelClient):
-    def __init__(
-        self, client: GrpcInferenceServiceClient, name: str, version: str | None = None
-    ) -> None:
+    def __init__(self, client: GrpcInferenceServiceClient, name: str, version: str | None = None) -> None:
         self._client = client
         self._name = name
         self._version = version
@@ -85,9 +82,7 @@ class GrpcModelClient(ModelClient):
     def get_metadata(self) -> ModelMetadataResponse:
         if self._metadata is None:
             self._client.model_metadata(name=self._name, version=self._version or "")
-            self._metadata = self._client.model_metadata(
-                name=self._name, version=self._version or ""
-            )
+            self._metadata = self._client.model_metadata(name=self._name, version=self._version or "")
         return self._metadata
 
     def predict(self, table: pa.Table) -> pa.Table:
@@ -115,9 +110,7 @@ class GrpcModelClient(ModelClient):
             )
             inputs.append(input_tensor)
 
-        response = self._client.model_infer(
-            model_name=self._name, model_version=self._version or "", inputs=inputs
-        )
+        response = self._client.model_infer(model_name=self._name, model_version=self._version or "", inputs=inputs)
 
         fields = []
         arrays = []

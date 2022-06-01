@@ -69,13 +69,9 @@ class AsyncGrpcModelRepositoryServiceClient(_BaseGrpcClient[ModelRepositoryServi
             port (int, optional): server port number. Defaults to 8081.
             use_ssl (bool, optional): use a secure channe for connection. Defaults to True.
         """
-        super().__init__(
-            stub_type=ModelRepositoryServiceStub, host=host, port=port, use_ssl=use_ssl
-        )
+        super().__init__(stub_type=ModelRepositoryServiceStub, host=host, port=port, use_ssl=use_ssl)
 
-    async def repository_index(
-        self, *, repository_name: str = "", ready: bool = False
-    ) -> RepositoryIndexResponse:
+    async def repository_index(self, *, repository_name: str = "", ready: bool = False) -> RepositoryIndexResponse:
         async with self._service() as service:
             return await service.repository_index(repository_name=repository_name, ready=ready)
 
@@ -83,17 +79,13 @@ class AsyncGrpcModelRepositoryServiceClient(_BaseGrpcClient[ModelRepositoryServi
         self, *, repository_name: str = "", model_name: str = ""
     ) -> RepositoryModelLoadResponse:
         async with self._service() as service:
-            return await service.repository_model_load(
-                repository_name=repository_name, model_name=model_name
-            )
+            return await service.repository_model_load(repository_name=repository_name, model_name=model_name)
 
     async def repository_model_unload(
         self, *, repository_name: str = "", model_name: str = ""
     ) -> RepositoryModelUnloadResponse:
         async with self._service() as service:
-            return await service.repository_model_unload(
-                repository_name=repository_name, model_name=model_name
-            )
+            return await service.repository_model_unload(repository_name=repository_name, model_name=model_name)
 
 
 class AsyncGrpcInferenceServiceClient(_BaseGrpcClient[GrpcInferenceServiceStub]):

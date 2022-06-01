@@ -2,6 +2,7 @@ import pyarrow as pa
 import pytest
 from dagster import AssetKey, In, Out, ResourceDefinition, graph, op
 from dagster_fusion import flight_fusion_io_manager
+
 from flight_fusion import FusionServiceClient
 
 
@@ -83,9 +84,7 @@ def test_graph_in_out(test_graph, test_data, fusion_client: FusionServiceClient)
     assert result_table.equals(test_data)
 
 
-def test_column_selection(
-    test_graph, test_graph_columns, test_data: pa.Table, fusion_client: FusionServiceClient
-):
+def test_column_selection(test_graph, test_graph_columns, test_data: pa.Table, fusion_client: FusionServiceClient):
     client = ResourceDefinition.hardcoded_resource(fusion_client)
     job = test_graph.to_job(
         resource_defs={"io_manager": flight_fusion_io_manager, "fusion_client": client},

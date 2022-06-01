@@ -7,9 +7,7 @@ from .environment import app as env_app
 from .server import app as server_app
 
 _LOGGER_FORMAT = (
-    "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
-    "<level>{level: <8}</level> | "
-    "<level>{message}</level>"
+    "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | " "<level>{level: <8}</level> | " "<level>{message}</level>"
 )
 
 logger.remove()  # All configured handlers are removed

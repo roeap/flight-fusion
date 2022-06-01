@@ -100,16 +100,10 @@ class GrpcModelRepositoryServiceClient:
             use_ssl=use_ssl,  # credential=credential
         )
 
-    def repository_index(
-        self, *, repository_name: str = "", ready: bool = False
-    ) -> RepositoryIndexResponse:
-        return run_async(
-            self._client.repository_index, repository_name=repository_name, ready=ready
-        )
+    def repository_index(self, *, repository_name: str = "", ready: bool = False) -> RepositoryIndexResponse:
+        return run_async(self._client.repository_index, repository_name=repository_name, ready=ready)
 
-    def repository_model_load(
-        self, *, repository_name: str = "", model_name: str = ""
-    ) -> RepositoryModelLoadResponse:
+    def repository_model_load(self, *, repository_name: str = "", model_name: str = "") -> RepositoryModelLoadResponse:
         return run_async(
             self._client.repository_model_load,
             repository_name=repository_name,

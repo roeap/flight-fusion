@@ -1021,6 +1021,7 @@ dependencies = [
 name = "flight-fusion-ipc"
 version = "0.1.0"
 dependencies = [
+ "arrow-flight",
  "async-trait",
  "base64",
  "pretty_assertions",

@@ -23,6 +23,7 @@ from dagster_fusion.config import (
     table_reference_to_area_source,
 )
 from dagster_fusion.errors import MissingConfiguration
+
 from flight_fusion import BaseDatasetClient, DatasetClient, FusionServiceClient
 from flight_fusion.ipc.v1alpha1 import SaveMode
 
@@ -81,9 +82,7 @@ class TableIOManager(IOManager):
         yield MetadataEntry("row count", value=MetadataValue.int(data.num_rows))
         yield MetadataEntry("save mode", value=MetadataValue.text(save_mode.name))
 
-        schema = TableSchema(
-            columns=[TableColumn(name=col.name, type=str(col.type)) for col in data.schema]
-        )
+        schema = TableSchema(columns=[TableColumn(name=col.name, type=str(col.type)) for col in data.schema])
         yield MetadataEntry("table_schema", value=MetadataValue.table_schema(schema))
 
         try:
@@ -143,9 +142,7 @@ class TableIOManager(IOManager):
 
         return data
 
-    def get_output_asset_key(
-        self, context: TypedOutputContext[OutputConfig, IOManagerResources]
-    ) -> AssetKey | None:
+    def get_output_asset_key(self, context: TypedOutputContext[OutputConfig, IOManagerResources]) -> AssetKey | None:
         """Associates outputs handled by this IOManager with a particular AssetKey."""
         if context.asset_key is not None:
             return None

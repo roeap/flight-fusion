@@ -2,7 +2,6 @@ from xml.sax.handler import feature_external_ges
 
 import dash
 import dash_antd as dadc
-
 from app.plugin import multi_page
 
 HEADER_HEIGHT = "50px"

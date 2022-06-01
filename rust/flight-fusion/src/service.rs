@@ -4,7 +4,7 @@ use crate::stream::{
 use crate::{error::FusionServiceError, handlers::*};
 use area_store::store::{AreaStore, DefaultAreaStore};
 use arrow_deps::datafusion::{
-    arrow::ipc::writer::IpcWriteOptions,
+    arrow::{datatypes::Schema, ipc::writer::IpcWriteOptions},
     catalog::{
         catalog::{CatalogProvider, MemoryCatalogProvider},
         schema::MemorySchemaProvider,
@@ -21,7 +21,7 @@ use flight_fusion_ipc::{
     area_source_reference::Table, flight_action_request::Action as FusionAction,
     flight_do_get_request::Command as DoGetCommand, flight_do_put_request::Command as DoPutCommand,
     serialize_message, AreaSourceReference, CommandListSources, FlightActionRequest,
-    FlightDoGetRequest, FlightGetFlightInfoRequest,
+    FlightDoGetRequest,
 };
 use futures::Stream;
 use observability_deps::opentelemetry::{global, propagation::Extractor};
@@ -60,7 +60,9 @@ impl<'a> Extractor for MetadataMap<'a> {
 
 #[derive(Clone)]
 pub struct FlightFusionService {
+    #[allow(unused)]
     pub(crate) catalog: Arc<MemoryCatalogProvider>,
+    /// the area store provides high level access to registered datasets.
     pub(crate) area_store: Arc<DefaultAreaStore>,
 }
 
@@ -161,8 +163,37 @@ impl FlightService for FlightFusionService {
         let _command = CommandListSources::decode(&mut criteria.expression.as_ref())
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
+        let files = self
+            .area_store
+            .list_areas(None)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        let infos = files.into_iter().map(|a| {
+            let source: AreaSourceReference = a.into();
+            let descriptor = FlightDescriptor {
+                r#type: DescriptorType::Cmd.into(),
+                cmd: source.encode_to_vec(),
+                ..FlightDescriptor::default()
+            };
+
+            let options = IpcWriteOptions::default();
+            let schema = Schema::new(vec![]);
+            let schema_result = SchemaAsIpc::new(&schema, &options);
+
+            Ok(FlightInfo::new(
+                IpcMessage::try_from(schema_result)
+                    .map_err(|e| tonic::Status::internal(e.to_string()))
+                    .unwrap(),
+                Some(descriptor),
+                vec![],
+                -1,
+                -1,
+            ))
+        });
+
         Ok(Response::new(
-            Box::pin(futures::stream::iter(vec![])) as BoxedFlightStream<FlightInfo>
+            Box::pin(futures::stream::iter(infos)) as BoxedFlightStream<FlightInfo>
         ))
     }
 
@@ -175,21 +206,16 @@ impl FlightService for FlightFusionService {
             global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
         tracing::Span::current().set_parent(parent_cx);
 
-        let command = message_from_descriptor::<FlightGetFlightInfoRequest>(request)
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let command: AreaSourceReference = request
+            .into_inner()
+            .try_into()
+            .map_err(|_| tonic::Status::invalid_argument("failed to decode command".to_string()))?;
 
-        let schema = if let Some(source) = command.source {
-            Ok(self
-                .area_store
-                .get_schema(&source)
-                .await
-                .map_err(|e| tonic::Status::internal(e.to_string()))?)
-        } else {
-            Err(crate::error::FusionServiceError::InputError(
-                "Expected valid command payload".to_string(),
-            ))
-        }
-        .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let schema = self
+            .area_store
+            .get_schema(&command)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
         let options = IpcWriteOptions::default();
         let schema_result = SchemaAsIpc::new(&schema, &options);
@@ -220,21 +246,16 @@ impl FlightService for FlightFusionService {
             global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
         tracing::Span::current().set_parent(parent_cx);
 
-        let command = message_from_descriptor::<FlightGetFlightInfoRequest>(request)
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let command: AreaSourceReference = request
+            .into_inner()
+            .try_into()
+            .map_err(|_| tonic::Status::invalid_argument("failed to decode command".to_string()))?;
 
-        let schema = if let Some(source) = command.source {
-            Ok(self
-                .area_store
-                .get_schema(&source)
-                .await
-                .map_err(|e| tonic::Status::internal(e.to_string()))?)
-        } else {
-            Err(crate::error::FusionServiceError::InputError(
-                "Expected valid command payload".to_string(),
-            ))
-        }
-        .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let schema = self
+            .area_store
+            .get_schema(&command)
+            .await
+            .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
         let options = IpcWriteOptions::default();
         let schema_result = SchemaAsIpc::new(&schema, &options);
@@ -393,25 +414,6 @@ impl FlightService for FlightFusionService {
     }
 }
 
-fn message_from_descriptor<M>(
-    data: Request<FlightDescriptor>,
-) -> Result<M, crate::error::FusionServiceError>
-where
-    M: prost::Message + Default,
-{
-    let descriptor = data.into_inner();
-    match DescriptorType::from_i32(descriptor.r#type) {
-        Some(DescriptorType::Cmd) => {
-            let request_data = M::decode(&mut descriptor.cmd.as_ref())
-                .map_err(|e| tonic::Status::internal(e.to_string()))?;
-            Ok(request_data)
-        }
-        _ => Err(crate::error::FusionServiceError::InputError(
-            "`get_schema` requires command to be defined on flight descriptor".to_string(),
-        )),
-    }
-}
-
 fn to_tonic_err(e: FusionServiceError) -> Status {
     Status::internal(format!("{:?}", e))
 }
@@ -419,41 +421,98 @@ fn to_tonic_err(e: FusionServiceError) -> Status {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use flight_fusion_ipc::{
-        area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
-        CommandDropSource, CommandWriteIntoDataset, SaveMode,
-    };
+    use flight_fusion_ipc::{AreaTableLocation, CommandWriteIntoDataset, SaveMode};
+    use futures::TryStreamExt;
 
-    #[ignore = "currently directories are not deleted when tables are dropped"]
     #[tokio::test]
-    async fn test_table_put_drop() {
-        let root = crate::test_utils::workspace_test_data_folder();
+    async fn test_list_flights() {
+        let root = tempfile::tempdir().unwrap();
         let plan = crate::test_utils::get_input_stream(None, false);
-        let handler = crate::test_utils::get_fusion_handler(root.clone());
-        let table_dir = root.join("_ff_data/new_table");
+        let handler = crate::test_utils::get_fusion_handler(root.path());
 
-        let table_ref = AreaSourceReference {
-            table: Some(TableReference::Location(AreaTableLocation {
-                name: "new_table".to_string(),
-                areas: vec![],
-            })),
+        let command = CommandListSources { recursive: true };
+        let criteria = Criteria {
+            expression: command.encode_to_vec(),
+        };
+
+        let flights = handler
+            .list_flights(Request::new(criteria.clone()))
+            .await
+            .unwrap()
+            .into_inner()
+            .try_collect::<Vec<_>>()
+            .await
+            .unwrap();
+
+        assert_eq!(flights.len(), 0);
+
+        let location = AreaTableLocation {
+            name: "new_table".to_string(),
+            areas: vec![],
         };
         let put_request = CommandWriteIntoDataset {
-            source: Some(table_ref.clone()),
+            source: Some(location.into()),
             save_mode: SaveMode::Overwrite.into(),
         };
+        let _ = handler.handle_do_put(put_request, plan).await.unwrap();
 
-        assert!(!table_dir.exists());
+        let flights = handler
+            .list_flights(Request::new(criteria))
+            .await
+            .unwrap()
+            .into_inner()
+            .try_collect::<Vec<_>>()
+            .await
+            .unwrap();
 
-        let _put_response = handler.handle_do_put(put_request, plan).await.unwrap();
+        assert_eq!(flights.len(), 1)
+    }
 
-        assert!(table_dir.is_dir());
+    #[tokio::test]
+    async fn get_schema() {
+        let root = tempfile::tempdir().unwrap();
+        let plan = crate::test_utils::get_input_stream(None, false);
+        let handler = crate::test_utils::get_fusion_handler(root.path());
+        let ref_schema = plan.schema();
 
-        let drop_request = CommandDropSource {
-            source: Some(table_ref),
+        let location = AreaTableLocation {
+            name: "new_table".to_string(),
+            areas: vec![],
         };
-        let _drop_response = handler.handle_do_action(drop_request).await.unwrap();
+        let put_request = CommandWriteIntoDataset {
+            source: Some(location.clone().into()),
+            save_mode: SaveMode::Overwrite.into(),
+        };
+        let _ = handler.handle_do_put(put_request, plan).await.unwrap();
 
-        assert!(!table_dir.exists());
+        let request: Request<FlightDescriptor> = Request::new(location.into());
+        let result = handler.get_schema(request).await.unwrap().into_inner();
+
+        let arrow_schema: Arc<Schema> = Arc::new(IpcMessage(result.schema).try_into().unwrap());
+        assert_eq!(ref_schema, arrow_schema)
+    }
+
+    #[tokio::test]
+    async fn get_flight_info() {
+        let root = tempfile::tempdir().unwrap();
+        let plan = crate::test_utils::get_input_stream(None, false);
+        let handler = crate::test_utils::get_fusion_handler(root.path());
+        let ref_schema = plan.schema();
+
+        let location = AreaTableLocation {
+            name: "new_table".to_string(),
+            areas: vec![],
+        };
+        let put_request = CommandWriteIntoDataset {
+            source: Some(location.clone().into()),
+            save_mode: SaveMode::Overwrite.into(),
+        };
+        let _ = handler.handle_do_put(put_request, plan).await.unwrap();
+
+        let request: Request<FlightDescriptor> = Request::new(location.into());
+        let info = handler.get_flight_info(request).await.unwrap().into_inner();
+
+        let arrow_schema: Arc<Schema> = Arc::new(IpcMessage(info.schema).try_into().unwrap());
+        assert_eq!(ref_schema, arrow_schema)
     }
 }

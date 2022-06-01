@@ -40,9 +40,7 @@ def user_story_matrix(comment_stories: DataFrame):
 
     return Output(
         IndexedCooMatrix(
-            matrix=coo_matrix(
-                (sparse_data, (sparse_rows, sparse_cols)), shape=(len(users), len(stories))
-            ),
+            matrix=coo_matrix((sparse_data, (sparse_rows, sparse_cols)), shape=(len(users), len(stories))),
             row_index=Series(user_row_indices.index.values, index=user_row_indices),
             col_index=Series(story_col_indices.index.values, index=story_col_indices),
         ),

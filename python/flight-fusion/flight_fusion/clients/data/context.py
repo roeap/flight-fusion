@@ -28,8 +28,6 @@ class ContextClient(BaseClient):
 
     def query(self, query: str) -> pa.Table:
         command = FlightDoGetRequest(
-            query=CommandExecuteQuery(
-                query=query, collection=SourceCollection(sources=self._sources)
-            )
+            query=CommandExecuteQuery(query=query, collection=SourceCollection(sources=self._sources))
         )
         return self._do_get(command)

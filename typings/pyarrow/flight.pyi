@@ -187,9 +187,7 @@ class FlightClient:
         disable_server_verification: bool | None = None,
         generic_options=None,
     ): ...
-    def authenticate(
-        self, auth_handler: ClientAuthHandler, options: FlightCallOptions | None = None
-    ):
+    def authenticate(self, auth_handler: ClientAuthHandler, options: FlightCallOptions | None = None):
         """Authenticate to the server.
 
         Args:
@@ -252,17 +250,13 @@ class FlightClient:
             flights:
         """
         ...
-    def get_flight_info(
-        self, descriptor: FlightDescriptor, options: FlightCallOptions | None = None
-    ):
+    def get_flight_info(self, descriptor: FlightDescriptor, options: FlightCallOptions | None = None):
         """Request information about an available flight."""
         ...
     def get_schema(self, descriptor: FlightDescriptor, options: FlightCallOptions | None = None):
         """Request schema for an available flight."""
         ...
-    def do_get(
-        self, ticket: Ticket, options: FlightCallOptions | None = None
-    ) -> FlightStreamReader:
+    def do_get(self, ticket: Ticket, options: FlightCallOptions | None = None) -> FlightStreamReader:
         """Request the data for a flight.
 
         Returns:

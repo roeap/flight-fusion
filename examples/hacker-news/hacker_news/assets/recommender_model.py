@@ -1,10 +1,9 @@
 import random
 
 from dagster import AssetIn, MetadataValue, Output, asset
+from hacker_news.assets.user_story_matrix import IndexedCooMatrix
 from pandas import DataFrame, Series
 from sklearn.decomposition import TruncatedSVD
-
-from hacker_news.assets.user_story_matrix import IndexedCooMatrix
 
 
 @asset(namespace=["demo", "hacker"], required_resource_keys={"mlflow"})
@@ -36,9 +35,7 @@ def recommender_model(context, user_story_matrix: IndexedCooMatrix):
     ins={"stories": AssetIn(metadata={"columns": ["id", "title"]})},
     io_manager_key="fusion_io_manager",
 )
-def component_top_stories(
-    recommender_model: TruncatedSVD, user_story_matrix: IndexedCooMatrix, stories: DataFrame
-):
+def component_top_stories(recommender_model: TruncatedSVD, user_story_matrix: IndexedCooMatrix, stories: DataFrame):
     """
     For each component in the collaborative filtering model, the titles of the top stories
     it's associated with.
@@ -60,16 +57,12 @@ def component_top_stories(
             components_column.append(i)
             titles_column.append(title)
 
-    component_top_stories = DataFrame(
-        {"component_index": Series(components_column), "title": Series(titles_column)}
-    )
+    component_top_stories = DataFrame({"component_index": Series(components_column), "title": Series(titles_column)})
 
     return Output(
         component_top_stories,
         metadata={
-            "Top component top stories": MetadataValue.md(
-                top_components_to_markdown(component_top_stories)
-            ),
+            "Top component top stories": MetadataValue.md(top_components_to_markdown(component_top_stories)),
         },
     )
 
@@ -77,14 +70,11 @@ def component_top_stories(
 def top_components_to_markdown(component_top_stories: DataFrame) -> str:
     component_markdowns = []
     for i in range(5):
-        component_i_top_5_stories = component_top_stories[
-            component_top_stories["component_index"] == i
-        ].head(5)
+        component_i_top_5_stories = component_top_stories[component_top_stories["component_index"] == i].head(5)
 
         component_markdowns.append(
             "\n".join(
-                [f"Component {i}"]
-                + ["- " + str(row["title"]) for _, row in component_i_top_5_stories.iterrows()]
+                [f"Component {i}"] + ["- " + str(row["title"]) for _, row in component_i_top_5_stories.iterrows()]
             )
         )
 

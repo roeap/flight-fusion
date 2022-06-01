@@ -112,9 +112,7 @@ class DeltaCreateOperation(betterproto.Message):
 class DeltaWriteOperation(betterproto.Message):
     save_mode: "SaveMode" = betterproto.enum_field(1)
     partition_by: List[str] = betterproto.string_field(2)
-    predicate: Optional[str] = betterproto.string_field(
-        3, optional=True, group="_predicate"
-    )
+    predicate: Optional[str] = betterproto.string_field(3, optional=True, group="_predicate")
 
 
 @dataclass(eq=False, repr=False)
@@ -164,9 +162,7 @@ class Signal(betterproto.Message):
 class SignalTrait(betterproto.Message):
     sensitive: "SensitiveDataTrait" = betterproto.message_field(1, group="trait")
     time_series: "TimeSeriesTrait" = betterproto.message_field(2, group="trait")
-    entity_reference: "EntityReferenceTrait" = betterproto.message_field(
-        3, group="trait"
-    )
+    entity_reference: "EntityReferenceTrait" = betterproto.message_field(3, group="trait")
 
 
 @dataclass(eq=False, repr=False)
@@ -301,9 +297,7 @@ class AreaSourceMetadata(betterproto.Message):
     # tags associated with source
     tags: List["Tag"] = betterproto.message_field(9)
     # user defined properties
-    properties: Dict[str, str] = betterproto.map_field(
-        10, betterproto.TYPE_STRING, betterproto.TYPE_STRING
-    )
+    properties: Dict[str, str] = betterproto.map_field(10, betterproto.TYPE_STRING, betterproto.TYPE_STRING)
 
 
 @dataclass(eq=False, repr=False)
@@ -350,12 +344,6 @@ class ColumnStatistics(betterproto.Message):
     min_value: str = betterproto.string_field(3)
     # Number of distinct values
     distinct_count: int = betterproto.int64_field(4)
-
-
-@dataclass(eq=False, repr=False)
-class FlightGetFlightInfoRequest(betterproto.Message):
-    # source identifier
-    source: "AreaSourceReference" = betterproto.message_field(1)
 
 
 @dataclass(eq=False, repr=False)

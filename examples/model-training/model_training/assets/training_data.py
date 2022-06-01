@@ -47,7 +47,5 @@ def test_data(context: OpExecutionContext, dataset: pa.Table, test_filter: pa.Ar
     io_manager_key="fusion_io_manager",
     description="Data used for training the model",
 )
-def training_data(
-    context: OpExecutionContext, dataset: pa.Table, test_filter: pa.Array
-) -> pa.Table:
+def training_data(context: OpExecutionContext, dataset: pa.Table, test_filter: pa.Array) -> pa.Table:
     return dataset.filter(pc.invert(test_filter))  # type: ignore
