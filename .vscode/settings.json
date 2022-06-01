@@ -3,7 +3,7 @@
   "python.formatting.provider": "black",
   "python.linting.flake8Enabled": true,
   "python.sortImports.args": ["--profile", "black"],
-  "python.formatting.blackArgs": ["--line-length=100"],
+  "python.formatting.blackArgs": ["--line-length=120"],
   "[python]": {
     "editor.codeActionsOnSave": {
       "source.organizeImports": true
