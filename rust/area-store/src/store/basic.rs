@@ -137,6 +137,7 @@ impl AreaStore for DefaultAreaStore {
 mod tests {
     use super::*;
     use crate::test_utils::get_record_batch;
+    use bytes::Bytes;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
         SaveMode,
@@ -184,5 +185,46 @@ mod tests {
 
         let schema = area_store.get_schema(&source).await.unwrap();
         assert_eq!(schema, batch.schema());
+    }
+
+    #[tokio::test]
+    async fn is_delta() {
+        let root = tempfile::tempdir().unwrap();
+        let area_root = root.path();
+        let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
+
+        let path = Path::parse("_ff_data/foo/_delta_log/00000000000.json").unwrap();
+        let data = Bytes::from("arbitrary data");
+        area_store
+            .object_store()
+            .put(&path, data.clone())
+            .await
+            .unwrap();
+
+        let table = TableReference::Location(AreaTableLocation {
+            name: "foo".to_string(),
+            areas: vec![],
+        });
+        let source = AreaSourceReference { table: Some(table) };
+
+        let is_delta = area_store.is_delta(&source.into()).await.unwrap();
+        assert!(is_delta);
+
+        let path = Path::parse("_ff_data/bar/00000000000.parquet").unwrap();
+        let data = Bytes::from("arbitrary data");
+        area_store
+            .object_store()
+            .put(&path, data.clone())
+            .await
+            .unwrap();
+
+        let table = TableReference::Location(AreaTableLocation {
+            name: "bar".to_string(),
+            areas: vec![],
+        });
+        let source = AreaSourceReference { table: Some(table) };
+
+        let is_delta = area_store.is_delta(&source.into()).await.unwrap();
+        assert!(!is_delta)
     }
 }

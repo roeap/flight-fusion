@@ -24,7 +24,7 @@ pub use basic::DefaultAreaStore;
 pub use cache::CachedAreaStore;
 use flight_fusion_ipc::{AreaSourceReference, SaveMode};
 use futures::TryStreamExt;
-use object_store::{path::Path, DynObjectStore};
+use object_store::{path::Path, DynObjectStore, Error as ObjectStoreError};
 use std::sync::Arc;
 pub use utils::*;
 pub use writer::*;
@@ -50,6 +50,17 @@ pub trait AreaStore: Send + Sync {
 
     /// Read batches from location
     async fn get_batches(&self, location: &AreaPath) -> Result<Vec<RecordBatch>>;
+
+    async fn is_delta(&self, location: &AreaPath) -> Result<bool> {
+        let path: Path = location.into();
+        let path = path.child("_delta_log");
+        let res = match self.object_store().head(&path).await {
+            Ok(_) => Ok(true),
+            Err(ObjectStoreError::NotFound { .. }) => Ok(false),
+            Err(other) => Err(other),
+        }?;
+        Ok(res)
+    }
 
     /// Stream RecordBatches from a parquet file
     async fn open_file(
