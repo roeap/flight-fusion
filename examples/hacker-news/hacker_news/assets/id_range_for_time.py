@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 
 from dagster import MetadataEntry, Output, asset, check
-
 from hacker_news.partitions import hourly_partitions
 
 
@@ -95,7 +94,5 @@ def id_range_for_time(context):
     For the configured time partition, searches for the range of ids that were created in that time.
     """
     start, end = context.output_asset_partitions_time_window()
-    id_range, metadata_entries = _id_range_for_time(
-        start.timestamp(), end.timestamp(), context.resources.hn_client
-    )
+    id_range, metadata_entries = _id_range_for_time(start.timestamp(), end.timestamp(), context.resources.hn_client)
     yield Output(id_range, metadata_entries=metadata_entries)  # type: ignore

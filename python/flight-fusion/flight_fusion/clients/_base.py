@@ -19,9 +19,7 @@ class ClientOptions(BaseSettings):
 
 
 class BaseClient:
-    def __init__(
-        self, client: pa_flight.FlightClient | None = None, options: ClientOptions | None = None
-    ):
+    def __init__(self, client: pa_flight.FlightClient | None = None, options: ClientOptions | None = None):
         if client is None and options is None:
             try:
                 options = ClientOptions()  # type: ignore

@@ -263,17 +263,13 @@ class GrpcInferenceServiceStub(betterproto.ServiceStub):
 
         request = ServerLiveRequest()
 
-        return await self._unary_unary(
-            "/inference.GRPCInferenceService/ServerLive", request, ServerLiveResponse
-        )
+        return await self._unary_unary("/inference.GRPCInferenceService/ServerLive", request, ServerLiveResponse)
 
     async def server_ready(self) -> "ServerReadyResponse":
 
         request = ServerReadyRequest()
 
-        return await self._unary_unary(
-            "/inference.GRPCInferenceService/ServerReady", request, ServerReadyResponse
-        )
+        return await self._unary_unary("/inference.GRPCInferenceService/ServerReady", request, ServerReadyResponse)
 
     async def model_ready(self, *, name: str = "", version: str = "") -> "ModelReadyResponse":
 
@@ -281,9 +277,7 @@ class GrpcInferenceServiceStub(betterproto.ServiceStub):
         request.name = name
         request.version = version
 
-        return await self._unary_unary(
-            "/inference.GRPCInferenceService/ModelReady", request, ModelReadyResponse
-        )
+        return await self._unary_unary("/inference.GRPCInferenceService/ModelReady", request, ModelReadyResponse)
 
     async def server_metadata(self) -> "ServerMetadataResponse":
 
@@ -330,9 +324,7 @@ class GrpcInferenceServiceStub(betterproto.ServiceStub):
         if outputs is not None:
             request.outputs = outputs
 
-        return await self._unary_unary(
-            "/inference.GRPCInferenceService/ModelInfer", request, ModelInferResponse
-        )
+        return await self._unary_unary("/inference.GRPCInferenceService/ModelInfer", request, ModelInferResponse)
 
 
 class GrpcInferenceServiceBase(ServiceBase):
@@ -363,7 +355,7 @@ class GrpcInferenceServiceBase(ServiceBase):
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
     async def __rpc_server_live(self, stream: grpclib.server.Stream) -> None:
-        request = await stream.recv_message()
+        request = await stream.recv_message()  # noqa
 
         request_kwargs = {}
 
@@ -371,7 +363,7 @@ class GrpcInferenceServiceBase(ServiceBase):
         await stream.send_message(response)
 
     async def __rpc_server_ready(self, stream: grpclib.server.Stream) -> None:
-        request = await stream.recv_message()
+        request = await stream.recv_message()  # noqa
 
         request_kwargs = {}
 
@@ -390,7 +382,7 @@ class GrpcInferenceServiceBase(ServiceBase):
         await stream.send_message(response)
 
     async def __rpc_server_metadata(self, stream: grpclib.server.Stream) -> None:
-        request = await stream.recv_message()
+        request = await stream.recv_message()  # noqa
 
         request_kwargs = {}
 

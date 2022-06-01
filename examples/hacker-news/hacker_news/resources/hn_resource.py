@@ -87,9 +87,7 @@ def hn_api_client(_):
     return HNAPIClient()
 
 
-@resource(
-    description="A mock hackernews client powered by a json file containing sample responses."
-)
+@resource(description="A mock hackernews client powered by a json file containing sample responses.")
 def hn_snapshot_client(_):
     return HNSnapshotClient()
 

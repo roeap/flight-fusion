@@ -3,7 +3,6 @@ from typing import Tuple
 import polars as pl
 import pyarrow as pa
 from dagster import Output, asset
-
 from hacker_news.partitions import hourly_partitions
 
 HN_ACTION_SCHEMA = pa.schema(

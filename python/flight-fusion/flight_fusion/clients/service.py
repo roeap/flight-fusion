@@ -54,8 +54,6 @@ class FusionServiceClient(BaseClient):
 
     def list_datasets(self) -> list[AreaInfo]:
         return [
-            AreaInfo(
-                source=AreaSourceReference.FromString(fi.descriptor.command), info=fi
-            )
+            AreaInfo(source=AreaSourceReference.FromString(fi.descriptor.command), info=fi)
             for fi in self._flight.list_flights()
         ]

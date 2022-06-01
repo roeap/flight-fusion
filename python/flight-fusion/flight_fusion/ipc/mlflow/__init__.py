@@ -1270,9 +1270,7 @@ class ModelRegistryServiceStub(betterproto.ServiceStub):
             CreateRegisteredModelResponse,
         )
 
-    async def rename_registered_model(
-        self, *, name: str = "", new_name: str = ""
-    ) -> "RenameRegisteredModelResponse":
+    async def rename_registered_model(self, *, name: str = "", new_name: str = "") -> "RenameRegisteredModelResponse":
 
         request = RenameRegisteredModel()
         request.name = name
@@ -1434,9 +1432,7 @@ class ModelRegistryServiceStub(betterproto.ServiceStub):
             TransitionModelVersionStageResponse,
         )
 
-    async def delete_model_version(
-        self, *, name: str = "", version: str = ""
-    ) -> "DeleteModelVersionResponse":
+    async def delete_model_version(self, *, name: str = "", version: str = "") -> "DeleteModelVersionResponse":
 
         request = DeleteModelVersion()
         request.name = name
@@ -1448,9 +1444,7 @@ class ModelRegistryServiceStub(betterproto.ServiceStub):
             DeleteModelVersionResponse,
         )
 
-    async def get_model_version(
-        self, *, name: str = "", version: str = ""
-    ) -> "GetModelVersionResponse":
+    async def get_model_version(self, *, name: str = "", version: str = "") -> "GetModelVersionResponse":
 
         request = GetModelVersion()
         request.name = name
@@ -1529,9 +1523,7 @@ class ModelRegistryServiceStub(betterproto.ServiceStub):
             SetModelVersionTagResponse,
         )
 
-    async def delete_registered_model_tag(
-        self, *, name: str = "", key: str = ""
-    ) -> "DeleteRegisteredModelTagResponse":
+    async def delete_registered_model_tag(self, *, name: str = "", key: str = "") -> "DeleteRegisteredModelTagResponse":
 
         request = DeleteRegisteredModelTag()
         request.name = name
@@ -1560,9 +1552,7 @@ class ModelRegistryServiceStub(betterproto.ServiceStub):
 
 
 class MlflowServiceStub(betterproto.ServiceStub):
-    async def get_experiment_by_name(
-        self, *, experiment_name: str = ""
-    ) -> "GetExperimentByNameResponse":
+    async def get_experiment_by_name(self, *, experiment_name: str = "") -> "GetExperimentByNameResponse":
 
         request = GetExperimentByName()
         request.experiment_name = experiment_name
@@ -1588,9 +1578,7 @@ class MlflowServiceStub(betterproto.ServiceStub):
         if tags is not None:
             request.tags = tags
 
-        return await self._unary_unary(
-            "/mlflow.MlflowService/createExperiment", request, CreateExperimentResponse
-        )
+        return await self._unary_unary("/mlflow.MlflowService/createExperiment", request, CreateExperimentResponse)
 
     async def list_experiments(
         self, *, view_type: "ViewType" = 1, max_results: int = 0, page_token: str = ""
@@ -1601,27 +1589,21 @@ class MlflowServiceStub(betterproto.ServiceStub):
         request.max_results = max_results
         request.page_token = page_token
 
-        return await self._unary_unary(
-            "/mlflow.MlflowService/listExperiments", request, ListExperimentsResponse
-        )
+        return await self._unary_unary("/mlflow.MlflowService/listExperiments", request, ListExperimentsResponse)
 
     async def get_experiment(self, *, experiment_id: str = "") -> "GetExperimentResponse":
 
         request = GetExperiment()
         request.experiment_id = experiment_id
 
-        return await self._unary_unary(
-            "/mlflow.MlflowService/getExperiment", request, GetExperimentResponse
-        )
+        return await self._unary_unary("/mlflow.MlflowService/getExperiment", request, GetExperimentResponse)
 
     async def delete_experiment(self, *, experiment_id: str = "") -> "DeleteExperimentResponse":
 
         request = DeleteExperiment()
         request.experiment_id = experiment_id
 
-        return await self._unary_unary(
-            "/mlflow.MlflowService/deleteExperiment", request, DeleteExperimentResponse
-        )
+        return await self._unary_unary("/mlflow.MlflowService/deleteExperiment", request, DeleteExperimentResponse)
 
     async def restore_experiment(self, *, experiment_id: str = "") -> "RestoreExperimentResponse":
 
@@ -1634,17 +1616,13 @@ class MlflowServiceStub(betterproto.ServiceStub):
             RestoreExperimentResponse,
         )
 
-    async def update_experiment(
-        self, *, experiment_id: str = "", new_name: str = ""
-    ) -> "UpdateExperimentResponse":
+    async def update_experiment(self, *, experiment_id: str = "", new_name: str = "") -> "UpdateExperimentResponse":
 
         request = UpdateExperiment()
         request.experiment_id = experiment_id
         request.new_name = new_name
 
-        return await self._unary_unary(
-            "/mlflow.MlflowService/updateExperiment", request, UpdateExperimentResponse
-        )
+        return await self._unary_unary("/mlflow.MlflowService/updateExperiment", request, UpdateExperimentResponse)
 
     async def create_run(
         self,
@@ -1663,9 +1641,7 @@ class MlflowServiceStub(betterproto.ServiceStub):
         if tags is not None:
             request.tags = tags
 
-        return await self._unary_unary(
-            "/mlflow.MlflowService/createRun", request, CreateRunResponse
-        )
+        return await self._unary_unary("/mlflow.MlflowService/createRun", request, CreateRunResponse)
 
     async def update_run(
         self, *, run_id: str = "", run_uuid: str = "", status: "RunStatus" = 1, end_time: int = 0
@@ -1677,27 +1653,21 @@ class MlflowServiceStub(betterproto.ServiceStub):
         request.status = status
         request.end_time = end_time
 
-        return await self._unary_unary(
-            "/mlflow.MlflowService/updateRun", request, UpdateRunResponse
-        )
+        return await self._unary_unary("/mlflow.MlflowService/updateRun", request, UpdateRunResponse)
 
     async def delete_run(self, *, run_id: str = "") -> "DeleteRunResponse":
 
         request = DeleteRun()
         request.run_id = run_id
 
-        return await self._unary_unary(
-            "/mlflow.MlflowService/deleteRun", request, DeleteRunResponse
-        )
+        return await self._unary_unary("/mlflow.MlflowService/deleteRun", request, DeleteRunResponse)
 
     async def restore_run(self, *, run_id: str = "") -> "RestoreRunResponse":
 
         request = RestoreRun()
         request.run_id = run_id
 
-        return await self._unary_unary(
-            "/mlflow.MlflowService/restoreRun", request, RestoreRunResponse
-        )
+        return await self._unary_unary("/mlflow.MlflowService/restoreRun", request, RestoreRunResponse)
 
     async def log_metric(
         self,
@@ -1718,9 +1688,7 @@ class MlflowServiceStub(betterproto.ServiceStub):
         request.timestamp = timestamp
         request.step = step
 
-        return await self._unary_unary(
-            "/mlflow.MlflowService/logMetric", request, LogMetricResponse
-        )
+        return await self._unary_unary("/mlflow.MlflowService/logMetric", request, LogMetricResponse)
 
     async def log_param(
         self, *, run_id: str = "", run_uuid: str = "", key: str = "", value: str = ""
@@ -1743,9 +1711,7 @@ class MlflowServiceStub(betterproto.ServiceStub):
         request.key = key
         request.value = value
 
-        return await self._unary_unary(
-            "/mlflow.MlflowService/setExperimentTag", request, SetExperimentTagResponse
-        )
+        return await self._unary_unary("/mlflow.MlflowService/setExperimentTag", request, SetExperimentTagResponse)
 
     async def set_tag(
         self, *, run_id: str = "", run_uuid: str = "", key: str = "", value: str = ""
@@ -1765,9 +1731,7 @@ class MlflowServiceStub(betterproto.ServiceStub):
         request.run_id = run_id
         request.key = key
 
-        return await self._unary_unary(
-            "/mlflow.MlflowService/deleteTag", request, DeleteTagResponse
-        )
+        return await self._unary_unary("/mlflow.MlflowService/deleteTag", request, DeleteTagResponse)
 
     async def get_run(self, *, run_id: str = "", run_uuid: str = "") -> "GetRunResponse":
 
@@ -1798,9 +1762,7 @@ class MlflowServiceStub(betterproto.ServiceStub):
         request.order_by = order_by
         request.page_token = page_token
 
-        return await self._unary_unary(
-            "/mlflow.MlflowService/searchRuns", request, SearchRunsResponse
-        )
+        return await self._unary_unary("/mlflow.MlflowService/searchRuns", request, SearchRunsResponse)
 
     async def list_artifacts(
         self, *, run_id: str = "", run_uuid: str = "", path: str = "", page_token: str = ""
@@ -1812,9 +1774,7 @@ class MlflowServiceStub(betterproto.ServiceStub):
         request.path = path
         request.page_token = page_token
 
-        return await self._unary_unary(
-            "/mlflow.MlflowService/listArtifacts", request, ListArtifactsResponse
-        )
+        return await self._unary_unary("/mlflow.MlflowService/listArtifacts", request, ListArtifactsResponse)
 
     async def get_metric_history(
         self, *, run_id: str = "", run_uuid: str = "", metric_key: str = ""
@@ -1825,9 +1785,7 @@ class MlflowServiceStub(betterproto.ServiceStub):
         request.run_uuid = run_uuid
         request.metric_key = metric_key
 
-        return await self._unary_unary(
-            "/mlflow.MlflowService/getMetricHistory", request, GetMetricHistoryResponse
-        )
+        return await self._unary_unary("/mlflow.MlflowService/getMetricHistory", request, GetMetricHistoryResponse)
 
     async def log_batch(
         self,
@@ -1919,14 +1877,10 @@ class ModelRegistryServiceBase(ServiceBase):
     ) -> "CreateRegisteredModelResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def rename_registered_model(
-        self, name: str, new_name: str
-    ) -> "RenameRegisteredModelResponse":
+    async def rename_registered_model(self, name: str, new_name: str) -> "RenameRegisteredModelResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def update_registered_model(
-        self, name: str, description: str
-    ) -> "UpdateRegisteredModelResponse":
+    async def update_registered_model(self, name: str, description: str) -> "UpdateRegisteredModelResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
     async def delete_registered_model(self, name: str) -> "DeleteRegisteredModelResponse":
@@ -1944,14 +1898,10 @@ class ModelRegistryServiceBase(ServiceBase):
     ) -> "SearchRegisteredModelsResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def list_registered_models(
-        self, max_results: int, page_token: str
-    ) -> "ListRegisteredModelsResponse":
+    async def list_registered_models(self, max_results: int, page_token: str) -> "ListRegisteredModelsResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def get_latest_versions(
-        self, name: str, stages: Optional[List[str]]
-    ) -> "GetLatestVersionsResponse":
+    async def get_latest_versions(self, name: str, stages: Optional[List[str]]) -> "GetLatestVersionsResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
     async def create_model_version(
@@ -1965,9 +1915,7 @@ class ModelRegistryServiceBase(ServiceBase):
     ) -> "CreateModelVersionResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def update_model_version(
-        self, name: str, version: str, description: str
-    ) -> "UpdateModelVersionResponse":
+    async def update_model_version(self, name: str, version: str, description: str) -> "UpdateModelVersionResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
     async def transition_model_version_stage(
@@ -1990,14 +1938,10 @@ class ModelRegistryServiceBase(ServiceBase):
     ) -> "SearchModelVersionsResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def get_model_version_download_uri(
-        self, name: str, version: str
-    ) -> "GetModelVersionDownloadUriResponse":
+    async def get_model_version_download_uri(self, name: str, version: str) -> "GetModelVersionDownloadUriResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def set_registered_model_tag(
-        self, name: str, key: str, value: str
-    ) -> "SetRegisteredModelTagResponse":
+    async def set_registered_model_tag(self, name: str, key: str, value: str) -> "SetRegisteredModelTagResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
     async def set_model_version_tag(
@@ -2005,14 +1949,10 @@ class ModelRegistryServiceBase(ServiceBase):
     ) -> "SetModelVersionTagResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def delete_registered_model_tag(
-        self, name: str, key: str
-    ) -> "DeleteRegisteredModelTagResponse":
+    async def delete_registered_model_tag(self, name: str, key: str) -> "DeleteRegisteredModelTagResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def delete_model_version_tag(
-        self, name: str, version: str, key: str
-    ) -> "DeleteModelVersionTagResponse":
+    async def delete_model_version_tag(self, name: str, version: str, key: str) -> "DeleteModelVersionTagResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
     async def __rpc_create_registered_model(self, stream: grpclib.server.Stream) -> None:
@@ -2380,9 +2320,7 @@ class MlflowServiceBase(ServiceBase):
     async def restore_experiment(self, experiment_id: str) -> "RestoreExperimentResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def update_experiment(
-        self, experiment_id: str, new_name: str
-    ) -> "UpdateExperimentResponse":
+    async def update_experiment(self, experiment_id: str, new_name: str) -> "UpdateExperimentResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
     async def create_run(
@@ -2394,9 +2332,7 @@ class MlflowServiceBase(ServiceBase):
     ) -> "CreateRunResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def update_run(
-        self, run_id: str, run_uuid: str, status: "RunStatus", end_time: int
-    ) -> "UpdateRunResponse":
+    async def update_run(self, run_id: str, run_uuid: str, status: "RunStatus", end_time: int) -> "UpdateRunResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
     async def delete_run(self, run_id: str) -> "DeleteRunResponse":
@@ -2416,14 +2352,10 @@ class MlflowServiceBase(ServiceBase):
     ) -> "LogMetricResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def log_param(
-        self, run_id: str, run_uuid: str, key: str, value: str
-    ) -> "LogParamResponse":
+    async def log_param(self, run_id: str, run_uuid: str, key: str, value: str) -> "LogParamResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def set_experiment_tag(
-        self, experiment_id: str, key: str, value: str
-    ) -> "SetExperimentTagResponse":
+    async def set_experiment_tag(self, experiment_id: str, key: str, value: str) -> "SetExperimentTagResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
     async def set_tag(self, run_id: str, run_uuid: str, key: str, value: str) -> "SetTagResponse":
@@ -2446,14 +2378,10 @@ class MlflowServiceBase(ServiceBase):
     ) -> "SearchRunsResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def list_artifacts(
-        self, run_id: str, run_uuid: str, path: str, page_token: str
-    ) -> "ListArtifactsResponse":
+    async def list_artifacts(self, run_id: str, run_uuid: str, path: str, page_token: str) -> "ListArtifactsResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def get_metric_history(
-        self, run_id: str, run_uuid: str, metric_key: str
-    ) -> "GetMetricHistoryResponse":
+    async def get_metric_history(self, run_id: str, run_uuid: str, metric_key: str) -> "GetMetricHistoryResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
     async def log_batch(

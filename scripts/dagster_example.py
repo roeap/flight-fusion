@@ -21,7 +21,6 @@ from dagster import (  # noqa
     repository,
     schedule,
 )
-
 from dagster_fusion import (  # noqa
     flight_fusion_io_manager,
     flight_fusion_loader,

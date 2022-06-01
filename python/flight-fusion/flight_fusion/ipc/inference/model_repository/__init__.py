@@ -67,9 +67,7 @@ class RepositoryModelUnloadResponse(betterproto.Message):
 
 
 class ModelRepositoryServiceStub(betterproto.ServiceStub):
-    async def repository_index(
-        self, *, repository_name: str = "", ready: bool = False
-    ) -> "RepositoryIndexResponse":
+    async def repository_index(self, *, repository_name: str = "", ready: bool = False) -> "RepositoryIndexResponse":
 
         request = RepositoryIndexRequest()
         request.repository_name = repository_name
@@ -111,19 +109,13 @@ class ModelRepositoryServiceStub(betterproto.ServiceStub):
 
 
 class ModelRepositoryServiceBase(ServiceBase):
-    async def repository_index(
-        self, repository_name: str, ready: bool
-    ) -> "RepositoryIndexResponse":
+    async def repository_index(self, repository_name: str, ready: bool) -> "RepositoryIndexResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def repository_model_load(
-        self, repository_name: str, model_name: str
-    ) -> "RepositoryModelLoadResponse":
+    async def repository_model_load(self, repository_name: str, model_name: str) -> "RepositoryModelLoadResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def repository_model_unload(
-        self, repository_name: str, model_name: str
-    ) -> "RepositoryModelUnloadResponse":
+    async def repository_model_unload(self, repository_name: str, model_name: str) -> "RepositoryModelUnloadResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
     async def __rpc_repository_index(self, stream: grpclib.server.Stream) -> None:

@@ -781,9 +781,7 @@ class Table:
         """
         ...
     @staticmethod
-    def from_arrays(
-        arrays, names: list[str] | None = None, schema: Schema | None = None, metadata=None
-    ):
+    def from_arrays(arrays, names: list[str] | None = None, schema: Schema | None = None, metadata=None):
         """
         Construct a Table from Arrow arrays.
         Parameters
@@ -853,9 +851,7 @@ class Table:
         """
         ...
     @staticmethod
-    def from_pydict(
-        mapping, schema: Schema | None = None, metadata: dict[AnyStr, AnyStr] | None = None
-    ) -> Table:
+    def from_pydict(mapping, schema: Schema | None = None, metadata: dict[AnyStr, AnyStr] | None = None) -> Table:
         """Construct a Table from Arrow arrays or columns.
 
         Args:

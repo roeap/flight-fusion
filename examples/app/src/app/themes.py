@@ -11,9 +11,7 @@ theme_light = go.layout.Template(  # type: ignore
                     "type": "bar",
                 }
             ],
-            "barpolar": [
-                {"marker": {"line": {"color": "white", "width": 0.5}}, "type": "barpolar"}
-            ],
+            "barpolar": [{"marker": {"line": {"color": "white", "width": 0.5}}, "type": "barpolar"}],
             "carpet": [
                 {
                     "aaxis": {
@@ -52,9 +50,7 @@ theme_light = go.layout.Template(  # type: ignore
                     "type": "contour",
                 }
             ],
-            "contourcarpet": [
-                {"colorbar": {"outlinewidth": 0, "ticks": ""}, "type": "contourcarpet"}
-            ],
+            "contourcarpet": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "type": "contourcarpet"}],
             "heatmap": [
                 {
                     "colorbar": {"outlinewidth": 0, "ticks": ""},
@@ -91,9 +87,7 @@ theme_light = go.layout.Template(  # type: ignore
                     "type": "heatmapgl",
                 }
             ],
-            "histogram": [
-                {"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "histogram"}
-            ],
+            "histogram": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "histogram"}],
             "histogram2d": [
                 {
                     "colorbar": {"outlinewidth": 0, "ticks": ""},
@@ -131,13 +125,9 @@ theme_light = go.layout.Template(  # type: ignore
                 }
             ],
             "mesh3d": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "type": "mesh3d"}],
-            "parcoords": [
-                {"line": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "parcoords"}
-            ],
+            "parcoords": [{"line": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "parcoords"}],
             "pie": [{"automargin": True, "type": "pie"}],
-            "scatter": [
-                {"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scatter"}
-            ],
+            "scatter": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scatter"}],
             "scatter3d": [
                 {
                     "line": {"colorbar": {"outlinewidth": 0, "ticks": ""}},
@@ -145,21 +135,11 @@ theme_light = go.layout.Template(  # type: ignore
                     "type": "scatter3d",
                 }
             ],
-            "scattercarpet": [
-                {"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattercarpet"}
-            ],
-            "scattergeo": [
-                {"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattergeo"}
-            ],
-            "scattergl": [
-                {"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattergl"}
-            ],
-            "scattermapbox": [
-                {"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattermapbox"}
-            ],
-            "scatterpolar": [
-                {"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scatterpolar"}
-            ],
+            "scattercarpet": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattercarpet"}],
+            "scattergeo": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattergeo"}],
+            "scattergl": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattergl"}],
+            "scattermapbox": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattermapbox"}],
+            "scatterpolar": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scatterpolar"}],
             "scatterpolargl": [
                 {
                     "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}},

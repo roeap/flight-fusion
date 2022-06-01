@@ -11,6 +11,4 @@ df_example = pd.DataFrame(np.random.randn(5, 3), columns=["col1", "col2", "col3"
 options = ClientOptions(host="localhost", port=50051)
 ffc = FusionServiceClient(options)
 
-ffc.get_dataset_client(name="table1", areas=["static"]).write_into(
-    df_example, SaveMode.SAVE_MODE_OVERWRITE
-)
+ffc.get_dataset_client(name="table1", areas=["static"]).write_into(df_example, SaveMode.SAVE_MODE_OVERWRITE)

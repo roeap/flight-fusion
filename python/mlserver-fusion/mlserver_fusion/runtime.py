@@ -22,8 +22,6 @@ class MLfusionRuntime(MLflowRuntime):
                     **self._settings.parameters.extra,
                 )
             else:
-                model_metadata.parameters = Parameters(
-                    content_type=self._settings.parameters.content_type
-                )
+                model_metadata.parameters = Parameters(content_type=self._settings.parameters.content_type)
 
         return model_metadata

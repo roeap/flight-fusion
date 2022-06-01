@@ -272,9 +272,7 @@ def _import_layouts_from_pages(pages_folder, module=None):
             if import_key in dash.page_registry:
                 dash.page_registry[import_key]["layout"] = getattr(page_module, "layout")
                 if hasattr(page_module, "controls"):
-                    dash.controls_registry[import_key]["controls"] = getattr(
-                        page_module, "controls"
-                    )
+                    dash.controls_registry[import_key]["controls"] = getattr(page_module, "controls")
 
 
 def _path_to_page(app, path_id):
@@ -348,11 +346,7 @@ def plug(app):  # noqa: C901
                 title = page["title"]
 
             if callable(layout):
-                layout = (
-                    layout(**path_variables, **query_parameters)
-                    if path_variables
-                    else layout(**query_parameters)
-                )
+                layout = layout(**path_variables, **query_parameters) if path_variables else layout(**query_parameters)
             if callable(title):
                 title = title(**path_variables) if path_variables else title()
 
@@ -372,10 +366,7 @@ def plug(app):  # noqa: C901
 
         # Set validation_layout
         app.validation_layout = html.Div(
-            [
-                page["layout"]() if callable(page["layout"]) else page["layout"]
-                for page in dash.page_registry.values()
-            ]
+            [page["layout"]() if callable(page["layout"]) else page["layout"] for page in dash.page_registry.values()]
             + [app.layout() if callable(app.layout) else app.layout]
         )
 
@@ -468,9 +459,7 @@ def plug(app):  # noqa: C901
             if page["redirect_from"] and len(page["redirect_from"]):
                 for redirect in page["redirect_from"]:
                     fullname = app.get_relative_path(redirect)
-                    app.server.add_url_rule(
-                        fullname, fullname, create_redirect_function(page["path"])
-                    )
+                    app.server.add_url_rule(fullname, fullname, create_redirect_function(page["path"]))
 
 
 def _parse_query_string(search):
