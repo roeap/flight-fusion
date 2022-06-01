@@ -10,7 +10,7 @@ use flight_fusion_ipc::{ActionStatus, CommandDropSource, CommandSetMetadata, Res
 impl ActionHandler<CommandDropSource> for FlightFusionService {
     async fn handle_do_action(&self, action: CommandDropSource) -> Result<ResultActionStatus> {
         if let Some(source) = action.source {
-            let location: AreaPath = source.into();
+            let location = AreaPath::from(source);
             self.area_store.delete_location(&location.into()).await?;
             // TODO return a more meaningful message
             Ok(ResultActionStatus {
