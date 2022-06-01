@@ -49,8 +49,9 @@ impl CachedAreaStore {
         }
 
         // read record patches form location (file)
+        let area_path = location.clone().into();
         let mut batches = Vec::new();
-        let mut file_batches = collect(self.open_file(location, None).await?).await?;
+        let mut file_batches = collect(self.open_file(&area_path, None).await?).await?;
         batches.append(&mut file_batches);
 
         // Write record batches to cache in IPC format

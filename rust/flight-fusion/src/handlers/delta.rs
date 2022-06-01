@@ -151,7 +151,7 @@ pub(crate) fn spawn_execution(
     column_indices: Option<Vec<usize>>,
 ) -> JoinHandle<()> {
     tokio::spawn(async move {
-        let mut stream = match area_store.open_file(&path, None).await {
+        let mut stream = match area_store.open_file(&path.into(), None).await {
             Err(e) => {
                 // If send fails, plan being torn
                 // down, no place to send the error

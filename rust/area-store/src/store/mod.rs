@@ -87,10 +87,10 @@ pub trait AreaStore: Send + Sync {
     /// Stream RecordBatches from a parquet file
     async fn open_file(
         &self,
-        file: &Path,
+        file: &AreaPath,
         column_indices: Option<Vec<usize>>,
     ) -> Result<SendableRecordBatchStream> {
-        let bytes = self.object_store().get(file).await?.bytes().await?;
+        let bytes = self.object_store().get(&file.into()).await?.bytes().await?;
         let cursor = SliceableCursor::new(Arc::new(bytes.to_vec()));
         let file_reader = Arc::new(SerializedFileReader::new(cursor)?);
         let mut arrow_reader = ParquetFileArrowReader::new(file_reader);

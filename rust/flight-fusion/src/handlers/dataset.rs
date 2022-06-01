@@ -96,8 +96,6 @@ impl DoGetHandler<CommandReadDataset> for FlightFusionService {
                 receiver,
                 AbortOnDropMany(join_handles),
             )))
-
-            // Ok(self.area_store.open_file(&location).await?)
         } else {
             Err(FusionServiceError::InputError(
                 "missing table reference".to_string(),
@@ -113,7 +111,7 @@ pub(crate) fn spawn_execution(
     column_indices: Option<Vec<usize>>,
 ) -> JoinHandle<()> {
     tokio::spawn(async move {
-        let mut stream = match area_store.open_file(&path, column_indices).await {
+        let mut stream = match area_store.open_file(&path.into(), column_indices).await {
             Err(e) => {
                 // If send fails, plan being torn
                 // down, no place to send the error

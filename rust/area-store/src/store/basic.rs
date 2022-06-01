@@ -83,7 +83,7 @@ impl AreaStore for DefaultAreaStore {
         // TODO only actually load first file and also make this work for delta
         let area_path = AreaPath::from(source);
         let files = self.get_location_files(&area_path).await?;
-        let reader = self.open_file(&files[0], None).await?;
+        let reader = self.open_file(&files[0].clone().into(), None).await?;
         Ok(reader.schema())
     }
 
@@ -126,7 +126,7 @@ impl AreaStore for DefaultAreaStore {
         let files = self.get_location_files(location).await?;
         let mut batches = Vec::new();
         for file in files {
-            let mut batch = collect(self.open_file(&file, None).await?).await?;
+            let mut batch = collect(self.open_file(&file.into(), None).await?).await?;
             batches.append(&mut batch);
         }
         Ok(batches)
