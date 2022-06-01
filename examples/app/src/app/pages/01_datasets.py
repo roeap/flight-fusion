@@ -39,6 +39,7 @@ def get_layout(dataset_options):
                     dadc.PageHeaderOperation(
                         dadc.Button("Update Plot", id="update-plot", type="primary")
                     ),
+                    dadc.Tag("Delta", color="green"),
                 ],
                 title="Dataset",
                 ghost=False,
