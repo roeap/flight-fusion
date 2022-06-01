@@ -131,7 +131,8 @@ impl AreaStore for DefaultAreaStore {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::get_record_batch;
+    use crate::test_utils::{get_record_batch, workspace_test_data_folder};
+    use arrow_deps::arrow::datatypes::{DataType, Field, Schema, TimeUnit};
     use arrow_deps::datafusion::physical_plan::common::collect;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
@@ -182,5 +183,51 @@ mod tests {
 
         let schema = area_store.get_schema(&source).await.unwrap();
         assert_eq!(schema, batch.schema());
+    }
+
+    #[tokio::test]
+    async fn read_delta_schema() {
+        let area_root = workspace_test_data_folder();
+        let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
+
+        let ref_schema = Arc::new(Schema::new(vec![
+            Field::new(
+                "timestamp",
+                DataType::Timestamp(TimeUnit::Microsecond, None),
+                true,
+            ),
+            Field::new("date", DataType::Date32, true),
+            Field::new("string", DataType::Utf8, true),
+            Field::new("double", DataType::Float64, true),
+            Field::new("real", DataType::Float64, true),
+            Field::new("float", DataType::Float64, true),
+        ]));
+
+        let source = AreaSourceReference {
+            table: Some(TableReference::Location(AreaTableLocation {
+                name: "date".to_string(),
+                areas: vec!["delta".to_string(), "partitioned".to_string()],
+            })),
+        };
+        let schema = area_store.get_schema(&source).await.unwrap();
+        assert_eq!(ref_schema, schema);
+
+        let source = AreaSourceReference {
+            table: Some(TableReference::Location(AreaTableLocation {
+                name: "string".to_string(),
+                areas: vec!["delta".to_string(), "partitioned".to_string()],
+            })),
+        };
+        let schema = area_store.get_schema(&source).await.unwrap();
+        assert_eq!(ref_schema, schema);
+
+        let source = AreaSourceReference {
+            table: Some(TableReference::Location(AreaTableLocation {
+                name: "simple".to_string(),
+                areas: vec!["delta".to_string()],
+            })),
+        };
+        let schema = area_store.get_schema(&source).await.unwrap();
+        assert_eq!(ref_schema, schema);
     }
 }
