@@ -1,9 +1,10 @@
-use super::{stats, writer::*, AreaPath, AreaStore};
+use super::{is_delta_location, stats, writer::*, AreaPath, AreaStore};
 use crate::error::{AreaStoreError, Result};
 use arrow_deps::arrow::record_batch::*;
 use arrow_deps::datafusion::{
     arrow::datatypes::SchemaRef as ArrowSchemaRef, physical_plan::common::collect,
 };
+use arrow_deps::deltalake::open_table;
 use async_trait::async_trait;
 use flight_fusion_ipc::{AreaSourceReference, SaveMode};
 use futures::TryStreamExt;
@@ -54,9 +55,8 @@ impl DefaultAreaStore {
         })
     }
 
-    pub fn get_full_table_path(&self, source: &AreaSourceReference) -> Result<String> {
-        let location: AreaPath = source.into();
-        Ok(format!("{}/{}", self.root_path, location.as_ref()))
+    pub fn get_full_table_path(&self, source: &AreaPath) -> Result<String> {
+        Ok(format!("{}/{}", self.root_path, source.as_ref()))
     }
 
     pub async fn build_index(&self) -> Result<()> {
@@ -82,6 +82,14 @@ impl AreaStore for DefaultAreaStore {
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {
         // TODO only actually load first file and also make this work for delta
         let area_path = AreaPath::from(source);
+        let is_delta = is_delta_location(self.object_store().clone(), &area_path).await?;
+
+        if is_delta {
+            let full_path = self.get_full_table_path(&area_path)?;
+            let table = open_table(&full_path).await?;
+            return Ok(Arc::new(table.get_schema()?.try_into()?));
+        }
+
         let files = self.get_location_files(&area_path).await?;
         let reader = self.open_file(&files[0].clone().into(), None).await?;
         Ok(reader.schema())
@@ -137,7 +145,6 @@ impl AreaStore for DefaultAreaStore {
 mod tests {
     use super::*;
     use crate::test_utils::get_record_batch;
-    use bytes::Bytes;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
         SaveMode,
@@ -185,46 +192,5 @@ mod tests {
 
         let schema = area_store.get_schema(&source).await.unwrap();
         assert_eq!(schema, batch.schema());
-    }
-
-    #[tokio::test]
-    async fn is_delta() {
-        let root = tempfile::tempdir().unwrap();
-        let area_root = root.path();
-        let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
-
-        let path = Path::parse("_ff_data/foo/_delta_log/00000000000.json").unwrap();
-        let data = Bytes::from("arbitrary data");
-        area_store
-            .object_store()
-            .put(&path, data.clone())
-            .await
-            .unwrap();
-
-        let table = TableReference::Location(AreaTableLocation {
-            name: "foo".to_string(),
-            areas: vec![],
-        });
-        let source = AreaSourceReference { table: Some(table) };
-
-        let is_delta = area_store.is_delta(&source.into()).await.unwrap();
-        assert!(is_delta);
-
-        let path = Path::parse("_ff_data/bar/00000000000.parquet").unwrap();
-        let data = Bytes::from("arbitrary data");
-        area_store
-            .object_store()
-            .put(&path, data.clone())
-            .await
-            .unwrap();
-
-        let table = TableReference::Location(AreaTableLocation {
-            name: "bar".to_string(),
-            areas: vec![],
-        });
-        let source = AreaSourceReference { table: Some(table) };
-
-        let is_delta = area_store.is_delta(&source.into()).await.unwrap();
-        assert!(!is_delta)
     }
 }

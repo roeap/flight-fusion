@@ -30,6 +30,7 @@ pub use utils::*;
 pub use writer::*;
 
 const DATA_FOLDER_NAME: &str = "_ff_data";
+const DELTA_LOG_FOLDER_NAME: &str = "_delta_log";
 
 #[async_trait]
 pub trait AreaStore: Send + Sync {
@@ -50,17 +51,6 @@ pub trait AreaStore: Send + Sync {
 
     /// Read batches from location
     async fn get_batches(&self, location: &AreaPath) -> Result<Vec<RecordBatch>>;
-
-    async fn is_delta(&self, location: &AreaPath) -> Result<bool> {
-        let path: Path = location.into();
-        let path = path.child("_delta_log");
-        let res = match self.object_store().head(&path).await {
-            Ok(_) => Ok(true),
-            Err(ObjectStoreError::NotFound { .. }) => Ok(false),
-            Err(other) => Err(other),
-        }?;
-        Ok(res)
-    }
 
     /// Stream RecordBatches from a parquet file
     async fn open_file(
@@ -114,5 +104,70 @@ pub trait AreaStore: Send + Sync {
         }
 
         Ok(data_roots)
+    }
+}
+
+async fn is_delta_location(store: Arc<DynObjectStore>, location: &AreaPath) -> Result<bool> {
+    let path: Path = location.into();
+    let path = path.child(DELTA_LOG_FOLDER_NAME);
+    let res = match store.head(&path).await {
+        Ok(_) => Ok(true),
+        Err(ObjectStoreError::NotFound { .. }) => Ok(false),
+        Err(other) => Err(other),
+    }?;
+    Ok(res)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bytes::Bytes;
+    use flight_fusion_ipc::{
+        area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
+    };
+
+    #[tokio::test]
+    async fn is_delta() {
+        let root = tempfile::tempdir().unwrap();
+        let area_root = root.path();
+        let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
+
+        let path = Path::parse("_ff_data/foo/_delta_log/00000000000.json").unwrap();
+        let data = Bytes::from("arbitrary data");
+        area_store
+            .object_store()
+            .put(&path, data.clone())
+            .await
+            .unwrap();
+
+        let table = TableReference::Location(AreaTableLocation {
+            name: "foo".to_string(),
+            areas: vec![],
+        });
+        let source = AreaSourceReference { table: Some(table) };
+
+        let is_delta = is_delta_location(area_store.object_store().clone(), &source.into())
+            .await
+            .unwrap();
+        assert!(is_delta);
+
+        let path = Path::parse("_ff_data/bar/00000000000.parquet").unwrap();
+        let data = Bytes::from("arbitrary data");
+        area_store
+            .object_store()
+            .put(&path, data.clone())
+            .await
+            .unwrap();
+
+        let table = TableReference::Location(AreaTableLocation {
+            name: "bar".to_string(),
+            areas: vec![],
+        });
+        let source = AreaSourceReference { table: Some(table) };
+
+        let is_delta = is_delta_location(area_store.object_store().clone(), &source.into())
+            .await
+            .unwrap();
+        assert!(!is_delta)
     }
 }
