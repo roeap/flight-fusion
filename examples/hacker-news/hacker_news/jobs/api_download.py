@@ -1,5 +1,4 @@
 from dagster import AssetGroup, JobDefinition
-
 from hacker_news.assets import local_assets  # , prod_assets, staging_assets
 
 

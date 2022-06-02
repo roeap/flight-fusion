@@ -1,5 +1,4 @@
 from dagster import AssetGroup, in_process_executor
-
 from model_training.resources import RESOURCES_LOCAL
 
 from .model_training import ml_model, model_performance

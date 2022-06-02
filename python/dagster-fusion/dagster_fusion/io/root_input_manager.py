@@ -1,7 +1,6 @@
 from typing import Protocol, TypedDict
 
 from dagster import root_input_manager
-
 from dagster_fusion._types import TableReference, TypedInputContext
 from dagster_fusion.config import FIELD_COLUMN_SELECTION
 from dagster_fusion.errors import MissingConfiguration

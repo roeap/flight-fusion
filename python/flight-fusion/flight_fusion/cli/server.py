@@ -107,7 +107,6 @@ def daemon():
 @click_async
 async def mlserver(host: str = "http://localhost", port: int = 5000):
     from mlserver.cli.serve import load_settings
-
     from mlserver_fusion.server import MLServer
 
     workdir = get_app_directory().absolute() / MLSERVER_DIR

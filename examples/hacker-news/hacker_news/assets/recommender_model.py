@@ -1,10 +1,9 @@
 import random
 
 from dagster import AssetIn, MetadataValue, Output, asset
+from hacker_news.assets.user_story_matrix import IndexedCooMatrix
 from pandas import DataFrame, Series
 from sklearn.decomposition import TruncatedSVD
-
-from hacker_news.assets.user_story_matrix import IndexedCooMatrix
 
 
 @asset(namespace=["demo", "hacker"], required_resource_keys={"mlflow"})

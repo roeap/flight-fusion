@@ -13,7 +13,6 @@ from mlserver.registry import MultiModelRegistry
 # from mlserver.repository import ModelRepository
 from mlserver.rest import RESTServer
 from mlserver.settings import ModelSettings, Settings
-
 from mlserver_fusion.repository import MlFlowRepository
 
 HANDLED_SIGNALS = [signal.SIGINT, signal.SIGTERM]

@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 
 from dagster import MetadataEntry, Output, asset, check
-
 from hacker_news.partitions import hourly_partitions
 
 
