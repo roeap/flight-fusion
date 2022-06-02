@@ -10,7 +10,7 @@ def test_roundtrip(fusion_client: FusionServiceClient):
     np.random.seed(42)
     df = pd.DataFrame(np.random.randn(5, 3), columns=["col1", "col2", "col3"])
 
-    fds = fusion_client.get_versioned_dataset_client(AssetKey(["test_roundtrip_versioned", "table"]))
+    fds = fusion_client.get_dataset_client(AssetKey(["test_roundtrip_versioned", "table"]))
     fds.write_into(df, SaveMode.SAVE_MODE_OVERWRITE)
 
     df_loaded = fds.load().to_pandas()
@@ -22,7 +22,7 @@ def test_save_mode(fusion_client: FusionServiceClient):
     np.random.seed(42)
     df = pd.DataFrame(np.random.randn(5, 3), columns=["col1", "col2", "col3"])
 
-    fds = fusion_client.get_versioned_dataset_client(AssetKey(["test_save_mode", "table"]))
+    fds = fusion_client.get_dataset_client(AssetKey(["test_save_mode", "table"]))
 
     fds.write_into(df, SaveMode.SAVE_MODE_OVERWRITE)
     df_loaded = fds.load().to_pandas()
@@ -41,7 +41,7 @@ def test_load_columns(fusion_client: FusionServiceClient):
     np.random.seed(42)
     df = pd.DataFrame(np.random.randn(5, 3), columns=["col1", "col2", "col3"])
 
-    fds = fusion_client.get_versioned_dataset_client(AssetKey(["test_load_columns", "data"]))
+    fds = fusion_client.get_dataset_client(AssetKey(["test_load_columns", "data"]))
 
     fds.write_into(df, SaveMode.SAVE_MODE_OVERWRITE)
     df_query = fds.load(columns=["col1", "col3"]).to_pandas()

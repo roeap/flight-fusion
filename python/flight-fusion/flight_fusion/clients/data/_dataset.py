@@ -79,8 +79,7 @@ class BaseDatasetClient(BaseClient):
         raise NotImplementedError
 
     def get_metadata(self) -> AreaSourceMetadata:
-        request = pa_flight.FlightDescriptor.for_command(self._reference.SerializeToString())
-        return self._flight.get_flight_info(request)
+        return self._get_metadata(reference=self._reference)
 
     def set_metadata(self, metadata: AreaSourceMetadata | None = None) -> None:
         raise NotImplementedError

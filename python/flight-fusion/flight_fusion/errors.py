@@ -8,3 +8,7 @@ class TableSource(FlightFusionError):
 
 class ConfigError(FlightFusionError):
     pass
+
+
+class ResourceDoesNotExist(FlightFusionError):
+    pass

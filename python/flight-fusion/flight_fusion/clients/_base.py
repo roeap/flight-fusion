@@ -4,9 +4,14 @@ from betterproto import Message
 from pydantic import BaseSettings
 
 import flight_fusion.errors as errors
-from flight_fusion.ipc.v1alpha1 import AreaSourceReference, AreaTableLocation
+from flight_fusion.ipc.v1alpha1 import (
+    AreaSourceMetadata,
+    AreaSourceReference,
+    AreaTableLocation,
+)
 
 from ..asset_key import AssetKey
+from ..errors import ResourceDoesNotExist
 
 
 class ClientOptions(BaseSettings):
@@ -49,6 +54,14 @@ class BaseClient:
         ticket = pa_flight.Ticket(ticket=command.SerializeToString())
         reader = self._flight.do_get(ticket)
         return reader.read_all()
+
+    def _get_metadata(self, reference: AreaSourceReference) -> AreaSourceMetadata:
+        request = pa_flight.FlightDescriptor.for_command(reference.SerializeToString())
+        try:
+            flight_info = self._flight.get_flight_info(request)
+        except Exception:
+            raise ResourceDoesNotExist from None
+        return AreaSourceMetadata.FromString(flight_info.descriptor.command)
 
 
 def asset_key_to_source(asset_key: AssetKey) -> AreaSourceReference:

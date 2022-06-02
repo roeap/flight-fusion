@@ -88,6 +88,11 @@ impl AreaStore for DefaultAreaStore {
         }
 
         let files = self.get_location_files(&area_path).await?;
+        if files.is_empty() {
+            return Err(AreaStoreError::TableDoesNotExists(
+                "does not exist".to_string(),
+            ));
+        }
         let reader = self.open_file(&files[0].clone().into(), None).await?;
         Ok(reader.schema())
     }

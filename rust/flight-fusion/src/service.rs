@@ -2,7 +2,7 @@ use crate::stream::{
     raw_stream_to_flight_data_stream, stream_flight_data, FlightDataReceiver, FlightDataSender,
 };
 use crate::{error::FusionServiceError, handlers::*};
-use area_store::store::{AreaPath, AreaStore, DefaultAreaStore};
+use area_store::store::{is_delta_location, AreaPath, AreaStore, DefaultAreaStore};
 use arrow_deps::datafusion::{
     arrow::{datatypes::Schema, ipc::writer::IpcWriteOptions},
     catalog::{
@@ -21,8 +21,8 @@ use arrow_flight::{
 use flight_fusion_ipc::{
     area_source_reference::Table, flight_action_request::Action as FusionAction,
     flight_do_get_request::Command as DoGetCommand, flight_do_put_request::Command as DoPutCommand,
-    serialize_message, AreaSourceReference, CommandListSources, FlightActionRequest,
-    FlightDoGetRequest,
+    serialize_message, AreaSourceMetadata, AreaSourceReference, CommandListSources,
+    FlightActionRequest, FlightDoGetRequest,
 };
 use futures::Stream;
 use observability_deps::opentelemetry::{global, propagation::Extractor};
@@ -211,23 +211,34 @@ impl FlightService for FlightFusionService {
             global::get_text_map_propagator(|prop| prop.extract(&MetadataMap(request.metadata())));
         tracing::Span::current().set_parent(parent_cx);
 
-        let command: AreaSourceReference = request
+        let source: AreaSourceReference = request
             .into_inner()
             .try_into()
             .map_err(|_| tonic::Status::invalid_argument("failed to decode command".to_string()))?;
 
         let schema = self
             .area_store
-            .get_schema(&command)
+            .get_schema(&source)
             .await
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+            .map_err(|e| tonic::Status::not_found(e.to_string()))?;
 
         let options = IpcWriteOptions::default();
         let schema_result = SchemaAsIpc::new(&schema, &options);
 
+        let is_versioned =
+            is_delta_location(self.area_store.object_store(), &source.clone().into())
+                .await
+                .map_err(|e| tonic::Status::internal(e.to_string()))?;
+
+        let area_info = AreaSourceMetadata {
+            source: Some(source),
+            is_versioned,
+            ..AreaSourceMetadata::default()
+        };
+
         let descriptor = FlightDescriptor {
             r#type: DescriptorType::Cmd.into(),
-            cmd: vec![],
+            cmd: area_info.encode_to_vec(),
             ..FlightDescriptor::default()
         };
         let info = FlightInfo::new(

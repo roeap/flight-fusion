@@ -69,7 +69,7 @@ pub trait AreaStore: Send + Sync {
             .collect::<Vec<_>>())
     }
 
-    async fn delete_location(&self, _location: &Path) -> Result<()> {
+    async fn delete_location(&self, _location: &AreaPath) -> Result<()> {
         todo!()
     }
 
@@ -91,7 +91,7 @@ pub trait AreaStore: Send + Sync {
     }
 }
 
-async fn is_delta_location(store: Arc<DynObjectStore>, location: &AreaPath) -> Result<bool> {
+pub async fn is_delta_location(store: Arc<DynObjectStore>, location: &AreaPath) -> Result<bool> {
     let path: Path = location.into();
     let path = path.child(DELTA_LOG_FOLDER_NAME);
     let res = match store.head(&path).await {
@@ -102,7 +102,7 @@ async fn is_delta_location(store: Arc<DynObjectStore>, location: &AreaPath) -> R
     Ok(res)
 }
 
-async fn open_file(
+pub async fn open_file(
     store: Arc<DynObjectStore>,
     file: &AreaPath,
     column_indices: Option<Vec<usize>>,

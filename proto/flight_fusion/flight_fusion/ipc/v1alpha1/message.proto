@@ -94,6 +94,12 @@ message AreaSourceMetadata {
   // and purpose of the data source
   string description = 3;
 
+  // wether the table supports versioning
+  bool is_versioned = 4;
+
+  // source identifier
+  AreaSourceReference source = 5;
+
   // tags associated with source
   repeated Tag tags = 9;
 

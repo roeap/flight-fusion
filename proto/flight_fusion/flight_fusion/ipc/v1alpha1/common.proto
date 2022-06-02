@@ -56,26 +56,6 @@ message AreaSourceReference {
   }
 }
 
-message AreaInfo {
-  // unique identifier of the area
-  string id = 1;
-
-  // a human readble name of the area
-  string name = 2;
-
-  // short descriptive test about the are
-  string description = 3;
-
-  // wether the table supports versioning
-  bool is_versioned = 4;
-
-  // source identifier
-  AreaSourceReference source = 5;
-
-  // metadata attached to area
-  map<string, string> metadata = 6;
-}
-
 message SourceCollection {
   repeated AreaSourceReference sources = 1;
 }
