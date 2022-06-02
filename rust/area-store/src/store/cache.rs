@@ -127,16 +127,28 @@ mod tests {
             .await
             .unwrap();
 
+        let files = cached_store.get_location_files(&path).await.unwrap();
+
         // On first read, the file contents should not yet be cached
-        let batches = collect(cached_store.open_file(&path, None).await.unwrap())
-            .await
-            .unwrap();
+        let batches = collect(
+            cached_store
+                .open_file(&files[0].clone().into(), None)
+                .await
+                .unwrap(),
+        )
+        .await
+        .unwrap();
         assert_eq!(batches[0], batch);
 
         // After loading the batches from file, file contents should be cached.
-        let batches = collect(cached_store.open_file(&path, None).await.unwrap())
-            .await
-            .unwrap();
+        let batches = collect(
+            cached_store
+                .open_file(&files[0].clone().into(), None)
+                .await
+                .unwrap(),
+        )
+        .await
+        .unwrap();
         assert_eq!(batches[0], batch)
     }
 
@@ -171,9 +183,16 @@ mod tests {
         let schema = cached_store.get_schema(&source).await.unwrap();
         assert_eq!(schema, batch.schema());
 
-        let batches = collect(cached_store.open_file(&path, None).await.unwrap())
-            .await
-            .unwrap();
+        let files = cached_store.get_location_files(&path).await.unwrap();
+
+        let batches = collect(
+            cached_store
+                .open_file(&files[0].clone().into(), None)
+                .await
+                .unwrap(),
+        )
+        .await
+        .unwrap();
         assert_eq!(batches[0], batch);
 
         // After loading the batches from file, file contents should be cached.
