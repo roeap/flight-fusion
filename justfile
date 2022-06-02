@@ -23,7 +23,7 @@ generate-proto:
 
     @echo 'tidy up some code'
     black .
-    isort --profile black .
+    isort --profile=black .
 
     @echo 'cleaning up'
     rm -r tmp-proto
