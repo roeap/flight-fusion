@@ -54,21 +54,6 @@ class TableReference(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
-class EntityUri(betterproto.Message):
-    uri: str = betterproto.string_field(1)
-
-
-@dataclass(eq=False, repr=False)
-class EntityId(betterproto.Message):
-    id: str = betterproto.string_field(1)
-
-
-@dataclass(eq=False, repr=False)
-class EntityPath(betterproto.Message):
-    path: List[str] = betterproto.string_field(1)
-
-
-@dataclass(eq=False, repr=False)
 class AreaTableLocation(betterproto.Message):
     name: str = betterproto.string_field(1)
     areas: List[str] = betterproto.string_field(2)
