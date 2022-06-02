@@ -3,10 +3,11 @@ import json
 import dash_antd as dadc
 import plotly.express as px
 import plotly.graph_objects as go
-from app.context import ctx
-from app.themes import theme_light
 from dash import register_page  # type: ignore
 from dash import Input, Output, State, callback, dcc, no_update
+
+from app.context import ctx
+from app.themes import theme_light
 
 register_page(path="/", title="Explorer", icon="ControlOutlined")  # type: ignore
 

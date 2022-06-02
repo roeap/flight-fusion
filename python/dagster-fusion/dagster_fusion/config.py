@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from dagster import Array, AssetKey, Enum, Field, Selector, Shape, String
+
 from dagster_fusion._types import TableReference
 from dagster_fusion.errors import MissingConfiguration
-
 from flight_fusion.ipc.v1alpha1 import AreaSourceReference, AreaTableLocation, SaveMode
 
 _KEY_SEPARATOR = "/"

@@ -1,4 +1,5 @@
 from dagster import AssetGroup, in_process_executor
+
 from dagster_fusion import (
     flight_fusion_io_manager,
     flight_fusion_loader,

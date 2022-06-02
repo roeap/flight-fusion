@@ -371,7 +371,7 @@ class GrpcInferenceServiceBase(ServiceBase):
         await stream.send_message(response)
 
     async def __rpc_model_ready(self, stream: grpclib.server.Stream) -> None:
-        request = await stream.recv_message()
+        request = await stream.recv_message()  # noqa
 
         request_kwargs = {
             "name": request.name,

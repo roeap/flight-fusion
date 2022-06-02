@@ -366,6 +366,7 @@ class FlightDoPutRequest(betterproto.Message):
 
     # Write data into a registered source
     storage: "CommandWriteIntoDataset" = betterproto.message_field(2, group="command")
+    # Write data into delta table
     delta: "DeltaOperationRequest" = betterproto.message_field(3, group="command")
 
 

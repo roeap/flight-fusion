@@ -1,8 +1,8 @@
 from typing import TypedDict
 
 from dagster import resource
-from dagster_fusion._types import TypedInitResourceContext
 
+from dagster_fusion._types import TypedInitResourceContext
 from flight_fusion import ClientOptions, FusionServiceClient
 
 

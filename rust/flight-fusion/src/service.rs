@@ -189,8 +189,7 @@ impl FlightService for FlightFusionService {
 
             Ok(FlightInfo::new(
                 IpcMessage::try_from(schema_result)
-                    .map_err(|e| tonic::Status::internal(e.to_string()))
-                    .unwrap(),
+                    .map_err(|e| tonic::Status::internal(e.to_string()))?,
                 Some(descriptor),
                 vec![],
                 -1,

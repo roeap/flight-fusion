@@ -28,6 +28,8 @@ message FlightDoPutRequest {
   oneof command {
     // Write data into a registered source
     CommandWriteIntoDataset storage = 2;
+
+    // Write data into delta table
     DeltaOperationRequest delta = 3;
   }
 }

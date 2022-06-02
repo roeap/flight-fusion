@@ -1250,11 +1250,7 @@ class DatabricksMlflowArtifactsServiceStub(betterproto.ServiceStub):
 
 class ModelRegistryServiceStub(betterproto.ServiceStub):
     async def create_registered_model(
-        self,
-        *,
-        name: str = "",
-        tags: Optional[List["RegisteredModelTag"]] = None,
-        description: str = "",
+        self, *, name: str = "", tags: Optional[List["RegisteredModelTag"]] = None, description: str = ""
     ) -> "CreateRegisteredModelResponse":
         tags = tags or []
 
@@ -1319,12 +1315,7 @@ class ModelRegistryServiceStub(betterproto.ServiceStub):
         )
 
     async def search_registered_models(
-        self,
-        *,
-        filter: str = "",
-        max_results: int = 0,
-        order_by: Optional[List[str]] = None,
-        page_token: str = "",
+        self, *, filter: str = "", max_results: int = 0, order_by: Optional[List[str]] = None, page_token: str = ""
     ) -> "SearchRegisteredModelsResponse":
         order_by = order_by or []
 
@@ -1412,12 +1403,7 @@ class ModelRegistryServiceStub(betterproto.ServiceStub):
         )
 
     async def transition_model_version_stage(
-        self,
-        *,
-        name: str = "",
-        version: str = "",
-        stage: str = "",
-        archive_existing_versions: bool = False,
+        self, *, name: str = "", version: str = "", stage: str = "", archive_existing_versions: bool = False
     ) -> "TransitionModelVersionStageResponse":
 
         request = TransitionModelVersionStage()
@@ -1457,12 +1443,7 @@ class ModelRegistryServiceStub(betterproto.ServiceStub):
         )
 
     async def search_model_versions(
-        self,
-        *,
-        filter: str = "",
-        max_results: int = 0,
-        order_by: Optional[List[str]] = None,
-        page_token: str = "",
+        self, *, filter: str = "", max_results: int = 0, order_by: Optional[List[str]] = None, page_token: str = ""
     ) -> "SearchModelVersionsResponse":
         order_by = order_by or []
 
@@ -1564,11 +1545,7 @@ class MlflowServiceStub(betterproto.ServiceStub):
         )
 
     async def create_experiment(
-        self,
-        *,
-        name: str = "",
-        artifact_location: str = "",
-        tags: Optional[List["ExperimentTag"]] = None,
+        self, *, name: str = "", artifact_location: str = "", tags: Optional[List["ExperimentTag"]] = None
     ) -> "CreateExperimentResponse":
         tags = tags or []
 
@@ -1625,12 +1602,7 @@ class MlflowServiceStub(betterproto.ServiceStub):
         return await self._unary_unary("/mlflow.MlflowService/updateExperiment", request, UpdateExperimentResponse)
 
     async def create_run(
-        self,
-        *,
-        experiment_id: str = "",
-        user_id: str = "",
-        start_time: int = 0,
-        tags: Optional[List["RunTag"]] = None,
+        self, *, experiment_id: str = "", user_id: str = "", start_time: int = 0, tags: Optional[List["RunTag"]] = None
     ) -> "CreateRunResponse":
         tags = tags or []
 
