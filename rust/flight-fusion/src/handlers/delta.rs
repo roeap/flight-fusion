@@ -43,7 +43,7 @@ impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
         input: SendableRecordBatchStream,
     ) -> Result<DeltaOperationResponse> {
         if let Some(source) = ticket.source {
-            let full_path = self.area_store.get_full_table_path(&source)?;
+            let full_path = self.area_store.get_full_table_path(&source.into())?;
             let mut delta_cmd = DeltaCommands::try_from_uri(full_path).await?;
             let batches = collect(input).await?;
 
@@ -81,7 +81,7 @@ impl DoGetHandler<DeltaOperationRequest> for FlightFusionService {
         ticket: DeltaOperationRequest,
     ) -> Result<SendableRecordBatchStream> {
         if let Some(source) = ticket.source {
-            let full_path = self.area_store.get_full_table_path(&source)?;
+            let full_path = self.area_store.get_full_table_path(&source.into())?;
             let table = open_table(&full_path).await?;
             let files = table
                 .get_file_uris()

@@ -1,6 +1,7 @@
 use arrow_deps::{
     arrow::{datatypes::SchemaRef, error::ArrowError},
     datafusion::{error::DataFusionError, parquet::errors::ParquetError},
+    deltalake::DeltaTableError,
 };
 use file_cache::DiskCacheError;
 use std::sync::Arc;
@@ -68,6 +69,13 @@ pub enum AreaStoreError {
         /// The wrapped [`DataFusionError`]
         #[from]
         source: DataFusionError,
+    },
+
+    #[error("Error in Delta: {source}")]
+    Delta {
+        /// The wrapped [`DeltaTableError`]
+        #[from]
+        source: DeltaTableError,
     },
 }
 

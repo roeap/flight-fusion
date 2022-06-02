@@ -1,9 +1,8 @@
-use super::{stats, writer::*, AreaPath, AreaStore};
+use super::{is_delta_location, stats, writer::*, AreaPath, AreaStore};
 use crate::error::{AreaStoreError, Result};
 use arrow_deps::arrow::record_batch::*;
-use arrow_deps::datafusion::{
-    arrow::datatypes::SchemaRef as ArrowSchemaRef, physical_plan::common::collect,
-};
+use arrow_deps::datafusion::arrow::datatypes::SchemaRef as ArrowSchemaRef;
+use arrow_deps::deltalake::open_table;
 use async_trait::async_trait;
 use flight_fusion_ipc::{AreaSourceReference, SaveMode};
 use futures::TryStreamExt;
@@ -54,9 +53,8 @@ impl DefaultAreaStore {
         })
     }
 
-    pub fn get_full_table_path(&self, source: &AreaSourceReference) -> Result<String> {
-        let location: AreaPath = source.into();
-        Ok(format!("{}/{}", self.root_path, location.as_ref()))
+    pub fn get_full_table_path(&self, source: &AreaPath) -> Result<String> {
+        Ok(format!("{}/{}", self.root_path, source.as_ref()))
     }
 
     pub async fn build_index(&self) -> Result<()> {
@@ -80,8 +78,15 @@ impl AreaStore for DefaultAreaStore {
     }
 
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {
-        // TODO only actually load first file and also make this work for delta
         let area_path = AreaPath::from(source);
+        let is_delta = is_delta_location(self.object_store().clone(), &area_path).await?;
+
+        if is_delta {
+            let full_path = self.get_full_table_path(&area_path)?;
+            let table = open_table(&full_path).await?;
+            return Ok(Arc::new(table.get_schema()?.try_into()?));
+        }
+
         let files = self.get_location_files(&area_path).await?;
         let reader = self.open_file(&files[0].clone().into(), None).await?;
         Ok(reader.schema())
@@ -120,23 +125,14 @@ impl AreaStore for DefaultAreaStore {
             _ => writer.flush(location).await,
         }
     }
-
-    /// Read batches from location
-    async fn get_batches(&self, location: &AreaPath) -> Result<Vec<RecordBatch>> {
-        let files = self.get_location_files(location).await?;
-        let mut batches = Vec::new();
-        for file in files {
-            let mut batch = collect(self.open_file(&file.into(), None).await?).await?;
-            batches.append(&mut batch);
-        }
-        Ok(batches)
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::get_record_batch;
+    use crate::test_utils::{get_record_batch, workspace_test_data_folder};
+    use arrow_deps::arrow::datatypes::{DataType, Field, Schema, TimeUnit};
+    use arrow_deps::datafusion::physical_plan::common::collect;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
         SaveMode,
@@ -146,7 +142,7 @@ mod tests {
     async fn test_put_get_batches() {
         let root = tempfile::tempdir().unwrap();
         let area_store = DefaultAreaStore::try_new(root.path()).unwrap();
-        let location = AreaPath::default();
+        let location: AreaPath = Path::from("_ff_data/test").into();
 
         let batch = crate::test_utils::get_record_batch(None, false);
         area_store
@@ -158,7 +154,17 @@ mod tests {
             .await
             .unwrap();
 
-        let read_batch = area_store.get_batches(&location).await.unwrap();
+        let files = area_store.get_location_files(&location).await.unwrap();
+
+        let read_batch = collect(
+            area_store
+                .open_file(&files[0].clone().into(), None)
+                .await
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
         assert_eq!(batch, read_batch[0])
     }
 
@@ -184,5 +190,51 @@ mod tests {
 
         let schema = area_store.get_schema(&source).await.unwrap();
         assert_eq!(schema, batch.schema());
+    }
+
+    #[tokio::test]
+    async fn read_delta_schema() {
+        let area_root = workspace_test_data_folder();
+        let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
+
+        let ref_schema = Arc::new(Schema::new(vec![
+            Field::new(
+                "timestamp",
+                DataType::Timestamp(TimeUnit::Microsecond, None),
+                true,
+            ),
+            Field::new("date", DataType::Date32, true),
+            Field::new("string", DataType::Utf8, true),
+            Field::new("double", DataType::Float64, true),
+            Field::new("real", DataType::Float64, true),
+            Field::new("float", DataType::Float64, true),
+        ]));
+
+        let source = AreaSourceReference {
+            table: Some(TableReference::Location(AreaTableLocation {
+                name: "date".to_string(),
+                areas: vec!["delta".to_string(), "partitioned".to_string()],
+            })),
+        };
+        let schema = area_store.get_schema(&source).await.unwrap();
+        assert_eq!(ref_schema, schema);
+
+        let source = AreaSourceReference {
+            table: Some(TableReference::Location(AreaTableLocation {
+                name: "string".to_string(),
+                areas: vec!["delta".to_string(), "partitioned".to_string()],
+            })),
+        };
+        let schema = area_store.get_schema(&source).await.unwrap();
+        assert_eq!(ref_schema, schema);
+
+        let source = AreaSourceReference {
+            table: Some(TableReference::Location(AreaTableLocation {
+                name: "simple".to_string(),
+                areas: vec!["delta".to_string()],
+            })),
+        };
+        let schema = area_store.get_schema(&source).await.unwrap();
+        assert_eq!(ref_schema, schema);
     }
 }

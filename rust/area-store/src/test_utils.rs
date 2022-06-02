@@ -9,7 +9,14 @@ use arrow_deps::datafusion::arrow::{
     datatypes::{DataType, Field, Schema as ArrowSchema},
     record_batch::RecordBatch,
 };
+use std::path::PathBuf;
 use std::sync::Arc;
+
+pub fn workspace_test_data_folder() -> PathBuf {
+    let ws_root = crate::test_utils::workspace_root().unwrap();
+    let ws_root = std::path::Path::new(&ws_root);
+    ws_root.join("test/db")
+}
 
 /// Run cargo to get the root of the workspace
 pub fn workspace_root() -> Result<String, Box<dyn std::error::Error>> {

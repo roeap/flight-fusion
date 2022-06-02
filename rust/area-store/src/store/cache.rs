@@ -81,22 +81,7 @@ impl AreaStore for CachedAreaStore {
     }
 
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {
-        let area_path = AreaPath::from(source);
-        let location = self
-            .get_location_files(&area_path)
-            .await?
-            .first()
-            .unwrap()
-            .clone();
-        if self.file_in_cache(&location).await {
-            // TODO remove panic
-            // TODO use async ArrowReader as well
-            let mut cache = self.cache.write().unwrap();
-            let file_reader = StreamReader::try_new(cache.get(location.as_ref())?, None)?;
-            Ok(file_reader.schema())
-        } else {
-            self.store.get_schema(source).await
-        }
+        self.store.get_schema(source).await
     }
 
     async fn put_batches(
@@ -108,15 +93,7 @@ impl AreaStore for CachedAreaStore {
         self.store.put_batches(batches, location, save_mode).await
     }
 
-    async fn get_batches(&self, location: &AreaPath) -> Result<Vec<RecordBatch>> {
-        let files = self.get_location_files(location).await?;
-        let mut batches = Vec::new();
-        for file in files {
-            let mut file_batches = self.load_or_cache(&file).await?;
-            batches.append(&mut file_batches);
-        }
-        Ok(batches)
-    }
+    // TODO implement cached open_file
 }
 
 #[cfg(test)]
@@ -150,12 +127,28 @@ mod tests {
             .await
             .unwrap();
 
+        let files = cached_store.get_location_files(&path).await.unwrap();
+
         // On first read, the file contents should not yet be cached
-        let batches = cached_store.get_batches(&path).await.unwrap();
+        let batches = collect(
+            cached_store
+                .open_file(&files[0].clone().into(), None)
+                .await
+                .unwrap(),
+        )
+        .await
+        .unwrap();
         assert_eq!(batches[0], batch);
 
         // After loading the batches from file, file contents should be cached.
-        let batches = cached_store.get_batches(&path).await.unwrap();
+        let batches = collect(
+            cached_store
+                .open_file(&files[0].clone().into(), None)
+                .await
+                .unwrap(),
+        )
+        .await
+        .unwrap();
         assert_eq!(batches[0], batch)
     }
 
@@ -190,7 +183,16 @@ mod tests {
         let schema = cached_store.get_schema(&source).await.unwrap();
         assert_eq!(schema, batch.schema());
 
-        let batches = cached_store.get_batches(&path).await.unwrap();
+        let files = cached_store.get_location_files(&path).await.unwrap();
+
+        let batches = collect(
+            cached_store
+                .open_file(&files[0].clone().into(), None)
+                .await
+                .unwrap(),
+        )
+        .await
+        .unwrap();
         assert_eq!(batches[0], batch);
 
         // After loading the batches from file, file contents should be cached.

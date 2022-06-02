@@ -24,12 +24,14 @@ pub use basic::DefaultAreaStore;
 pub use cache::CachedAreaStore;
 use flight_fusion_ipc::{AreaSourceReference, SaveMode};
 use futures::TryStreamExt;
-use object_store::{path::Path, DynObjectStore};
+use object_store::{path::Path, DynObjectStore, Error as ObjectStoreError};
 use std::sync::Arc;
 pub use utils::*;
 pub use writer::*;
 
 const DATA_FOLDER_NAME: &str = "_ff_data";
+const DELTA_LOG_FOLDER_NAME: &str = "_delta_log";
+const DEFAULT_BATCH_SIZE: usize = 2048;
 
 #[async_trait]
 pub trait AreaStore: Send + Sync {
@@ -48,9 +50,6 @@ pub trait AreaStore: Send + Sync {
         save_mode: SaveMode,
     ) -> Result<Vec<stats::Add>>;
 
-    /// Read batches from location
-    async fn get_batches(&self, location: &AreaPath) -> Result<Vec<RecordBatch>>;
-
     /// Stream RecordBatches from a parquet file
     async fn open_file(
         &self,
@@ -62,8 +61,8 @@ pub trait AreaStore: Send + Sync {
         let file_reader = Arc::new(SerializedFileReader::new(cursor)?);
         let mut arrow_reader = ParquetFileArrowReader::new(file_reader);
         let record_batch_reader = match column_indices {
-            Some(indices) => arrow_reader.get_record_reader_by_columns(indices, 2048),
-            None => arrow_reader.get_record_reader(2048),
+            Some(indices) => arrow_reader.get_record_reader_by_columns(indices, DEFAULT_BATCH_SIZE),
+            None => arrow_reader.get_record_reader(DEFAULT_BATCH_SIZE),
         }?;
 
         Ok(Box::pin(RecordBatchStreamAdapter::new(
@@ -103,5 +102,70 @@ pub trait AreaStore: Send + Sync {
         }
 
         Ok(data_roots)
+    }
+}
+
+async fn is_delta_location(store: Arc<DynObjectStore>, location: &AreaPath) -> Result<bool> {
+    let path: Path = location.into();
+    let path = path.child(DELTA_LOG_FOLDER_NAME);
+    let res = match store.head(&path).await {
+        Ok(_) => Ok(true),
+        Err(ObjectStoreError::NotFound { .. }) => Ok(false),
+        Err(other) => Err(other),
+    }?;
+    Ok(res)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bytes::Bytes;
+    use flight_fusion_ipc::{
+        area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
+    };
+
+    #[tokio::test]
+    async fn is_delta() {
+        let root = tempfile::tempdir().unwrap();
+        let area_root = root.path();
+        let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
+
+        let path = Path::parse("_ff_data/foo/_delta_log/00000000000.json").unwrap();
+        let data = Bytes::from("arbitrary data");
+        area_store
+            .object_store()
+            .put(&path, data.clone())
+            .await
+            .unwrap();
+
+        let table = TableReference::Location(AreaTableLocation {
+            name: "foo".to_string(),
+            areas: vec![],
+        });
+        let source = AreaSourceReference { table: Some(table) };
+
+        let is_delta = is_delta_location(area_store.object_store().clone(), &source.into())
+            .await
+            .unwrap();
+        assert!(is_delta);
+
+        let path = Path::parse("_ff_data/bar/00000000000.parquet").unwrap();
+        let data = Bytes::from("arbitrary data");
+        area_store
+            .object_store()
+            .put(&path, data.clone())
+            .await
+            .unwrap();
+
+        let table = TableReference::Location(AreaTableLocation {
+            name: "bar".to_string(),
+            areas: vec![],
+        });
+        let source = AreaSourceReference { table: Some(table) };
+
+        let is_delta = is_delta_location(area_store.object_store().clone(), &source.into())
+            .await
+            .unwrap();
+        assert!(!is_delta)
     }
 }
