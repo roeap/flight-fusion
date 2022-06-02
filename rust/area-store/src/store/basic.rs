@@ -78,7 +78,6 @@ impl AreaStore for DefaultAreaStore {
     }
 
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {
-        // TODO only actually load first file and also make this work for delta
         let area_path = AreaPath::from(source);
         let is_delta = is_delta_location(self.object_store().clone(), &area_path).await?;
 
@@ -143,7 +142,7 @@ mod tests {
     async fn test_put_get_batches() {
         let root = tempfile::tempdir().unwrap();
         let area_store = DefaultAreaStore::try_new(root.path()).unwrap();
-        let location = AreaPath::default();
+        let location: AreaPath = Path::from("_ff_data/test").into();
 
         let batch = crate::test_utils::get_record_batch(None, false);
         area_store
@@ -155,9 +154,17 @@ mod tests {
             .await
             .unwrap();
 
-        let read_batch = collect(area_store.open_file(&location, None).await.unwrap())
-            .await
-            .unwrap();
+        let files = area_store.get_location_files(&location).await.unwrap();
+
+        let read_batch = collect(
+            area_store
+                .open_file(&files[0].clone().into(), None)
+                .await
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
         assert_eq!(batch, read_batch[0])
     }
 

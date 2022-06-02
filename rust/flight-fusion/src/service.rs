@@ -422,8 +422,16 @@ fn to_tonic_err(e: FusionServiceError) -> Status {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_utils::workspace_test_data_folder;
+    use arrow_deps::arrow::datatypes::{DataType, Field, TimeUnit};
+    use arrow_flight::Ticket;
+    use flight_fusion_ipc::{
+        area_source_reference::Table as TableReference, delta_operation_request::Operation,
+        flight_do_get_request::Command, DeltaOperationRequest, DeltaReadOperation,
+        FlightDoGetRequest,
+    };
     use flight_fusion_ipc::{AreaTableLocation, CommandWriteIntoDataset, SaveMode};
-    use futures::TryStreamExt;
+    use futures::{StreamExt, TryStreamExt};
 
     #[tokio::test]
     async fn test_list_flights() {
@@ -515,5 +523,52 @@ mod tests {
 
         let arrow_schema: Arc<Schema> = Arc::new(IpcMessage(info.schema).try_into().unwrap());
         assert_eq!(ref_schema, arrow_schema)
+    }
+
+    #[tokio::test]
+    async fn do_get_delta() {
+        let area_root = workspace_test_data_folder().join("db");
+        let handler = crate::test_utils::get_fusion_handler(area_root);
+
+        let ref_schema = Arc::new(Schema::new(vec![
+            Field::new(
+                "timestamp",
+                DataType::Timestamp(TimeUnit::Microsecond, None),
+                true,
+            ),
+            Field::new("date", DataType::Date32, true),
+            Field::new("string", DataType::Utf8, true),
+            Field::new("double", DataType::Float64, true),
+            Field::new("real", DataType::Float64, true),
+            Field::new("float", DataType::Float64, true),
+        ]));
+
+        let op = FlightDoGetRequest {
+            command: Some(Command::Delta(DeltaOperationRequest {
+                source: Some(AreaSourceReference {
+                    table: Some(TableReference::Location(AreaTableLocation {
+                        name: "date".to_string(),
+                        areas: vec!["delta".to_string(), "partitioned".to_string()],
+                    })),
+                }),
+                operation: Some(Operation::Read(DeltaReadOperation::default())),
+            })),
+        };
+        let ticket = Ticket {
+            ticket: op.encode_to_vec(),
+        };
+        let response = handler
+            .do_get(Request::new(ticket))
+            .await
+            .unwrap()
+            .into_inner()
+            .next()
+            .await
+            .unwrap()
+            .unwrap();
+
+        let schema = Arc::new(Schema::try_from(&response).unwrap());
+
+        assert_eq!(ref_schema, schema)
     }
 }
