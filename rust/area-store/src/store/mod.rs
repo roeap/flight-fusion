@@ -4,7 +4,6 @@ mod cache;
 // mod file_index;
 mod area_path;
 mod stats;
-pub mod utils;
 pub mod writer;
 
 use crate::error::Result;
@@ -26,7 +25,6 @@ use flight_fusion_ipc::{AreaSourceReference, SaveMode};
 use futures::TryStreamExt;
 use object_store::{path::Path, DynObjectStore, Error as ObjectStoreError};
 use std::sync::Arc;
-pub use utils::*;
 pub use writer::*;
 
 const DATA_FOLDER_NAME: &str = "_ff_data";

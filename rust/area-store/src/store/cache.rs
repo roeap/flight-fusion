@@ -1,4 +1,4 @@
-use super::{stats, AreaPath, AreaStore};
+use super::{stats, AreaStore};
 use crate::error::Result;
 use arrow_deps::{
     arrow::{
@@ -99,7 +99,7 @@ impl AreaStore for CachedAreaStore {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::store::basic::DefaultAreaStore;
+    use crate::store::{basic::DefaultAreaStore, AreaPath};
     use crate::test_utils::get_record_batch;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,

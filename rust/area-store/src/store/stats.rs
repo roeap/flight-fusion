@@ -26,6 +26,8 @@ pub type MinAndMaxValues = (
     HashMap<String, ColumnValueStat>,
     HashMap<String, ColumnValueStat>,
 );
+use arrow_deps::arrow::temporal_conversions;
+use parquet_format::TimeUnit;
 
 #[derive(Debug, Clone)]
 // TODO move and rename to something useful
@@ -387,11 +389,8 @@ fn min_and_max_from_parquet_statistics(
 
             match column_descr.logical_type().as_ref() {
                 Some(LogicalType::Timestamp { unit, .. }) => {
-                    let min =
-                        min.map(|n| Value::String(utils::timestamp_to_delta_stats_string(n, unit)));
-                    let max =
-                        max.map(|n| Value::String(utils::timestamp_to_delta_stats_string(n, unit)));
-
+                    let min = min.map(|n| Value::String(timestamp_to_delta_stats_string(n, unit)));
+                    let max = max.map(|n| Value::String(timestamp_to_delta_stats_string(n, unit)));
                     Ok((min, max))
                 }
                 _ => {
@@ -469,6 +468,17 @@ fn arrow_array_from_bytes(
     let data = builder.build().unwrap();
 
     make_array(data)
+}
+
+/// Convert the timestamp to a ISO-8601 style format suitable for JSON statistics.
+pub fn timestamp_to_delta_stats_string(n: i64, time_unit: &TimeUnit) -> String {
+    let dt = match time_unit {
+        TimeUnit::MILLIS(_) => temporal_conversions::timestamp_ms_to_datetime(n),
+        TimeUnit::MICROS(_) => temporal_conversions::timestamp_us_to_datetime(n),
+        TimeUnit::NANOS(_) => temporal_conversions::timestamp_ns_to_datetime(n),
+    };
+
+    format!("{}", dt.format("%Y-%m-%dT%H:%M:%S%.3fZ"))
 }
 
 #[cfg(test)]
