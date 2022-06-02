@@ -71,9 +71,27 @@ class AreaTableUri(betterproto.Message):
 
 @dataclass(eq=False, repr=False)
 class AreaSourceReference(betterproto.Message):
+    """area identifier"""
+
     location: "AreaTableLocation" = betterproto.message_field(1, group="table")
     id: "AreaTableId" = betterproto.message_field(2, group="table")
     uri: "AreaTableUri" = betterproto.message_field(3, group="table")
+
+
+@dataclass(eq=False, repr=False)
+class AreaInfo(betterproto.Message):
+    # unique identifier of the area
+    id: str = betterproto.string_field(1)
+    # a human readble name of the area
+    name: str = betterproto.string_field(2)
+    # short descriptive test about the are
+    description: str = betterproto.string_field(3)
+    # wether the table supports versioning
+    is_versioned: bool = betterproto.bool_field(4)
+    # source identifier
+    source: "AreaSourceReference" = betterproto.message_field(5)
+    # metadata attached to area
+    metadata: Dict[str, str] = betterproto.map_field(6, betterproto.TYPE_STRING, betterproto.TYPE_STRING)
 
 
 @dataclass(eq=False, repr=False)

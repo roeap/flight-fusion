@@ -1,8 +1,6 @@
 syntax = "proto3";
 package flight_fusion.ipc.v1alpha1;
 
-// Constants
-
 // File format for a file stroed on disk
 enum FileFormat {
   // Undefined file format
@@ -49,12 +47,33 @@ message AreaTableUri {
   string uri = 1;
 }
 
+// area identifier
 message AreaSourceReference {
   oneof table {
     AreaTableLocation location = 1;
     AreaTableId id = 2;
     AreaTableUri uri = 3;
   }
+}
+
+message AreaInfo {
+  // unique identifier of the area
+  string id = 1;
+
+  // a human readble name of the area
+  string name = 2;
+
+  // short descriptive test about the are
+  string description = 3;
+
+  // wether the table supports versioning
+  bool is_versioned = 4;
+
+  // source identifier
+  AreaSourceReference source = 5;
+
+  // metadata attached to area
+  map<string, string> metadata = 6;
 }
 
 message SourceCollection {
