@@ -54,19 +54,7 @@ pub trait AreaStore: Send + Sync {
         file: &AreaPath,
         column_indices: Option<Vec<usize>>,
     ) -> Result<SendableRecordBatchStream> {
-        let bytes = self.object_store().get(&file.into()).await?.bytes().await?;
-        let cursor = SliceableCursor::new(Arc::new(bytes.to_vec()));
-        let file_reader = Arc::new(SerializedFileReader::new(cursor)?);
-        let mut arrow_reader = ParquetFileArrowReader::new(file_reader);
-        let record_batch_reader = match column_indices {
-            Some(indices) => arrow_reader.get_record_reader_by_columns(indices, DEFAULT_BATCH_SIZE),
-            None => arrow_reader.get_record_reader(DEFAULT_BATCH_SIZE),
-        }?;
-
-        Ok(Box::pin(RecordBatchStreamAdapter::new(
-            record_batch_reader.schema(),
-            futures::stream::iter(record_batch_reader),
-        )))
+        open_file(self.object_store(), file, column_indices).await
     }
 
     async fn get_location_files(&self, location: &AreaPath) -> Result<Vec<Path>> {
@@ -112,6 +100,26 @@ async fn is_delta_location(store: Arc<DynObjectStore>, location: &AreaPath) -> R
         Err(other) => Err(other),
     }?;
     Ok(res)
+}
+
+async fn open_file(
+    store: Arc<DynObjectStore>,
+    file: &AreaPath,
+    column_indices: Option<Vec<usize>>,
+) -> Result<SendableRecordBatchStream> {
+    let bytes = store.get(&file.into()).await?.bytes().await?;
+    let cursor = SliceableCursor::new(Arc::new(bytes.to_vec()));
+    let file_reader = Arc::new(SerializedFileReader::new(cursor)?);
+    let mut arrow_reader = ParquetFileArrowReader::new(file_reader);
+    let record_batch_reader = match column_indices {
+        Some(indices) => arrow_reader.get_record_reader_by_columns(indices, DEFAULT_BATCH_SIZE),
+        None => arrow_reader.get_record_reader(DEFAULT_BATCH_SIZE),
+    }?;
+
+    Ok(Box::pin(RecordBatchStreamAdapter::new(
+        record_batch_reader.schema(),
+        futures::stream::iter(record_batch_reader),
+    )))
 }
 
 #[cfg(test)]
