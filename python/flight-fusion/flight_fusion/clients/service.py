@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from functools import lru_cache
 from typing import TYPE_CHECKING, Iterable
 
 import pyarrow.flight as pa_flight
 
 from flight_fusion.asset_key import AssetKey
 from flight_fusion.clients import ContextClient, DatasetClient, VersionedDatasetClient
-from flight_fusion.ipc.v1alpha1 import AreaSourceMetadata, AreaSourceReference
+from flight_fusion.ipc.v1alpha1 import AreaSourceReference
 
 from ..errors import ResourceDoesNotExist
 from ._base import BaseClient, ClientOptions, asset_key_to_source
@@ -39,11 +38,6 @@ class FusionServiceClient(BaseClient):
     ) -> None:
         super().__init__(options=options)
 
-    @lru_cache
-    def _area_meta(self, asset_key: AssetKey) -> AreaSourceMetadata:
-        source = asset_key_to_source(asset_key=asset_key)
-        return self._get_metadata(reference=source)
-
     def get_context(self, refs: Iterable[AssetKey]) -> ContextClient:
         return ContextClient(
             sources=[asset_key_to_source(asset_key=ak) for ak in refs],
@@ -57,7 +51,7 @@ class FusionServiceClient(BaseClient):
 
     def get_dataset_client(self, asset_key: AssetKey) -> BaseDatasetClient:
         try:
-            meta = self._area_meta(asset_key)
+            meta = self._get_metadata(asset_key)
             versioned = meta.is_versioned
         except ResourceDoesNotExist:
             versioned = True

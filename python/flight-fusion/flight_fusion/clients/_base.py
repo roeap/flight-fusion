@@ -11,6 +11,7 @@ from flight_fusion.ipc.v1alpha1 import (
 )
 
 from ..asset_key import AssetKey
+from ..cache import timed_lru_cache
 from ..errors import ResourceDoesNotExist
 
 
@@ -21,6 +22,17 @@ class ClientOptions(BaseSettings):
 
     class Config:
         env_prefix = "ff_"
+
+
+@timed_lru_cache()
+def _area_meta(flight_client, asset_key: AssetKey) -> AreaSourceMetadata:
+    source = asset_key_to_source(asset_key=asset_key)
+    request = pa_flight.FlightDescriptor.for_command(source.SerializeToString())
+    try:
+        flight_info = flight_client.get_flight_info(request)
+    except Exception:
+        raise ResourceDoesNotExist from None
+    return AreaSourceMetadata.FromString(flight_info.descriptor.command)
 
 
 class BaseClient:
@@ -55,13 +67,8 @@ class BaseClient:
         reader = self._flight.do_get(ticket)
         return reader.read_all()
 
-    def _get_metadata(self, reference: AreaSourceReference) -> AreaSourceMetadata:
-        request = pa_flight.FlightDescriptor.for_command(reference.SerializeToString())
-        try:
-            flight_info = self._flight.get_flight_info(request)
-        except Exception:
-            raise ResourceDoesNotExist from None
-        return AreaSourceMetadata.FromString(flight_info.descriptor.command)
+    def _get_metadata(self, asset_key: AssetKey) -> AreaSourceMetadata:
+        return _area_meta(flight_client=self._flight, asset_key=asset_key)
 
 
 def asset_key_to_source(asset_key: AssetKey) -> AreaSourceReference:
