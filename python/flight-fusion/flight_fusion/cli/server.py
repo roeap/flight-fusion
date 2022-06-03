@@ -30,7 +30,7 @@ class LogLevel(str, Enum):
 
 
 @app.command()
-def start(host: str = "127.0.0.1", port: int = 50051, log_level: LogLevel = LogLevel.info):
+def flight(host: str = "127.0.0.1", port: int = 50051, log_level: LogLevel = LogLevel.info):
     """Run a local instance of the flight-fusion server"""
     logger.info("Starting flight-fusion server")
 
@@ -114,9 +114,3 @@ async def mlserver(host: str = "http://localhost", port: int = 5000):
 
     server = MLServer(settings, f"{host}:{port}")
     await server.start(models_settings)
-
-
-@app.command()
-def stop():
-    root = get_app_directory()
-    typer.echo(f"{root}")
