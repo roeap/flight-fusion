@@ -12,7 +12,7 @@ from loguru import logger
 
 from ._utils import DAGSTER_DIR, MLFLOW_DIR, MLSERVER_DIR, get_app_directory
 
-app = typer.Typer(name="server")
+app = typer.Typer(name="start")
 
 
 def click_async(f):
@@ -65,7 +65,7 @@ def mlflow(port: int = 5000):
             "--backend-store-uri",
             "sqlite:///mlruns.sqlite",
             "--default-artifact-root",
-            str(artifact_root),
+            f"fusion:/{str(artifact_root)}",
         ],
         cwd=str(workdir),
     )

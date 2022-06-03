@@ -368,7 +368,7 @@ test = ["pytest (>=6.2.0)", "pytest-benchmark", "pytest-cov", "pytest-subtests",
 
 [[package]]
 name = "dagit"
-version = "0.14.18"
+version = "0.14.19"
 description = "Web UI for dagster."
 category = "main"
 optional = false
@@ -376,8 +376,8 @@ python-versions = "*"
 
 [package.dependencies]
 click = ">=7.0,<9.0"
-dagster = "0.14.18"
-dagster-graphql = "0.14.18"
+dagster = "0.14.19"
+dagster-graphql = "0.14.19"
 nbconvert = "*"
 PyYAML = "*"
 requests = "*"
@@ -387,7 +387,7 @@ watchdog = ">=0.8.3"
 
 [[package]]
 name = "dagster"
-version = "0.14.18"
+version = "0.14.19"
 description = "The data orchestration platform built for productivity."
 category = "main"
 optional = false
@@ -448,14 +448,14 @@ url = "python/dagster-fusion"
 
 [[package]]
 name = "dagster-graphql"
-version = "0.14.18"
+version = "0.14.19"
 description = "The GraphQL frontend to python dagster."
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-dagster = "0.14.18"
+dagster = "0.14.19"
 gql = "<3"
 graphene = ">=2.1.3,<3"
 graphql-core = ">=2.1,<3"
@@ -3234,17 +3234,17 @@ cryptography = [
     {file = "cryptography-37.0.2.tar.gz", hash = "sha256:f224ad253cc9cea7568f49077007d2263efa57396a2f2f78114066fd54b5c68e"},
 ]
 dagit = [
-    {file = "dagit-0.14.18-py3-none-any.whl", hash = "sha256:3360e2405db2afc248948b86c4451ebc0fe3b79d4f3227ac15199a13fee4b8ce"},
-    {file = "dagit-0.14.18.tar.gz", hash = "sha256:410b1547760864f314196482897963f2d8f3c398a86d8e790f665f9b38d59839"},
+    {file = "dagit-0.14.19-py3-none-any.whl", hash = "sha256:c334d7575496210b9650f96b5fa2a7ac0dd9fd4c864f8014f064ba2f1526ff43"},
+    {file = "dagit-0.14.19.tar.gz", hash = "sha256:3ceed8cdc7104eef1c72a1f1972389a0e4a9ae336722530da0ebaa2e555370b8"},
 ]
 dagster = [
-    {file = "dagster-0.14.18-py3-none-any.whl", hash = "sha256:88e73a3c1aa9e797113bc2f753684fcd080003784afcab7974a0d3c007cab726"},
-    {file = "dagster-0.14.18.tar.gz", hash = "sha256:11d59d1ef0a6bde81f58d3bac5b2a0d00df42de2d3b7f7e062aea7d3d091e1a1"},
+    {file = "dagster-0.14.19-py3-none-any.whl", hash = "sha256:47236e5fd7e89a761193902a190ea389af121eacb23806c4a5928fcb1df63371"},
+    {file = "dagster-0.14.19.tar.gz", hash = "sha256:fa6ec293c5e3ad5d92af4c302d9e5000b120f1a0226e61e4d007910637cedb94"},
 ]
 dagster-fusion = []
 dagster-graphql = [
-    {file = "dagster-graphql-0.14.18.tar.gz", hash = "sha256:9b3ab853a526570a20c580110006d3395615b549d3fee4f93b0b924b7c10a645"},
-    {file = "dagster_graphql-0.14.18-py3-none-any.whl", hash = "sha256:ab51d7f403150487f400f6881967df02c5384b84445dbf927302df4bb0bd623c"},
+    {file = "dagster-graphql-0.14.19.tar.gz", hash = "sha256:7148054e734cb6929c72631a9af6219624cb1e07d3a41645e2f83ac0dc61747d"},
+    {file = "dagster_graphql-0.14.19-py3-none-any.whl", hash = "sha256:b41b46ed5b0b79b113e34b3cd854eaed1def83e4e75fc1018b0fc00cd19d1b47"},
 ]
 dagster-mlflow = [
     {file = "dagster-mlflow-0.14.17.tar.gz", hash = "sha256:67d8748a8e0ce89d2798723551896f4888741a5a590455dae885369d9167394c"},
