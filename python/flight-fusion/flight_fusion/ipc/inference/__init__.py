@@ -355,7 +355,7 @@ class GrpcInferenceServiceBase(ServiceBase):
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
     async def __rpc_server_live(self, stream: grpclib.server.Stream) -> None:
-        request = await stream.recv_message()  # noqa
+        request = await stream.recv_message()
 
         request_kwargs = {}
 
@@ -363,7 +363,7 @@ class GrpcInferenceServiceBase(ServiceBase):
         await stream.send_message(response)
 
     async def __rpc_server_ready(self, stream: grpclib.server.Stream) -> None:
-        request = await stream.recv_message()  # noqa
+        request = await stream.recv_message()
 
         request_kwargs = {}
 
@@ -382,7 +382,7 @@ class GrpcInferenceServiceBase(ServiceBase):
         await stream.send_message(response)
 
     async def __rpc_server_metadata(self, stream: grpclib.server.Stream) -> None:
-        request = await stream.recv_message()  # noqa
+        request = await stream.recv_message()
 
         request_kwargs = {}
 

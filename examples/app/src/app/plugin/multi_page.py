@@ -15,6 +15,7 @@ import flask
 from dash import Input, Output, callback, dcc, html
 
 _ID_CONTENT = "_pages_plugin_content"
+_ID_CONTROLS = "_pages_plugin_controls"
 _ID_LOCATION = "_pages_plugin_location"
 _ID_STORE = "_pages_plugin_store"
 _ID_DUMMY = "_pages_plugin_dummy"
@@ -27,6 +28,8 @@ page_container = html.Div(
         html.Div(id=_ID_DUMMY),
     ]
 )
+
+controls_container = html.Div(id=_ID_CONTROLS)
 
 
 def register_page(
@@ -272,7 +275,7 @@ def _import_layouts_from_pages(pages_folder, module=None):
             if import_key in dash.page_registry:
                 dash.page_registry[import_key]["layout"] = getattr(page_module, "layout")
                 if hasattr(page_module, "controls"):
-                    dash.controls_registry[import_key]["controls"] = getattr(page_module, "controls")
+                    dash.page_registry[import_key]["controls"] = getattr(page_module, "controls")
 
 
 def _path_to_page(app, path_id):
@@ -303,7 +306,6 @@ def _path_to_controls(app, path_id):
 
 def plug(app):  # noqa: C901
     dash.page_registry = OrderedDict()
-    dash.controls_registry = OrderedDict()
 
     frm = inspect.stack()[2]
     mod = inspect.getmodule(frm[0])
@@ -321,6 +323,7 @@ def plug(app):  # noqa: C901
     def router():
         @callback(
             Output(_ID_CONTENT, "children"),
+            Output(_ID_CONTROLS, "children"),
             Output(_ID_STORE, "data"),
             Input(_ID_LOCATION, "pathname"),
             Input(_ID_LOCATION, "search"),
@@ -341,16 +344,22 @@ def plug(app):  # noqa: C901
                 else:
                     layout = html.H1("404")
                     title = app.title
+                controls = dash.no_update
             else:
                 layout = page["layout"]
                 title = page["title"]
+                controls = page.get("controls", dash.no_update)
 
             if callable(layout):
                 layout = layout(**path_variables, **query_parameters) if path_variables else layout(**query_parameters)
             if callable(title):
                 title = title(**path_variables) if path_variables else title()
+            if callable(controls):
+                controls = (
+                    controls(**path_variables, **query_parameters) if path_variables else controls(**query_parameters)
+                )
 
-            return layout, {"title": title}
+            return layout, controls, {"title": title}
 
         # check for duplicate pathnames
         path_to_module = {}
@@ -368,6 +377,12 @@ def plug(app):  # noqa: C901
         app.validation_layout = html.Div(
             [page["layout"]() if callable(page["layout"]) else page["layout"] for page in dash.page_registry.values()]
             + [app.layout() if callable(app.layout) else app.layout]
+            + [
+                page.get("controls", html.Div())()
+                if callable(page.get("controls", html.Div()))
+                else page.get("controls", html.Div())
+                for page in dash.page_registry.values()
+            ]
         )
 
         # Update the page title on page navigation

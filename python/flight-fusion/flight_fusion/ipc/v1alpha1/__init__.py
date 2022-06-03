@@ -54,21 +54,6 @@ class TableReference(betterproto.Message):
 
 
 @dataclass(eq=False, repr=False)
-class EntityUri(betterproto.Message):
-    uri: str = betterproto.string_field(1)
-
-
-@dataclass(eq=False, repr=False)
-class EntityId(betterproto.Message):
-    id: str = betterproto.string_field(1)
-
-
-@dataclass(eq=False, repr=False)
-class EntityPath(betterproto.Message):
-    path: List[str] = betterproto.string_field(1)
-
-
-@dataclass(eq=False, repr=False)
 class AreaTableLocation(betterproto.Message):
     name: str = betterproto.string_field(1)
     areas: List[str] = betterproto.string_field(2)
@@ -86,6 +71,8 @@ class AreaTableUri(betterproto.Message):
 
 @dataclass(eq=False, repr=False)
 class AreaSourceReference(betterproto.Message):
+    """area identifier"""
+
     location: "AreaTableLocation" = betterproto.message_field(1, group="table")
     id: "AreaTableId" = betterproto.message_field(2, group="table")
     uri: "AreaTableUri" = betterproto.message_field(3, group="table")
@@ -294,6 +281,10 @@ class AreaSourceMetadata(betterproto.Message):
     # A short descrptive text that describes the content and purpose of the data
     # source
     description: str = betterproto.string_field(3)
+    # wether the table supports versioning
+    is_versioned: bool = betterproto.bool_field(4)
+    # source identifier
+    source: "AreaSourceReference" = betterproto.message_field(5)
     # tags associated with source
     tags: List["Tag"] = betterproto.message_field(9)
     # user defined properties
@@ -366,6 +357,7 @@ class FlightDoPutRequest(betterproto.Message):
 
     # Write data into a registered source
     storage: "CommandWriteIntoDataset" = betterproto.message_field(2, group="command")
+    # Write data into delta table
     delta: "DeltaOperationRequest" = betterproto.message_field(3, group="command")
 
 

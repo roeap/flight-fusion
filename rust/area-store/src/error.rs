@@ -10,6 +10,10 @@ use std::sync::Arc;
 #[derive(thiserror::Error, Debug)]
 pub enum AreaStoreError {
     /// Error returned when a table to be created already exists
+    #[error("Table: '{0}' does not exists")]
+    TableDoesNotExists(String),
+
+    /// Error returned when a table to be created already exists
     #[error("Table: '{0}' already exists")]
     TableAlreadyExists(String),
 

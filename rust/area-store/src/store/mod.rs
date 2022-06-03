@@ -4,7 +4,6 @@ mod cache;
 // mod file_index;
 mod area_path;
 mod stats;
-pub mod utils;
 pub mod writer;
 
 use crate::error::Result;
@@ -26,7 +25,6 @@ use flight_fusion_ipc::{AreaSourceReference, SaveMode};
 use futures::TryStreamExt;
 use object_store::{path::Path, DynObjectStore, Error as ObjectStoreError};
 use std::sync::Arc;
-pub use utils::*;
 pub use writer::*;
 
 const DATA_FOLDER_NAME: &str = "_ff_data";
@@ -56,19 +54,7 @@ pub trait AreaStore: Send + Sync {
         file: &AreaPath,
         column_indices: Option<Vec<usize>>,
     ) -> Result<SendableRecordBatchStream> {
-        let bytes = self.object_store().get(&file.into()).await?.bytes().await?;
-        let cursor = SliceableCursor::new(Arc::new(bytes.to_vec()));
-        let file_reader = Arc::new(SerializedFileReader::new(cursor)?);
-        let mut arrow_reader = ParquetFileArrowReader::new(file_reader);
-        let record_batch_reader = match column_indices {
-            Some(indices) => arrow_reader.get_record_reader_by_columns(indices, DEFAULT_BATCH_SIZE),
-            None => arrow_reader.get_record_reader(DEFAULT_BATCH_SIZE),
-        }?;
-
-        Ok(Box::pin(RecordBatchStreamAdapter::new(
-            record_batch_reader.schema(),
-            futures::stream::iter(record_batch_reader),
-        )))
+        open_file(self.object_store(), file, column_indices).await
     }
 
     async fn get_location_files(&self, location: &AreaPath) -> Result<Vec<Path>> {
@@ -83,7 +69,7 @@ pub trait AreaStore: Send + Sync {
             .collect::<Vec<_>>())
     }
 
-    async fn delete_location(&self, _location: &Path) -> Result<()> {
+    async fn delete_location(&self, _location: &AreaPath) -> Result<()> {
         todo!()
     }
 
@@ -105,7 +91,7 @@ pub trait AreaStore: Send + Sync {
     }
 }
 
-async fn is_delta_location(store: Arc<DynObjectStore>, location: &AreaPath) -> Result<bool> {
+pub async fn is_delta_location(store: Arc<DynObjectStore>, location: &AreaPath) -> Result<bool> {
     let path: Path = location.into();
     let path = path.child(DELTA_LOG_FOLDER_NAME);
     let res = match store.head(&path).await {
@@ -114,6 +100,26 @@ async fn is_delta_location(store: Arc<DynObjectStore>, location: &AreaPath) -> R
         Err(other) => Err(other),
     }?;
     Ok(res)
+}
+
+pub async fn open_file(
+    store: Arc<DynObjectStore>,
+    file: &AreaPath,
+    column_indices: Option<Vec<usize>>,
+) -> Result<SendableRecordBatchStream> {
+    let bytes = store.get(&file.into()).await?.bytes().await?;
+    let cursor = SliceableCursor::new(Arc::new(bytes.to_vec()));
+    let file_reader = Arc::new(SerializedFileReader::new(cursor)?);
+    let mut arrow_reader = ParquetFileArrowReader::new(file_reader);
+    let record_batch_reader = match column_indices {
+        Some(indices) => arrow_reader.get_record_reader_by_columns(indices, DEFAULT_BATCH_SIZE),
+        None => arrow_reader.get_record_reader(DEFAULT_BATCH_SIZE),
+    }?;
+
+    Ok(Box::pin(RecordBatchStreamAdapter::new(
+        record_batch_reader.schema(),
+        futures::stream::iter(record_batch_reader),
+    )))
 }
 
 #[cfg(test)]

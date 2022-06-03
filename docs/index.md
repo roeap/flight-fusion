@@ -1,5 +1,10 @@
 # ML Fusion
 
+MlFusion combines multiple state of the art technologies into a single,
+opinionated platform for end to end data science workflows.
+
+- A unified client to meet all your data needs
+
 ## Getting Started
 
 ```py

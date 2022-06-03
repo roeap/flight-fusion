@@ -23,7 +23,6 @@ from dagster_fusion.config import (
     table_reference_to_area_source,
 )
 from dagster_fusion.errors import MissingConfiguration
-
 from flight_fusion import BaseDatasetClient, DatasetClient, FusionServiceClient
 from flight_fusion.ipc.v1alpha1 import SaveMode
 

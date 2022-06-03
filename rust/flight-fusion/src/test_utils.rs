@@ -2,22 +2,19 @@
 use crate::service::FlightFusionService;
 use arrow_deps::datafusion::{
     arrow::{
-        array::{
-            Array, Float32Array, Float64Array, Int32Array, Int64Array, StringArray, UInt32Array,
-        },
+        array::{Int32Array, StringArray, UInt32Array},
         compute::take,
-        datatypes::{DataType, Field, Schema as ArrowSchema, SchemaRef as ArrowSchemaRef},
+        datatypes::{
+            DataType, Field, Schema as ArrowSchema, SchemaRef as ArrowSchemaRef, TimeUnit,
+        },
         record_batch::RecordBatch,
     },
     physical_plan::{
         common::SizedRecordBatchStream,
-        memory::MemoryExec,
         metrics::{ExecutionPlanMetricsSet, MemTrackingMetrics},
         SendableRecordBatchStream,
     },
 };
-use rand::distributions::Standard;
-use rand::prelude::*;
 use std::{path::PathBuf, sync::Arc};
 
 pub fn workspace_test_data_folder() -> PathBuf {
@@ -28,6 +25,26 @@ pub fn workspace_test_data_folder() -> PathBuf {
 
 pub fn get_fusion_handler(root: impl Into<PathBuf>) -> FlightFusionService {
     FlightFusionService::new_default(root).unwrap()
+}
+
+pub fn get_test_data_fusion_handler() -> FlightFusionService {
+    let area_root = workspace_test_data_folder().join("db");
+    FlightFusionService::new_default(area_root).unwrap()
+}
+
+pub fn get_test_data_schema() -> ArrowSchemaRef {
+    Arc::new(ArrowSchema::new(vec![
+        Field::new(
+            "timestamp",
+            DataType::Timestamp(TimeUnit::Microsecond, None),
+            true,
+        ),
+        Field::new("date", DataType::Date32, true),
+        Field::new("string", DataType::Utf8, true),
+        Field::new("double", DataType::Float64, true),
+        Field::new("real", DataType::Float64, true),
+        Field::new("float", DataType::Float64, true),
+    ]))
 }
 
 /// Run cargo to get the root of the workspace
@@ -47,54 +64,6 @@ pub fn workspace_root() -> Result<String, Box<dyn std::error::Error>> {
         .find('"')
         .ok_or_else(|| "workspace_root value was malformed".to_string())?;
     Ok(value[..end].into())
-}
-
-pub fn generate_random_batch(row_count: usize, schema: ArrowSchemaRef) -> RecordBatch {
-    let mut arrays: Vec<Arc<dyn Array>> = vec![];
-    for field in schema.fields() {
-        match field.data_type() {
-            DataType::Float64 => {
-                arrays.push(Arc::new(Float64Array::from(generate_values(&mut vec![
-                    1_f64;
-                    row_count
-                ]))))
-            }
-            DataType::Float32 => {
-                arrays.push(Arc::new(Float32Array::from(generate_values(&mut vec![
-                    1_f32;
-                    row_count
-                ]))))
-            }
-            DataType::Int64 => arrays.push(Arc::new(Int64Array::from(generate_values(&mut vec![
-                    1_i64;
-                    row_count
-                ])))),
-            DataType::Int32 => arrays.push(Arc::new(Int32Array::from(generate_values(&mut vec![
-                    1_i32;
-                    row_count
-                ])))),
-            _ => todo!(),
-        };
-    }
-
-    RecordBatch::try_new(schema, arrays).unwrap()
-}
-
-fn generate_values<T: Clone>(raw: &mut [T]) -> Vec<T>
-where
-    Standard: rand::distributions::Distribution<T>,
-{
-    let mut rng = rand::thread_rng();
-    for x in raw.iter_mut() {
-        *x = rng.gen::<T>();
-    }
-    raw.to_vec()
-}
-
-pub fn get_input_plan(part: Option<String>, with_null: bool) -> Arc<MemoryExec> {
-    let batch = get_record_batch(part, with_null);
-    let schema = batch.schema();
-    Arc::new(MemoryExec::try_new(&[vec![batch]], schema, None).unwrap())
 }
 
 pub fn get_input_stream(part: Option<String>, with_null: bool) -> SendableRecordBatchStream {

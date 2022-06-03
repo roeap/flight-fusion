@@ -37,6 +37,13 @@ class BaseDatasetClient(BaseClient):
         self._schema = None
 
     @property
+    def asset_key(self) -> AssetKey:
+        field, value = which_one_of(self._reference, "table")
+        if isinstance(value, AreaTableLocation):
+            return AssetKey(value.areas + [value.name])
+        raise errors.TableSource(f"Variant {field} not yet supported.")
+
+    @property
     def name(self) -> str:
         field, value = which_one_of(self._reference, "table")
         if isinstance(value, AreaTableLocation):
@@ -79,8 +86,7 @@ class BaseDatasetClient(BaseClient):
         raise NotImplementedError
 
     def get_metadata(self) -> AreaSourceMetadata:
-        request = pa_flight.FlightDescriptor.for_command(self._reference.SerializeToString())
-        return self._flight.get_flight_info(request)
+        return self._get_metadata(asset_key=self.asset_key)
 
     def set_metadata(self, metadata: AreaSourceMetadata | None = None) -> None:
         raise NotImplementedError
