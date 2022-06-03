@@ -33,6 +33,15 @@ pytest-datadir = "^1.3.1"
 pytest-cov = "^3"
 pytest-mock = "*"
 
+[tool.poetry.plugins."mlflow.artifact_repository"]
+fusion = "mlflow_fusion.artifacts:FusionArtifactRepository"
+
+# [tool.poetry.plugins."mlflow.run_context_provider"]
+# run_context_provider = "mlflow_fusion.run_context:ArgusRunContextProvider"
+
+# [tool.poetry.plugins."mlflow.request_header_provider"]
+# request_header_provider = "mlflow_fusion.request_headers:ArgusRequestHeaderProvider"
+
 [tool.isort]
 profile = "black"
 
