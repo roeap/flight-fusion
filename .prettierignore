@@ -1,4 +1,3 @@
-docs/
 k8s/
 .cargo/
 test/db/*
