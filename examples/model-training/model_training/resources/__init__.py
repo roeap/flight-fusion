@@ -1,5 +1,6 @@
-from dagster_fusion import flight_fusion_resource, mlfusion_io_manager
 from dagster_mlflow import mlflow_tracking
+
+from dagster_fusion import flight_fusion_resource, mlfusion_io_manager
 
 from .dataset_spec import dataset_properties
 

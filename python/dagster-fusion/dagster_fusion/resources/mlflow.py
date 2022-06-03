@@ -9,8 +9,9 @@ from itertools import islice
 from os import environ
 from typing import Any, Optional
 
-import mlflow
 from dagster import Field, Noneable, Permissive, StringSource, resource
+
+import mlflow
 from mlflow.entities.run_status import RunStatus
 
 CONFIG_SCHEMA = {

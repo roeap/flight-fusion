@@ -29,8 +29,6 @@ generate-proto:
     rm -r tmp-proto
     rm rust/flight-fusion-ipc/src/gen/mlflow.tonic.rs
     rm rust/flight-fusion-ipc/src/gen/mlflow.rs
-    rm rust/flight-fusion-ipc/src/gen/mlflow.artifacts.rs
-    rm rust/flight-fusion-ipc/src/gen/mlflow.artifacts.tonic.rs
     rm rust/flight-fusion-ipc/src/gen/inference.model_repository.rs
     rm rust/flight-fusion-ipc/src/gen/inference.model_repository.tonic.rs
     rm rust/flight-fusion-ipc/src/gen/inference.rs

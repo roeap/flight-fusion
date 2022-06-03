@@ -4,63 +4,34 @@
 // - /mlflow-artifacts/artifacts/<artifact_path> PUT: Upload an artifact
 // - /mlflow-artifacts/artifact?path=<value> GET: List artifacts
 
-syntax = "proto2";
+syntax = "proto3";
 
 package mlflow.artifacts;
 
-import "scalapb/scalapb.proto";
-import "mlflow/databricks.proto";
-
-option java_package = "org.mlflow.api.proto";
 option py_generic_services = true;
-option (scalapb.options) = {
-  flat_package: true,
-};
 
 service MlflowArtifactsService {
 
-  rpc downloadArtifact (DownloadArtifact) returns (DownloadArtifact.Response) {
-    option (rpc) = {
-      endpoints: [{
-        method: "GET",
-        path: "/mlflow-artifacts/artifacts/<path:artifact_path>",
-        since { major: 2, minor: 0 },
-      }],
-      visibility: PUBLIC,
-      rpc_doc_title: "Download Artifact",
-    };
-  }
+  rpc downloadArtifact (DownloadArtifact) returns (stream DownloadArtifact.Response) {}
 
-  rpc uploadArtifact (UploadArtifact) returns (UploadArtifact.Response) {
-    option (rpc) = {
-      endpoints: [{
-        method: "PUT",
-        path: "/mlflow-artifacts/artifacts/<path:artifact_path>",
-        since { major: 2, minor: 0 },
-      }],
-      visibility: PUBLIC,
-      rpc_doc_title: "Upload Artifact",
-    };
-  }
+  rpc uploadArtifact (stream UploadArtifact) returns (UploadArtifact.Response) {}
 
-  rpc listArtifacts (ListArtifacts) returns (ListArtifacts.Response) {
-    option (rpc) = {
-      endpoints: [{
-        method: "GET",
-        path: "/mlflow-artifacts/artifacts",
-        since { major: 2, minor: 0 },
-      }],
-      visibility: PUBLIC,
-      rpc_doc_title: "List Artifacts",
-    };
-  }
+  rpc listArtifacts (ListArtifacts) returns (ListArtifacts.Response) {}
 }
 
 message DownloadArtifact {
-  message Response {}
+  string path = 1;
+
+  message Response {
+    bytes data = 1;
+  }
 }
 
 message UploadArtifact {
+  string path = 1;
+
+  bytes data = 2;
+
   message Response {}
 }
 

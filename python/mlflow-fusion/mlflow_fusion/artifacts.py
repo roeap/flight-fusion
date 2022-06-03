@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from pydantic import BaseSettings
+
 # from mlflow.exceptions import MlflowException
 from mlflow.entities import FileInfo
 from mlflow.store.artifact.artifact_repo import ArtifactRepository
 from mlflow.store.artifact.local_artifact_repo import LocalArtifactRepository
-from pydantic import BaseSettings
 
 
 class FusionArtifactRepositorySetting(BaseSettings):

@@ -2,6 +2,7 @@ import pandas as pd
 import polars as pl
 import pyarrow as pa
 from dagster import IOManager, io_manager
+
 from dagster_fusion.config import FIELD_COLUMN_SELECTION, FIELD_SAVE_MODE
 from flight_fusion import FusionServiceClient
 
