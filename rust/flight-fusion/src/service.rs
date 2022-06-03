@@ -433,48 +433,23 @@ fn to_tonic_err(e: FusionServiceError) -> Status {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::workspace_test_data_folder;
-    use arrow_deps::arrow::datatypes::{DataType, Field, TimeUnit};
     use arrow_flight::Ticket;
+    use flight_fusion_ipc::AreaTableLocation;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, delta_operation_request::Operation,
         flight_do_get_request::Command, DeltaOperationRequest, DeltaReadOperation,
         FlightDoGetRequest,
     };
-    use flight_fusion_ipc::{AreaTableLocation, CommandWriteIntoDataset, SaveMode};
     use futures::{StreamExt, TryStreamExt};
 
     #[tokio::test]
     async fn test_list_flights() {
-        let root = tempfile::tempdir().unwrap();
-        let plan = crate::test_utils::get_input_stream(None, false);
-        let handler = crate::test_utils::get_fusion_handler(root.path());
+        let handler = crate::test_utils::get_test_data_fusion_handler();
 
         let command = CommandListSources { recursive: true };
         let criteria = Criteria {
             expression: command.encode_to_vec(),
         };
-
-        let flights = handler
-            .list_flights(Request::new(criteria.clone()))
-            .await
-            .unwrap()
-            .into_inner()
-            .try_collect::<Vec<_>>()
-            .await
-            .unwrap();
-
-        assert_eq!(flights.len(), 0);
-
-        let location = AreaTableLocation {
-            name: "new_table".to_string(),
-            areas: vec![],
-        };
-        let put_request = CommandWriteIntoDataset {
-            source: Some(location.into()),
-            save_mode: SaveMode::Overwrite.into(),
-        };
-        let _ = handler.handle_do_put(put_request, plan).await.unwrap();
 
         let flights = handler
             .list_flights(Request::new(criteria))
@@ -485,25 +460,18 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(flights.len(), 1)
+        assert_eq!(flights.len(), 3)
     }
 
     #[tokio::test]
     async fn get_schema() {
-        let root = tempfile::tempdir().unwrap();
-        let plan = crate::test_utils::get_input_stream(None, false);
-        let handler = crate::test_utils::get_fusion_handler(root.path());
-        let ref_schema = plan.schema();
+        let handler = crate::test_utils::get_test_data_fusion_handler();
+        let ref_schema = crate::test_utils::get_test_data_schema();
 
         let location = AreaTableLocation {
-            name: "new_table".to_string(),
-            areas: vec![],
+            name: "simple".to_string(),
+            areas: vec!["delta".to_string()],
         };
-        let put_request = CommandWriteIntoDataset {
-            source: Some(location.clone().into()),
-            save_mode: SaveMode::Overwrite.into(),
-        };
-        let _ = handler.handle_do_put(put_request, plan).await.unwrap();
 
         let request: Request<FlightDescriptor> = Request::new(location.into());
         let result = handler.get_schema(request).await.unwrap().into_inner();
@@ -514,20 +482,13 @@ mod tests {
 
     #[tokio::test]
     async fn get_flight_info() {
-        let root = tempfile::tempdir().unwrap();
-        let plan = crate::test_utils::get_input_stream(None, false);
-        let handler = crate::test_utils::get_fusion_handler(root.path());
-        let ref_schema = plan.schema();
+        let handler = crate::test_utils::get_test_data_fusion_handler();
+        let ref_schema = crate::test_utils::get_test_data_schema();
 
         let location = AreaTableLocation {
-            name: "new_table".to_string(),
-            areas: vec![],
+            name: "simple".to_string(),
+            areas: vec!["delta".to_string()],
         };
-        let put_request = CommandWriteIntoDataset {
-            source: Some(location.clone().into()),
-            save_mode: SaveMode::Overwrite.into(),
-        };
-        let _ = handler.handle_do_put(put_request, plan).await.unwrap();
 
         let request: Request<FlightDescriptor> = Request::new(location.into());
         let info = handler.get_flight_info(request).await.unwrap().into_inner();
@@ -538,21 +499,8 @@ mod tests {
 
     #[tokio::test]
     async fn do_get_delta() {
-        let area_root = workspace_test_data_folder().join("db");
-        let handler = crate::test_utils::get_fusion_handler(area_root);
-
-        let ref_schema = Arc::new(Schema::new(vec![
-            Field::new(
-                "timestamp",
-                DataType::Timestamp(TimeUnit::Microsecond, None),
-                true,
-            ),
-            Field::new("date", DataType::Date32, true),
-            Field::new("string", DataType::Utf8, true),
-            Field::new("double", DataType::Float64, true),
-            Field::new("real", DataType::Float64, true),
-            Field::new("float", DataType::Float64, true),
-        ]));
+        let handler = crate::test_utils::get_test_data_fusion_handler();
+        let ref_schema = crate::test_utils::get_test_data_schema();
 
         let op = FlightDoGetRequest {
             command: Some(Command::Delta(DeltaOperationRequest {
