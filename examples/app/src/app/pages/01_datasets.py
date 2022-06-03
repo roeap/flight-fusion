@@ -12,18 +12,28 @@ from app.themes import theme_light
 register_page(path="/", title="Explorer", icon="ControlOutlined")  # type: ignore
 
 
-def get_layout(dataset_options):
+def controls():
+    dataset_options = [
+        {
+            "label": ">".join(info.asset_key.path),
+            "value": json.dumps(info.asset_key.path),
+        }
+        for info in ctx.fusion.list_datasets()
+    ]
+    return dadc.Select(
+        id="dataset",
+        options=dataset_options,
+        style={"width": "100%"},
+    )
+
+
+def get_layout():
     return [
         dadc.Row(
             dadc.PageHeader(
                 [
                     dadc.Space(
                         [
-                            dadc.Select(
-                                id="dataset",
-                                options=dataset_options,
-                                style={"width": 250},
-                            ),
                             dadc.Select(
                                 id="columns-x",
                                 options=[],
@@ -39,6 +49,7 @@ def get_layout(dataset_options):
                     dadc.PageHeaderOperation(dadc.Button("Update Plot", id="update-plot", type="primary")),
                     dadc.Tag("Delta", color="green"),
                 ],
+                id="header",
                 title="Dataset",
                 ghost=False,
                 style={
@@ -62,28 +73,41 @@ def get_layout(dataset_options):
 
 
 def layout():
-    dataset_options = [
-        {
-            "label": ">".join(info.asset_key.path),
-            "value": json.dumps(info.asset_key.path),
-        }
-        for info in ctx.fusion.list_datasets()
-    ]
-    return get_layout(dataset_options)
+    return get_layout()
 
 
 @callback(
-    Output("columns-x", "options"),
-    Output("columns-y", "options"),
-    Output("columns-x", "value"),
-    Output("columns-y", "value"),
+    Output("header", "children"),
+    Output("header", "title"),
     Input("dataset", "value"),
     prevent_initial_call=True,
 )
 def update_selects(asset_key: str):
     asset = ctx.get_dataset_client(asset_key)
     options = asset.column_options()
-    return options, options, None, None
+    meta = asset.client.get_metadata()
+    controls = [
+        dadc.Space(
+            [
+                dadc.Select(
+                    id="columns-x",
+                    options=options,
+                    style={"width": 250},
+                ),
+                dadc.Select(
+                    id="columns-y",
+                    options=options,
+                    style={"width": 250},
+                ),
+            ]
+        ),
+        dadc.PageHeaderOperation(dadc.Button("Update Plot", id="update-plot", type="primary")),
+    ]
+
+    if meta.is_versioned:
+        controls = controls + [dadc.Tag("Versioned", color="green")]
+
+    return controls, meta.name or asset.client.name
 
 
 @callback(

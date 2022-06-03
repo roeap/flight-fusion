@@ -55,10 +55,5 @@ class CallbackContext(_CallbackContext):
         asset_key = _assert_asset_key(asset_key)
         return DashAssetClient(self.fusion.get_dataset_client(asset_key=asset_key))
 
-    @has_context
-    def get_versioned_dataset_client(self, asset_key: AssetKey | list[str] | str) -> DashAssetClient:
-        asset_key = _assert_asset_key(asset_key)
-        return DashAssetClient(self.fusion.get_versioned_dataset_client(asset_key=asset_key))
-
 
 ctx = CallbackContext()

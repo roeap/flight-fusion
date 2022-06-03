@@ -1,7 +1,6 @@
-from xml.sax.handler import feature_external_ges
-
 import dash
 import dash_antd as dadc
+
 from app.plugin import multi_page
 
 HEADER_HEIGHT = "50px"
@@ -45,6 +44,7 @@ app.layout = dadc.Layout(
                     children=[
                         dadc.Menu(id="page-nav", items=nav_items, selected_keys=["page-1"]),
                         dadc.Divider("Controls"),
+                        multi_page.controls_container,
                     ],
                 ),
                 dadc.Content(
