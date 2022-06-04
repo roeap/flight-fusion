@@ -68,6 +68,7 @@ exclude = [
   "**/node_modules",
   "**/__pycache__",
   "python/flight-fusion/flight_fusion/ipc/",
+  "python/mlflow-fusion/mlflow_fusion/ipc/",
 ]
 reportPrivateImportUsage = false
 
