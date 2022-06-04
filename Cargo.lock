@@ -1054,6 +1054,7 @@ dependencies = [
 name = "flight-fusion-server"
 version = "0.2.0-dev"
 dependencies = [
+ "artifact-store",
  "clap",
  "dotenv",
  "flight-fusion",

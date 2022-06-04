@@ -18,7 +18,9 @@ pub type BoxedFileStream<T> =
     Pin<Box<dyn Stream<Item = Result<T, Status>> + Send + Sync + 'static>>;
 
 #[rustfmt::skip]
-mod gen {
+#[allow(dead_code)]
+#[allow(non_camel_case_types)]
+pub mod gen {
     include!("gen/mlflow.artifacts.rs");
 }
 

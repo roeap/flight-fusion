@@ -24,6 +24,7 @@ pub struct Azure {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Local {
     pub area_root: String,
+    pub artifacts_root: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]

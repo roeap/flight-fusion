@@ -7,6 +7,9 @@ mod stream;
 mod test_utils;
 
 use arrow_flight::flight_service_server::FlightServiceServer;
+use artifact_store::{
+    gen::mlflow_artifacts_service_server::MlflowArtifactsServiceServer, MlflowArtifacts,
+};
 use dotenv::dotenv;
 use lazy_static::lazy_static;
 use observability_deps::{
@@ -49,6 +52,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     health_reporter
         .set_serving::<FlightServiceServer<FlightFusionService>>()
         .await;
+    health_reporter
+        .set_serving::<MlflowArtifactsServiceServer<MlflowArtifacts>>()
+        .await;
 
     let addr = format!("{}:{}", CONFIG.server.url, CONFIG.server.port).parse()?;
 
@@ -64,6 +70,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )),
     }?;
 
+    let artifact_service =
+        MlflowArtifacts::new_default(CONFIG.service.local.artifacts_root.clone())?;
+    let artifact_svc = MlflowArtifactsServiceServer::new(artifact_service);
     // let spawner = service.clone();
     // tokio::task::spawn(async move { spawner.build_index().await });
 
@@ -76,6 +85,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Server::builder()
         .add_service(health_service)
         .add_service(svc)
+        .add_service(artifact_svc)
         .serve(addr)
         .await?;
 
