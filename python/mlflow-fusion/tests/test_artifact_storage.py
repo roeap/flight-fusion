@@ -1,13 +1,14 @@
 from pathlib import Path
 
-from flight_fusion import FusionServiceClient
-
 from mlflow_fusion.client import MlflowArtifactsClient
 from mlflow_fusion.ipc.artifacts import UploadArtifact
 
+from flight_fusion import ClientOptions, FusionServiceClient
 
-def test_artifact_roundtrip(fusion_client: FusionServiceClient, datadir: Path):
-    client = MlflowArtifactsClient(use_ssl=False)
+
+def test_artifact_roundtrip(fusion_client_with_options: tuple[FusionServiceClient, ClientOptions], datadir: Path):
+    _, options = fusion_client_with_options
+    client = MlflowArtifactsClient(host=options.host, port=options.port, use_ssl=False)
     path = "foo/bar.baz"
     data = b"arbitrary data"
 
@@ -16,3 +17,6 @@ def test_artifact_roundtrip(fusion_client: FusionServiceClient, datadir: Path):
 
     upload_path = datadir / ".mlflow/mlruns" / "foo/bar.baz"
     assert upload_path.exists()
+
+    responses = list(client.download_artifact(path=str(path)))
+    assert responses[0].data == data

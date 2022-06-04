@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import socket
 import subprocess  # nosec: just testing code
 import sys
@@ -14,7 +16,7 @@ except ImportError as err:
         "\033[31m"
         f"Unable to import `{err.name}` from flight_fusion plugin! "
         "Please ensure that you've installed flight_fusion as "
-        '`pip install "flight_fusion[dev]"` so that dev dependencies '
+        '`pip install "flight-fusion[dev]"` so that dev dependencies '
         "are included."
         "\033[0m"
     )
@@ -22,7 +24,7 @@ except ImportError as err:
 
 
 @pytest.fixture
-def fusion_client(datadir: Path) -> Generator[FusionServiceClient, None, None]:
+def fusion_client_with_options(datadir: Path) -> Generator[tuple[FusionServiceClient, ClientOptions], None, None]:
 
     exec_path = Path(sys.executable).parent / "flight-fusion-server"
 
@@ -58,7 +60,17 @@ def fusion_client(datadir: Path) -> Generator[FusionServiceClient, None, None]:
     options = ClientOptions(host="localhost", port=port)
     client = FusionServiceClient(options)
 
-    yield client
+    yield client, options
 
     # Shut down server at the end of the pytest session
     ds_proc.terminate()
+
+
+@pytest.fixture
+def fusion_client(
+    fusion_client_with_options: tuple[FusionServiceClient, ClientOptions]
+) -> Generator[FusionServiceClient, None, None]:
+
+    client, _ = fusion_client_with_options
+
+    yield client
