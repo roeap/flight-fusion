@@ -30,6 +30,7 @@
     "deps",
     "dotenv",
     "filetime",
+    "grpclib",
     "hmac",
     "httpx",
     "isort",

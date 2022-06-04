@@ -40,6 +40,7 @@ def fusion_client(datadir: Path) -> Generator[FusionServiceClient, None, None]:
     sock.close()
 
     (datadir / ".fusion").mkdir(exist_ok=True)
+    (datadir / ".mlflow/mlruns").mkdir(exist_ok=True, parents=True)
 
     ds_proc = subprocess.Popen(  # nosec: running only in tests
         [str(exec_path.absolute()), "--host", "127.0.0.1", "--port", str(port)],
