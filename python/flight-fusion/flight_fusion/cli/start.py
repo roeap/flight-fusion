@@ -12,7 +12,7 @@ from loguru import logger
 
 from ._utils import DAGSTER_DIR, MLFLOW_DIR, MLSERVER_DIR, get_app_directory
 
-app = typer.Typer(name="server")
+app = typer.Typer(name="start")
 
 
 def click_async(f):
@@ -30,7 +30,7 @@ class LogLevel(str, Enum):
 
 
 @app.command()
-def start(host: str = "127.0.0.1", port: int = 50051, log_level: LogLevel = LogLevel.info):
+def flight(host: str = "127.0.0.1", port: int = 50051, log_level: LogLevel = LogLevel.info):
     """Run a local instance of the flight-fusion server"""
     logger.info("Starting flight-fusion server")
 
@@ -65,7 +65,7 @@ def mlflow(port: int = 5000):
             "--backend-store-uri",
             "sqlite:///mlruns.sqlite",
             "--default-artifact-root",
-            str(artifact_root),
+            f"fusion:/{str(artifact_root)}",
         ],
         cwd=str(workdir),
     )
@@ -107,6 +107,7 @@ def daemon():
 @click_async
 async def mlserver(host: str = "http://localhost", port: int = 5000):
     from mlserver.cli.serve import load_settings
+
     from mlserver_fusion.server import MLServer
 
     workdir = get_app_directory().absolute() / MLSERVER_DIR
@@ -114,9 +115,3 @@ async def mlserver(host: str = "http://localhost", port: int = 5000):
 
     server = MLServer(settings, f"{host}:{port}")
     await server.start(models_settings)
-
-
-@app.command()
-def stop():
-    root = get_app_directory()
-    typer.echo(f"{root}")

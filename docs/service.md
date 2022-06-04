@@ -12,23 +12,36 @@ APIs and minimal code changes along the way.
 
 ![System Overview](assets/system.drawio.svg)
 
-## Features
+## APIs
 
-### Read data
+### fusion api
 
-- read complete dataset
-- query dataset
-- join multiple datasets
+Core data API
 
-### Write data
+- read and write data assets
 
-- write into delta tables
-- write into parquet tables
+### mlserver api
 
-## Client
+- model serving / inference
 
-- list available datasets
-- register new datasets
-- get return messages
-- drop dataset
-- ...
+### mlflow api
+
+- model tracking
+
+## Components
+
+### flight-fusion
+
+- clients for interacting with data
+
+### mlflow-fusion
+
+- plugin for custom artifact store
+
+### mlserver-fusion
+
+Customized version of mlserver to handle authorization and custom serving
+
+### dagster-fusion
+
+- fusion api backed io manager

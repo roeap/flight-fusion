@@ -1,0 +1,16 @@
+syntax = "proto3";
+package flight_fusion.ipc.v1alpha1;
+
+message ServiceConnection {
+  string host = 1;
+  int32 port = 2;
+}
+
+message EnvironmentInfo {
+  string server_version = 1;
+  ServiceConnection artifact_service = 2;
+  ServiceConnection model_serving = 3;
+  ServiceConnection data_sets = 4;
+  ServiceConnection pipelines_ui = 5;
+  ServiceConnection models_ui = 6;
+}

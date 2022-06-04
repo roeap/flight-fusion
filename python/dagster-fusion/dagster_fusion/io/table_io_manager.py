@@ -15,6 +15,7 @@ from dagster import (
     io_manager,
 )
 from dagster.core.errors import DagsterInvariantViolationError
+
 from dagster_fusion._types import TableReference, TypedInputContext, TypedOutputContext
 from dagster_fusion.config import (
     FIELD_COLUMN_SELECTION,
@@ -23,11 +24,10 @@ from dagster_fusion.config import (
     table_reference_to_area_source,
 )
 from dagster_fusion.errors import MissingConfiguration
-from flight_fusion import BaseDatasetClient, DatasetClient, FusionServiceClient
+from flight_fusion import BaseDatasetClient, FusionServiceClient
 from flight_fusion.ipc.v1alpha1 import SaveMode
 
 _INPUT_CONFIG_SCHEMA = {"columns": FIELD_COLUMN_SELECTION}
-
 _OUTPUT_CONFIG_SCHEMA = {"save_mode": FIELD_SAVE_MODE}
 
 
@@ -50,7 +50,7 @@ class TableIOManager(IOManager):
         self._fusion = client
 
     def _get_dataset_client(self, asset_key: AssetKey) -> BaseDatasetClient:
-        return DatasetClient(client=self._fusion._flight, asset_key=asset_key)  # type: ignore
+        return self._fusion.get_dataset_client(asset_key=asset_key)  # type: ignore
 
     def handle_output(
         self,

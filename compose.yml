@@ -86,7 +86,7 @@ services:
     restart: always
     build:
       # context: .
-      dockerfile: docker/Dockerfile.mlflow
+      dockerfile: docker/mlflow.Dockerfile
     image: mlflow_server
     container_name: mlflow_server
     env_file:

@@ -5,18 +5,18 @@ edition = "2021"
 
 [dependencies]
 # Workspace dependencies
-async-compat = "*"
 arrow-deps = { path = "../arrow-deps/", features = ["delta"] }
 file-cache = { path = "../file-cache/" }
 flight-fusion-ipc = { path = "../flight-fusion-ipc/" }
-object_store = { version = "*", features = ["azure"] }
 observability_deps = { path = "../observability-deps" }
 
 # Crates.io dependencies
+async-compat = "*"
 async-trait = "0.1"
 bytes = "1"
 chrono = "*"
 futures = "^0.3"
+object_store = { version = "*", features = ["azure"] }
 parquet-format = "4"
 serde_json = "1"
 thiserror = "1"

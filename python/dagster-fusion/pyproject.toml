@@ -28,7 +28,6 @@ include = '\.pyi?$'
 
 [tool.isort]
 profile = "black"
-src_paths = ["python/flight-fusion"]
 
 [tool.pyright]
 exclude = [

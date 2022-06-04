@@ -156,6 +156,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "artifacts-store"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "flight-fusion-ipc",
+ "object_store",
+ "observability_deps",
+]
+
+[[package]]
 name = "async-compat"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

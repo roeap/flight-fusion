@@ -15,7 +15,7 @@ dagit = "^0.14.8"
 delta-spark = "^1.1.0"
 mkdocs-protobuf = "^0.1"
 mkdocs-techdocs-core = "^1"
-mlflow = "^1.25.1"
+mlflow = "^1.26"
 mlserver = "^1.0.1"
 mlserver-mlflow = "^1.0.1"
 mlserver-sklearn = "^1.0.1"
@@ -31,6 +31,7 @@ flight-fusion = { path = "python/flight-fusion/", develop = true, extras = [
   "docker",
   "dev",
 ] }
+mlflow-fusion = { path = "python/mlflow-fusion/", develop = true }
 mlserver-fusion = { path = "python/mlserver-fusion/", develop = true }
 
 # example projects

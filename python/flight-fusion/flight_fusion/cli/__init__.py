@@ -4,7 +4,7 @@ import typer
 from loguru import logger
 
 from .environment import app as env_app
-from .server import app as server_app
+from .start import app as server_app
 
 _LOGGER_FORMAT = (
     "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | " "<level>{level: <8}</level> | " "<level>{message}</level>"

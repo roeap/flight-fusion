@@ -2,7 +2,7 @@
 # sources: mlflow/mlflow_artifacts.proto
 # plugin: python-betterproto
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import AsyncIterable, AsyncIterator, Dict, Iterable, List, Optional, Union
 
 import betterproto
 import grpclib
@@ -11,17 +11,18 @@ from betterproto.grpc.grpclib_server import ServiceBase
 
 @dataclass(eq=False, repr=False)
 class DownloadArtifact(betterproto.Message):
-    pass
+    path: str = betterproto.string_field(1)
 
 
 @dataclass(eq=False, repr=False)
 class DownloadArtifactResponse(betterproto.Message):
-    pass
+    data: bytes = betterproto.bytes_field(1)
 
 
 @dataclass(eq=False, repr=False)
 class UploadArtifact(betterproto.Message):
-    pass
+    path: str = betterproto.string_field(1)
+    data: bytes = betterproto.bytes_field(2)
 
 
 @dataclass(eq=False, repr=False)
@@ -33,7 +34,7 @@ class UploadArtifactResponse(betterproto.Message):
 class ListArtifacts(betterproto.Message):
     # Filter artifacts matching this path (a relative path from the root artifact
     # directory).
-    path: str = betterproto.string_field(1)
+    path: Optional[str] = betterproto.string_field(1, optional=True, group="_path")
 
 
 @dataclass(eq=False, repr=False)
@@ -45,35 +46,39 @@ class ListArtifactsResponse(betterproto.Message):
 @dataclass(eq=False, repr=False)
 class FileInfo(betterproto.Message):
     # Path relative to the root artifact directory run.
-    path: str = betterproto.string_field(1)
+    path: Optional[str] = betterproto.string_field(1, optional=True, group="_path")
     # Whether the path is a directory.
-    is_dir: bool = betterproto.bool_field(2)
+    is_dir: Optional[bool] = betterproto.bool_field(2, optional=True, group="_is_dir")
     # Size in bytes. Unset for directories.
-    file_size: int = betterproto.int64_field(3)
+    file_size: Optional[int] = betterproto.int64_field(3, optional=True, group="_file_size")
 
 
 class MlflowArtifactsServiceStub(betterproto.ServiceStub):
-    async def download_artifact(self) -> "DownloadArtifactResponse":
+    async def download_artifact(self, *, path: str = "") -> AsyncIterator["DownloadArtifactResponse"]:
 
         request = DownloadArtifact()
+        request.path = path
 
-        return await self._unary_unary(
+        async for response in self._unary_stream(
             "/mlflow.artifacts.MlflowArtifactsService/downloadArtifact",
             request,
             DownloadArtifactResponse,
-        )
+        ):
+            yield response
 
-    async def upload_artifact(self) -> "UploadArtifactResponse":
+    async def upload_artifact(
+        self,
+        request_iterator: Union[AsyncIterable["UploadArtifact"], Iterable["UploadArtifact"]],
+    ) -> "UploadArtifactResponse":
 
-        request = UploadArtifact()
-
-        return await self._unary_unary(
+        return await self._stream_unary(
             "/mlflow.artifacts.MlflowArtifactsService/uploadArtifact",
-            request,
+            request_iterator,
+            UploadArtifact,
             UploadArtifactResponse,
         )
 
-    async def list_artifacts(self, *, path: str = "") -> "ListArtifactsResponse":
+    async def list_artifacts(self, *, path: Optional[str] = None) -> "ListArtifactsResponse":
 
         request = ListArtifacts()
         request.path = path
@@ -86,27 +91,30 @@ class MlflowArtifactsServiceStub(betterproto.ServiceStub):
 
 
 class MlflowArtifactsServiceBase(ServiceBase):
-    async def download_artifact(self) -> "DownloadArtifactResponse":
+    async def download_artifact(self, path: str) -> AsyncIterator["DownloadArtifactResponse"]:
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def upload_artifact(self) -> "UploadArtifactResponse":
+    async def upload_artifact(self, request_iterator: AsyncIterator["UploadArtifact"]) -> "UploadArtifactResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
-    async def list_artifacts(self, path: str) -> "ListArtifactsResponse":
+    async def list_artifacts(self, path: Optional[str]) -> "ListArtifactsResponse":
         raise grpclib.GRPCError(grpclib.const.Status.UNIMPLEMENTED)
 
     async def __rpc_download_artifact(self, stream: grpclib.server.Stream) -> None:
         request = await stream.recv_message()
 
-        request_kwargs = {}
+        request_kwargs = {
+            "path": request.path,
+        }
 
-        response = await self.download_artifact(**request_kwargs)
-        await stream.send_message(response)
+        await self._call_rpc_handler_server_stream(
+            self.download_artifact,
+            stream,
+            request_kwargs,
+        )
 
     async def __rpc_upload_artifact(self, stream: grpclib.server.Stream) -> None:
-        request = await stream.recv_message()
-
-        request_kwargs = {}
+        request_kwargs = {"request_iterator": stream.__aiter__()}
 
         response = await self.upload_artifact(**request_kwargs)
         await stream.send_message(response)
@@ -125,13 +133,13 @@ class MlflowArtifactsServiceBase(ServiceBase):
         return {
             "/mlflow.artifacts.MlflowArtifactsService/downloadArtifact": grpclib.const.Handler(
                 self.__rpc_download_artifact,
-                grpclib.const.Cardinality.UNARY_UNARY,
+                grpclib.const.Cardinality.UNARY_STREAM,
                 DownloadArtifact,
                 DownloadArtifactResponse,
             ),
             "/mlflow.artifacts.MlflowArtifactsService/uploadArtifact": grpclib.const.Handler(
                 self.__rpc_upload_artifact,
-                grpclib.const.Cardinality.UNARY_UNARY,
+                grpclib.const.Cardinality.STREAM_UNARY,
                 UploadArtifact,
                 UploadArtifactResponse,
             ),
