@@ -3,9 +3,6 @@ mod macros;
 #[rustfmt::skip]
 pub mod gen {
     include!("gen/flight_fusion.ipc.v1alpha1.rs");
-    pub mod mlflow {
-        include!("gen/mlflow.artifacts.rs");
-    }
 }
 pub mod utils;
 

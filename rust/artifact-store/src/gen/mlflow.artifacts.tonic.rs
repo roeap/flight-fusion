@@ -41,13 +41,10 @@ pub mod mlflow_artifacts_service_client {
                     <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
                 >,
             >,
-            <T as tonic::codegen::Service<
-                http::Request<tonic::body::BoxBody>,
-            >>::Error: Into<StdError> + Send + Sync,
+            <T as tonic::codegen::Service<http::Request<tonic::body::BoxBody>>>::Error:
+                Into<StdError> + Send + Sync,
         {
-            MlflowArtifactsServiceClient::new(
-                InterceptedService::new(inner, interceptor),
-            )
+            MlflowArtifactsServiceClient::new(InterceptedService::new(inner, interceptor))
         }
         /// Compress requests with `gzip`.
         ///
@@ -68,39 +65,33 @@ pub mod mlflow_artifacts_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::DownloadArtifact>,
         ) -> Result<
-                tonic::Response<
-                    tonic::codec::Streaming<super::download_artifact::Response>,
-                >,
-                tonic::Status,
-            > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+            tonic::Response<tonic::codec::Streaming<super::download_artifact::Response>>,
+            tonic::Status,
+        > {
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/mlflow.artifacts.MlflowArtifactsService/downloadArtifact",
             );
-            self.inner.server_streaming(request.into_request(), path, codec).await
+            self.inner
+                .server_streaming(request.into_request(), path, codec)
+                .await
         }
         pub async fn upload_artifact(
             &mut self,
             request: impl tonic::IntoStreamingRequest<Message = super::UploadArtifact>,
         ) -> Result<tonic::Response<super::upload_artifact::Response>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/mlflow.artifacts.MlflowArtifactsService/uploadArtifact",
@@ -113,15 +104,12 @@ pub mod mlflow_artifacts_service_client {
             &mut self,
             request: impl tonic::IntoRequest<super::ListArtifacts>,
         ) -> Result<tonic::Response<super::list_artifacts::Response>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
+            self.inner.ready().await.map_err(|e| {
+                tonic::Status::new(
+                    tonic::Code::Unknown,
+                    format!("Service was not ready: {}", e.into()),
+                )
+            })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/mlflow.artifacts.MlflowArtifactsService/listArtifacts",
@@ -138,9 +126,7 @@ pub mod mlflow_artifacts_service_server {
     #[async_trait]
     pub trait MlflowArtifactsService: Send + Sync + 'static {
         ///Server streaming response type for the downloadArtifact method.
-        type downloadArtifactStream: futures_core::Stream<
-                Item = Result<super::download_artifact::Response, tonic::Status>,
-            >
+        type downloadArtifactStream: futures_core::Stream<Item = Result<super::download_artifact::Response, tonic::Status>>
             + Send
             + 'static;
         async fn download_artifact(
@@ -159,8 +145,8 @@ pub mod mlflow_artifacts_service_server {
     #[derive(Debug)]
     pub struct MlflowArtifactsServiceServer<T: MlflowArtifactsService> {
         inner: _Inner<T>,
-        accept_compression_encodings: EnabledCompressionEncodings,
-        send_compression_encodings: EnabledCompressionEncodings,
+        accept_compression_encodings: (),
+        send_compression_encodings: (),
     }
     struct _Inner<T>(Arc<T>);
     impl<T: MlflowArtifactsService> MlflowArtifactsServiceServer<T> {
@@ -175,30 +161,14 @@ pub mod mlflow_artifacts_service_server {
                 send_compression_encodings: Default::default(),
             }
         }
-        pub fn with_interceptor<F>(
-            inner: T,
-            interceptor: F,
-        ) -> InterceptedService<Self, F>
+        pub fn with_interceptor<F>(inner: T, interceptor: F) -> InterceptedService<Self, F>
         where
             F: tonic::service::Interceptor,
         {
             InterceptedService::new(Self::new(inner), interceptor)
         }
-        /// Enable decompressing requests with `gzip`.
-        #[must_use]
-        pub fn accept_gzip(mut self) -> Self {
-            self.accept_compression_encodings.enable_gzip();
-            self
-        }
-        /// Compress responses with `gzip`, if the client supports it.
-        #[must_use]
-        pub fn send_gzip(mut self) -> Self {
-            self.send_compression_encodings.enable_gzip();
-            self
-        }
     }
-    impl<T, B> tonic::codegen::Service<http::Request<B>>
-    for MlflowArtifactsServiceServer<T>
+    impl<T, B> tonic::codegen::Service<http::Request<B>> for MlflowArtifactsServiceServer<T>
     where
         T: MlflowArtifactsService,
         B: Body + Send + 'static,
@@ -207,10 +177,7 @@ pub mod mlflow_artifacts_service_server {
         type Response = http::Response<tonic::body::BoxBody>;
         type Error = std::convert::Infallible;
         type Future = BoxFuture<Self::Response, Self::Error>;
-        fn poll_ready(
-            &mut self,
-            _cx: &mut Context<'_>,
-        ) -> Poll<Result<(), Self::Error>> {
+        fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
             Poll::Ready(Ok(()))
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
@@ -219,24 +186,20 @@ pub mod mlflow_artifacts_service_server {
                 "/mlflow.artifacts.MlflowArtifactsService/downloadArtifact" => {
                     #[allow(non_camel_case_types)]
                     struct downloadArtifactSvc<T: MlflowArtifactsService>(pub Arc<T>);
-                    impl<
-                        T: MlflowArtifactsService,
-                    > tonic::server::ServerStreamingService<super::DownloadArtifact>
-                    for downloadArtifactSvc<T> {
+                    impl<T: MlflowArtifactsService>
+                        tonic::server::ServerStreamingService<super::DownloadArtifact>
+                        for downloadArtifactSvc<T>
+                    {
                         type Response = super::download_artifact::Response;
                         type ResponseStream = T::downloadArtifactStream;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::ResponseStream>,
-                            tonic::Status,
-                        >;
+                        type Future =
+                            BoxFuture<tonic::Response<Self::ResponseStream>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::DownloadArtifact>,
                         ) -> Self::Future {
                             let inner = self.0.clone();
-                            let fut = async move {
-                                (*inner).download_artifact(request).await
-                            };
+                            let fut = async move { (*inner).download_artifact(request).await };
                             Box::pin(fut)
                         }
                     }
@@ -247,11 +210,10 @@ pub mod mlflow_artifacts_service_server {
                         let inner = inner.0;
                         let method = downloadArtifactSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            );
+                        let mut grpc = tonic::server::Grpc::new(codec).apply_compression_config(
+                            accept_compression_encodings,
+                            send_compression_encodings,
+                        );
                         let res = grpc.server_streaming(method, req).await;
                         Ok(res)
                     };
@@ -260,25 +222,18 @@ pub mod mlflow_artifacts_service_server {
                 "/mlflow.artifacts.MlflowArtifactsService/uploadArtifact" => {
                     #[allow(non_camel_case_types)]
                     struct uploadArtifactSvc<T: MlflowArtifactsService>(pub Arc<T>);
-                    impl<
-                        T: MlflowArtifactsService,
-                    > tonic::server::ClientStreamingService<super::UploadArtifact>
-                    for uploadArtifactSvc<T> {
+                    impl<T: MlflowArtifactsService>
+                        tonic::server::ClientStreamingService<super::UploadArtifact>
+                        for uploadArtifactSvc<T>
+                    {
                         type Response = super::upload_artifact::Response;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
-                            request: tonic::Request<
-                                tonic::Streaming<super::UploadArtifact>,
-                            >,
+                            request: tonic::Request<tonic::Streaming<super::UploadArtifact>>,
                         ) -> Self::Future {
                             let inner = self.0.clone();
-                            let fut = async move {
-                                (*inner).upload_artifact(request).await
-                            };
+                            let fut = async move { (*inner).upload_artifact(request).await };
                             Box::pin(fut)
                         }
                     }
@@ -289,11 +244,10 @@ pub mod mlflow_artifacts_service_server {
                         let inner = inner.0;
                         let method = uploadArtifactSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            );
+                        let mut grpc = tonic::server::Grpc::new(codec).apply_compression_config(
+                            accept_compression_encodings,
+                            send_compression_encodings,
+                        );
                         let res = grpc.client_streaming(method, req).await;
                         Ok(res)
                     };
@@ -302,23 +256,17 @@ pub mod mlflow_artifacts_service_server {
                 "/mlflow.artifacts.MlflowArtifactsService/listArtifacts" => {
                     #[allow(non_camel_case_types)]
                     struct listArtifactsSvc<T: MlflowArtifactsService>(pub Arc<T>);
-                    impl<
-                        T: MlflowArtifactsService,
-                    > tonic::server::UnaryService<super::ListArtifacts>
-                    for listArtifactsSvc<T> {
+                    impl<T: MlflowArtifactsService>
+                        tonic::server::UnaryService<super::ListArtifacts> for listArtifactsSvc<T>
+                    {
                         type Response = super::list_artifacts::Response;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
+                        type Future = BoxFuture<tonic::Response<Self::Response>, tonic::Status>;
                         fn call(
                             &mut self,
                             request: tonic::Request<super::ListArtifacts>,
                         ) -> Self::Future {
                             let inner = self.0.clone();
-                            let fut = async move {
-                                (*inner).list_artifacts(request).await
-                            };
+                            let fut = async move { (*inner).list_artifacts(request).await };
                             Box::pin(fut)
                         }
                     }
@@ -329,28 +277,23 @@ pub mod mlflow_artifacts_service_server {
                         let inner = inner.0;
                         let method = listArtifactsSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            );
+                        let mut grpc = tonic::server::Grpc::new(codec).apply_compression_config(
+                            accept_compression_encodings,
+                            send_compression_encodings,
+                        );
                         let res = grpc.unary(method, req).await;
                         Ok(res)
                     };
                     Box::pin(fut)
                 }
-                _ => {
-                    Box::pin(async move {
-                        Ok(
-                            http::Response::builder()
-                                .status(200)
-                                .header("grpc-status", "12")
-                                .header("content-type", "application/grpc")
-                                .body(empty_body())
-                                .unwrap(),
-                        )
-                    })
-                }
+                _ => Box::pin(async move {
+                    Ok(http::Response::builder()
+                        .status(200)
+                        .header("grpc-status", "12")
+                        .header("content-type", "application/grpc")
+                        .body(empty_body())
+                        .unwrap())
+                }),
             }
         }
     }
@@ -374,8 +317,7 @@ pub mod mlflow_artifacts_service_server {
             write!(f, "{:?}", self.0)
         }
     }
-    impl<T: MlflowArtifactsService> tonic::transport::NamedService
-    for MlflowArtifactsServiceServer<T> {
+    impl<T: MlflowArtifactsService> tonic::transport::NamedService for MlflowArtifactsServiceServer<T> {
         const NAME: &'static str = "mlflow.artifacts.MlflowArtifactsService";
     }
 }
