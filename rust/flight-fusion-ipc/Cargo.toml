@@ -17,6 +17,7 @@ tonic = { version = "0.7", features = [
   "prost",
   "tls-roots",
   "tls",
+  "compression",
 ] }
 
 [dev-dependencies]

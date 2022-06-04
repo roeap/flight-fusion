@@ -1,3 +1,9 @@
+use object_store::DynObjectStore;
+
+pub struct MlflowArtifacts {
+    object_store: Arc<DynObjectStore>,
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
