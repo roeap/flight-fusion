@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use bytes::Bytes;
 use futures::Stream;
 use futures::StreamExt;
 use gen::{
@@ -91,7 +92,26 @@ impl MlflowArtifactsService for MlflowArtifacts {
         &self,
         request: Request<Streaming<UploadArtifact>>,
     ) -> Result<Response<UploadArtifactResponse>, Status> {
-        todo!()
+        let mut buffer = Vec::new();
+        let mut stream = request.into_inner();
+        let path = match stream.message().await? {
+            Some(message) => {
+                buffer.extend(message.data);
+                Ok(Path::from(message.path))
+            }
+            _ => Err(Status::invalid_argument("no input message")),
+        }?;
+        while let Some(maybe_chunk) = stream.next().await {
+            match maybe_chunk {
+                Ok(data) => buffer.extend(data.data),
+                _ => todo!(),
+            }
+        }
+        self.object_store
+            .put(&path, Bytes::from(buffer))
+            .await
+            .map_err(|e| Status::internal(e.to_string()))?;
+        Ok(Response::new(UploadArtifactResponse {}))
     }
 
     async fn download_artifact(
@@ -171,4 +191,34 @@ mod tests {
         let download_data = Bytes::from(response[0].data.clone());
         assert_eq!(data, download_data);
     }
+
+    // #[tokio::test]
+    // async fn upload_artifact() {
+    //     let root = tempfile::tempdir().unwrap();
+    //     let object_store = Arc::new(LocalFileSystem::new_with_prefix(root).unwrap());
+    //     let service = MlflowArtifacts::new(object_store.clone());
+    //
+    //     let directory = Path::from("directory");
+    //     let object = directory.child("child.txt");
+    //     let data = Bytes::from("arbitrary");
+    //
+    //     let req = upload_requests_iter().take(1);
+    //     let stream = Streaming::new();
+    //
+    //     let _ = service
+    //         .upload_artifact(req.into_streaming_request())
+    //         .await
+    //         .unwrap()
+    //         .into_inner();
+    //
+    //     let download_data = object_store
+    //         .get(&object)
+    //         .await
+    //         .unwrap()
+    //         .bytes()
+    //         .await
+    //         .unwrap();
+    //
+    //     assert_eq!(data, download_data);
+    // }
 }
