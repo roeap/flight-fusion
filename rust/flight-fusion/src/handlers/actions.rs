@@ -11,7 +11,7 @@ impl ActionHandler<CommandDropSource> for FlightFusionService {
     async fn handle_do_action(&self, action: CommandDropSource) -> Result<ResultActionStatus> {
         if let Some(source) = action.source {
             let location = AreaPath::from(source);
-            self.area_store.delete_location(&location.into()).await?;
+            self.area_store.delete_location(&location).await?;
             // TODO return a more meaningful message
             Ok(ResultActionStatus {
                 status: ActionStatus::Success.into(),

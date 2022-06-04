@@ -1007,6 +1007,7 @@ dependencies = [
  "area-store",
  "arrow-deps",
  "arrow-flight",
+ "artifact-store",
  "async-trait",
  "bytes",
  "config",
