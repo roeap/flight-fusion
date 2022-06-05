@@ -92,13 +92,26 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Cache Cargo
+        uses: actions/cache@v3
+        with:
+          # these represent dependencies downloaded by cargo
+          # and thus do not depend on the OS, arch nor rust version.
+          path: /github/home/.cargo
+          key: cargo-cache-
+      - name: Cache Rust dependencies
+        uses: actions/cache@v3
+        with:
+          # these represent compiled steps of both dependencies and arrow
+          # and thus are specific for a particular OS, arch and rust version.
+          path: /github/home/target
+          key: ${{ runner.os }}-arch-target-cache-nightly-
+
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
           override: true
           components: rustfmt, clippy
-
-      - uses: Swatinem/rust-cache@v1
 
       - name: Setup Python
         uses: actions/setup-python@v3
@@ -126,7 +139,6 @@ jobs:
         run: cargo install cargo2junit || true # ignore failure, since it means that it's already in cache
 
       - name: Test
-        # run: cargo test --all-features --no-fail-fast -- -Z unstable-options --format json --report-time | tee results.json && cat results.json | cargo2junit > results.xml
         run: cargo test --workspace --no-fail-fast -- -Z unstable-options --format json --report-time | tee results.json && cat results.json | cargo2junit > results.xml
         env:
           CARGO_INCREMENTAL: "0"
