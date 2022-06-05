@@ -1,22 +1,13 @@
-from typing import TypedDict
-
-from dagster import resource
-
-from dagster_fusion._types import TypedInitResourceContext
+from dagster import InitResourceContext, resource
 from flight_fusion import ClientOptions, FusionServiceClient
 
-
-class FusionConfig(TypedDict):
-    host: str
-    port: int
+from dagster_fusion.resources.configuration import MlFusionConfiguration
 
 
 @resource(  # type: ignore
-    config_schema={"host": str, "port": int},
     description="Service client to interact with flight-fusion service",
+    required_resource_keys={"mlfusion_config"},
 )
-def flight_fusion_resource(
-    init_context: TypedInitResourceContext[FusionConfig],
-) -> FusionServiceClient:
-    options = ClientOptions(host=init_context.resource_config["host"], port=init_context.resource_config["port"])
-    return FusionServiceClient(options)
+def flight_fusion_resource(context: InitResourceContext) -> FusionServiceClient:
+    config: MlFusionConfiguration = context.resources.mlfusion_config  # type: ignore
+    return FusionServiceClient(ClientOptions(host=config.flight_host, port=config.flight_port))

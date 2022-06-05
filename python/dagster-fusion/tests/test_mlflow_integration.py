@@ -11,6 +11,7 @@ import pandas as pd
 import pytest
 from dagster import ModeDefinition, execute_pipeline, pipeline, solid
 
+from dagster_fusion.resources import mlfusion_configuration
 from dagster_fusion.resources.mlflow import MlFlow, mlflow_tracking
 
 
@@ -158,7 +159,9 @@ def test_mlflow_meta_overloading():
     # Given an MlFlow
     # And: a list of inherited mlflow methods
     # TODO: find a way to get this list
-    inherited_list = [method for method in dir(mlflow) if method not in ["log_params", "__name__", "__doc__"]]
+    inherited_list = [
+        method for method in dir(mlflow) if method not in ["log_params", "__name__", "__doc__", "__init__"]
+    ]
 
     for methods in inherited_list:
         assert getattr(MlFlow, methods) == getattr(mlflow, methods)
@@ -355,7 +358,7 @@ def test_execute_solid_with_mlflow_resource():
     def solid2(_, _arg1):
         run_id_holder["solid2_run_id"] = mlflow.active_run().info.run_id  # type: ignore
 
-    @pipeline(mode_defs=[ModeDefinition(resource_defs={"mlflow": mlflow_tracking})])  # type: ignore
+    @pipeline(mode_defs=[ModeDefinition(resource_defs={"mlflow": mlflow_tracking, "mlfusion_config": mlfusion_configuration})])  # type: ignore
     def mlf_pipeline():
         solid2(solid1())
 

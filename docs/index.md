@@ -42,6 +42,10 @@ fds.write_into(df_example, SaveMode.SAVE_MODE_OVERWRITE)
 - autolog -> still use io manager to assign asset tags
 - pure version -> optionally yield artifacts ...
 
+### datasets
+
+- use metadata to configure asset behavior
+
 ## CLI
 
 `fusion server start`

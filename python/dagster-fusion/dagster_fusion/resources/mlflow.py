@@ -27,15 +27,10 @@ from mlflow.entities.run_status import RunStatus
 from mlflow.exceptions import MlflowException
 
 from dagster_fusion.errors import MissingConfiguration
+from dagster_fusion.resources.configuration import MlFusionConfiguration
 
-CONFIG_SCHEMA = {
+_CONFIG_SCHEMA = {
     "experiment_name": Field(StringSource, is_required=True, description="MlFlow experiment name."),
-    "mlflow_tracking_uri": Field(
-        Noneable(StringSource),
-        default_value=None,
-        is_required=False,
-        description="MlFlow tracking server uri.",
-    ),
     "parent_run_id": Field(
         Noneable(str),
         default_value=None,
@@ -76,7 +71,7 @@ class MlFlow(metaclass=MlflowMeta):
     mlflow tracking dagster parallel runs.
     """
 
-    def __init__(self, context: InitResourceContext):
+    def __init__(self, context: InitResourceContext, tracking_uri: str | None = None):
 
         # Context associated attributes
         if context.log is None:
@@ -84,14 +79,16 @@ class MlFlow(metaclass=MlflowMeta):
         self.log = context.log
         if context.pipeline_run is None:
             raise MissingConfiguration("Mlfow resource requires active run")
+
         self.run_name = context.pipeline_run.pipeline_name
         self.dagster_run_id = context.run_id
 
         # resource config attributes
-        resource_config = context.resource_config
-        self.tracking_uri = resource_config.get("mlflow_tracking_uri")
+        self.tracking_uri = tracking_uri
         if self.tracking_uri:
             mlflow.set_tracking_uri(self.tracking_uri)
+
+        resource_config = context.resource_config
         self.parent_run_id = resource_config.get("parent_run_id")
         self.experiment_name = resource_config["experiment_name"]
         self.env_tags_to_log = resource_config.get("env_to_tag") or []
@@ -192,7 +189,7 @@ class MlFlow(metaclass=MlflowMeta):
 
     def _set_all_tags(self):
         """Method collects dagster_run_id plus all env variables/tags that have been
-            specified by the user in the config_schema and logs them as tags in mlflow.
+            specified by the user in the _config_schema and logs them as tags in mlflow.
 
         Returns:
             tags [dict]: Dictionary of all the tags
@@ -246,7 +243,7 @@ class MlFlow(metaclass=MlflowMeta):
             yield {k: params[k] for k in islice(it, size)}
 
 
-@resource(config_schema=CONFIG_SCHEMA)
+@resource(config_schema=_CONFIG_SCHEMA, required_resource_keys={"mlfusion_config"})
 def mlflow_tracking(context: InitResourceContext):
     """
     This resource initializes an MLflow run that's used for all steps within a Dagster run.
@@ -282,7 +279,6 @@ def mlflow_tracking(context: InitResourceContext):
                     "mlflow": {
                         "config": {
                             "experiment_name": my_experiment,
-                            "mlflow_tracking_uri": "http://localhost:5000",
 
                             # if want to run a nested run, provide parent_run_id
                             "parent_run_id": an_existing_mlflow_run_id,
@@ -304,6 +300,7 @@ def mlflow_tracking(context: InitResourceContext):
                 }
             })
     """
-    mlf = MlFlow(context)
+    config: MlFusionConfiguration = context.resources.mlfusion_config  # type: ignore
+    mlf = MlFlow(context, tracking_uri=config.mlflow_tracking_uri)
     yield mlf
     mlf.cleanup_on_error()

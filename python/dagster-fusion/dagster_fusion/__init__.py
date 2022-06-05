@@ -1,5 +1,5 @@
 from .io import flight_fusion_io_manager, flight_fusion_loader, mlfusion_io_manager
-from .resources import flight_fusion_resource
+from .resources import flight_fusion_resource, mlfusion_configuration
 
 try:
     from importlib.metadata import version
@@ -8,4 +8,10 @@ except ImportError:
 
 __version__ = version(__name__)
 
-__all__ = ("flight_fusion_io_manager", "flight_fusion_loader", "flight_fusion_resource", "mlfusion_io_manager")
+__all__ = (
+    "flight_fusion_io_manager",
+    "flight_fusion_loader",
+    "flight_fusion_resource",
+    "mlfusion_io_manager",
+    "mlfusion_configuration",
+)
