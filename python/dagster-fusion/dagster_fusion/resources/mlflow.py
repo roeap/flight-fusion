@@ -5,17 +5,28 @@ things from dagster runs.
 """
 # this module is adopted from the original dagster-mlflow implementation to include some platform specific tracking logic
 # https://github.com/dagster-io/dagster/tree/master/python_modules/libraries/dagster-mlflow
+from __future__ import annotations
+
 import atexit
 import sys
 from itertools import islice
 from os import environ
-from typing import Any, Optional
+from typing import Any
 
 import mlflow
 import pandas as pd
-from dagster import Field, Noneable, Permissive, StringSource, resource
+from dagster import (
+    Field,
+    InitResourceContext,
+    Noneable,
+    Permissive,
+    StringSource,
+    resource,
+)
 from mlflow.entities.run_status import RunStatus
 from mlflow.exceptions import MlflowException
+
+from dagster_fusion.errors import MissingConfiguration
 
 CONFIG_SCHEMA = {
     "experiment_name": Field(StringSource, is_required=True, description="MlFlow experiment name."),
@@ -65,10 +76,14 @@ class MlFlow(metaclass=MlflowMeta):
     mlflow tracking dagster parallel runs.
     """
 
-    def __init__(self, context):
+    def __init__(self, context: InitResourceContext):
 
         # Context associated attributes
+        if context.log is None:
+            raise MissingConfiguration("Missing logger on context")
         self.log = context.log
+        if context.pipeline_run is None:
+            raise MissingConfiguration("Mlfow resource requires active run")
         self.run_name = context.pipeline_run.pipeline_name
         self.dagster_run_id = context.run_id
 
@@ -112,7 +127,7 @@ class MlFlow(metaclass=MlflowMeta):
         # a process exits in parallel runs
         atexit.unregister(mlflow.end_run)
 
-    def _get_current_run_id(self, experiment: Optional[Any] = None, dagster_run_id: Optional[str] = None):
+    def _get_current_run_id(self, experiment: Any | None = None, dagster_run_id: str | None = None):
         """Gets the run id of a specific dagster run and experiment id.
         If it doesn't exist then it returns a None.
 
@@ -232,7 +247,7 @@ class MlFlow(metaclass=MlflowMeta):
 
 
 @resource(config_schema=CONFIG_SCHEMA)
-def mlflow_tracking(context):
+def mlflow_tracking(context: InitResourceContext):
     """
     This resource initializes an MLflow run that's used for all steps within a Dagster run.
 
