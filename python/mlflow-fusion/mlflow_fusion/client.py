@@ -64,6 +64,9 @@ class ArtifactRepoOptions(BaseSettings):
             "port": {
                 "env": ["ff_artifacts_port", "ff_port"],
             },
+            "use_ssl": {
+                "env": ["ff_artifacts_use_ssl", "ff_use_ssl"],
+            },
         }
 
 

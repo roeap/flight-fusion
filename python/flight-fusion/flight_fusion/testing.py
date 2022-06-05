@@ -24,7 +24,9 @@ except ImportError as err:
 
 
 @pytest.fixture
-def fusion_client_with_options(datadir: Path) -> Generator[tuple[FusionServiceClient, ClientOptions], None, None]:
+def fusion_client_with_options(
+    datadir: Path, monkeypatch
+) -> Generator[tuple[FusionServiceClient, ClientOptions], None, None]:
 
     exec_path = Path(sys.executable).parent / "flight-fusion-server"
 
@@ -50,6 +52,13 @@ def fusion_client_with_options(datadir: Path) -> Generator[tuple[FusionServiceCl
         stderr=subprocess.STDOUT,
         cwd=str(datadir),
     )
+
+    monkeypatch.setenv("FF_HOST", "127.0.0.1")
+    monkeypatch.setenv("FF_ARTIFACTS_HOST", "127.0.0.1")
+    monkeypatch.setenv("FF_PORT", str(port))
+    monkeypatch.setenv("FF_ARTIFACTS_PORT", str(port))
+    monkeypatch.setenv("FF_USE_SSL", "false")
+    monkeypatch.setenv("FF_ARTIFACTS_USE_SSL", "false")
 
     # Give the server time to start
     time.sleep(1)

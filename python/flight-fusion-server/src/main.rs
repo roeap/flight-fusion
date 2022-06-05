@@ -62,7 +62,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let addr = format!("{}:{}", args.host, args.port).parse()?;
     let service = FlightFusionService::new_default("./.fusion").unwrap();
-    let service_artifacts = MlflowArtifacts::new_default("./.mlflow/mlruns").unwrap();
+    let service_artifacts = MlflowArtifacts::new_default(".mlflow/mlruns").unwrap();
 
     let svc = FlightServiceServer::new(service);
     let artifact_svc = MlflowArtifactsServiceServer::new(service_artifacts);

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from os import walk
+import os
 from pathlib import Path
 
 from mlflow.entities import FileInfo
-from mlflow.store.artifact.artifact_repo import ArtifactRepository
+from mlflow.store.artifact.artifact_repo import ArtifactRepository, verify_artifact_path
 
 from mlflow_fusion.client import MlflowArtifactsClient
 from mlflow_fusion.ipc.artifacts import UploadArtifact
@@ -13,11 +13,14 @@ from mlflow_fusion.ipc.artifacts import UploadArtifact
 class FusionArtifactRepository(ArtifactRepository):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._repo_root = Path(self.artifact_uri.strip("fusion:").strip("/"))
+        self._repo_root = self.artifact_uri.strip("fusion:").strip("/")
         self._client = MlflowArtifactsClient()
 
     def _get_object_key(self, artifact_path: str | None) -> str:
-        return str(self._repo_root / (artifact_path or ""))
+        return os.path.join(self._repo_root, (artifact_path or ""))
+
+    def _prune_root(self, artifact_path: str | None) -> str:
+        return (artifact_path or "").strip(str(self._repo_root)).strip("/")
 
     def log_artifact(self, local_file: str, artifact_path=None) -> None:
         """
@@ -28,10 +31,12 @@ class FusionArtifactRepository(ArtifactRepository):
         :param local_file: Path to artifact to log
         :param artifact_path: Directory within the run's artifact directory in which to log the artifact.
         """
+        verify_artifact_path(artifact_path)
         # TODO handle files larger then single request limit
-        with Path(local_file).open("rb") as file:
+        file_path = Path(local_file)
+        with file_path.open("rb") as file:
             data = file.read()
-        key = self._get_object_key(artifact_path)
+        key = self._get_object_key(os.path.join((artifact_path or "").strip("/"), file_path.name))
         self._client.upload_artifact([UploadArtifact(path=key, data=data)])
 
     def log_artifacts(self, local_dir: str, artifact_path=None) -> None:
@@ -42,9 +47,12 @@ class FusionArtifactRepository(ArtifactRepository):
         :param local_dir: Directory of local artifacts to log
         :param artifact_path: Directory within the run's artifact directory in which to log the artifacts
         """
-        for (root, _, files) in walk(local_dir):
+        verify_artifact_path(artifact_path)
+        for (root, _, files) in os.walk(local_dir):
+            trimmed_root = root.replace(local_dir, "").strip("/")
+            art_path = os.path.join((artifact_path or ""), trimmed_root).strip("/") if trimmed_root else artifact_path
             for file in files:
-                self.log_artifact(local_file=str(Path(root) / file), artifact_path=f"{artifact_path}/{file}")
+                self.log_artifact(local_file=os.path.join(root, file), artifact_path=art_path)
 
     def list_artifacts(self, path=None) -> list[FileInfo]:
         """
@@ -55,7 +63,11 @@ class FusionArtifactRepository(ArtifactRepository):
 
         :return: List of artifacts as FileInfo listed directly under path.
         """
-        return self._client.list_artifacts(path=self._get_object_key(path))
+
+        def _to_rel_path(info: FileInfo):
+            return FileInfo(path=self._prune_root(info.path), file_size=info.file_size, is_dir=info.is_dir)
+
+        return [_to_rel_path(fi) for fi in self._client.list_artifacts(path=self._get_object_key(path))]
 
     def _download_file(self, remote_file_path: str, local_path: str) -> None:
         """

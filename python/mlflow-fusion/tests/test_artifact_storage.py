@@ -6,9 +6,8 @@ from mlflow_fusion.client import ArtifactRepoOptions, MlflowArtifactsClient
 from mlflow_fusion.ipc.artifacts import UploadArtifact
 
 
-def test_artifact_roundtrip(fusion_client_with_options: tuple[FusionServiceClient, ClientOptions], datadir: Path):
-    _, options = fusion_client_with_options
-    opts = ArtifactRepoOptions(host=options.host, port=options.port, use_ssl=False)
+def test_artifact_roundtrip(fusion_client: tuple[FusionServiceClient, ClientOptions], datadir: Path):
+    opts = ArtifactRepoOptions()
     client = MlflowArtifactsClient(opts)
     path = "foo/bar.baz"
     data = b"arbitrary data"
@@ -23,9 +22,8 @@ def test_artifact_roundtrip(fusion_client_with_options: tuple[FusionServiceClien
     assert response == data
 
 
-def test_list_artifacts(fusion_client_with_options: tuple[FusionServiceClient, ClientOptions]):
-    _, options = fusion_client_with_options
-    opts = ArtifactRepoOptions(host=options.host, port=options.port, use_ssl=False)
+def test_list_artifacts(fusion_client: tuple[FusionServiceClient, ClientOptions]):
+    opts = ArtifactRepoOptions()
     client = MlflowArtifactsClient(opts)
     data = b"arbitrary data"
 

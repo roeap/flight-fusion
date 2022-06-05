@@ -23,6 +23,7 @@
     "dadc",
     "dagit",
     "dagster",
+    "datadir",
     "datafusion",
     "datalake",
     "dataplane",
