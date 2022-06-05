@@ -28,6 +28,20 @@ df_example = pd.DataFrame(np.random.randn(5, 3), columns=["col1", "col2", "col3"
 fds.write_into(df_example, SaveMode.SAVE_MODE_OVERWRITE)
 ```
 
+## Configuration
+
+- fusion server
+- artifacts server
+- mlflow server
+- mlserver server
+
+## Dagster Asset IO Managers
+
+### model artifacts
+
+- autolog -> still use io manager to assign asset tags
+- pure version -> optionally yield artifacts ...
+
 ## CLI
 
 `fusion server start`
@@ -37,4 +51,4 @@ fds.write_into(df_example, SaveMode.SAVE_MODE_OVERWRITE)
 `fusion server mlflow`
 
 : start the mlflow server
-  new line
+new line
