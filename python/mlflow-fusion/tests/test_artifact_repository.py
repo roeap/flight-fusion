@@ -5,7 +5,6 @@ from pathlib import Path
 import pytest
 from mlflow.exceptions import MlflowException
 from mlflow.utils.file_utils import TempDir
-
 from mlflow_fusion.artifacts import FusionArtifactRepository
 
 
@@ -142,7 +141,7 @@ def test_artifacts_are_logged_to_and_downloaded_from_repo_subdirectory_successfu
 
 def test_log_artifact_throws_exception_for_invalid_artifact_paths(artifact_repo: FusionArtifactRepository):
     with TempDir() as local_dir:
-        for bad_artifact_path in ["/", "//", "/tmp", "/bad_path", ".", "../terrible_path"]:
+        for bad_artifact_path in ["/", "//", "/tmp", "/bad_path", ".", "../terrible_path"]:  # nosec
             with pytest.raises(MlflowException) as exc_info:
                 artifact_repo.log_artifact(local_dir.path(), bad_artifact_path)
             assert "Invalid artifact path" in str(exc_info)
