@@ -3,16 +3,19 @@ This module contains the mlflow resource provided by the MlFlow
 class. This resource provides an easy way to configure mlflow for logging various
 things from dagster runs.
 """
+# this module is adopted from the original dagster-mlflow implementation to include some platform specific tracking logic
+# https://github.com/dagster-io/dagster/tree/master/python_modules/libraries/dagster-mlflow
 import atexit
 import sys
 from itertools import islice
 from os import environ
 from typing import Any, Optional
 
-from dagster import Field, Noneable, Permissive, StringSource, resource
-
 import mlflow
+import pandas as pd
+from dagster import Field, Noneable, Permissive, StringSource, resource
 from mlflow.entities.run_status import RunStatus
+from mlflow.exceptions import MlflowException
 
 CONFIG_SCHEMA = {
     "experiment_name": Field(StringSource, is_required=True, description="MlFlow experiment name."),
@@ -105,7 +108,7 @@ class MlFlow(metaclass=MlflowMeta):
         self._set_active_run(run_id=run_id)
         self._set_all_tags()
 
-        # hack needed to stop mlflow from marking run as finished when
+        # HACK needed to stop mlflow from marking run as finished when
         # a process exits in parallel runs
         atexit.unregister(mlflow.end_run)
 
@@ -132,8 +135,12 @@ class MlFlow(metaclass=MlflowMeta):
                 experiment_ids=[experiment.experiment_id],
                 filter_string=f"tags.dagster_run_id='{dagster_run_id}'",
             )
-            if not current_run_df.empty:
-                return current_run_df.run_id.values[0]  # pylint: disable=no-member
+            if isinstance(current_run_df, pd.DataFrame):
+                if not current_run_df.empty:
+                    return current_run_df.run_id.values[0]  # pylint: disable=no-member
+            else:
+                if not len(current_run_df) == 0:
+                    current_run_df[0].info.run_id
 
     def _set_active_run(self, run_id=None):
         """
@@ -162,6 +169,8 @@ class MlFlow(metaclass=MlflowMeta):
             )
         except Exception as ex:
             run = mlflow.active_run()
+            if run is None:
+                raise MlflowException("Failed to get a run instance")
             if "is already active" not in str(ex):
                 raise (ex)
             self.log.info(f"Run with id {run.info.run_id} is already active.")
