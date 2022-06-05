@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from pydantic import BaseSettings
-
-# from mlflow.exceptions import MlflowException
 from mlflow.entities import FileInfo
 from mlflow.store.artifact.artifact_repo import ArtifactRepository
 from mlflow.store.artifact.local_artifact_repo import LocalArtifactRepository
+from pydantic import BaseSettings
+
+from mlflow_fusion.client import MlflowArtifactsClient
 
 
 class FusionArtifactRepositorySetting(BaseSettings):
@@ -17,6 +17,7 @@ class FusionArtifactRepository(ArtifactRepository):
         super().__init__(*args, **kwargs)
         file_uri = self.artifact_uri.replace("fusion:/", "")
         self._repo = LocalArtifactRepository(artifact_uri=file_uri)
+        self._client = MlflowArtifactsClient(use_ssl=False)
 
     def log_artifact(self, local_file, artifact_path=None) -> None:
         """

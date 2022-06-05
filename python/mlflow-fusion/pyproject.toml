@@ -38,8 +38,8 @@ pytest-mock = "*"
 [tool.poetry.plugins."mlflow.artifact_repository"]
 fusion = "mlflow_fusion.artifacts:FusionArtifactRepository"
 
-# [tool.poetry.plugins."mlflow.run_context_provider"]
-# run_context_provider = "mlflow_fusion.run_context:ArgusRunContextProvider"
+[tool.poetry.plugins."mlflow.run_context_provider"]
+unused = "mlflow_fusion.context:FusionRunContextProvider"
 
 # [tool.poetry.plugins."mlflow.request_header_provider"]
 # request_header_provider = "mlflow_fusion.request_headers:ArgusRequestHeaderProvider"
