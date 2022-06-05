@@ -1575,6 +1575,7 @@ develop = true
 [package.dependencies]
 betterproto = "2.0.0b4"
 mlflow = "^1.26"
+pydantic = {version = ">=1", extras = ["dotenv"]}
 
 [package.source]
 type = "directory"

@@ -3,9 +3,11 @@ from __future__ import annotations
 import asyncio
 from contextlib import asynccontextmanager
 from threading import Thread
-from typing import Any, AsyncIterable, Callable, Coroutine, Iterable, Iterator, TypeVar
+from typing import Any, AsyncIterable, Callable, Coroutine, Iterable, TypeVar
 
 from grpclib.client import Channel
+from mlflow.entities import FileInfo
+from pydantic import BaseSettings
 
 from mlflow_fusion.auth import SendrequestAuth, TokenCredential
 from mlflow_fusion.ipc.artifacts import (
@@ -48,12 +50,27 @@ def run_async(func: Callable[..., Coroutine[Any, Any, T]], *args, **kwargs) -> T
         return asyncio.run(func(*args, **kwargs))
 
 
+class ArtifactRepoOptions(BaseSettings):
+    host: str = "localhost"
+    port: int = 50051
+    use_ssl: bool = False
+
+    class Config:
+        env_prefix = "ff_artifacts_"
+        fields = {
+            "host": {
+                "env": ["ff_artifacts_host", "ff_host"],
+            },
+            "port": {
+                "env": ["ff_artifacts_port", "ff_port"],
+            },
+        }
+
+
 class AsyncMlflowArtifactsClient:
     def __init__(
         self,
-        host: str = "localhost",
-        port: int = 50051,
-        use_ssl: bool = True,
+        options: ArtifactRepoOptions | None = None,
         credential: TokenCredential | None = None,
         scopes: list[str] | None = None,
     ) -> None:
@@ -64,15 +81,13 @@ class AsyncMlflowArtifactsClient:
             port: server port number. Defaults to 50051.
             use_ssl: use a secure channel for connection. Defaults to True.
         """
-        self._host = host
-        self._port = port
-        self._use_ssl = use_ssl
+        self._options = options or ArtifactRepoOptions()
         if credential is not None:
             self._auth = SendrequestAuth(credential=credential, scopes=scopes or [])
 
     @asynccontextmanager
     async def _service(self):
-        async with Channel(host=self._host, port=self._port, ssl=self._use_ssl) as channel:
+        async with Channel(host=self._options.host, port=self._options.port, ssl=self._options.use_ssl) as channel:
             yield MlflowArtifactsServiceStub(channel)
 
     async def list_artifacts(self, *, path: str | None = None) -> ListArtifactsResponse:
@@ -102,9 +117,7 @@ class AsyncMlflowArtifactsClient:
 class MlflowArtifactsClient:
     def __init__(
         self,
-        host: str = "localhost",
-        port: int = 50051,
-        use_ssl: bool = True,
+        options: ArtifactRepoOptions | None = None,
         credential: TokenCredential | None = None,
         scopes: list[str] | None = None,
     ) -> None:
@@ -116,14 +129,16 @@ class MlflowArtifactsClient:
             use_ssl (bool, optional): _description_. Defaults to True.
         """
         self._client = AsyncMlflowArtifactsClient(
-            host=host, port=port, use_ssl=use_ssl, credential=credential, scopes=scopes
+            options or ArtifactRepoOptions(), credential=credential, scopes=scopes
         )
 
-    def list_artifacts(self, *, path: str | None = None) -> ListArtifactsResponse:
-        return run_async(self._client.list_artifacts, path=path)  # type: ignore
+    def list_artifacts(self, *, path: str | None = None) -> list[FileInfo]:
+        response = run_async(self._client.list_artifacts, path=path)  # type: ignore
+        return [FileInfo.from_proto(file) for file in response.files]
 
-    def download_artifact(self, *, path: str = "") -> Iterator[DownloadArtifactResponse]:
-        return run_async(self._client.download_artifact, path=path)  # type: ignore
+    def download_artifact(self, *, path: str = "") -> bytes:
+        chunks = run_async(self._client.download_artifact, path=path)  # type: ignore
+        return b"".join([chunk.data for chunk in chunks])
 
     def upload_artifact(
         self,
