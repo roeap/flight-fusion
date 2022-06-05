@@ -101,7 +101,7 @@ jobs:
       - uses: Swatinem/rust-cache@v1
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         id: setup-python
         with:
           python-version: 3.9
@@ -127,7 +127,7 @@ jobs:
 
       - name: Test
         # run: cargo test --all-features --no-fail-fast -- -Z unstable-options --format json --report-time | tee results.json && cat results.json | cargo2junit > results.xml
-        run: cargo test --workspace --exclude arrow-adx --no-fail-fast -- -Z unstable-options --format json --report-time | tee results.json && cat results.json | cargo2junit > results.xml
+        run: cargo test --workspace --no-fail-fast -- -Z unstable-options --format json --report-time | tee results.json && cat results.json | cargo2junit > results.xml
         env:
           CARGO_INCREMENTAL: "0"
           RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
