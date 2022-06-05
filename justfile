@@ -20,6 +20,7 @@ generate-proto:
     rsync -a tmp-proto/flight_fusion/ipc/v1alpha1/ python/flight-fusion/flight_fusion/ipc/v1alpha1/
     rsync -a tmp-proto/inference/ python/flight-fusion/flight_fusion/ipc/inference/
     rsync -a tmp-proto/mlflow/ python/flight-fusion/flight_fusion/ipc/mlflow/
+    rsync -a tmp-proto/mlflow/ python/mlflow-fusion/mlflow_fusion/ipc/
 
     @echo 'tidy up some code'
     black .

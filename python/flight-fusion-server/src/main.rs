@@ -1,3 +1,6 @@
+use artifact_store::{
+    gen::mlflow_artifacts_service_server::MlflowArtifactsServiceServer, MlflowArtifacts,
+};
 use clap::Parser;
 use dotenv::dotenv;
 use flight_fusion::{FlightFusionService, FlightServiceServer, Server};
@@ -59,13 +62,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let addr = format!("{}:{}", args.host, args.port).parse()?;
     let service = FlightFusionService::new_default("./.fusion").unwrap();
+    let service_artifacts = MlflowArtifacts::new_default(".mlflow/mlruns").unwrap();
 
     let svc = FlightServiceServer::new(service);
+    let artifact_svc = MlflowArtifactsServiceServer::new(service_artifacts);
     info!("Listening on {}:{}", args.host, args.port);
 
     Server::builder()
         // .add_service(health_service)
         .add_service(svc)
+        .add_service(artifact_svc)
         .serve(addr)
         .await?;
 

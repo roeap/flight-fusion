@@ -8,6 +8,7 @@ authors = ["Robert Pack <r.pack@outlook.com>"]
 
 [dependencies]
 # workspace dependencies
+artifact-store = { path = "../../rust/artifact-store/" }
 flight-fusion = { path = "../../rust/flight-fusion" }
 observability_deps = { path = "../../rust/observability-deps" }
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import socket
 import subprocess  # nosec: just testing code
 import sys
@@ -14,7 +16,7 @@ except ImportError as err:
         "\033[31m"
         f"Unable to import `{err.name}` from flight_fusion plugin! "
         "Please ensure that you've installed flight_fusion as "
-        '`pip install "flight_fusion[dev]"` so that dev dependencies '
+        '`pip install "flight-fusion[dev]"` so that dev dependencies '
         "are included."
         "\033[0m"
     )
@@ -22,7 +24,9 @@ except ImportError as err:
 
 
 @pytest.fixture
-def fusion_client(datadir: Path) -> Generator[FusionServiceClient, None, None]:
+def fusion_client_with_options(
+    datadir: Path, monkeypatch
+) -> Generator[tuple[FusionServiceClient, ClientOptions], None, None]:
 
     exec_path = Path(sys.executable).parent / "flight-fusion-server"
 
@@ -40,6 +44,7 @@ def fusion_client(datadir: Path) -> Generator[FusionServiceClient, None, None]:
     sock.close()
 
     (datadir / ".fusion").mkdir(exist_ok=True)
+    (datadir / ".mlflow/mlruns").mkdir(exist_ok=True, parents=True)
 
     ds_proc = subprocess.Popen(  # nosec: running only in tests
         [str(exec_path.absolute()), "--host", "127.0.0.1", "--port", str(port)],
@@ -47,6 +52,13 @@ def fusion_client(datadir: Path) -> Generator[FusionServiceClient, None, None]:
         stderr=subprocess.STDOUT,
         cwd=str(datadir),
     )
+
+    monkeypatch.setenv("FF_HOST", "127.0.0.1")
+    monkeypatch.setenv("FF_ARTIFACTS_HOST", "127.0.0.1")
+    monkeypatch.setenv("FF_PORT", str(port))
+    monkeypatch.setenv("FF_ARTIFACTS_PORT", str(port))
+    monkeypatch.setenv("FF_USE_SSL", "false")
+    monkeypatch.setenv("FF_ARTIFACTS_USE_SSL", "false")
 
     # Give the server time to start
     time.sleep(1)
@@ -57,7 +69,17 @@ def fusion_client(datadir: Path) -> Generator[FusionServiceClient, None, None]:
     options = ClientOptions(host="localhost", port=port)
     client = FusionServiceClient(options)
 
-    yield client
+    yield client, options
 
     # Shut down server at the end of the pytest session
     ds_proc.terminate()
+
+
+@pytest.fixture
+def fusion_client(
+    fusion_client_with_options: tuple[FusionServiceClient, ClientOptions]
+) -> Generator[FusionServiceClient, None, None]:
+
+    client, _ = fusion_client_with_options
+
+    yield client

@@ -1573,7 +1573,9 @@ python-versions = "^3.8,<3.11"
 develop = true
 
 [package.dependencies]
+betterproto = "2.0.0b4"
 mlflow = "^1.26"
+pydantic = {version = ">=1", extras = ["dotenv"]}
 
 [package.source]
 type = "directory"
@@ -1971,7 +1973,7 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "polars"
-version = "0.13.40"
+version = "0.13.41"
 description = "Blazingly fast DataFrame library"
 category = "main"
 optional = false
@@ -1982,10 +1984,11 @@ numpy = ">=1.16.0"
 typing_extensions = {version = ">=4.0.0", markers = "python_version < \"3.10\""}
 
 [package.extras]
-pyarrow = ["pyarrow (>=4.0)"]
-fsspec = ["fsspec"]
+xlsx2csv = ["xlsx2csv"]
 pandas = ["pyarrow (>=4.0)", "pandas"]
 connectorx = ["connectorx"]
+fsspec = ["fsspec"]
+pyarrow = ["pyarrow (>=4.0)"]
 
 [[package]]
 name = "pre-commit"
@@ -2016,7 +2019,7 @@ twisted = ["twisted"]
 
 [[package]]
 name = "prometheus-flask-exporter"
-version = "0.20.1"
+version = "0.20.2"
 description = "Prometheus metrics exporter for Flask"
 category = "main"
 optional = false
@@ -4075,12 +4078,12 @@ pluggy = [
     {file = "pluggy-1.0.0.tar.gz", hash = "sha256:4224373bacce55f955a878bf9cfa763c1e360858e330072059e10bad68531159"},
 ]
 polars = [
-    {file = "polars-0.13.40-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:08b2378f46adee22d2061b8875307e09874a45045bffd498c01cdacfd9968490"},
-    {file = "polars-0.13.40-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:8515447bf97894f3d345b183bbd93e4a51a5e850fc1f98a440596be73a2ae373"},
-    {file = "polars-0.13.40-cp37-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:94f939aeffa19527034b9861f6093aefe31cc0f39ba22ec513be9f321f5423bc"},
-    {file = "polars-0.13.40-cp37-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:e871eb75c52d7fa9f13dec848b336bcdb11afc0691fc7b33a356b3caaa483b47"},
-    {file = "polars-0.13.40-cp37-abi3-win_amd64.whl", hash = "sha256:ac6e25d58c82098ddce673d90854f1c99438efacfdd31be9d3971b74174c5f4d"},
-    {file = "polars-0.13.40.tar.gz", hash = "sha256:a14745df5545d6adac5a2dc48287fdd91f4e9830262aa374a0c957596444ba3a"},
+    {file = "polars-0.13.41-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:6a51e80b9d8d4d5d73c285afc0299b7e8515e7f2d6be36fc82475c5a017328f9"},
+    {file = "polars-0.13.41-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:872be16c17a340072708f37e2b2243a7eaee6da4bab059d0aaca16dae0571479"},
+    {file = "polars-0.13.41-cp37-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:d60837ee8ac6acb62a2bdfb1e2bcc593d6f45fd991d70ea25bbb32c57ed1fa98"},
+    {file = "polars-0.13.41-cp37-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:048de57bc5ae63a1f224ea6ad762f45f5e1c559bb5a0b4a308760eeb4931bce0"},
+    {file = "polars-0.13.41-cp37-abi3-win_amd64.whl", hash = "sha256:959af79765b7f9712ec03b6726e8bcffc4ba00c1c65b43a2572d7d83fdae8ea9"},
+    {file = "polars-0.13.41.tar.gz", hash = "sha256:920b41bbd52d5b21a13ad5f9b49914fb1f4d8af16ec1b20ef50bb18e9b076369"},
 ]
 pre-commit = [
     {file = "pre_commit-2.19.0-py2.py3-none-any.whl", hash = "sha256:10c62741aa5704faea2ad69cb550ca78082efe5697d6f04e5710c3c229afdd10"},
@@ -4091,8 +4094,8 @@ prometheus-client = [
     {file = "prometheus_client-0.14.1.tar.gz", hash = "sha256:5459c427624961076277fdc6dc50540e2bacb98eebde99886e59ec55ed92093a"},
 ]
 prometheus-flask-exporter = [
-    {file = "prometheus_flask_exporter-0.20.1-py3-none-any.whl", hash = "sha256:83f2c2b2744650658addf1cf15e54d1be4fc1bd86cfb37660f3f352b09fd2c57"},
-    {file = "prometheus_flask_exporter-0.20.1.tar.gz", hash = "sha256:9a594b78ea10e282780ce6c4b127ae1cfa0a666b5ad150ba1bfb34c7aad2c7cc"},
+    {file = "prometheus_flask_exporter-0.20.2-py3-none-any.whl", hash = "sha256:946f8d631430258b9bf76c037a9f51a1d51f369cff84c8decc7e142e38d41197"},
+    {file = "prometheus_flask_exporter-0.20.2.tar.gz", hash = "sha256:aab05c49880d12b7d4eaabee102cfe998da92ddaacf86ec4f37cfa08c00858da"},
 ]
 promise = [
     {file = "promise-2.3.tar.gz", hash = "sha256:dfd18337c523ba4b6a58801c164c1904a9d4d1b1747c7d5dbf45b693a49d93d0"},

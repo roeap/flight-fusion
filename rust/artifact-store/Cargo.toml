@@ -1,5 +1,5 @@
 [package]
-name = "artifacts-store"
+name = "artifact-store"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,5 +11,14 @@ flight-fusion-ipc = { path = "../flight-fusion-ipc" }
 observability_deps = { path = "../observability-deps" }
 
 # Crates.io dependencies
+async-trait = "0.1"
 bytes = "1"
+futures = "0.3"
 object_store = { version = "*", features = ["azure"] }
+prost = "0.10"
+thiserror = "1"
+tonic = "0.7"
+
+[dev-dependencies]
+tempfile = "3"
+tokio = { version = "1", features = ["full"] }
