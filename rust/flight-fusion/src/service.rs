@@ -426,10 +426,6 @@ impl FlightService for FlightFusionService {
     }
 }
 
-fn to_tonic_err(e: FusionServiceError) -> Status {
-    Status::internal(format!("{:?}", e))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
