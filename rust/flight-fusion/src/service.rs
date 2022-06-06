@@ -303,7 +303,7 @@ impl FlightService for FlightFusionService {
                 "No operation data passed",
             )),
         }
-        .map_err(to_tonic_err)?;
+        .map_err(|_| Status::invalid_argument("No operation data passed"))?;
 
         let (tx, rx): (FlightDataSender, FlightDataReceiver) = channel(2);
 
@@ -424,10 +424,6 @@ impl FlightService for FlightFusionService {
     ) -> Result<Response<Self::DoExchangeStream>, Status> {
         Err(Status::unimplemented("Not implemented"))
     }
-}
-
-fn to_tonic_err(e: FusionServiceError) -> Status {
-    Status::internal(format!("{:?}", e))
 }
 
 #[cfg(test)]

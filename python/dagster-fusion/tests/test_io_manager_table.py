@@ -1,9 +1,9 @@
 import pyarrow as pa
 import pytest
 from dagster import AssetKey, In, Out, ResourceDefinition, graph, op
+from flight_fusion import FusionServiceClient
 
 from dagster_fusion import flight_fusion_io_manager
-from flight_fusion import FusionServiceClient
 
 
 @pytest.fixture

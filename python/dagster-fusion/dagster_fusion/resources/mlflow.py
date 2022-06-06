@@ -3,25 +3,35 @@ This module contains the mlflow resource provided by the MlFlow
 class. This resource provides an easy way to configure mlflow for logging various
 things from dagster runs.
 """
+# this module is adopted from the original dagster-mlflow implementation to include some platform specific tracking logic
+# https://github.com/dagster-io/dagster/tree/master/python_modules/libraries/dagster-mlflow
+from __future__ import annotations
+
 import atexit
 import sys
 from itertools import islice
 from os import environ
-from typing import Any, Optional
+from typing import Any, Iterator
 
-from dagster import Field, Noneable, Permissive, StringSource, resource
+import pandas as pd
+from dagster import (
+    Field,
+    InitResourceContext,
+    Noneable,
+    Permissive,
+    StringSource,
+    resource,
+)
 
 import mlflow
+from dagster_fusion.errors import MissingConfiguration
+from dagster_fusion.resources.configuration import MlFusionConfiguration
+from flight_fusion.tags import MlFusionTags
 from mlflow.entities.run_status import RunStatus
+from mlflow.exceptions import MlflowException
 
-CONFIG_SCHEMA = {
+_CONFIG_SCHEMA = {
     "experiment_name": Field(StringSource, is_required=True, description="MlFlow experiment name."),
-    "mlflow_tracking_uri": Field(
-        Noneable(StringSource),
-        default_value=None,
-        is_required=False,
-        description="MlFlow tracking server uri.",
-    ),
     "parent_run_id": Field(
         Noneable(str),
         default_value=None,
@@ -62,18 +72,24 @@ class MlFlow(metaclass=MlflowMeta):
     mlflow tracking dagster parallel runs.
     """
 
-    def __init__(self, context):
+    def __init__(self, context: InitResourceContext, tracking_uri: str | None = None):
 
         # Context associated attributes
+        if context.log is None:
+            raise MissingConfiguration("Missing logger on context")
         self.log = context.log
+        if context.pipeline_run is None:
+            raise MissingConfiguration("Mlfow resource requires active run")
+
         self.run_name = context.pipeline_run.pipeline_name
         self.dagster_run_id = context.run_id
 
         # resource config attributes
-        resource_config = context.resource_config
-        self.tracking_uri = resource_config.get("mlflow_tracking_uri")
+        self.tracking_uri = tracking_uri
         if self.tracking_uri:
             mlflow.set_tracking_uri(self.tracking_uri)
+
+        resource_config = context.resource_config
         self.parent_run_id = resource_config.get("parent_run_id")
         self.experiment_name = resource_config["experiment_name"]
         self.env_tags_to_log = resource_config.get("env_to_tag") or []
@@ -105,11 +121,11 @@ class MlFlow(metaclass=MlflowMeta):
         self._set_active_run(run_id=run_id)
         self._set_all_tags()
 
-        # hack needed to stop mlflow from marking run as finished when
+        # HACK needed to stop mlflow from marking run as finished when
         # a process exits in parallel runs
         atexit.unregister(mlflow.end_run)
 
-    def _get_current_run_id(self, experiment: Optional[Any] = None, dagster_run_id: Optional[str] = None):
+    def _get_current_run_id(self, experiment: Any | None = None, dagster_run_id: str | None = None):
         """Gets the run id of a specific dagster run and experiment id.
         If it doesn't exist then it returns a None.
 
@@ -130,10 +146,14 @@ class MlFlow(metaclass=MlflowMeta):
             # in mlflow, will get an empty dataframe if not
             current_run_df = mlflow.search_runs(
                 experiment_ids=[experiment.experiment_id],
-                filter_string=f"tags.dagster_run_id='{dagster_run_id}'",
+                filter_string=f"tags.{MlFusionTags.dagster.RUN_ID}='{dagster_run_id}'",
             )
-            if not current_run_df.empty:
-                return current_run_df.run_id.values[0]  # pylint: disable=no-member
+            if isinstance(current_run_df, pd.DataFrame):
+                if not current_run_df.empty:
+                    return current_run_df.run_id.values[0]  # pylint: disable=no-member
+            else:
+                if not len(current_run_df) == 0:
+                    current_run_df[0].info.run_id
 
     def _set_active_run(self, run_id=None):
         """
@@ -162,19 +182,21 @@ class MlFlow(metaclass=MlflowMeta):
             )
         except Exception as ex:
             run = mlflow.active_run()
+            if run is None:
+                raise MlflowException("Failed to get a run instance")
             if "is already active" not in str(ex):
                 raise (ex)
             self.log.info(f"Run with id {run.info.run_id} is already active.")
 
     def _set_all_tags(self):
         """Method collects dagster_run_id plus all env variables/tags that have been
-            specified by the user in the config_schema and logs them as tags in mlflow.
+            specified by the user in the _config_schema and logs them as tags in mlflow.
 
         Returns:
             tags [dict]: Dictionary of all the tags
         """
         tags = {tag: environ.get(tag) for tag in self.env_tags_to_log}
-        tags["dagster_run_id"] = self.dagster_run_id
+        tags[MlFusionTags.dagster.RUN_ID] = self.dagster_run_id
         if self.extra_tags:
             tags.update(self.extra_tags)
 
@@ -222,8 +244,8 @@ class MlFlow(metaclass=MlflowMeta):
             yield {k: params[k] for k in islice(it, size)}
 
 
-@resource(config_schema=CONFIG_SCHEMA)
-def mlflow_tracking(context):
+@resource(config_schema=_CONFIG_SCHEMA, required_resource_keys={"mlfusion_config"})
+def mlflow_tracking(context: InitResourceContext) -> Iterator[MlFlow]:
     """
     This resource initializes an MLflow run that's used for all steps within a Dagster run.
 
@@ -239,11 +261,10 @@ def mlflow_tracking(context):
     Examples:
 
         .. code-block:: python
-
-            from dagster_mlflow import end_mlflow_on_run_finished, mlflow_tracking
+            from dagster_fusion import end_mlflow_on_run_finished, mlflow_tracking
 
             @op(required_resource_keys={"mlflow"})
-            def mlflow_solid(context):
+            def mlflow_op(context):
                 mlflow.log_params(some_params)
                 mlflow.tracking.MlflowClient().create_registered_model(some_model_name)
 
@@ -258,7 +279,6 @@ def mlflow_tracking(context):
                     "mlflow": {
                         "config": {
                             "experiment_name": my_experiment,
-                            "mlflow_tracking_uri": "http://localhost:5000",
 
                             # if want to run a nested run, provide parent_run_id
                             "parent_run_id": an_existing_mlflow_run_id,
@@ -280,6 +300,7 @@ def mlflow_tracking(context):
                 }
             })
     """
-    mlf = MlFlow(context)
+    config: MlFusionConfiguration = context.resources.mlfusion_config  # type: ignore
+    mlf = MlFlow(context, tracking_uri=config.mlflow_tracking_uri)
     yield mlf
     mlf.cleanup_on_error()

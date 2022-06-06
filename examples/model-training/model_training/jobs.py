@@ -1,21 +1,24 @@
 from dagster import AssetGroup, JobDefinition
 
+from dagster_fusion.hooks import end_mlflow_on_run_finished
 from model_training.assets import local_assets  # , prod_assets, staging_assets
 
 
 def make_model_training_job(asset_group: AssetGroup) -> JobDefinition:
-    return asset_group.build_job(
-        name="model_training",
-        selection=["*demo>model_training>model_performance"],
-        tags={
-            "dagster-k8s/config": {
-                "container_config": {
-                    "resources": {
-                        "requests": {"cpu": "500m", "memory": "2Gi"},
-                    }
-                },
-            }
-        },
+    return end_mlflow_on_run_finished(
+        asset_group.build_job(
+            name="model_training",
+            selection=["*demo>model_training>model_performance"],
+            tags={
+                "dagster-k8s/config": {
+                    "container_config": {
+                        "resources": {
+                            "requests": {"cpu": "500m", "memory": "2Gi"},
+                        }
+                    },
+                }
+            },
+        )
     )
 
 

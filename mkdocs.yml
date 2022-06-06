@@ -23,5 +23,5 @@ markdown_extensions:
       linenums: true
 
 nav:
-  - Home: index.md
-  - Service: service.md
+  - Overview: index.md
+  - Architecture: service.md
