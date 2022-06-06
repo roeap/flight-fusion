@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from enum import Enum
+from pathlib import Path
 
 import mlflow
 from dagster import (
@@ -57,9 +58,8 @@ class ModelArtifactIOManager(IOManager):
         asset_key = context.asset_key
         serialized_asset_key = json.dumps(asset_key.path)
 
-        mlflow.set_tag(_TAG_ASSET_KEY, json.dumps(asset_key.path))
-
         client = mlflow.tracking.MlflowClient()
+
         # fetch most recent experiment, since we may have tagged it since we started the run
         experiment = client.get_experiment(self._mlflow.experiment.experiment_id)
         experiment_is_tagged = False
@@ -77,6 +77,26 @@ class ModelArtifactIOManager(IOManager):
                 )
             else:
                 client.set_experiment_tag(self._mlflow.experiment.experiment_id, _TAG_ASSET_KEY, serialized_asset_key)
+
+        run = mlflow.active_run()
+        if run is None:
+            raise ValueError("No active mlflow run")
+
+        # fetch fresh tags to make sure we have the latest tags
+        run = client.get_run(run_id=run.info.run_id)
+        tag_count = 0
+        run_is_tagged = False
+        for key, value in run.data.tags.items():
+            if _TAG_ASSET_KEY in key:
+                tag_count += 1
+                if value == serialized_asset_key:
+                    run_is_tagged = True
+
+        if not run_is_tagged:
+            if tag_count > 0:
+                mlflow.set_tag(f"{_TAG_ASSET_KEY}.{tag_count}", serialized_asset_key)
+            else:
+                mlflow.set_tag(_TAG_ASSET_KEY, json.dumps(asset_key.path))
 
         if metadata.file_type_inferred == FileType.PICKLE:
             import pickle  # nosec
@@ -104,7 +124,39 @@ class ModelArtifactIOManager(IOManager):
                 mlflow.log_artifact(local_path=artifact_src_path, artifact_path=metadata.artifact_path)
 
     def load_input(self, context: InputContext):
-        raise NotImplementedError
+        run = mlflow.active_run()
+        if run is None:
+            raise ValueError("No active mlflow run")
+
+        metadata = ArtifactMetaData(**(context.upstream_output.metadata or {}))  # type: ignore
+        client = mlflow.tracking.MlflowClient()
+
+        with TempDir() as dest_dir:
+            dest_path = dest_dir.path()
+            artifact_src_path_rel = (
+                f"{metadata.artifact_path}/{metadata.file_name}" if metadata.artifact_path else metadata.file_name
+            )
+            client.download_artifacts(run_id=run.info.run_id, path=artifact_src_path_rel, dst_path=dest_path)
+            local_path = Path(dest_dir.path(artifact_src_path_rel))
+
+            if metadata.file_type_inferred == FileType.PICKLE:
+                import pickle  # nosec
+
+                with local_path.open("rb") as f:
+                    data = pickle.load(f)  # nosec
+                return data
+
+            elif metadata.file_type_inferred == FileType.JSON:
+                with local_path.open("r") as f:
+                    data = json.load(f)
+                return data
+
+            elif metadata.file_type_inferred == FileType.YAML:
+                import yaml
+
+                with local_path.open("r") as f:
+                    data = yaml.safe_load(f)
+                return data
 
 
 @io_manager(required_resource_keys={"mlflow"})
