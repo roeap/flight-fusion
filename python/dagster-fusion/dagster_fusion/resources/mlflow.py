@@ -13,6 +13,7 @@ from itertools import islice
 from os import environ
 from typing import Any, Iterator
 
+import mlflow
 import pandas as pd
 from dagster import (
     Field,
@@ -22,12 +23,11 @@ from dagster import (
     StringSource,
     resource,
 )
-
-import mlflow
-from dagster_fusion.errors import MissingConfiguration
-from dagster_fusion.resources.configuration import MlFusionConfiguration
 from mlflow.entities.run_status import RunStatus
 from mlflow.exceptions import MlflowException
+
+from dagster_fusion.errors import MissingConfiguration
+from dagster_fusion.resources.configuration import MlFusionConfiguration
 
 _CONFIG_SCHEMA = {
     "experiment_name": Field(StringSource, is_required=True, description="MlFlow experiment name."),
@@ -259,46 +259,45 @@ def mlflow_tracking(context: InitResourceContext) -> Iterator[MlFlow]:
 
     Examples:
 
-    ```py
-    from dagster_fusion import end_mlflow_on_run_finished, mlflow_tracking
+        .. code-block:: python
+            from dagster_fusion import end_mlflow_on_run_finished, mlflow_tracking
 
-    @op(required_resource_keys={"mlflow"})
-    def mlflow_solid(context):
-        mlflow.log_params(some_params)
-        mlflow.tracking.MlflowClient().create_registered_model(some_model_name)
+            @op(required_resource_keys={"mlflow"})
+            def mlflow_op(context):
+                mlflow.log_params(some_params)
+                mlflow.tracking.MlflowClient().create_registered_model(some_model_name)
 
-    @end_mlflow_on_run_finished
-    @job(resource_defs={"mlflow": mlflow_tracking})
-    def mlf_example():
-        mlflow_op()
+            @end_mlflow_on_run_finished
+            @job(resource_defs={"mlflow": mlflow_tracking})
+            def mlf_example():
+                mlflow_op()
 
-    # example using an mlflow instance with s3 storage
-    mlf_example.execute_in_process(run_config={
-        "resources": {
-            "mlflow": {
-                "config": {
-                    "experiment_name": my_experiment,
+            # example using an mlflow instance with s3 storage
+            mlf_example.execute_in_process(run_config={
+                "resources": {
+                    "mlflow": {
+                        "config": {
+                            "experiment_name": my_experiment,
 
-                    # if want to run a nested run, provide parent_run_id
-                    "parent_run_id": an_existing_mlflow_run_id,
+                            # if want to run a nested run, provide parent_run_id
+                            "parent_run_id": an_existing_mlflow_run_id,
 
-                    # env variables to pass to mlflow
-                    "env": {
-                        "MLFLOW_S3_ENDPOINT_URL": my_s3_endpoint,
-                        "AWS_ACCESS_KEY_ID": my_aws_key_id,
-                        "AWS_SECRET_ACCESS_KEY": my_secret,
-                    },
+                            # env variables to pass to mlflow
+                            "env": {
+                                "MLFLOW_S3_ENDPOINT_URL": my_s3_endpoint,
+                                "AWS_ACCESS_KEY_ID": my_aws_key_id,
+                                "AWS_SECRET_ACCESS_KEY": my_secret,
+                            },
 
-                    # env variables you want to log as mlflow tags
-                    "env_to_tag": ["DOCKER_IMAGE_TAG"],
+                            # env variables you want to log as mlflow tags
+                            "env_to_tag": ["DOCKER_IMAGE_TAG"],
 
-                    # key-value tags to add to your experiment
-                    "extra_tags": {"super": "experiment"},
+                            # key-value tags to add to your experiment
+                            "extra_tags": {"super": "experiment"},
+                        }
+                    }
                 }
-            }
-        }
-    })
-    ```
+            })
     """
     config: MlFusionConfiguration = context.resources.mlfusion_config  # type: ignore
     mlf = MlFlow(context, tracking_uri=config.mlflow_tracking_uri)

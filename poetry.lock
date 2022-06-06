@@ -1271,7 +1271,7 @@ format-nongpl = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-
 
 [[package]]
 name = "jupyter-client"
-version = "7.3.1"
+version = "7.3.2"
 description = "Jupyter protocol implementation and client libraries"
 category = "main"
 optional = false
@@ -1282,12 +1282,12 @@ entrypoints = "*"
 jupyter-core = ">=4.9.2"
 nest-asyncio = ">=1.5.4"
 python-dateutil = ">=2.8.2"
-pyzmq = ">=22.3"
+pyzmq = ">=23.0"
 tornado = ">=6.0"
 traitlets = "*"
 
 [package.extras]
-doc = ["ipykernel", "myst-parser", "sphinx (>=1.3.6)", "sphinx-rtd-theme", "sphinxcontrib-github-alt"]
+doc = ["ipykernel", "myst-parser", "sphinx-rtd-theme", "sphinx (>=1.3.6)", "sphinxcontrib-github-alt"]
 test = ["codecov", "coverage", "ipykernel (>=6.5)", "ipython", "mypy", "pre-commit", "pytest", "pytest-asyncio (>=0.18)", "pytest-cov", "pytest-timeout"]
 
 [[package]]
@@ -1387,7 +1387,7 @@ traitlets = "*"
 
 [[package]]
 name = "maturin"
-version = "0.12.18"
+version = "0.12.19"
 description = "Build and publish crates with pyo3, rust-cpython and cffi bindings as well as rust binaries as python packages"
 category = "dev"
 optional = false
@@ -1973,7 +1973,7 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "polars"
-version = "0.13.41"
+version = "0.13.42"
 description = "Blazingly fast DataFrame library"
 category = "main"
 optional = false
@@ -1984,11 +1984,11 @@ numpy = ">=1.16.0"
 typing_extensions = {version = ">=4.0.0", markers = "python_version < \"3.10\""}
 
 [package.extras]
-xlsx2csv = ["xlsx2csv"]
-pandas = ["pyarrow (>=4.0)", "pandas"]
 connectorx = ["connectorx"]
-fsspec = ["fsspec"]
+pandas = ["pyarrow (>=4.0)", "pandas"]
+xlsx2csv = ["xlsx2csv"]
 pyarrow = ["pyarrow (>=4.0)"]
+fsspec = ["fsspec"]
 
 [[package]]
 name = "pre-commit"
@@ -2291,6 +2291,20 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [package.dependencies]
 pytest = ">=2.7.0"
+
+[[package]]
+name = "pytest-mock"
+version = "3.7.0"
+description = "Thin-wrapper around the mock package for easier use with pytest"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+pytest = ">=5.0"
+
+[package.extras]
+dev = ["pre-commit", "tox", "pytest-asyncio"]
 
 [[package]]
 name = "python-dateutil"
@@ -2947,7 +2961,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8,<3.11"
-content-hash = "4aee1c13fc32df13b186cfb9635e21b21d6a61f2aa1556661a09bb538ece07d6"
+content-hash = "2baa5ac38d7318afb78eaa9f9ea6f9824472d1f0a05411fb624806fee491f6f4"
 
 [metadata.files]
 alembic = [
@@ -3689,8 +3703,8 @@ jsonschema = [
     {file = "jsonschema-4.6.0.tar.gz", hash = "sha256:9d6397ba4a6c0bf0300736057f649e3e12ecbc07d3e81a0dacb72de4e9801957"},
 ]
 jupyter-client = [
-    {file = "jupyter_client-7.3.1-py3-none-any.whl", hash = "sha256:404abe552540aff3527e66e16beb114b6b4ff58479d51a301f4eb9701e4f52ef"},
-    {file = "jupyter_client-7.3.1.tar.gz", hash = "sha256:05d4ff6a0ade25138c6bb0fbeac7ddc26b5fe835e7dd816b64b4a45b931bdc0b"},
+    {file = "jupyter_client-7.3.2-py3-none-any.whl", hash = "sha256:be7dff1c6792a951169b514b9b66e9d7ffaba811575cf49d24b73a1ca28f014a"},
+    {file = "jupyter_client-7.3.2.tar.gz", hash = "sha256:8f92691bf2d8c670e108813a0290d93a3dc84f74fb844e915b7e587ef2fcbf44"},
 ]
 jupyter-core = [
     {file = "jupyter_core-4.10.0-py3-none-any.whl", hash = "sha256:e7f5212177af7ab34179690140f188aa9bf3d322d8155ed972cbded19f55b6f3"},
@@ -3792,18 +3806,18 @@ matplotlib-inline = [
     {file = "matplotlib_inline-0.1.3-py3-none-any.whl", hash = "sha256:aed605ba3b72462d64d475a21a9296f400a19c4f74a31b59103d2a99ffd5aa5c"},
 ]
 maturin = [
-    {file = "maturin-0.12.18-py3-none-macosx_10_7_x86_64.whl", hash = "sha256:f611e3285617a1bc2eb5d7a6aa310a3b6e86f8406c3049984877d092ed93b44f"},
-    {file = "maturin-0.12.18-py3-none-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:b82a1a689c9e9d8874b8378e42844e718811eee61a4868dfef19c392e46d5299"},
-    {file = "maturin-0.12.18-py3-none-manylinux_2_12_i686.manylinux2010_i686.musllinux_1_1_i686.whl", hash = "sha256:c4b12a24f9b7c2142f92f15cbbb3a2b068da6dd271c1c825168b1c6e70aa1dda"},
-    {file = "maturin-0.12.18-py3-none-manylinux_2_12_x86_64.manylinux2010_x86_64.musllinux_1_1_x86_64.whl", hash = "sha256:be680754ba04e7eb4bde0296419c558cf093482440ee41a570ca14c0f0e78c1e"},
-    {file = "maturin-0.12.18-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.musllinux_1_1_aarch64.whl", hash = "sha256:8a43430f50ac7b2eba188c572e495b4471eae38b6030067caaacbe52da9ad8b5"},
-    {file = "maturin-0.12.18-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.musllinux_1_1_armv7l.whl", hash = "sha256:d286778c6d90f3b0fcebd0ffd5468e42b9239b118c387fdddba33649fe0a2c7d"},
-    {file = "maturin-0.12.18-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.musllinux_1_1_ppc64le.whl", hash = "sha256:86ab2c1cfc90bb1ed5395aeac6a00dc04b615d46a0e40cd458dd6e565bf3f84c"},
-    {file = "maturin-0.12.18-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:c168434cb5a1fb066733eea17111360722037b7cd0de9e90650f5e7cc0e11fef"},
-    {file = "maturin-0.12.18-py3-none-win32.whl", hash = "sha256:87ba085a36706fa3be37b0720809ef9098ac2c8e8f42eea2dc10408c1e9ecda0"},
-    {file = "maturin-0.12.18-py3-none-win_amd64.whl", hash = "sha256:3931499992099628d0362cd544dc250e8e5fed1718f97ddda144c8656008492a"},
-    {file = "maturin-0.12.18-py3-none-win_arm64.whl", hash = "sha256:7d033753b038a840d3079bebe52cc5593575b35fd3e2300368240a8cefa1e47b"},
-    {file = "maturin-0.12.18.tar.gz", hash = "sha256:ea5e7ee199ad03a031a4b2f402a7dbaa46bf24cd2e41088420e86a9c864d7e07"},
+    {file = "maturin-0.12.19-py3-none-macosx_10_7_x86_64.whl", hash = "sha256:bba8dd149169d273f30e47f8f914ff4d4d65d273d2d5a5f9154811e98043fa26"},
+    {file = "maturin-0.12.19-py3-none-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:3e027e79eccdb369591c31f4d77cd8bae64a70207937b9e555b4a6df3d7680d5"},
+    {file = "maturin-0.12.19-py3-none-manylinux_2_12_i686.manylinux2010_i686.musllinux_1_1_i686.whl", hash = "sha256:d5bef961974fee3704316a80c1b3908016311095c21d9870120d97a5918cf12b"},
+    {file = "maturin-0.12.19-py3-none-manylinux_2_12_x86_64.manylinux2010_x86_64.musllinux_1_1_x86_64.whl", hash = "sha256:2f4bf636279bf1be78a890590f101938e7e725da0119787c58b6cf62e87fd3fc"},
+    {file = "maturin-0.12.19-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.musllinux_1_1_aarch64.whl", hash = "sha256:475d095b4353862b5df8bf7e6d467c6d07d55874dbdde3f0cd933d04413d77b6"},
+    {file = "maturin-0.12.19-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.musllinux_1_1_armv7l.whl", hash = "sha256:0a0634e5f2570a78f65295058addc8f3e7f115b0502acd0d26b506a68d82ee94"},
+    {file = "maturin-0.12.19-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.musllinux_1_1_ppc64le.whl", hash = "sha256:d7d69443a3bc99a8e96cbc51027de8cbda969c7dff3a610fbdc831e9b6b2cba4"},
+    {file = "maturin-0.12.19-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:be5482bd73483adc92a91724f83fd2019ee9dc92a541173bcd1092493f09049c"},
+    {file = "maturin-0.12.19-py3-none-win32.whl", hash = "sha256:f0ba7c976cd6d083d01d44ee93a78fb6d5aafa94c5f651608b5db1a6777019bc"},
+    {file = "maturin-0.12.19-py3-none-win_amd64.whl", hash = "sha256:6807f54893cbf8e56a356c511dbee6b0da55ceb31c356f0f9b45eb58ee4f764b"},
+    {file = "maturin-0.12.19-py3-none-win_arm64.whl", hash = "sha256:76f0c7f33ead08cb60fbeb5f902c8fb77ec5176eb04d3c88ace37413c1c5ed67"},
+    {file = "maturin-0.12.19.tar.gz", hash = "sha256:3d6265b547d8260f217f9257308855eed076ac580ef317f3d41900ed38f33e67"},
 ]
 mccabe = [
     {file = "mccabe-0.6.1-py2.py3-none-any.whl", hash = "sha256:ab8a6258860da4b6677da4bd2fe5dc2c659cff31b3ee4f7f5d64e79735b80d42"},
@@ -4078,12 +4092,12 @@ pluggy = [
     {file = "pluggy-1.0.0.tar.gz", hash = "sha256:4224373bacce55f955a878bf9cfa763c1e360858e330072059e10bad68531159"},
 ]
 polars = [
-    {file = "polars-0.13.41-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:6a51e80b9d8d4d5d73c285afc0299b7e8515e7f2d6be36fc82475c5a017328f9"},
-    {file = "polars-0.13.41-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:872be16c17a340072708f37e2b2243a7eaee6da4bab059d0aaca16dae0571479"},
-    {file = "polars-0.13.41-cp37-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:d60837ee8ac6acb62a2bdfb1e2bcc593d6f45fd991d70ea25bbb32c57ed1fa98"},
-    {file = "polars-0.13.41-cp37-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:048de57bc5ae63a1f224ea6ad762f45f5e1c559bb5a0b4a308760eeb4931bce0"},
-    {file = "polars-0.13.41-cp37-abi3-win_amd64.whl", hash = "sha256:959af79765b7f9712ec03b6726e8bcffc4ba00c1c65b43a2572d7d83fdae8ea9"},
-    {file = "polars-0.13.41.tar.gz", hash = "sha256:920b41bbd52d5b21a13ad5f9b49914fb1f4d8af16ec1b20ef50bb18e9b076369"},
+    {file = "polars-0.13.42-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:de55c2e8a7e7d098bcbcc75af09833b0f4d56ba20c13b4f509e0c64938230690"},
+    {file = "polars-0.13.42-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:c44709a90dd597bdca35ab9f93fec11c323e5f04619e46396f506022ea851496"},
+    {file = "polars-0.13.42-cp37-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:3e85edda794caba4395da0a36e7e42728628a77116b04b6540c4eb7250a5477f"},
+    {file = "polars-0.13.42-cp37-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:0e112de87f014c49345d769e6457eaea3ef7cecac2aa7658e44a0ff412de6f1a"},
+    {file = "polars-0.13.42-cp37-abi3-win_amd64.whl", hash = "sha256:313976478f08ba9b5a04cf9e4e83bab06bb863cd013b4a469a1d4464203fecfc"},
+    {file = "polars-0.13.42.tar.gz", hash = "sha256:667cdfd54eb3a8464f700dec9777c015022a7e6b7d6d25b02df138fc4bab39ee"},
 ]
 pre-commit = [
     {file = "pre_commit-2.19.0-py2.py3-none-any.whl", hash = "sha256:10c62741aa5704faea2ad69cb550ca78082efe5697d6f04e5710c3c229afdd10"},
@@ -4322,6 +4336,10 @@ pytest-cov = [
 pytest-datadir = [
     {file = "pytest-datadir-1.3.1.tar.gz", hash = "sha256:d3af1e738df87515ee509d6135780f25a15959766d9c2b2dbe02bf4fb979cb18"},
     {file = "pytest_datadir-1.3.1-py2.py3-none-any.whl", hash = "sha256:1847ed0efe0bc54cac40ab3fba6d651c2f03d18dd01f2a582979604d32e7621e"},
+]
+pytest-mock = [
+    {file = "pytest-mock-3.7.0.tar.gz", hash = "sha256:5112bd92cc9f186ee96e1a92efc84969ea494939c3aead39c50f421c4cc69534"},
+    {file = "pytest_mock-3.7.0-py3-none-any.whl", hash = "sha256:6cff27cec936bf81dc5ee87f07132b807bcda51106b5ec4b90a04331cba76231"},
 ]
 python-dateutil = [
     {file = "python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
