@@ -1,4 +1,8 @@
-from .io import flight_fusion_io_manager, flight_fusion_loader
+from .io import (
+    flight_fusion_io_manager,
+    flight_fusion_loader,
+    model_artifact_io_manager,
+)
 from .resources import flight_fusion_resource, mlflow_tracking, mlfusion_configuration
 
 try:
@@ -14,4 +18,5 @@ __all__ = (
     "flight_fusion_resource",
     "mlflow_tracking",
     "mlfusion_configuration",
+    "model_artifact_io_manager",
 )

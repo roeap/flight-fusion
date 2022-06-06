@@ -1,11 +1,18 @@
-from dagster import Field, InitResourceContext, IntSource, StringSource, resource
+from dagster import (
+    Field,
+    InitResourceContext,
+    IntSource,
+    Noneable,
+    StringSource,
+    resource,
+)
 from pydantic import BaseSettings
 from pydantic import Field as PydanticField
 
 _RESOURCE_CONFIG_SCHEMA = {
     "flight_host": Field(StringSource, is_required=False, description="Mlfusion flight service host"),
     "flight_port": Field(IntSource, is_required=False, description="Mlfusion flight service port"),
-    "mlflow_tracking_uri": Field(StringSource, is_required=False, description="MlFlow tracking server uri."),
+    "mlflow_tracking_uri": Field(Noneable(StringSource), is_required=False, description="MlFlow tracking server uri."),
     "mlserver_host": Field(StringSource, is_required=False, description="Mlserver model serving url"),
     "mlserver_port": Field(IntSource, is_required=False, description="Mlserver model serving port"),
 }
@@ -35,6 +42,9 @@ class MlFusionConfiguration(BaseSettings):
             "mlserver_port": {
                 "env": ["ff_mlserver_port"],
             },
+            "mlflow_tracking_uri": {
+                "env": ["ff_mlflow_tracking_uri", "mlflow_tracking_uri"],
+            },
         }
 
 
@@ -45,3 +55,14 @@ class MlFusionConfiguration(BaseSettings):
 def mlfusion_configuration(context: InitResourceContext):
     config = {k: v for k, v in (context.resource_config or {}).items() if v is not None}
     return MlFusionConfiguration(**config)
+
+
+mlfusion_local = mlfusion_configuration.configured(
+    {
+        "flight_host": "localhost",
+        "flight_port": 50051,
+        "mlflow_tracking_uri": "http://localhost:5000",
+        "mlserver_host": "localhost",
+        "mlserver_port": 8081,
+    }
+)

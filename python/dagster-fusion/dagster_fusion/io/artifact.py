@@ -16,10 +16,10 @@ class ModelArtifactIOManager(IOManager):
         self._mlflow = mlflow
 
     def handle_output(self, context: OutputContext, obj):
-        return super().handle_output(context, obj)
+        raise NotImplementedError
 
     def load_input(self, context: InputContext):
-        return super().load_input(context)
+        raise NotImplementedError
 
 
 @resource(required_resource_keys={"mlflow"})
