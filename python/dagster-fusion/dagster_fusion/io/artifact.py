@@ -9,16 +9,17 @@ from dagster import (
     InitResourceContext,
     InputContext,
     IOManager,
+    MetadataEntry,
+    MetadataValue,
     OutputContext,
     io_manager,
 )
+from flight_fusion.tags import MlFusionTags
 from mlflow.utils.file_utils import TempDir
 from pydantic import BaseSettings
 
 from dagster_fusion.errors import MissingConfiguration
 from dagster_fusion.resources import MlFlow
-
-_TAG_ASSET_KEY = "mlfusion.asset_key"
 
 
 class FileType(Enum):
@@ -45,6 +46,10 @@ class ArtifactMetaData(BaseSettings):
             return FileType.YAML
         raise MissingConfiguration("failed to infer file type for output")
 
+    @property
+    def path_rel(self) -> str:
+        return f"{self.artifact_path}/{self.file_name}" if self.artifact_path else self.file_name
+
 
 class ModelArtifactIOManager(IOManager):
     def __init__(self, mlflow: MlFlow) -> None:
@@ -65,7 +70,7 @@ class ModelArtifactIOManager(IOManager):
         experiment_is_tagged = False
         tag_count = 0
         for key, value in experiment.tags.items():
-            if _TAG_ASSET_KEY in key:
+            if MlFusionTags.ASSET_KEY in key:
                 tag_count += 1
                 if value == serialized_asset_key:
                     experiment_is_tagged = True
@@ -73,10 +78,12 @@ class ModelArtifactIOManager(IOManager):
         if not experiment_is_tagged:
             if tag_count > 0:
                 client.set_experiment_tag(
-                    self._mlflow.experiment.experiment_id, f"{_TAG_ASSET_KEY}.{tag_count}", serialized_asset_key
+                    self._mlflow.experiment.experiment_id, f"{MlFusionTags.ASSET_KEY}.{tag_count}", serialized_asset_key
                 )
             else:
-                client.set_experiment_tag(self._mlflow.experiment.experiment_id, _TAG_ASSET_KEY, serialized_asset_key)
+                client.set_experiment_tag(
+                    self._mlflow.experiment.experiment_id, MlFusionTags.ASSET_KEY, serialized_asset_key
+                )
 
         run = mlflow.active_run()
         if run is None:
@@ -87,16 +94,16 @@ class ModelArtifactIOManager(IOManager):
         tag_count = 0
         run_is_tagged = False
         for key, value in run.data.tags.items():
-            if _TAG_ASSET_KEY in key:
+            if MlFusionTags.ASSET_KEY in key:
                 tag_count += 1
                 if value == serialized_asset_key:
                     run_is_tagged = True
 
         if not run_is_tagged:
             if tag_count > 0:
-                mlflow.set_tag(f"{_TAG_ASSET_KEY}.{tag_count}", serialized_asset_key)
+                mlflow.set_tag(f"{MlFusionTags.ASSET_KEY}.{tag_count}", serialized_asset_key)
             else:
-                mlflow.set_tag(_TAG_ASSET_KEY, json.dumps(asset_key.path))
+                mlflow.set_tag(MlFusionTags.ASSET_KEY, json.dumps(asset_key.path))
 
         if metadata.file_type_inferred == FileType.PICKLE:
             import pickle  # nosec
@@ -123,6 +130,14 @@ class ModelArtifactIOManager(IOManager):
                     yaml.dump(data=obj, stream=f)
                 mlflow.log_artifact(local_path=artifact_src_path, artifact_path=metadata.artifact_path)
 
+        else:
+            raise NotImplementedError
+
+        fusion_path = f"{run.info.experiment_id}/{run.info.run_id}/{metadata.path_rel}"
+        yield MetadataEntry(MlFusionTags.mlflow.ARTIFACT_PATH, value=MetadataValue.path(fusion_path))
+        yield MetadataEntry(MlFusionTags.mlflow.RUN_ID, value=MetadataValue.text(run.info.run_id))
+        yield MetadataEntry(MlFusionTags.mlflow.EXPERIMENT_ID, value=MetadataValue.text(run.info.experiment_id))
+
     def load_input(self, context: InputContext):
         run = mlflow.active_run()
         if run is None:
@@ -133,11 +148,8 @@ class ModelArtifactIOManager(IOManager):
 
         with TempDir() as dest_dir:
             dest_path = dest_dir.path()
-            artifact_src_path_rel = (
-                f"{metadata.artifact_path}/{metadata.file_name}" if metadata.artifact_path else metadata.file_name
-            )
-            client.download_artifacts(run_id=run.info.run_id, path=artifact_src_path_rel, dst_path=dest_path)
-            local_path = Path(dest_dir.path(artifact_src_path_rel))
+            client.download_artifacts(run_id=run.info.run_id, path=metadata.path_rel, dst_path=dest_path)
+            local_path = Path(dest_dir.path(metadata.path_rel))
 
             if metadata.file_type_inferred == FileType.PICKLE:
                 import pickle  # nosec
@@ -157,6 +169,9 @@ class ModelArtifactIOManager(IOManager):
                 with local_path.open("r") as f:
                     data = yaml.safe_load(f)
                 return data
+
+            else:
+                raise NotImplementedError
 
 
 @io_manager(required_resource_keys={"mlflow"})

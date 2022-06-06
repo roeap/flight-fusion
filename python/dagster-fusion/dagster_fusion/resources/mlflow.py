@@ -23,6 +23,7 @@ from dagster import (
     StringSource,
     resource,
 )
+from flight_fusion.tags import MlFusionTags
 from mlflow.entities.run_status import RunStatus
 from mlflow.exceptions import MlflowException
 
@@ -195,7 +196,7 @@ class MlFlow(metaclass=MlflowMeta):
             tags [dict]: Dictionary of all the tags
         """
         tags = {tag: environ.get(tag) for tag in self.env_tags_to_log}
-        tags["dagster_run_id"] = self.dagster_run_id
+        tags[MlFusionTags.dagster.RUN_ID] = self.dagster_run_id
         if self.extra_tags:
             tags.update(self.extra_tags)
 

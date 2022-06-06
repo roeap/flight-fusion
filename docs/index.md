@@ -46,6 +46,11 @@ fds.write_into(df_example, SaveMode.SAVE_MODE_OVERWRITE)
 
 - use metadata to configure asset behavior
 
+## Versioning
+
+- data via delta
+- models via runs / experiments
+
 ## CLI
 
 `fusion server start`

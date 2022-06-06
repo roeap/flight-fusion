@@ -4,6 +4,7 @@ from uuid import uuid4
 
 import mlflow
 from dagster import AssetGroup, AssetIn, AssetKey, asset
+from flight_fusion.tags import MlFusionTags
 
 from dagster_fusion import (
     mlflow_tracking,
@@ -11,7 +12,6 @@ from dagster_fusion import (
     model_artifact_io_manager,
 )
 from dagster_fusion.hooks import end_mlflow_on_run_finished
-from dagster_fusion.io.artifact import _TAG_ASSET_KEY
 
 
 def test_artifacts_io_manager(mocker, datadir: Path):
@@ -55,13 +55,13 @@ def test_artifacts_io_manager(mocker, datadir: Path):
     result = asset_job.execute_in_process(run_config=run_config)
     assert result.success
 
-    mlflow.set_tag.assert_called_once_with(_TAG_ASSET_KEY, json.dumps([f"downstream_{_id}"]))
+    mlflow.set_tag.assert_called_once_with(MlFusionTags.ASSET_KEY, json.dumps([f"downstream_{_id}"]))
 
     artifact_path = datadir / run_tracker["experiment_id"] / run_tracker["run_id"] / "artifacts/model.pkl"
     assert artifact_path.exists()
 
 
-def test_artifacts_io_manager2(datadir: Path):
+def test_artifacts_io_manager_multiple_tags(datadir: Path):
     # mocker.patch("mlflow.set_tag")
     mlflow.set_tracking_uri(f"file://{datadir.as_posix()}")
 
@@ -112,3 +112,7 @@ def test_artifacts_io_manager2(datadir: Path):
 
     result = asset_job.execute_in_process(run_config=run_config)
     assert result.success
+
+    tags_path = datadir / run_tracker["experiment_id"] / run_tracker["run_id"] / "tags"
+    assert (tags_path / MlFusionTags.ASSET_KEY).open("r").read() == json.dumps(["downstream"])
+    assert (tags_path / f"{MlFusionTags.ASSET_KEY}.1").open("r").read() == json.dumps(["downstream2"])

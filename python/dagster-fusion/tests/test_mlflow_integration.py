@@ -10,6 +10,7 @@ import mlflow
 import pandas as pd
 import pytest
 from dagster import ModeDefinition, execute_pipeline, pipeline, solid
+from flight_fusion.tags import MlFusionTags
 
 from dagster_fusion.resources import mlfusion_configuration
 from dagster_fusion.resources.mlflow import MlFlow, mlflow_tracking
@@ -222,7 +223,7 @@ def test_set_all_tags(mock_mlflow_set_tags, context):
 
     # Given: the tags that should be set in mlflow
     tags = {tag: context.resource_config["env"][tag] for tag in context.resource_config["env_to_tag"]}
-    tags["dagster_run_id"] = mlf.dagster_run_id
+    tags[MlFusionTags.dagster.RUN_ID] = mlf.dagster_run_id
     if mlf.extra_tags:
         tags.update(mlf.extra_tags)
     # Then the Mlflow.set_tags is called with the set tags
