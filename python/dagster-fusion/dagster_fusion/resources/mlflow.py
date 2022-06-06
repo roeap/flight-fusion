@@ -13,7 +13,6 @@ from itertools import islice
 from os import environ
 from typing import Any, Iterator
 
-import mlflow
 import pandas as pd
 from dagster import (
     Field,
@@ -23,12 +22,13 @@ from dagster import (
     StringSource,
     resource,
 )
+
+import mlflow
+from dagster_fusion.errors import MissingConfiguration
+from dagster_fusion.resources.configuration import MlFusionConfiguration
 from flight_fusion.tags import MlFusionTags
 from mlflow.entities.run_status import RunStatus
 from mlflow.exceptions import MlflowException
-
-from dagster_fusion.errors import MissingConfiguration
-from dagster_fusion.resources.configuration import MlFusionConfiguration
 
 _CONFIG_SCHEMA = {
     "experiment_name": Field(StringSource, is_required=True, description="MlFlow experiment name."),
@@ -146,7 +146,7 @@ class MlFlow(metaclass=MlflowMeta):
             # in mlflow, will get an empty dataframe if not
             current_run_df = mlflow.search_runs(
                 experiment_ids=[experiment.experiment_id],
-                filter_string=f"tags.dagster_run_id='{dagster_run_id}'",
+                filter_string=f"tags.{MlFusionTags.dagster.RUN_ID}='{dagster_run_id}'",
             )
             if isinstance(current_run_df, pd.DataFrame):
                 if not current_run_df.empty:

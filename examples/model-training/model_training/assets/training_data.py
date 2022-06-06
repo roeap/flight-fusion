@@ -35,7 +35,7 @@ def test_filter(context: OpExecutionContext) -> pa.Array:
 
 @asset(
     namespace=["demo", "model_training"],
-    io_manager_key="fusion_io_manager",
+    io_manager_key="fusion_io",
     description="Data used for testing predictions",
 )
 def test_data(context: OpExecutionContext, dataset: pa.Table, test_filter: pa.Array) -> pa.Table:
@@ -44,7 +44,7 @@ def test_data(context: OpExecutionContext, dataset: pa.Table, test_filter: pa.Ar
 
 @asset(
     namespace=["demo", "model_training"],
-    io_manager_key="fusion_io_manager",
+    io_manager_key="fusion_io",
     description="Data used for training the model",
 )
 def training_data(context: OpExecutionContext, dataset: pa.Table, test_filter: pa.Array) -> pa.Table:

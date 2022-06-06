@@ -1,6 +1,7 @@
 class _MlFlowTags:
     RUN_ID: str = "mlfusion.mlflow.run_id"
     EXPERIMENT_ID: str = "mlfusion.mlflow.experiment_id"
+    EXPERIMENT_URL: str = "mlfusion.mlflow.experiment_url"
     ARTIFACT_PATH: str = "mlfusion.mlflow.artifact_path"
 
 

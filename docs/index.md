@@ -40,6 +40,7 @@ fds.write_into(df_example, SaveMode.SAVE_MODE_OVERWRITE)
 ### model artifacts
 
 - autolog -> still use io manager to assign asset tags
+  - call log_model method
 - pure version -> optionally yield artifacts ...
 
 ### datasets

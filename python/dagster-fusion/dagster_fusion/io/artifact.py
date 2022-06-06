@@ -4,7 +4,6 @@ import json
 from enum import Enum
 from pathlib import Path
 
-import mlflow
 from dagster import (
     InitResourceContext,
     InputContext,
@@ -14,12 +13,13 @@ from dagster import (
     OutputContext,
     io_manager,
 )
-from flight_fusion.tags import MlFusionTags
-from mlflow.utils.file_utils import TempDir
 from pydantic import BaseSettings
 
+import mlflow
 from dagster_fusion.errors import MissingConfiguration
 from dagster_fusion.resources import MlFlow
+from flight_fusion.tags import MlFusionTags
+from mlflow.utils.file_utils import TempDir
 
 
 class FileType(Enum):
@@ -87,7 +87,10 @@ class ModelArtifactIOManager(IOManager):
 
         run = mlflow.active_run()
         if run is None:
-            raise ValueError("No active mlflow run")
+            run_id = self._mlflow._get_current_run_id()
+            if run_id is None:
+                raise ValueError("No active mlflow run")
+            run = mlflow.get_run(run_id=run_id)
 
         # fetch fresh tags to make sure we have the latest tags
         run = client.get_run(run_id=run.info.run_id)
@@ -106,12 +109,12 @@ class ModelArtifactIOManager(IOManager):
                 mlflow.set_tag(MlFusionTags.ASSET_KEY, json.dumps(asset_key.path))
 
         if metadata.file_type_inferred == FileType.PICKLE:
-            import pickle  # nosec
+            import cloudpickle
 
             with TempDir() as src_dir:
                 artifact_src_path = src_dir.path(metadata.file_name)
                 with open(artifact_src_path, "wb") as f:
-                    pickle.dump(obj=obj, file=f)
+                    cloudpickle.dump(obj=obj, file=f)
                 mlflow.log_artifact(local_path=artifact_src_path, artifact_path=metadata.artifact_path)
 
         elif metadata.file_type_inferred == FileType.JSON:
@@ -134,14 +137,19 @@ class ModelArtifactIOManager(IOManager):
             raise NotImplementedError
 
         fusion_path = f"{run.info.experiment_id}/{run.info.run_id}/{metadata.path_rel}"
+        experiment_url = f"http://localhost:5000/#/experiments/{run.info.experiment_id}/runs/{run.info.run_id}"
         yield MetadataEntry(MlFusionTags.mlflow.ARTIFACT_PATH, value=MetadataValue.path(fusion_path))
         yield MetadataEntry(MlFusionTags.mlflow.RUN_ID, value=MetadataValue.text(run.info.run_id))
         yield MetadataEntry(MlFusionTags.mlflow.EXPERIMENT_ID, value=MetadataValue.text(run.info.experiment_id))
+        yield MetadataEntry(MlFusionTags.mlflow.EXPERIMENT_URL, value=MetadataValue.url(experiment_url))
 
     def load_input(self, context: InputContext):
         run = mlflow.active_run()
         if run is None:
-            raise ValueError("No active mlflow run")
+            run_id = self._mlflow._get_current_run_id()
+            if run_id is None:
+                raise ValueError("No active mlflow run")
+            run = mlflow.get_run(run_id=run_id)
 
         metadata = ArtifactMetaData(**(context.upstream_output.metadata or {}))  # type: ignore
         client = mlflow.tracking.MlflowClient()
@@ -152,10 +160,10 @@ class ModelArtifactIOManager(IOManager):
             local_path = Path(dest_dir.path(metadata.path_rel))
 
             if metadata.file_type_inferred == FileType.PICKLE:
-                import pickle  # nosec
+                import cloudpickle
 
                 with local_path.open("rb") as f:
-                    data = pickle.load(f)  # nosec
+                    data = cloudpickle.load(f)  # nosec
                 return data
 
             elif metadata.file_type_inferred == FileType.JSON:

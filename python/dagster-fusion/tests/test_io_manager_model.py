@@ -2,16 +2,16 @@ import json
 from pathlib import Path
 from uuid import uuid4
 
-import mlflow
 from dagster import AssetGroup, AssetIn, AssetKey, asset
-from flight_fusion.tags import MlFusionTags
 
+import mlflow
 from dagster_fusion import (
     mlflow_tracking,
     mlfusion_configuration,
     model_artifact_io_manager,
 )
 from dagster_fusion.hooks import end_mlflow_on_run_finished
+from flight_fusion.tags import MlFusionTags
 
 
 def test_artifacts_io_manager(mocker, datadir: Path):
@@ -33,7 +33,7 @@ def test_artifacts_io_manager(mocker, datadir: Path):
         name=f"downstream_{_id}",
         ins={"upstream": AssetIn(asset_key=AssetKey([f"upstream_{_id}"]))},
         metadata={"file_name": "model.pkl"},
-        io_manager_key="mlflow_artifact_io",
+        io_manager_key="model_artifact_io",
         required_resource_keys={"mlflow"},
     )
     def downstream(upstream):
@@ -45,7 +45,7 @@ def test_artifacts_io_manager(mocker, datadir: Path):
         resource_defs={  # type: ignore
             "mlfusion_config": mlfusion_configuration,
             "mlflow": mlflow_tracking,
-            "mlflow_artifact_io": model_artifact_io_manager,
+            "model_artifact_io": model_artifact_io_manager,
         },
     )
     asset_job = end_mlflow_on_run_finished(asset_group.build_job(name="my_asset_job"))
@@ -80,7 +80,7 @@ def test_artifacts_io_manager_multiple_tags(datadir: Path):
         name="downstream",
         ins={"upstream": AssetIn(asset_key=AssetKey(["upstream"]))},
         metadata={"file_name": "model.pkl"},
-        io_manager_key="mlflow_artifact_io",
+        io_manager_key="model_artifact_io",
         required_resource_keys={"mlflow"},
     )
     def downstream(upstream):
@@ -91,7 +91,7 @@ def test_artifacts_io_manager_multiple_tags(datadir: Path):
         name="downstream2",
         ins={"downstream": AssetIn(asset_key=AssetKey(["downstream"]))},
         metadata={"file_name": "model2.pkl"},
-        io_manager_key="mlflow_artifact_io",
+        io_manager_key="model_artifact_io",
         required_resource_keys={"mlflow"},
     )
     def downstream2(downstream):
@@ -103,7 +103,7 @@ def test_artifacts_io_manager_multiple_tags(datadir: Path):
         resource_defs={  # type: ignore
             "mlfusion_config": mlfusion_configuration,
             "mlflow": mlflow_tracking,
-            "mlflow_artifact_io": model_artifact_io_manager,
+            "model_artifact_io": model_artifact_io_manager,
         },
     )
     asset_job = end_mlflow_on_run_finished(asset_group.build_job(name="my_asset_job"))
