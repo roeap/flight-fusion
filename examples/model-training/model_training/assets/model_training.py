@@ -1,10 +1,9 @@
 import numpy as np
 import pyarrow as pa
 from dagster import asset
+from mlflow.models.signature import infer_signature
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-
-from mlflow.models.signature import infer_signature
 
 
 @asset(
@@ -20,7 +19,7 @@ def ml_model(context, training_data: pa.Table) -> LinearRegression:
 
     features = [col for col in training_data.column_names if col != "target"]
     df_train = training_data.select(features).to_pandas()
-    target = training_data.column("target").to_pandas()
+    target = training_data.column("target").to_pandas()  # type: ignore
 
     model = LinearRegression()
     model.fit(df_train, target)
@@ -41,7 +40,7 @@ def model_performance(context, ml_model, test_data: pa.Table):
 
     features = [col for col in test_data.column_names if col != "target"]
     df_test = test_data.select(features).to_pandas()
-    target = test_data.column("target").to_pandas()
+    target = test_data.column("target").to_pandas()  # type: ignore
 
     predicted_qualities = ml_model.predict(df_test)
 

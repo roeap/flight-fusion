@@ -13,6 +13,7 @@ from itertools import islice
 from os import environ
 from typing import Any, Iterator
 
+import mlflow
 import pandas as pd
 from dagster import (
     Field,
@@ -22,13 +23,14 @@ from dagster import (
     StringSource,
     resource,
 )
-
-import mlflow
-from dagster_fusion.errors import MissingConfiguration
-from dagster_fusion.resources.configuration import MlFusionConfiguration
+from flight_fusion import AssetKey
 from flight_fusion.tags import MlFusionTags
+from mlflow.entities.model_registry import RegisteredModel
 from mlflow.entities.run_status import RunStatus
 from mlflow.exceptions import MlflowException
+
+from dagster_fusion.errors import MissingConfiguration
+from dagster_fusion.resources.configuration import MlFusionConfiguration
 
 _CONFIG_SCHEMA = {
     "experiment_name": Field(StringSource, is_required=True, description="MlFlow experiment name."),
@@ -216,6 +218,29 @@ class MlFlow(metaclass=MlflowMeta):
                 mlflow.end_run(status=RunStatus.to_string(RunStatus.KILLED))
             else:
                 mlflow.end_run(status=RunStatus.to_string(RunStatus.FAILED))
+
+    def get_or_create_registered_model(self, asset_key: AssetKey) -> RegisteredModel:
+        try:
+            model = self.tracking_client.get_registered_model(name=asset_key.to_user_string())
+        except MlflowException:
+            model = self.search_registered_model_by_tag(asset_key=asset_key)
+        return model or self.create_registered_model(asset_key=asset_key)
+
+    def create_registered_model(self, asset_key: AssetKey, tags: dict[str, str] | None = None) -> RegisteredModel:
+        model_tags = {MlFusionTags.ASSET_KEY: asset_key.to_string(), **(tags or {})}
+        return self.tracking_client.create_registered_model(name=asset_key.to_user_string(), tags=model_tags)
+
+    def search_registered_model_by_tag(self, asset_key: AssetKey) -> RegisteredModel | None:
+        tag_value = asset_key.to_string()
+
+        def search(page_token=None):
+            models = self.tracking_client.list_registered_models(page_token=page_token)
+            model = next(filter(lambda x: x.tags.get(MlFusionTags.ASSET_KEY) == tag_value, models), None)  # type: ignore
+            if not model and models.token:
+                return search(page_token=models.token)
+            return model
+
+        return search()
 
     @staticmethod
     def log_params(params: dict):

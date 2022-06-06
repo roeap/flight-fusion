@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
+import mlflow
 from dagster import (
     InitResourceContext,
     InputContext,
@@ -13,13 +15,12 @@ from dagster import (
     OutputContext,
     io_manager,
 )
-from pydantic import BaseSettings
-
-import mlflow
-from dagster_fusion.errors import MissingConfiguration
-from dagster_fusion.resources import MlFlow
 from flight_fusion.tags import MlFusionTags
 from mlflow.utils.file_utils import TempDir
+from pydantic import BaseSettings
+
+from dagster_fusion.errors import MissingConfiguration
+from dagster_fusion.resources import MlFlow
 
 
 class FileType(Enum):
@@ -27,6 +28,12 @@ class FileType(Enum):
     JSON = "json"
     YAML = "yaml"
     CLOUDPICKLE = "cloudpickle"
+
+
+@dataclass
+class RegisteredModel:
+    artifact: str | None = None
+    name: str | None = None
 
 
 class ArtifactMetaData(BaseSettings):

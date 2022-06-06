@@ -51,6 +51,16 @@ except ImportError:
                 return ASSET_KEY_STRUCTURED_DELIMITER.join(self.path)
             return json.dumps(self.path)
 
+        def to_user_string(self) -> str:
+            """
+            E.g. "first_component>second_component"
+            """
+            return ">".join(self.path)
+
+        @staticmethod
+        def from_user_string(asset_key_string: str) -> AssetKey:
+            return AssetKey(asset_key_string.split(">"))
+
         @staticmethod
         def from_db_string(asset_key_string: str | None) -> AssetKey | None:
             if not asset_key_string:

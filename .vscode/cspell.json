@@ -25,6 +25,7 @@
     "dadc",
     "dagit",
     "dagster",
+    "dataclass",
     "datadir",
     "datafusion",
     "datalake",
