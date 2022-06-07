@@ -1,5 +1,6 @@
 # flake8: noqa 401
 import shutil
+from pathlib import Path
 
 import typer
 
@@ -30,6 +31,26 @@ def init(local: bool = True):
     else:
         raise NotImplementedError("Global project dir not yet implemented")
 
+    _init(work_dir=work_dir, local=local)
+
+
+@app.command()
+def clear():
+    work_dir = get_project_directory()
+    if work_dir is not None and work_dir.exists():
+        shutil.rmtree(str(work_dir.absolute()))
+    _init(work_dir=work_dir)
+
+
+def _init(work_dir: Path | None = None, local: bool = True):
+    if work_dir is None:
+        if local:
+            work_dir = get_project_directory()
+            if work_dir is None:
+                raise ValueError
+        else:
+            raise NotImplementedError("Global project dir not yet implemented")
+
     if not work_dir.exists():
         work_dir.mkdir(parents=True)
 
@@ -53,10 +74,3 @@ def init(local: bool = True):
             f_.write(_GITIGNORE)
 
     typer.echo(f"Initialized flight-fusion env in: {str(work_dir)}")
-
-
-@app.command()
-def clear():
-    work_dir = get_project_directory()
-    if work_dir is not None and work_dir.exists():
-        shutil.rmtree(str(work_dir.absolute()))

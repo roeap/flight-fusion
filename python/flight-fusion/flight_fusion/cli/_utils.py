@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import subprocess  # nosec
 from pathlib import Path
-from typing import Optional
 
 from typer import get_app_dir
 
@@ -11,7 +12,7 @@ MLSERVER_DIR = ".mlserver"
 FLIGHT_DIR = ".fusion"
 
 
-def find_git_root() -> Optional[Path]:
+def find_git_root() -> Path | None:
     try:
         args = ["git", "rev-parse", "--show-toplevel"]
         output = subprocess.check_output(args)  # nosec
@@ -21,14 +22,16 @@ def find_git_root() -> Optional[Path]:
     return Path(output.strip(b"\n").decode())
 
 
-def get_project_directory():
+def get_project_directory() -> Path | None:
+    """Get application directory within git root."""
     git_root = find_git_root()
     if git_root is not None:
         return git_root / f".{_APP_NAME}"
     return None
 
 
-def get_global_directory():
+def get_global_directory() -> Path:
+    """Get the global application directory in the user folder."""
     return Path(get_app_dir(app_name=_APP_NAME, force_posix=True, roaming=False))
 
 

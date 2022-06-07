@@ -1,3 +1,0 @@
-load_from:
-  - python_package: hacker_news.repo
-  - python_package: model_training.repo
