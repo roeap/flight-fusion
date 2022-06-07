@@ -13,7 +13,6 @@ from itertools import islice
 from os import environ
 from typing import Any, Iterator
 
-import mlflow
 import pandas as pd
 from dagster import (
     Field,
@@ -23,14 +22,15 @@ from dagster import (
     StringSource,
     resource,
 )
-from flight_fusion import AssetKey
+
+import mlflow
+from dagster_fusion.errors import MissingConfiguration
+from dagster_fusion.resources.configuration import MlFusionConfiguration
+from flight_fusion.asset_key import IAssetKey
 from flight_fusion.tags import MlFusionTags
 from mlflow.entities.model_registry import RegisteredModel
 from mlflow.entities.run_status import RunStatus
 from mlflow.exceptions import MlflowException
-
-from dagster_fusion.errors import MissingConfiguration
-from dagster_fusion.resources.configuration import MlFusionConfiguration
 
 _CONFIG_SCHEMA = {
     "experiment_name": Field(StringSource, is_required=True, description="MlFlow experiment name."),
@@ -219,18 +219,20 @@ class MlFlow(metaclass=MlflowMeta):
             else:
                 mlflow.end_run(status=RunStatus.to_string(RunStatus.FAILED))
 
-    def get_or_create_registered_model(self, asset_key: AssetKey) -> RegisteredModel:
+    def get_or_create_registered_model(self, asset_key: IAssetKey) -> RegisteredModel:
         try:
             model = self.tracking_client.get_registered_model(name=asset_key.to_user_string())
         except MlflowException:
             model = self.search_registered_model_by_tag(asset_key=asset_key)
-        return model or self.create_registered_model(asset_key=asset_key)
+        return model or self.create_registered_model_for_asset(asset_key=asset_key)
 
-    def create_registered_model(self, asset_key: AssetKey, tags: dict[str, str] | None = None) -> RegisteredModel:
+    def create_registered_model_for_asset(
+        self, asset_key: IAssetKey, tags: dict[str, str] | None = None
+    ) -> RegisteredModel:
         model_tags = {MlFusionTags.ASSET_KEY: asset_key.to_string(), **(tags or {})}
         return self.tracking_client.create_registered_model(name=asset_key.to_user_string(), tags=model_tags)
 
-    def search_registered_model_by_tag(self, asset_key: AssetKey) -> RegisteredModel | None:
+    def search_registered_model_by_tag(self, asset_key: IAssetKey) -> RegisteredModel | None:
         tag_value = asset_key.to_string()
 
         def search(page_token=None):

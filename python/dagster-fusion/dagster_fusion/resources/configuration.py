@@ -15,6 +15,9 @@ _RESOURCE_CONFIG_SCHEMA = {
     "mlflow_tracking_uri": Field(Noneable(StringSource), is_required=False, description="MlFlow tracking server uri."),
     "mlserver_host": Field(StringSource, is_required=False, description="Mlserver model serving url"),
     "mlserver_port": Field(IntSource, is_required=False, description="Mlserver model serving port"),
+    "ext_mlflow_url": Field(
+        Noneable(StringSource), is_required=False, description="MlFlow UI url for users outside the cluster."
+    ),
 }
 
 
@@ -24,6 +27,11 @@ class MlFusionConfiguration(BaseSettings):
     mlflow_tracking_uri: str = PydanticField(default=None)
     mlserver_host: str = PydanticField(default="localhost")
     mlserver_port: int = PydanticField(default=8081)
+    ext_mlflow_url: str = PydanticField(default=None)
+
+    @property
+    def mlflow_link(self):
+        return self.ext_mlflow_url or self.mlflow_tracking_uri
 
     class Config:
         fields = {
@@ -44,6 +52,9 @@ class MlFusionConfiguration(BaseSettings):
             },
             "mlflow_tracking_uri": {
                 "env": ["ff_mlflow_tracking_uri", "mlflow_tracking_uri"],
+            },
+            "ext_mlflow_url": {
+                "env": ["ff_ext_mlflow_url"],
             },
         }
 

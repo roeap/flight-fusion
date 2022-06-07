@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Mapping, NamedTuple, Sequence
+from typing import Mapping, NamedTuple, Protocol, Sequence
 
 try:  # noqa: C901
     from dagster import AssetKey
@@ -86,3 +86,13 @@ except ImportError:
             if asset_key and asset_key.get("path"):
                 return AssetKey(asset_key["path"])
             return None
+
+
+class IAssetKey(Protocol):
+    path: list[str]
+
+    def to_string(self, legacy: bool | None = False) -> str | None:
+        ...
+
+    def to_user_string(self) -> str:
+        ...

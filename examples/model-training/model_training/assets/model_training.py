@@ -1,9 +1,11 @@
 import numpy as np
 import pyarrow as pa
 from dagster import asset
-from mlflow.models.signature import infer_signature
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+from dagster_fusion.io.artifact import RegisteredModel
+from mlflow.models.signature import infer_signature
 
 
 @asset(
@@ -13,7 +15,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
     io_manager_key="model_artifact_io",
     metadata={"file_name": "model.pkl", "artifact_path": "model"},
 )
-def ml_model(context, training_data: pa.Table) -> LinearRegression:
+def ml_model(context, training_data: pa.Table) -> RegisteredModel:
     mlflow = context.resources.mlflow
     mlflow.sklearn.autolog()
 
@@ -27,7 +29,7 @@ def ml_model(context, training_data: pa.Table) -> LinearRegression:
     model_signature = infer_signature(df_train, target)
     mlflow.sklearn.log_model(model, "model", signature=model_signature)
 
-    return model
+    return RegisteredModel(description="A machine learning model in operation.")
 
 
 @asset(
