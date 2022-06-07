@@ -3,7 +3,13 @@ import shutil
 
 import typer
 
-from ._utils import DAGSTER_DIR, MLFLOW_DIR, get_app_directory, get_project_directory
+from ._utils import (
+    DAGSTER_DIR,
+    FLIGHT_DIR,
+    MLFLOW_DIR,
+    get_app_directory,
+    get_project_directory,
+)
 
 app = typer.Typer(name="env")
 
@@ -30,8 +36,14 @@ def init(local: bool = True):
     mlflow_dir = work_dir / MLFLOW_DIR
     if not mlflow_dir.exists():
         mlflow_dir.mkdir(parents=False)
+    if not (mlflow_dir / "mlruns").exists():
+        (mlflow_dir / "mlruns").mkdir(parents=False)
 
     dagster_dir = work_dir / DAGSTER_DIR
+    if not dagster_dir.exists():
+        dagster_dir.mkdir(parents=False)
+
+    dagster_dir = work_dir / FLIGHT_DIR
     if not dagster_dir.exists():
         dagster_dir.mkdir(parents=False)
 

@@ -13,6 +13,7 @@ _CONFIG_FILE_STEM = "app"
 MLFLOW_DIR = ".mlflow"
 DAGSTER_DIR = ".dagster"
 MLSERVER_DIR = ".mlserver"
+FLIGHT_DIR = ".fusion"
 
 
 def find_git_root() -> Optional[Path]:

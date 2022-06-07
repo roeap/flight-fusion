@@ -51,6 +51,7 @@
     "prost",
     "proto",
     "protobuf",
+    "pyarrow",
     "pyclass",
     "pydantic",
     "pyfunction",
