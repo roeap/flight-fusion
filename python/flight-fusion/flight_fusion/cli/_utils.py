@@ -1,15 +1,10 @@
 import subprocess  # nosec
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
-import yaml
 from typer import get_app_dir
 
-from flight_fusion.errors import FlightFusionError
-
-_APP_NAME = "flight-fusion"
-_CONFIG_FILE_STEM = "app"
-
+_APP_NAME = "mlfusion"
 MLFLOW_DIR = ".mlflow"
 DAGSTER_DIR = ".dagster"
 MLSERVER_DIR = ".mlserver"
@@ -24,20 +19,6 @@ def find_git_root() -> Optional[Path]:
         return None
 
     return Path(output.strip(b"\n").decode())
-
-
-def _read_config_data(app_root: Path) -> Dict:
-    if not app_root.is_dir():
-        print(app_root)
-        raise FlightFusionError("App root must be directory")
-
-    for suffix in ["yml", "yaml", "json"]:
-        path = app_root / f"{_CONFIG_FILE_STEM}.{suffix}"
-        if path.exists():
-            with path.open(encoding="utf-8") as f_:
-                return yaml.safe_load(f_)
-
-    raise FlightFusionError("Unsupported file format for config file")
 
 
 def get_project_directory():
@@ -67,5 +48,4 @@ def get_app_directory() -> Path:
     if directory is not None and directory.exists():
         return directory
 
-    # TODO return get_global_directory()
-    raise NotImplementedError("Global dir not supported yet.")
+    return get_global_directory()
