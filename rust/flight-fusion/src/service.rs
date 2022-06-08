@@ -299,7 +299,7 @@ impl FlightService for FlightFusionService {
                 DoGetCommand::Query(query) => self.execute_do_get(query).await,
                 DoGetCommand::Delta(operation) => self.execute_do_get(operation).await,
             },
-            None => Err(crate::error::FusionServiceError::unknown_action(
+            None => Err(FusionServiceError::unknown_action(
                 "No operation data passed",
             )),
         }
@@ -352,9 +352,7 @@ impl FlightService for FlightFusionService {
 
                 Ok(result_body)
             }
-            None => Err(crate::error::FusionServiceError::unknown_action(
-                "No action data passed",
-            )),
+            None => Err(FusionServiceError::unknown_action("No action data passed")),
         }
         .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
@@ -396,9 +394,7 @@ impl FlightService for FlightFusionService {
 
                 Ok(result_body)
             }
-            None => Err(crate::error::FusionServiceError::unknown_action(
-                "No action data passed",
-            )),
+            None => Err(FusionServiceError::unknown_action("No action data passed")),
         }
         .map_err(|e| tonic::Status::internal(e.to_string()))?;
 

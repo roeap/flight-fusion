@@ -146,15 +146,58 @@ When consuming an asset, we are not necessarily interested in loading the full d
 THe io managers natively support column sub-selections when loading data. This needs to
 be configured via the `metadata` property of your asset definition.
 
-```py
+```py hl_lines="1 9-14"
+from dagster import AssetIn, OpExecutionContext, asset
+import pyarrow as pa
+
 @asset(
     name="training_data",
     namespace=["demo", "model_training"],
     description="Data used for model training",
     io_manager_key="fusion_io",
-    metadata={"columns": ["feature_1", "feature_2", "target"]}
+    ins={
+        "dataset": AssetIn(
+            asset_key=AssetKey(["demo", "model_training", "dataset"]),
+            metadata={"columns": ["feature_1", "feature_2", "target"]}
+        )
+    },
 )
 def training_data(context: OpExecutionContext, dataset: pa.Table) -> pa.Table:
+    ...
+```
+
+#### Controlling the return type of data
+
+At the core all internal data movement and processing is dome in apache arrow format.
+This however readily converts to other data representations and popular dataframe
+libraries.
+
+The dataset IO manager will pick up on any known type annotation and serve data in that format.
+THe same way it will inspect the type of the returned data and perform internal conversions.
+Current supported data formats are:
+
+- `pandas.DataFrame`
+- `polars.DataFrame`
+- `pyarrow.Table`
+
+```py hl_lines="3 17"
+from dagster import AssetIn, OpExecutionContext, asset
+import pyarrow as pa
+import polars as pl
+
+@asset(
+    name="training_data",
+    namespace=["demo", "model_training"],
+    description="Data used for model training",
+    io_manager_key="fusion_io",
+    ins={
+        "dataset": AssetIn(
+            asset_key=AssetKey(["demo", "model_training", "dataset"]),
+            metadata={"columns": ["feature_1", "feature_2", "target"]}
+        )
+    },
+)
+def training_data(context: OpExecutionContext, dataset: pl.DataFrame) -> pa.Table:
     ...
 ```
 
