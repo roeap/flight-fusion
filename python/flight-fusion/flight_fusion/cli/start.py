@@ -52,7 +52,6 @@ def mlflow(port: int = 5000):
     logger.info(f"Serving mlflow on 127.0.0.1:{port}")
 
     workdir = (get_app_directory() / MLFLOW_DIR).absolute()
-    artifact_root = workdir / "mlruns/"
 
     subprocess.run(  # nosec running our own executable
         [
