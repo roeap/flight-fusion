@@ -131,7 +131,8 @@ def dataset(context: OpExecutionContext) -> pa.Table:
     ...
 ```
 
-An asset is uniquely identified by the ´namespace`and`name`parameters. These are somewhat synonymous to`AssetKey`'s the core abstraction how we reference assets
+An asset is uniquely identified by the `namespace` and `name` parameters. These are somewhat
+synonymous to `AssetKey`'s the core abstraction how we reference assets
 throughout the platform. An equivalent asset key definition would look like
 
 ```py
@@ -213,6 +214,11 @@ def training_data(context: OpExecutionContext, dataset: pl.DataFrame) -> pa.Tabl
 - models via runs / experiments
 
 ## CLI
+
+`fusion env init`
+
+<!-- prettier-ignore -->
+: initialize boilerplate files in current repository or system wide for logged in user.
 
 `fusion start flight`
 
