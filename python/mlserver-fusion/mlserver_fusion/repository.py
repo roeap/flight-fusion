@@ -4,17 +4,16 @@ from contextlib import asynccontextmanager
 from itertools import chain
 
 import httpx
+from flight_fusion.ipc.mlflow import ListRegisteredModelsResponse, RegisteredModel
 from mlserver.errors import ModelNotFound
 from mlserver.repository import ModelRepository
 from mlserver.settings import ModelParameters, ModelSettings
-
-from flight_fusion.ipc.mlflow import ListRegisteredModelsResponse, RegisteredModel
 
 
 def _to_settings(model: RegisteredModel) -> list[ModelSettings]:
     items = []
     for version in model.latest_versions:
-        experiment_id = version.source[version.source.find("mlruns") + len("mlruns/") :]
+        experiment_id = version.source.strip("fusion:")
         experiment_id = experiment_id[: experiment_id.find("/")]
         extra = {
             "mlflow_run_id": version.run_id,
