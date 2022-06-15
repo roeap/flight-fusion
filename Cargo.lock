@@ -1916,9 +1916,9 @@ dependencies = [
 
 [[package]]
 name = "object_store"
-version = "0.1.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8dcd74d8c1c0d2699d82b62c69cc5374260aa4e3a5f95330572f14822557529"
+checksum = "857af043f5d9f36ed4f71815857f79b841412dda1cf0ca5a29608874f6f038e2"
 dependencies = [
  "async-trait",
  "azure_core",
