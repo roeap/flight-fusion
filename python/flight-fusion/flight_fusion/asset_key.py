@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Mapping, NamedTuple, Protocol, Sequence, Union
 
 try:  # noqa: C901
-    from dagster import AssetKey
+    from dagster import AssetKey  # type: ignore
 except ImportError:
     import json
     import re
