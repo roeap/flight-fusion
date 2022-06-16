@@ -1,4 +1,18 @@
 [[package]]
+name = "aiokafka"
+version = "0.7.2"
+description = "Kafka integration with asyncio."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+kafka-python = ">=2.0.0"
+
+[package.extras]
+snappy = ["python-snappy (>=0.5)"]
+
+[[package]]
 name = "alembic"
 version = "1.6.5"
 description = "A database migration tool for SQLAlchemy."
@@ -260,7 +274,7 @@ python-versions = "*"
 
 [[package]]
 name = "certifi"
-version = "2022.5.18.1"
+version = "2022.6.15"
 description = "Python package for providing Mozilla's CA Bundle."
 category = "main"
 optional = false
@@ -317,7 +331,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "colorama"
-version = "0.4.4"
+version = "0.4.5"
 description = "Cross-platform colored terminal text."
 category = "main"
 optional = false
@@ -383,7 +397,7 @@ test = ["pytest (>=6.2.0)", "pytest-benchmark", "pytest-cov", "pytest-subtests",
 
 [[package]]
 name = "dagit"
-version = "0.14.20"
+version = "0.15.0"
 description = "Web UI for dagster."
 category = "main"
 optional = false
@@ -391,8 +405,8 @@ python-versions = "*"
 
 [package.dependencies]
 click = ">=7.0,<9.0"
-dagster = "0.14.20"
-dagster-graphql = "0.14.20"
+dagster = "0.15.0"
+dagster-graphql = "0.15.0"
 nbconvert = "*"
 PyYAML = "*"
 requests = "*"
@@ -402,7 +416,7 @@ watchdog = ">=0.8.3"
 
 [[package]]
 name = "dagster"
-version = "0.14.20"
+version = "0.15.0"
 description = "The data orchestration platform built for productivity."
 category = "main"
 optional = false
@@ -453,7 +467,7 @@ python-versions = "^3.8,<3.11"
 develop = true
 
 [package.dependencies]
-dagster = "^0.14"
+dagster = "^0.15"
 polars = "^0.13.20"
 pyarrow = "*"
 
@@ -463,14 +477,14 @@ url = "python/dagster-fusion"
 
 [[package]]
 name = "dagster-graphql"
-version = "0.14.20"
+version = "0.15.0"
 description = "The GraphQL frontend to python dagster."
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-dagster = "0.14.20"
+dagster = "0.15.0"
 gql = "<3"
 graphene = ">=2.1.3,<3"
 graphql-core = ">=2.1,<3"
@@ -549,7 +563,7 @@ python-versions = "*"
 
 [[package]]
 name = "databricks-cli"
-version = "0.16.7"
+version = "0.16.8"
 description = "A command line interface for Databricks"
 category = "main"
 optional = false
@@ -1118,7 +1132,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 
 [[package]]
 name = "importlib-resources"
-version = "5.7.1"
+version = "5.8.0"
 description = "Read resources from Python packages"
 category = "main"
 optional = false
@@ -1141,7 +1155,7 @@ python-versions = "*"
 
 [[package]]
 name = "ipykernel"
-version = "6.14.0"
+version = "6.15.0"
 description = "IPython Kernel for Jupyter"
 category = "dev"
 optional = false
@@ -1156,6 +1170,7 @@ matplotlib-inline = ">=0.1"
 nest-asyncio = "*"
 packaging = "*"
 psutil = "*"
+pyzmq = ">=17"
 tornado = ">=6.1"
 traitlets = ">=5.1.0"
 
@@ -1329,6 +1344,17 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "kafka-python"
+version = "2.0.2"
+description = "Pure Python client for Apache Kafka"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+crc32c = ["crc32c"]
+
+[[package]]
 name = "loguru"
 version = "0.6.0"
 description = "Python logging made (stupidly) simple"
@@ -1402,7 +1428,7 @@ traitlets = "*"
 
 [[package]]
 name = "maturin"
-version = "0.12.19"
+version = "0.12.20"
 description = "Build and publish crates with pyo3, rust-cpython and cffi bindings as well as rust binaries as python packages"
 category = "dev"
 optional = false
@@ -1412,8 +1438,8 @@ python-versions = ">=3.6"
 tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
 
 [package.extras]
-patchelf = ["patchelf"]
 zig = ["ziglang (>=0.9.0,<0.10.0)"]
+patchelf = ["patchelf"]
 
 [[package]]
 name = "mccabe"
@@ -1598,13 +1624,14 @@ url = "python/mlflow-fusion"
 
 [[package]]
 name = "mlserver"
-version = "1.0.1"
+version = "1.1.0"
 description = "ML server"
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
+aiokafka = "*"
 click = "*"
 fastapi = "*"
 grpcio = "*"
@@ -1612,8 +1639,10 @@ numpy = "*"
 pandas = "*"
 protobuf = "*"
 py-grpc-prometheus = "*"
+python-dotenv = "*"
 starlette-exporter = "*"
 uvicorn = "*"
+uvloop = {version = "*", markers = "sys_platform != \"win32\" and sys_platform != \"cygwin\" and platform_python_implementation != \"PyPy\""}
 
 [package.extras]
 all = ["orjson"]
@@ -1641,7 +1670,7 @@ url = "python/mlserver-fusion"
 
 [[package]]
 name = "mlserver-mlflow"
-version = "1.0.1"
+version = "1.1.0"
 description = "MLflow runtime for MLServer"
 category = "main"
 optional = false
@@ -1653,7 +1682,7 @@ mlserver = "*"
 
 [[package]]
 name = "mlserver-sklearn"
-version = "1.0.1"
+version = "1.1.0"
 description = "Scikit-Learn runtime for MLServer"
 category = "main"
 optional = false
@@ -1675,7 +1704,6 @@ develop = true
 
 [package.dependencies]
 dagster-fusion = {path = "../../python/dagster-fusion", develop = true}
-dagster-mlflow = "^0.14"
 scikit-learn = "^1"
 scipy = "^1.8"
 
@@ -2639,7 +2667,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "stack-data"
-version = "0.2.0"
+version = "0.3.0"
 description = "Extract data from python stack frames and tracebacks for informative displays"
 category = "dev"
 optional = false
@@ -2799,7 +2827,7 @@ telegram = ["requests"]
 
 [[package]]
 name = "traitlets"
-version = "5.2.2.post1"
+version = "5.3.0"
 description = ""
 category = "main"
 optional = false
@@ -3024,9 +3052,32 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8,<3.11"
-content-hash = "8ffed6c59b414e93e892e03d3bba50ebb06d9b51c359664826a27cc5ec3e08ba"
+content-hash = "3dc0e9699f25980489935b9d07e8fff472d8312300e89aacab55b220ce8c2ef9"
 
 [metadata.files]
+aiokafka = [
+    {file = "aiokafka-0.7.2-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:b19f077e12fe23e359f7a7dca9baf8532c63f4c8149703ce4c56de372d17e26c"},
+    {file = "aiokafka-0.7.2-cp36-cp36m-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:d801bb2f5a4ae726a433ae74a5d34e7e0d44128de53c9c7eea5cb4cdaaf80175"},
+    {file = "aiokafka-0.7.2-cp36-cp36m-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:3b1f1e9ad66883ed809d737d57edfb13f1aeb9b08c6fd6b71afefce712c13dad"},
+    {file = "aiokafka-0.7.2-cp36-cp36m-win32.whl", hash = "sha256:383cc7d45b47676fea60dbedee747c5c08dde5c10b1be0afc6598fb21a7891b4"},
+    {file = "aiokafka-0.7.2-cp36-cp36m-win_amd64.whl", hash = "sha256:ce23baeaacf501f619967067d2c0d4c2b2b761012f9f9c8a49593e96c7550aff"},
+    {file = "aiokafka-0.7.2-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:c96824cef1a480fd2ab4bbd9e9aa737c9191211bab5f7787ef401926d5fda95d"},
+    {file = "aiokafka-0.7.2-cp37-cp37m-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:34eda0b6eb794c36f4100be772f3b120a3c00daaf342f593f32994a762aed7e8"},
+    {file = "aiokafka-0.7.2-cp37-cp37m-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:e6e78206e5d031e6644d3a46153a146d2d2afff4cf9da9a81edb9f8714114b62"},
+    {file = "aiokafka-0.7.2-cp37-cp37m-win32.whl", hash = "sha256:ebbb258840f134bad0e6ca8681a87cd292a1f4ed7253a821c16b4e9f2610a04a"},
+    {file = "aiokafka-0.7.2-cp37-cp37m-win_amd64.whl", hash = "sha256:16731e8aa0fc70dc35c31041599c9a5237dd5d2c1a4d04af58f30a942191a281"},
+    {file = "aiokafka-0.7.2-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:1a9b6ecb606062b3595bc5104b85b42b62621a86d179b75d708279041152f461"},
+    {file = "aiokafka-0.7.2-cp38-cp38-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:cda55f5cfb19ea7d2f55a51d320a57312f152dab3e333fa1fbfcdde7a9e25a53"},
+    {file = "aiokafka-0.7.2-cp38-cp38-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:7d56627c3250ba2359dfa90f2c8a3ab995795e0116038905b2f8a608cd1fd606"},
+    {file = "aiokafka-0.7.2-cp38-cp38-win32.whl", hash = "sha256:be43d7ddd700d501a6f4c59c859baa9888c2d086b69882f542951bae41234f6a"},
+    {file = "aiokafka-0.7.2-cp38-cp38-win_amd64.whl", hash = "sha256:594d2a29875f78d56251141ff95a982c5be64844dc9ae619c285f36c57a08c6e"},
+    {file = "aiokafka-0.7.2-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:5371bd663f545ced555775e7e49f39a54b243435098a9699582bb3b32884e332"},
+    {file = "aiokafka-0.7.2-cp39-cp39-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:b1958277eaa702509591c0674790a8c9aced8fef7723dafae0f9aec6d2da71a5"},
+    {file = "aiokafka-0.7.2-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:7fe02a3868236d84356d5fa7c7625ed3a27e52699477c5ee8bd5dc9b5adb592f"},
+    {file = "aiokafka-0.7.2-cp39-cp39-win32.whl", hash = "sha256:a3bfe4ad7d3829a98c8391a9a28f179b47df4f66e26ea5b1c665f872b6e21809"},
+    {file = "aiokafka-0.7.2-cp39-cp39-win_amd64.whl", hash = "sha256:6116b68ca975caafd7efd338ffdaec63789e1c334af6174e20edc1d16d14e463"},
+    {file = "aiokafka-0.7.2.tar.gz", hash = "sha256:a8fc41d18731d8879483aecb93ae7ebf5457f63daf4c8923ddc046792c2c3096"},
+]
 alembic = [
     {file = "alembic-1.6.5-py2.py3-none-any.whl", hash = "sha256:e78be5b919f5bb184e3e0e2dd1ca986f2362e29a2bc933c446fe89f39dbe4e9c"},
     {file = "alembic-1.6.5.tar.gz", hash = "sha256:a21fedebb3fb8f6bbbba51a11114f08c78709377051384c9c5ead5705ee93a51"},
@@ -3167,8 +3218,8 @@ brotli = [
     {file = "Brotli-1.0.9.zip", hash = "sha256:4d1b810aa0ed773f81dceda2cc7b403d01057458730e309856356d4ef4188438"},
 ]
 certifi = [
-    {file = "certifi-2022.5.18.1-py3-none-any.whl", hash = "sha256:f1d53542ee8cbedbe2118b5686372fb33c297fcd6379b050cca0ef13a597382a"},
-    {file = "certifi-2022.5.18.1.tar.gz", hash = "sha256:9c5705e395cd70084351dd8ad5c41e65655e08ce46f2ec9cf6c2c08390f71eb7"},
+    {file = "certifi-2022.6.15-py3-none-any.whl", hash = "sha256:fe86415d55e84719d75f8b69414f6438ac3547d2078ab91b67e779ef69378412"},
+    {file = "certifi-2022.6.15.tar.gz", hash = "sha256:84c85a9078b11105f04f3036a9482ae10e4621616db313fe045dd24743a0820d"},
 ]
 cffi = [
     {file = "cffi-1.15.0-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:c2502a1a03b6312837279c8c1bd3ebedf6c12c4228ddbad40912d671ccc8a962"},
@@ -3239,8 +3290,8 @@ cloudpickle = [
     {file = "cloudpickle-2.1.0.tar.gz", hash = "sha256:bb233e876a58491d9590a676f93c7a5473a08f747d5ab9df7f9ce564b3e7938e"},
 ]
 colorama = [
-    {file = "colorama-0.4.4-py2.py3-none-any.whl", hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"},
-    {file = "colorama-0.4.4.tar.gz", hash = "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b"},
+    {file = "colorama-0.4.5-py2.py3-none-any.whl", hash = "sha256:854bf444933e37f5824ae7bfc1e98d5bce2ebe4160d46b5edf346a89358e99da"},
+    {file = "colorama-0.4.5.tar.gz", hash = "sha256:e6c6b4334fc50988a639d9b98aa429a0b57da6e17b9a44f0451f930b6967b7a4"},
 ]
 coloredlogs = [
     {file = "coloredlogs-14.0-py2.py3-none-any.whl", hash = "sha256:346f58aad6afd48444c2468618623638dadab76e4e70d5e10822676f2d32226a"},
@@ -3318,17 +3369,17 @@ cryptography = [
     {file = "cryptography-37.0.2.tar.gz", hash = "sha256:f224ad253cc9cea7568f49077007d2263efa57396a2f2f78114066fd54b5c68e"},
 ]
 dagit = [
-    {file = "dagit-0.14.20-py3-none-any.whl", hash = "sha256:9d165540a207bf7ecf80a45dcbb1c55581eaa256599f6248a1aa02716180656c"},
-    {file = "dagit-0.14.20.tar.gz", hash = "sha256:60ac3a81cf32431526a397f36c84003bbe8cbb8b154fd8765f301a9b4c3e3494"},
+    {file = "dagit-0.15.0-py3-none-any.whl", hash = "sha256:ad109a2f1166b48bbc765f70db4bfd49e4417106cebcf1f0ec135ed64f14fd91"},
+    {file = "dagit-0.15.0.tar.gz", hash = "sha256:c105994fc69bd118ae9048aac487063d18f5c76e07a8fc3c8e8abc5371cd6ab0"},
 ]
 dagster = [
-    {file = "dagster-0.14.20-py3-none-any.whl", hash = "sha256:2f15b92c60aff0d7f1076df81d5c7c82625fb3c15ecac5d68fd084020dd13476"},
-    {file = "dagster-0.14.20.tar.gz", hash = "sha256:d44f07fccf97ef96967a6aee43de9d523654a24597efc8d73dce2fde3375b111"},
+    {file = "dagster-0.15.0-py3-none-any.whl", hash = "sha256:c6c9883c18e4ac2f8e0968bcd9a6cd8263ced8721871bd64a932a3b6f021f002"},
+    {file = "dagster-0.15.0.tar.gz", hash = "sha256:538ff5f9f2f42eb6dea4b62acbbdde6416bcf007553bfdd2e5cb433497b3fd03"},
 ]
 dagster-fusion = []
 dagster-graphql = [
-    {file = "dagster-graphql-0.14.20.tar.gz", hash = "sha256:86f0880e6714707b69c1dabb02a742bd06ecace9a33577f59bf39ad3747059c5"},
-    {file = "dagster_graphql-0.14.20-py3-none-any.whl", hash = "sha256:66c00928a94904a070674bc261c16ba842d4cf5c33a75d15b36e2ab6b226eae6"},
+    {file = "dagster-graphql-0.15.0.tar.gz", hash = "sha256:f2b9f03802d033d4e7d31d2e585b487c42ece0341f98e9da1e2c655462466e23"},
+    {file = "dagster_graphql-0.15.0-py3-none-any.whl", hash = "sha256:dc7b226f0b1d4b91dab6c838177cf8a5e8e2fc8a2a081eeedf5da6b1089dfd7e"},
 ]
 dagster-mlflow = [
     {file = "dagster-mlflow-0.14.17.tar.gz", hash = "sha256:67d8748a8e0ce89d2798723551896f4888741a5a590455dae885369d9167394c"},
@@ -3352,8 +3403,8 @@ dash-table = [
     {file = "dash_table-5.0.0.tar.gz", hash = "sha256:18624d693d4c8ef2ddec99a6f167593437a7ea0bf153aa20f318c170c5bc7308"},
 ]
 databricks-cli = [
-    {file = "databricks-cli-0.16.7.tar.gz", hash = "sha256:c18ca530d865c3a4e966dc76625d2d1316e886b6ae61ef3aa89561c797efef62"},
-    {file = "databricks_cli-0.16.7-py2-none-any.whl", hash = "sha256:d450f69e745a9cb8fdd0c70f85f5599d940e166d4194515aa7499d561a360964"},
+    {file = "databricks-cli-0.16.8.tar.gz", hash = "sha256:b40138f8ec74f36e4a5103bc37cb87edb6f74dc97b9603206f76f68bdd76d37e"},
+    {file = "databricks_cli-0.16.8-py2-none-any.whl", hash = "sha256:880856978bfc67487bbff066ab441a549a4a963a5857c32ab61037fcb50bc15f"},
 ]
 debugpy = [
     {file = "debugpy-1.6.0-cp310-cp310-macosx_10_15_x86_64.whl", hash = "sha256:eb1946efac0c0c3d411cea0b5ac772fbde744109fd9520fb0c5a51979faf05ad"},
@@ -3726,16 +3777,16 @@ importlib-metadata = [
     {file = "importlib_metadata-4.11.4.tar.gz", hash = "sha256:5d26852efe48c0a32b0509ffbc583fda1a2266545a78d104a6f4aff3db17d700"},
 ]
 importlib-resources = [
-    {file = "importlib_resources-5.7.1-py3-none-any.whl", hash = "sha256:e447dc01619b1e951286f3929be820029d48c75eb25d265c28b92a16548212b8"},
-    {file = "importlib_resources-5.7.1.tar.gz", hash = "sha256:b6062987dfc51f0fcb809187cffbd60f35df7acb4589091f154214af6d0d49d3"},
+    {file = "importlib_resources-5.8.0-py3-none-any.whl", hash = "sha256:7952325ffd516c05a8ad0858c74dff2c3343f136fe66a6002b2623dd1d43f223"},
+    {file = "importlib_resources-5.8.0.tar.gz", hash = "sha256:568c9f16cb204f9decc8d6d24a572eeea27dacbb4cee9e6b03a8025736769751"},
 ]
 iniconfig = [
     {file = "iniconfig-1.1.1-py2.py3-none-any.whl", hash = "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3"},
     {file = "iniconfig-1.1.1.tar.gz", hash = "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"},
 ]
 ipykernel = [
-    {file = "ipykernel-6.14.0-py3-none-any.whl", hash = "sha256:cbf50ed3dc9998d4077d8cd263275f232cbe67dbd2e79cd6d2644f3a4418148b"},
-    {file = "ipykernel-6.14.0.tar.gz", hash = "sha256:720f2a07aadf70ca05b034f2cdd0590a8bd56581ddf3b7ec4a37075366270e89"},
+    {file = "ipykernel-6.15.0-py3-none-any.whl", hash = "sha256:b9ed519a29eb819eb82e87e0d3754088237b233e5c647b8bb0ff23c8c70ed16f"},
+    {file = "ipykernel-6.15.0.tar.gz", hash = "sha256:b59f9d9672c3a483494bb75915a2b315e78b833a38b039b1ee36dc28683f0d89"},
 ]
 ipython = [
     {file = "ipython-8.4.0-py3-none-any.whl", hash = "sha256:7ca74052a38fa25fe9bedf52da0be7d3fdd2fb027c3b778ea78dfe8c212937d1"},
@@ -3780,6 +3831,10 @@ jupyter-core = [
 jupyterlab-pygments = [
     {file = "jupyterlab_pygments-0.2.2-py2.py3-none-any.whl", hash = "sha256:2405800db07c9f770863bcf8049a529c3dd4d3e28536638bd7c1c01d2748309f"},
     {file = "jupyterlab_pygments-0.2.2.tar.gz", hash = "sha256:7405d7fde60819d905a9fa8ce89e4cd830e318cdad22a0030f7a901da705585d"},
+]
+kafka-python = [
+    {file = "kafka-python-2.0.2.tar.gz", hash = "sha256:04dfe7fea2b63726cd6f3e79a2d86e709d608d74406638c5da33a01d45a9d7e3"},
+    {file = "kafka_python-2.0.2-py2.py3-none-any.whl", hash = "sha256:2d92418c7cb1c298fa6c7f0fb3519b520d0d7526ac6cb7ae2a4fc65a51a94b6e"},
 ]
 loguru = [
     {file = "loguru-0.6.0-py3-none-any.whl", hash = "sha256:4e2414d534a2ab57573365b3e6d0234dfb1d84b68b7f3b948e6fb743860a77c3"},
@@ -3873,18 +3928,18 @@ matplotlib-inline = [
     {file = "matplotlib_inline-0.1.3-py3-none-any.whl", hash = "sha256:aed605ba3b72462d64d475a21a9296f400a19c4f74a31b59103d2a99ffd5aa5c"},
 ]
 maturin = [
-    {file = "maturin-0.12.19-py3-none-macosx_10_7_x86_64.whl", hash = "sha256:bba8dd149169d273f30e47f8f914ff4d4d65d273d2d5a5f9154811e98043fa26"},
-    {file = "maturin-0.12.19-py3-none-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:3e027e79eccdb369591c31f4d77cd8bae64a70207937b9e555b4a6df3d7680d5"},
-    {file = "maturin-0.12.19-py3-none-manylinux_2_12_i686.manylinux2010_i686.musllinux_1_1_i686.whl", hash = "sha256:d5bef961974fee3704316a80c1b3908016311095c21d9870120d97a5918cf12b"},
-    {file = "maturin-0.12.19-py3-none-manylinux_2_12_x86_64.manylinux2010_x86_64.musllinux_1_1_x86_64.whl", hash = "sha256:2f4bf636279bf1be78a890590f101938e7e725da0119787c58b6cf62e87fd3fc"},
-    {file = "maturin-0.12.19-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.musllinux_1_1_aarch64.whl", hash = "sha256:475d095b4353862b5df8bf7e6d467c6d07d55874dbdde3f0cd933d04413d77b6"},
-    {file = "maturin-0.12.19-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.musllinux_1_1_armv7l.whl", hash = "sha256:0a0634e5f2570a78f65295058addc8f3e7f115b0502acd0d26b506a68d82ee94"},
-    {file = "maturin-0.12.19-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.musllinux_1_1_ppc64le.whl", hash = "sha256:d7d69443a3bc99a8e96cbc51027de8cbda969c7dff3a610fbdc831e9b6b2cba4"},
-    {file = "maturin-0.12.19-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:be5482bd73483adc92a91724f83fd2019ee9dc92a541173bcd1092493f09049c"},
-    {file = "maturin-0.12.19-py3-none-win32.whl", hash = "sha256:f0ba7c976cd6d083d01d44ee93a78fb6d5aafa94c5f651608b5db1a6777019bc"},
-    {file = "maturin-0.12.19-py3-none-win_amd64.whl", hash = "sha256:6807f54893cbf8e56a356c511dbee6b0da55ceb31c356f0f9b45eb58ee4f764b"},
-    {file = "maturin-0.12.19-py3-none-win_arm64.whl", hash = "sha256:76f0c7f33ead08cb60fbeb5f902c8fb77ec5176eb04d3c88ace37413c1c5ed67"},
-    {file = "maturin-0.12.19.tar.gz", hash = "sha256:3d6265b547d8260f217f9257308855eed076ac580ef317f3d41900ed38f33e67"},
+    {file = "maturin-0.12.20-py3-none-macosx_10_7_x86_64.whl", hash = "sha256:d4ced017aa26dd88ce228a21e8f049b7c6f9b40c873e90fb7bec60f49b93fe55"},
+    {file = "maturin-0.12.20-py3-none-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:83e7b4bcb3f30523bd951d858fc6508fef85e33840e3c8947a0b36c3dd73532a"},
+    {file = "maturin-0.12.20-py3-none-manylinux_2_12_i686.manylinux2010_i686.musllinux_1_1_i686.whl", hash = "sha256:3ea8b7976d2ed35ca6d799ead19667afef9a50f806a7f090721cea7513cb6166"},
+    {file = "maturin-0.12.20-py3-none-manylinux_2_12_x86_64.manylinux2010_x86_64.musllinux_1_1_x86_64.whl", hash = "sha256:ac3b6ae80adfd2ddb581d78ac695abfeb1e222bf122f0f8cb04ab2bae47046b1"},
+    {file = "maturin-0.12.20-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.musllinux_1_1_aarch64.whl", hash = "sha256:79a26abbbbdb78958894837663e18e39c36635bcc0674ed40217b3519c488115"},
+    {file = "maturin-0.12.20-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.musllinux_1_1_armv7l.whl", hash = "sha256:6e2e1cd499599e70db72512fe1bf03b6e362af572051c8a8a255282c17800cfb"},
+    {file = "maturin-0.12.20-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.musllinux_1_1_ppc64le.whl", hash = "sha256:7ee333b400d0ac6055c89bd82817e7f1360502f9f5089a196470e5f063af6afc"},
+    {file = "maturin-0.12.20-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:41fc10a85f9e32bbf301004179d96f316f41dfebb01770c19420fe783acd6612"},
+    {file = "maturin-0.12.20-py3-none-win32.whl", hash = "sha256:cb2a82d019585f4ca5a49bf56cded757a13e960617b334d601b837b78f84b960"},
+    {file = "maturin-0.12.20-py3-none-win_amd64.whl", hash = "sha256:b170594180ddb6144b943a02f57b649deb7d580251c14f2f41546d5e0c876e04"},
+    {file = "maturin-0.12.20-py3-none-win_arm64.whl", hash = "sha256:b6b671c50dfa01094c9327ddb713ea3d4a24034552e898479503eb0e924b12ef"},
+    {file = "maturin-0.12.20.tar.gz", hash = "sha256:62ef15831f14330aa426c2ccc475c5b8d473bb52731e478e0cb9ab37e137d758"},
 ]
 mccabe = [
     {file = "mccabe-0.6.1-py2.py3-none-any.whl", hash = "sha256:ab8a6258860da4b6677da4bd2fe5dc2c659cff31b3ee4f7f5d64e79735b80d42"},
@@ -3932,17 +3987,17 @@ mlflow = [
 ]
 mlflow-fusion = []
 mlserver = [
-    {file = "mlserver-1.0.1-py3-none-any.whl", hash = "sha256:c4ea369976012e306eb69104db17f70bd89086d90adda17c8e3f06c47d4747ff"},
-    {file = "mlserver-1.0.1.tar.gz", hash = "sha256:491be6210776fccdb5ba22545c8c2833bbf61df486c4d965e43a55ec3da0c913"},
+    {file = "mlserver-1.1.0-py3-none-any.whl", hash = "sha256:bb183567f2ffd2678b1ea8ceec5c0b5e1c6dc8f83cc8e3f7a91a91ee5f3d472e"},
+    {file = "mlserver-1.1.0.tar.gz", hash = "sha256:132755317bae119e9020b87783616ca46a532c710dad7016f0bfbc44b1002cd2"},
 ]
 mlserver-fusion = []
 mlserver-mlflow = [
-    {file = "mlserver-mlflow-1.0.1.tar.gz", hash = "sha256:cabf24ca0324b0233fddd8893e7ddb93a59d9ee0d0fd2cb2b20d0c8bf6502921"},
-    {file = "mlserver_mlflow-1.0.1-py3-none-any.whl", hash = "sha256:a99daa0883559b13234fc9f06e69b60d13cd275ff788be1c8c3951b6b6f66f1a"},
+    {file = "mlserver-mlflow-1.1.0.tar.gz", hash = "sha256:85f24dd67c60b4d346cd194d805768c9d2f5ee2c01136da5a6f4294ab0067bba"},
+    {file = "mlserver_mlflow-1.1.0-py3-none-any.whl", hash = "sha256:21645552349013af95554a05454c2219cb0c5262f880f84a25178f58c04045f4"},
 ]
 mlserver-sklearn = [
-    {file = "mlserver-sklearn-1.0.1.tar.gz", hash = "sha256:496f851e8cce97a83f8bfa85e22d59a0d4288be0c732137dd423a21134406965"},
-    {file = "mlserver_sklearn-1.0.1-py3-none-any.whl", hash = "sha256:7f433fa2a8b207b6d8f163b940188f20c2f35126994f1899b095e903db6eaa6d"},
+    {file = "mlserver-sklearn-1.1.0.tar.gz", hash = "sha256:c34f3975b0318389e8f470c851a78bee353bf27b7693da97906ac7f0b3c0b480"},
+    {file = "mlserver_sklearn-1.1.0-py3-none-any.whl", hash = "sha256:71a466920d866c59201f7be5bed541a263cd7fe25704c39e3cbc8bb5968c4324"},
 ]
 model-training = []
 msal = [
@@ -4682,8 +4737,8 @@ sqlparse = [
     {file = "sqlparse-0.4.2.tar.gz", hash = "sha256:0c00730c74263a94e5a9919ade150dfc3b19c574389985446148402998287dae"},
 ]
 stack-data = [
-    {file = "stack_data-0.2.0-py3-none-any.whl", hash = "sha256:999762f9c3132308789affa03e9271bbbe947bf78311851f4d485d8402ed858e"},
-    {file = "stack_data-0.2.0.tar.gz", hash = "sha256:45692d41bd633a9503a5195552df22b583caf16f0b27c4e58c98d88c8b648e12"},
+    {file = "stack_data-0.3.0-py3-none-any.whl", hash = "sha256:aa1d52d14d09c7a9a12bb740e6bdfffe0f5e8f4f9218d85e7c73a8c37f7ae38d"},
+    {file = "stack_data-0.3.0.tar.gz", hash = "sha256:77bec1402dcd0987e9022326473fdbcc767304892a533ed8c29888dacb7dddbc"},
 ]
 starlette = [
     {file = "starlette-0.19.1-py3-none-any.whl", hash = "sha256:5a60c5c2d051f3a8eb546136aa0c9399773a689595e099e0877704d5888279bf"},
@@ -4781,8 +4836,8 @@ tqdm = [
     {file = "tqdm-4.64.0.tar.gz", hash = "sha256:40be55d30e200777a307a7585aee69e4eabb46b4ec6a4b4a5f2d9f11e7d5408d"},
 ]
 traitlets = [
-    {file = "traitlets-5.2.2.post1-py3-none-any.whl", hash = "sha256:1530d04badddc6a73d50b7ee34667d4b96914da352109117b4280cb56523a51b"},
-    {file = "traitlets-5.2.2.post1.tar.gz", hash = "sha256:74803a1baa59af70f023671d86d5c7a834c931186df26d50d362ee6a1ff021fd"},
+    {file = "traitlets-5.3.0-py3-none-any.whl", hash = "sha256:65fa18961659635933100db8ca120ef6220555286949774b9cfc106f941d1c7a"},
+    {file = "traitlets-5.3.0.tar.gz", hash = "sha256:0bb9f1f9f017aa8ec187d8b1b2a7a6626a2a1d877116baba52a129bfa124f8e2"},
 ]
 typer = [
     {file = "typer-0.4.1-py3-none-any.whl", hash = "sha256:e8467f0ebac0c81366c2168d6ad9f888efdfb6d4e1d3d5b4a004f46fa444b5c3"},
