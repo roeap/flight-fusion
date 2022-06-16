@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Mapping, NamedTuple, Protocol, Sequence
+from typing import Mapping, NamedTuple, Protocol, Sequence, Union
 
 try:  # noqa: C901
     from dagster import AssetKey
@@ -10,7 +10,8 @@ except ImportError:
 
     ASSET_KEY_REGEX = re.compile("^[a-zA-Z0-9_.-]+$")  # alphanumeric, _, -, .
     ASSET_KEY_SPLIT_REGEX = re.compile("[^a-zA-Z0-9_]")
-    ASSET_KEY_STRUCTURED_DELIMITER = "."
+    ASSET_KEY_DELIMITER = "/"
+    ASSET_KEY_LEGACY_DELIMITER = "."
 
     def parse_asset_key_string(s: str) -> list[str]:
         return list(filter(lambda x: x, re.split(ASSET_KEY_SPLIT_REGEX, s)))
@@ -48,18 +49,18 @@ except ImportError:
             if not self.path:
                 return None
             if legacy:
-                return ASSET_KEY_STRUCTURED_DELIMITER.join(self.path)
+                return ASSET_KEY_LEGACY_DELIMITER.join(self.path)
             return json.dumps(self.path)
 
         def to_user_string(self) -> str:
             """
             E.g. "first_component>second_component"
             """
-            return ">".join(self.path)
+            return ASSET_KEY_DELIMITER.join(self.path)
 
         @staticmethod
         def from_user_string(asset_key_string: str) -> AssetKey:
-            return AssetKey(asset_key_string.split(">"))
+            return AssetKey(asset_key_string.split(ASSET_KEY_DELIMITER))
 
         @staticmethod
         def from_db_string(asset_key_string: str | None) -> AssetKey | None:
@@ -78,7 +79,7 @@ except ImportError:
         @staticmethod
         def get_db_prefix(path: list[str], legacy: bool | None = False):
             if legacy:
-                return ASSET_KEY_STRUCTURED_DELIMITER.join(path)
+                return ASSET_KEY_LEGACY_DELIMITER.join(path)
             return json.dumps(path)[:-2]  # strip trailing '"]' from json string
 
         @staticmethod
@@ -86,6 +87,20 @@ except ImportError:
             if asset_key and asset_key.get("path"):
                 return AssetKey(asset_key["path"])
             return None
+
+        @staticmethod
+        def from_coerceable(arg: CoercibleToAssetKey) -> AssetKey:
+            if isinstance(arg, AssetKey):
+                return arg
+            elif isinstance(arg, str):
+                return AssetKey([arg])
+            elif isinstance(arg, list):
+                return AssetKey(arg)
+            else:
+                return AssetKey(arg)
+
+    CoercibleToAssetKey = Union[AssetKey, str, Sequence[str]]
+    CoercibleToAssetKeyPrefix = Union[str, Sequence[str]]
 
 
 class IAssetKey(Protocol):
