@@ -16,9 +16,9 @@ delta-spark = "^1.1.0"
 mkdocs-protobuf = "^0.1"
 mkdocs-techdocs-core = "^1"
 mlflow = "^1.26"
-mlserver = "^1.0.1"
-mlserver-mlflow = "^1.0.1"
-mlserver-sklearn = "^1.0.1"
+mlserver = "^1.1"
+mlserver-mlflow = "^1.1"
+mlserver-sklearn = "^1.1"
 pyspark = "^3.2.1"
 
 # TODO remove once flask ist updated in deps
