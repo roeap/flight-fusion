@@ -127,6 +127,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "arrow"
+version = "16.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1cdc4456252b8108b914f41450a754d23b8d21299322f24f81fc46a834fa0293"
+dependencies = [
+ "bitflags",
+ "chrono",
+ "flatbuffers",
+ "half",
+ "hex",
+ "indexmap",
+ "lazy_static",
+ "lexical-core",
+ "multiversion",
+ "num",
+ "regex",
+ "serde",
+ "serde_derive",
+ "serde_json",
+]
+
+[[package]]
 name = "arrow-deps"
 version = "0.1.0"
 dependencies = [
@@ -134,7 +156,7 @@ dependencies = [
  "datafusion",
  "datafusion-data-access",
  "deltalake",
- "parquet",
+ "parquet 16.0.0",
 ]
 
 [[package]]
@@ -143,7 +165,7 @@ version = "13.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0a3666d2dbc637fa979d1f0bf3031d39a80e709f3b9ec88e3d573c1d666bf553"
 dependencies = [
- "arrow",
+ "arrow 13.0.0",
  "base64",
  "bytes",
  "futures",
@@ -706,7 +728,7 @@ version = "7.0.0"
 source = "git+https://github.com/apache/arrow-datafusion.git?rev=f943b6a65291c3de6403dde827cb411a050f4fa0#f943b6a65291c3de6403dde827cb411a050f4fa0"
 dependencies = [
  "ahash",
- "arrow",
+ "arrow 13.0.0",
  "async-trait",
  "chrono",
  "datafusion-common",
@@ -721,7 +743,7 @@ dependencies = [
  "num_cpus",
  "ordered-float 3.0.0",
  "parking_lot",
- "parquet",
+ "parquet 13.0.0",
  "paste",
  "pin-project-lite",
  "rand",
@@ -738,9 +760,9 @@ name = "datafusion-common"
 version = "7.0.0"
 source = "git+https://github.com/apache/arrow-datafusion.git?rev=f943b6a65291c3de6403dde827cb411a050f4fa0#f943b6a65291c3de6403dde827cb411a050f4fa0"
 dependencies = [
- "arrow",
+ "arrow 13.0.0",
  "ordered-float 3.0.0",
- "parquet",
+ "parquet 13.0.0",
  "sqlparser",
 ]
 
@@ -764,7 +786,7 @@ version = "7.0.0"
 source = "git+https://github.com/apache/arrow-datafusion.git?rev=f943b6a65291c3de6403dde827cb411a050f4fa0#f943b6a65291c3de6403dde827cb411a050f4fa0"
 dependencies = [
  "ahash",
- "arrow",
+ "arrow 13.0.0",
  "datafusion-common",
  "sqlparser",
 ]
@@ -775,7 +797,7 @@ version = "7.0.0"
 source = "git+https://github.com/apache/arrow-datafusion.git?rev=f943b6a65291c3de6403dde827cb411a050f4fa0#f943b6a65291c3de6403dde827cb411a050f4fa0"
 dependencies = [
  "ahash",
- "arrow",
+ "arrow 13.0.0",
  "blake2",
  "blake3",
  "chrono",
@@ -798,7 +820,7 @@ name = "datafusion-row"
 version = "7.0.0"
 source = "git+https://github.com/apache/arrow-datafusion.git?rev=f943b6a65291c3de6403dde827cb411a050f4fa0#f943b6a65291c3de6403dde827cb411a050f4fa0"
 dependencies = [
- "arrow",
+ "arrow 13.0.0",
  "datafusion-common",
  "paste",
  "rand",
@@ -809,7 +831,7 @@ name = "deltalake"
 version = "0.4.1"
 source = "git+https://github.com/delta-io/delta-rs?rev=9216a8e2f068cba7c7a965f51ab608ee1f55d773#9216a8e2f068cba7c7a965f51ab608ee1f55d773"
 dependencies = [
- "arrow",
+ "arrow 13.0.0",
  "async-trait",
  "bytes",
  "cfg-if",
@@ -821,7 +843,7 @@ dependencies = [
  "lazy_static",
  "libc",
  "log",
- "parquet",
+ "parquet 13.0.0",
  "parquet-format",
  "percent-encoding",
  "regex",
@@ -2133,10 +2155,33 @@ version = "13.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c6d737baed48775e87a69aa262f1fa2f1d6bd074dedbe9cac244b9aabf2a0b4"
 dependencies = [
- "arrow",
+ "arrow 13.0.0",
  "base64",
  "brotli",
  "byteorder",
+ "chrono",
+ "flate2",
+ "lz4",
+ "num",
+ "num-bigint",
+ "parquet-format",
+ "rand",
+ "snap",
+ "thrift 0.13.0",
+ "zstd",
+]
+
+[[package]]
+name = "parquet"
+version = "16.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f11444503e702853d52a612828e238a8d0072f85f9a0427b5e2009da4ce61594"
+dependencies = [
+ "arrow 16.0.0",
+ "base64",
+ "brotli",
+ "byteorder",
+ "bytes",
  "chrono",
  "flate2",
  "futures",
