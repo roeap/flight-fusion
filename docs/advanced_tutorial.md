@@ -46,3 +46,5 @@ to the vaex taxi app
 
 - https://blog.dataiku.com/predicting-taxi-fares-in-new-york-using-machine-learning-in-real-time
 - https://github.com/sdaulton/TaxiPrediction
+- https://medium.com/analytics-vidhya/new-york-yellow-taxi-demand-prediction-using-machine-learning-fc697d20ff86
+- https://github.com/vaexio/dash-120million-taxi-app
