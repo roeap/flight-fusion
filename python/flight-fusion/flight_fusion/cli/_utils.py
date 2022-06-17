@@ -1,21 +1,18 @@
+from __future__ import annotations
+
 import subprocess  # nosec
 from pathlib import Path
-from typing import Dict, Optional
 
-import yaml
 from typer import get_app_dir
 
-from flight_fusion.errors import FlightFusionError
-
-_APP_NAME = "flight-fusion"
-_CONFIG_FILE_STEM = "app"
-
+_APP_NAME = "mlfusion"
 MLFLOW_DIR = ".mlflow"
 DAGSTER_DIR = ".dagster"
 MLSERVER_DIR = ".mlserver"
+FLIGHT_DIR = ".fusion"
 
 
-def find_git_root() -> Optional[Path]:
+def find_git_root() -> Path | None:
     try:
         args = ["git", "rev-parse", "--show-toplevel"]
         output = subprocess.check_output(args)  # nosec
@@ -25,28 +22,16 @@ def find_git_root() -> Optional[Path]:
     return Path(output.strip(b"\n").decode())
 
 
-def _read_config_data(app_root: Path) -> Dict:
-    if not app_root.is_dir():
-        print(app_root)
-        raise FlightFusionError("App root must be directory")
-
-    for suffix in ["yml", "yaml", "json"]:
-        path = app_root / f"{_CONFIG_FILE_STEM}.{suffix}"
-        if path.exists():
-            with path.open(encoding="utf-8") as f_:
-                return yaml.safe_load(f_)
-
-    raise FlightFusionError("Unsupported file format for config file")
-
-
-def get_project_directory():
+def get_project_directory() -> Path | None:
+    """Get application directory within git root."""
     git_root = find_git_root()
     if git_root is not None:
         return git_root / f".{_APP_NAME}"
     return None
 
 
-def get_global_directory():
+def get_global_directory() -> Path:
+    """Get the global application directory in the user folder."""
     return Path(get_app_dir(app_name=_APP_NAME, force_posix=True, roaming=False))
 
 
@@ -66,5 +51,4 @@ def get_app_directory() -> Path:
     if directory is not None and directory.exists():
         return directory
 
-    # TODO return get_global_directory()
-    raise NotImplementedError("Global dir not supported yet.")
+    return get_global_directory()

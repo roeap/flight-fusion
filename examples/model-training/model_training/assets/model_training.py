@@ -4,6 +4,7 @@ from dagster import asset
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
+from dagster_fusion.io.artifact import RegisteredModel
 from mlflow.models.signature import infer_signature
 
 
@@ -14,13 +15,13 @@ from mlflow.models.signature import infer_signature
     io_manager_key="model_artifact_io",
     metadata={"file_name": "model.pkl", "artifact_path": "model"},
 )
-def ml_model(context, training_data: pa.Table) -> LinearRegression:
+def ml_model(context, training_data: pa.Table) -> RegisteredModel:
     mlflow = context.resources.mlflow
     mlflow.sklearn.autolog()
 
     features = [col for col in training_data.column_names if col != "target"]
     df_train = training_data.select(features).to_pandas()
-    target = training_data.column("target").to_pandas()
+    target = training_data.column("target").to_pandas()  # type: ignore
 
     model = LinearRegression()
     model.fit(df_train, target)
@@ -28,7 +29,7 @@ def ml_model(context, training_data: pa.Table) -> LinearRegression:
     model_signature = infer_signature(df_train, target)
     mlflow.sklearn.log_model(model, "model", signature=model_signature)
 
-    return model
+    return RegisteredModel(description="A machine learning model in operation.")
 
 
 @asset(
@@ -41,7 +42,7 @@ def model_performance(context, ml_model, test_data: pa.Table):
 
     features = [col for col in test_data.column_names if col != "target"]
     df_test = test_data.select(features).to_pandas()
-    target = test_data.column("target").to_pandas()
+    target = test_data.column("target").to_pandas()  # type: ignore
 
     predicted_qualities = ml_model.predict(df_test)
 

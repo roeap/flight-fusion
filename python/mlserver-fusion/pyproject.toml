@@ -26,8 +26,8 @@ classifiers = [
 python = "^3.8,<3.11"
 betterproto = "2.0.0b4"
 fastapi = ">=0.75"
-mlserver = "^1.0.1"
-mlserver-mlflow = "^1.0.1"
+mlserver = "^1.1"
+mlserver-mlflow = "^1.1"
 typer = ">=0.4"
 httpx = "^0.23"
 

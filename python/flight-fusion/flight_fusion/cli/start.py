@@ -52,12 +52,11 @@ def mlflow(port: int = 5000):
     logger.info(f"Serving mlflow on 127.0.0.1:{port}")
 
     workdir = (get_app_directory() / MLFLOW_DIR).absolute()
-    artifact_root = workdir / "mlruns/"
 
     subprocess.run(  # nosec running our own executable
         [
             "mlflow",
-            "server",
+            "ui",
             "--host",
             "127.0.0.1",
             "--port",
@@ -105,7 +104,7 @@ def daemon():
 
 @app.command()
 @click_async
-async def mlserver(host: str = "http://localhost", port: int = 5000):
+async def mlserver(host: str = "http://127.0.0.1", port: int = 5000):
     from mlserver.cli.serve import load_settings
     from mlserver_fusion.server import MLServer
 

@@ -28,4 +28,4 @@ class SendrequestAuth:
 
     async def __call__(self, event: SendRequest) -> None:
         token = self._credential.get_token(*self._scopes)
-        event.metadata[self._key] = token.token
+        event.metadata[self._key] = token.token  # type: ignore

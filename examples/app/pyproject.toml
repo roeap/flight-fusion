@@ -10,3 +10,4 @@ python = "^3.8,<3.11"
 dash = "^2.4.1"
 dash-antd = { version = ">=0.0.5" }
 markupsafe = "<=2.0.1"
+vaex = "^4.9.2"

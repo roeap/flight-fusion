@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pyarrow as pa
 import pyarrow.flight as pa_flight
 from betterproto import Message
