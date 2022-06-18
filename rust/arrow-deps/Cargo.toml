@@ -9,9 +9,9 @@ publish = false
 arrow-flight = "13"
 parquet = { version = "13", features = ["async"] }
 # Git dependencies
-datafusion = { git = "https://github.com/apache/arrow-datafusion.git", rev = "f943b6a65291c3de6403dde827cb411a050f4fa0" }
-datafusion-data-access = { git = "https://github.com/apache/arrow-datafusion.git", rev = "f943b6a65291c3de6403dde827cb411a050f4fa0" }
-deltalake = { git = "https://github.com/delta-io/delta-rs", rev = "9216a8e2f068cba7c7a965f51ab608ee1f55d773", features = [
+datafusion = { version = "8" }
+datafusion-data-access = { version = "8" }
+deltalake = { git = "https://github.com/delta-io/delta-rs", rev = "0f193ea4468d7cb2e85482707d3482803044e0b0", features = [
   "datafusion-ext",
 ], optional = true }
 

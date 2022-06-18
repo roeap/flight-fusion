@@ -61,7 +61,6 @@ impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
                 }
                 _ => todo!(),
             };
-
             Ok(DeltaOperationResponse::default())
         } else {
             // TODO migrate errors and raise something more meaningful

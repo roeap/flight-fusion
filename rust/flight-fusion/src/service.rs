@@ -356,11 +356,9 @@ impl FlightService for FlightFusionService {
         }
         .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
-        let result = vec![Ok(PutResult { app_metadata: body })];
-
-        Ok(Response::new(
-            Box::pin(futures::stream::iter(result)) as BoxedFlightStream<PutResult>
-        ))
+        Ok(Response::new(Box::pin(futures::stream::once(async {
+            Ok(PutResult { app_metadata: body })
+        })) as BoxedFlightStream<PutResult>))
     }
 
     #[instrument(skip(self, request))]
