@@ -4,10 +4,11 @@ from contextlib import asynccontextmanager
 from itertools import chain
 
 import httpx
-from flight_fusion.ipc.mlflow import ListRegisteredModelsResponse, RegisteredModel
 from mlserver.errors import ModelNotFound
 from mlserver.repository import ModelRepository
 from mlserver.settings import ModelParameters, ModelSettings
+
+from flight_fusion.ipc.mlflow import ListRegisteredModelsResponse, RegisteredModel
 
 
 def _to_settings(model: RegisteredModel) -> list[ModelSettings]:

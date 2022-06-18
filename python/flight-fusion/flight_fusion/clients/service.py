@@ -35,8 +35,9 @@ class FusionServiceClient(BaseClient):
     def __init__(
         self,
         options: ClientOptions,
+        log=None,
     ) -> None:
-        super().__init__(options=options)
+        super().__init__(options=options, log=log)
 
     def get_context(self, refs: Iterable[AssetKey]) -> ContextClient:
         return ContextClient(
@@ -46,8 +47,8 @@ class FusionServiceClient(BaseClient):
 
     def new_dataset_client(self, asset_key: AssetKey, versioned: bool = True) -> BaseDatasetClient:
         if versioned:
-            return VersionedDatasetClient(asset_key=asset_key, client=self._flight)
-        return DatasetClient(asset_key=asset_key, client=self._flight)
+            return VersionedDatasetClient(asset_key=asset_key, client=self._flight, log=self._log)
+        return DatasetClient(asset_key=asset_key, client=self._flight, log=self._log)
 
     def get_dataset_client(self, asset_key: AssetKey) -> BaseDatasetClient:
         try:
@@ -56,8 +57,8 @@ class FusionServiceClient(BaseClient):
         except ResourceDoesNotExist:
             versioned = True
         if versioned:
-            return VersionedDatasetClient(asset_key=asset_key, client=self._flight)
-        return DatasetClient(asset_key=asset_key, client=self._flight)
+            return VersionedDatasetClient(asset_key=asset_key, client=self._flight, log=self._log)
+        return DatasetClient(asset_key=asset_key, client=self._flight, log=self._log)
 
     def list_datasets(self) -> list[AreaInfo]:
         return [

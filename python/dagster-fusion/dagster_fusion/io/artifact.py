@@ -4,9 +4,8 @@ import json
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
-import mlflow
 from dagster import (
     InitResourceContext,
     InputContext,
@@ -16,13 +15,14 @@ from dagster import (
     OutputContext,
     io_manager,
 )
+from pydantic import BaseSettings
+
+import mlflow
+from dagster_fusion.errors import MissingConfiguration
+from dagster_fusion.resources import MlFlow, MlFusionConfiguration
 from flight_fusion.asset_key import IAssetKey
 from flight_fusion.tags import MlFusionTags
 from mlflow.utils.file_utils import TempDir
-from pydantic import BaseSettings
-
-from dagster_fusion.errors import MissingConfiguration
-from dagster_fusion.resources import MlFlow, MlFusionConfiguration
 
 
 class FileType(Enum):
@@ -51,8 +51,8 @@ class RegisteredModel:
 
 class ArtifactMetaData(BaseSettings):
     file_name: str
-    artifact_path: Optional[str]
-    file_type: Optional[FileType]
+    artifact_path: str | None
+    file_type: FileType | None
 
     @property
     def file_type_inferred(self) -> FileType:

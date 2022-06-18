@@ -13,6 +13,12 @@ to the vaex taxi app
 
 ### Data preparation
 
+**Assets**: :material-database-eye: `raw-data`, :material-database-eye: `refined-data`
+
+In the data preparation step we will be lading the relevant data from external sources
+and store them in a raw data table. To get data into a usable state, some pre-processing
+is required to generate the refined dataset.
+
 ### Feature generation
 
 - https://blog.dataiku.com/predicting-taxi-fares-in-new-york-using-machine-learning-in-real-time
@@ -21,6 +27,12 @@ to the vaex taxi app
 
 ### Data exploration
 
+## Suggested naming conventions
+
+sensors: name of the triggered job followed by `<job name>_on_<expressive event name>`
+assuming there is a job called `process_data` and a tabled called `taxi`, a sensor
+triggering `process_data` when the `taxi` table updates could be called `process_data_on_taxi_updated`.
+
 ## Technologies
 
 - `mlfusion`: MLOps workflow
@@ -28,7 +40,7 @@ to the vaex taxi app
   - `dagster`: orchestration
   - `mlflow`: ml experiment / model tracking
   - `mlserver`: model serving
-- `VAEX`: for local caching
+- `vaex`: for interactive exploration of data
 - `dash_antd`: UI components for Dash
 
 ## TODO
@@ -41,6 +53,12 @@ to the vaex taxi app
 - wrap preprocessing graph in asset to demo wrapping
 - write features into separate store and merge in datafusion before training
 - use fan out for parameter grid search etc ...tracking in mlflow?
+- model evaluation / analysis page
+- allow passing arrow schema for validation purposes
+- add tracing to example app to see differences between vaex and fusion
+- write delta sensor ...
+- check metadata and asset config for framework stuff. e.g. save mode
+- add asset materialization event listener to create delta checkpoints
 
 ### Links
 

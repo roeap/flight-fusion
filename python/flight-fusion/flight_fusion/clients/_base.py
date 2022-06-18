@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+from typing import Protocol
+
 import pyarrow as pa
 import pyarrow.flight as pa_flight
 from betterproto import Message
+from loguru import logger
 from pydantic import BaseSettings
 
 import flight_fusion.errors as errors
@@ -26,6 +29,20 @@ class ClientOptions(BaseSettings):
         env_prefix = "ff_"
 
 
+class _Logging(Protocol):
+    def info(self, msg: str) -> None:
+        ...
+
+    def warning(self, msg: str) -> None:
+        ...
+
+    def debug(self, msg: str) -> None:
+        ...
+
+    def error(self, msg: str) -> None:
+        ...
+
+
 @timed_lru_cache()
 def _area_meta(flight_client, asset_key: AssetKey) -> AreaSourceMetadata:
     source = asset_key_to_source(asset_key=asset_key)
@@ -38,7 +55,7 @@ def _area_meta(flight_client, asset_key: AssetKey) -> AreaSourceMetadata:
 
 
 class BaseClient:
-    def __init__(self, client: pa_flight.FlightClient | None = None, options: ClientOptions | None = None):
+    def __init__(self, client: pa_flight.FlightClient | None = None, options: ClientOptions | None = None, log=None):
         if client is None and options is None:
             try:
                 options = ClientOptions()  # type: ignore
@@ -47,6 +64,8 @@ class BaseClient:
 
         self._client = client
         self._options = options
+        self._log = log or logger
+        self.log.debug(str(options))
 
     @property
     def _flight(self) -> pa_flight.FlightClient:
@@ -56,6 +75,10 @@ class BaseClient:
             self._client = pa_flight.connect(f"grpc://{self._options.host}:{self._options.port}")
             self._client.wait_for_available(timeout=self._options.timeout)
         return self._client
+
+    @property
+    def log(self) -> _Logging:
+        return self._log  # type: ignore
 
     def _do_put(self, table: pa.Table, command: Message) -> bytes:
         descriptor = pa_flight.FlightDescriptor.for_command(command.SerializeToString())

@@ -19,11 +19,11 @@ from dagster import (
     root_input_manager,
 )
 from dagster.core.errors import DagsterInvariantViolationError
-from flight_fusion import BaseDatasetClient, FusionServiceClient
-from flight_fusion.ipc.v1alpha1 import SaveMode
 
 from dagster_fusion.config import FIELD_COLUMN_SELECTION, FIELD_SAVE_MODE
 from dagster_fusion.errors import MissingConfiguration
+from flight_fusion import BaseDatasetClient, FusionServiceClient
+from flight_fusion.ipc.v1alpha1 import SaveMode
 
 _INPUT_CONFIG_SCHEMA = {"columns": FIELD_COLUMN_SELECTION}
 _OUTPUT_CONFIG_SCHEMA = {"save_mode": FIELD_SAVE_MODE}
@@ -56,7 +56,8 @@ class TableIOManager(IOManager):
         data = data.replace_schema_metadata({})
 
         if data.num_rows > 0:
-            client.write_into(data, save_mode)
+            context.log.warn(f"Shape of written data: {data.shape}, asset_key: {context.asset_key}")
+            client.write_into(data, SaveMode.SAVE_MODE_OVERWRITE)
         else:
             context.log.warning(f"Tried writing empty data for asset: {context.asset_key}")
             return

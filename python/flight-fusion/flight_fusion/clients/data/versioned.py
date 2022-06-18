@@ -40,6 +40,7 @@ class VersionedDatasetClient(BaseDatasetClient):
             )
         )
         response = self._do_put(table=data, command=command)
+        self.log.debug(str(response))
         return ResultDoPutUpdate().parse(response)
 
     def load(self, columns: list[str] | None = None) -> pa.Table:

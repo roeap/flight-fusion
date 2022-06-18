@@ -5,7 +5,6 @@ from pathlib import Path
 
 from mlflow.entities import FileInfo
 from mlflow.store.artifact.artifact_repo import ArtifactRepository, verify_artifact_path
-
 from mlflow_fusion.client import MlflowArtifactsClient
 from mlflow_fusion.ipc.artifacts import UploadArtifact
 

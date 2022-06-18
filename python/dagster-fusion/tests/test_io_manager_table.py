@@ -1,9 +1,9 @@
 import pyarrow as pa
 import pytest
 from dagster import AssetKey, In, Out, ResourceDefinition, graph, op
-from flight_fusion import FusionServiceClient
 
 from dagster_fusion import flight_fusion_io_manager
+from flight_fusion import FusionServiceClient
 
 
 @pytest.fixture
@@ -17,7 +17,7 @@ def test_data():
 
 
 @pytest.fixture
-def test_graph(test_data):
+def test_ops(test_data):
     @op(out={"out_a": Out(dagster_type=pa.Table, asset_key=AssetKey(["scope", "out_a"]))})
     def solid_a(_context):
         return test_data
@@ -26,15 +26,6 @@ def test_graph(test_data):
     def solid_b(_context, df):
         return df
 
-    @graph
-    def asset_pipeline():
-        solid_b(solid_a())  # type: ignore
-
-    return asset_pipeline
-
-
-@pytest.fixture
-def test_graph_columns(test_data):
     @op(
         ins={
             "df": In(
@@ -48,9 +39,27 @@ def test_graph_columns(test_data):
     def solid_load(_context, df):
         return df
 
+    return solid_a, solid_b, solid_load
+
+
+@pytest.fixture
+def test_graph(test_ops):
+    solid_a, solid_b, _ = test_ops
+
     @graph
     def asset_pipeline():
-        solid_load()
+        solid_b(solid_a())  # type: ignore
+
+    return asset_pipeline
+
+
+@pytest.fixture
+def test_graph_columns(test_ops):
+    solid_a, solid_b, solid_load = test_ops
+
+    @graph
+    def asset_pipeline():
+        solid_load(solid_b(solid_a()))
 
     return asset_pipeline
 
@@ -84,16 +93,8 @@ def test_graph_in_out(test_graph, test_data, fusion_client: FusionServiceClient)
     assert result_table.equals(test_data)
 
 
-def test_column_selection(test_graph, test_graph_columns, test_data: pa.Table, fusion_client: FusionServiceClient):
+def test_column_selection(test_graph_columns, test_data: pa.Table, fusion_client: FusionServiceClient):
     client = ResourceDefinition.hardcoded_resource(fusion_client)
-    job = test_graph.to_job(
-        resource_defs={"io_manager": flight_fusion_io_manager, "fusion_client": client},
-        config=run_config,
-    )
-
-    result = job.execute_in_process()
-    assert result.success
-
     job_cols = test_graph_columns.to_job(
         resource_defs={"io_manager": flight_fusion_io_manager, "fusion_client": client},
     )
