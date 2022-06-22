@@ -52,5 +52,5 @@ def test_asset_load(raw_assets_job: JobDefinition):
 
 def test_data_prep(data_prep_job: JobDefinition):
     result = data_prep_job.execute_in_process(partition_key="2015-01-01")
-    table = result.output_for_node("taxi__data__refined").to_arrow()
+    table = result.output_for_node("taxi__data__refined")
     assert table.shape == (100, 19)

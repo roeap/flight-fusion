@@ -59,6 +59,7 @@ triggering `process_data` when the `taxi` table updates could be called `process
 - write delta sensor ...
 - check metadata and asset config for framework stuff. e.g. save mode
 - add asset materialization event listener to create delta checkpoints
+- consolidate storage specifications in dagster deployment.
 
 ### Links
 

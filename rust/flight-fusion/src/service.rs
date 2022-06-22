@@ -310,7 +310,7 @@ impl FlightService for FlightFusionService {
         // Arrow IPC reader does not implement Sync + Send so we need to use a channel to communicate
         tokio::task::spawn(async move {
             if let Err(e) = stream_flight_data(result, tx).await {
-                tracing::warn!("Error streaming results: {:?}", e);
+                tracing::error!("Error streaming results: {:?}", e);
             }
         });
 
