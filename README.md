@@ -24,8 +24,10 @@ mkdocs serve
 
 ### Prerequisites
 
-- rust>=1.57
+- rust 1.58+
+- python 3.8+
 - poetry (for python development)
+- [just](https://github.com/casey/just) (for running workspace commands)
 
 ### Rust
 
