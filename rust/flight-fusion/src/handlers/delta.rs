@@ -258,14 +258,14 @@ mod tests {
         // create table and write some data
         let _ = handler.handle_do_put(request.clone(), plan).await.unwrap();
         let mut dt = open_table(table_dir.to_str().unwrap()).await.unwrap();
-        assert_eq!(dt.version, 0);
+        assert_eq!(dt.version(), 0);
         assert_eq!(dt.get_file_uris().count(), 2);
 
         // Append data to table
         let plan = get_input_stream(None, false);
         let _ = handler.handle_do_put(request.clone(), plan).await.unwrap();
         dt.update().await.unwrap();
-        assert_eq!(dt.version, 1);
+        assert_eq!(dt.version(), 1);
         assert_eq!(dt.get_file_uris().count(), 4);
 
         // Overwrite table
@@ -280,7 +280,7 @@ mod tests {
         let plan = get_input_stream(None, false);
         let _ = handler.handle_do_put(request, plan).await.unwrap();
         dt.update().await.unwrap();
-        assert_eq!(dt.version, 2);
+        assert_eq!(dt.version(), 2);
         assert_eq!(dt.get_file_uris().count(), 2);
     }
 

@@ -7,6 +7,6 @@ mod stream;
 mod test_utils;
 
 pub use crate::service::FlightFusionService;
-pub use arrow_flight::flight_service_server::FlightServiceServer;
+pub use arrow_deps::arrow_flight::flight_service_server::FlightServiceServer;
 pub use observability_deps::tracing::info;
 pub use tonic::transport::Server;

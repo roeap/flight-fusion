@@ -12,8 +12,9 @@ use arrow_deps::arrow::{
 };
 use arrow_deps::datafusion::parquet::{
     arrow::ArrowWriter, basic::Compression, errors::ParquetError,
-    file::properties::WriterProperties, file::writer::InMemoryWriteableCursor,
+    file::properties::WriterProperties,
 };
+use arrow_deps::deltalake::writer::utils::ShareableBuffer;
 use object_store::{path::Path, DynObjectStore};
 use std::collections::HashMap;
 use std::io::Write;
@@ -96,7 +97,7 @@ impl DeltaWriter {
             let metadata = writer.arrow_writer.close()?;
             let file_loc = self.next_data_path(location, &writer.partition_values, None)?;
 
-            let obj_bytes = bytes::Bytes::from(writer.cursor.data());
+            let obj_bytes = bytes::Bytes::from(writer.buffer.to_vec());
             let file_size = obj_bytes.len() as i64;
             self.storage.put(&file_loc, obj_bytes).await.unwrap();
 
@@ -234,8 +235,8 @@ pub struct PartitionResult {
 pub struct PartitionWriter {
     arrow_schema: Arc<ArrowSchema>,
     writer_properties: WriterProperties,
-    pub(super) cursor: InMemoryWriteableCursor,
-    pub(super) arrow_writer: ArrowWriter<InMemoryWriteableCursor>,
+    pub(super) buffer: ShareableBuffer,
+    pub(super) arrow_writer: ArrowWriter<ShareableBuffer>,
     pub(super) partition_values: HashMap<String, Option<String>>,
     pub(super) null_counts: NullCounts,
     pub(super) buffered_record_batch_count: usize,
@@ -247,20 +248,19 @@ impl PartitionWriter {
         partition_values: HashMap<String, Option<String>>,
         writer_properties: WriterProperties,
     ) -> std::result::Result<Self, ParquetError> {
-        let cursor = InMemoryWriteableCursor::default();
-        let arrow_writer = new_underlying_writer(
-            cursor.clone(),
+        let buffer = ShareableBuffer::default();
+        let arrow_writer = ArrowWriter::try_new(
+            buffer.clone(),
             arrow_schema.clone(),
-            writer_properties.clone(),
+            Some(writer_properties.clone()),
         )?;
-
         let null_counts = NullCounts::new();
         let buffered_record_batch_count = 0;
 
         Ok(Self {
             arrow_schema,
             writer_properties,
-            cursor,
+            buffer,
             arrow_writer,
             partition_values,
             null_counts,
@@ -281,7 +281,7 @@ impl PartitionWriter {
         }
 
         // Copy current cursor bytes so we can recover from failures
-        let current_cursor_bytes = self.cursor.data();
+        let buffer_bytes = self.buffer.to_vec();
         match self.arrow_writer.write(record_batch) {
             Ok(_) => {
                 self.buffered_record_batch_count += 1;
@@ -290,12 +290,12 @@ impl PartitionWriter {
             }
             // If a write fails we need to reset the state of the PartitionWriter
             Err(e) => {
-                let new_cursor = cursor_from_bytes(current_cursor_bytes.as_slice())?;
-                let _ = std::mem::replace(&mut self.cursor, new_cursor.clone());
-                let arrow_writer = new_underlying_writer(
-                    new_cursor,
+                let new_buffer = ShareableBuffer::from_bytes(buffer_bytes.as_slice());
+                let _ = std::mem::replace(&mut self.buffer, new_buffer.clone());
+                let arrow_writer = ArrowWriter::try_new(
+                    new_buffer,
                     self.arrow_schema.clone(),
-                    self.writer_properties.clone(),
+                    Some(self.writer_properties.clone()),
                 )?;
                 let _ = std::mem::replace(&mut self.arrow_writer, arrow_writer);
                 // TODO we used to clear partition values here, but since we pre-partition the
@@ -309,7 +309,7 @@ impl PartitionWriter {
     /// Returns the current byte length of the in memory buffer.
     /// This may be used by the caller to decide when to finalize the file write.
     pub fn buffer_len(&self) -> usize {
-        self.cursor.len()
+        self.buffer.len()
     }
 }
 
@@ -383,20 +383,6 @@ pub fn divide_by_partition_values(
     }
 
     Ok(partitions)
-}
-
-fn cursor_from_bytes(bytes: &[u8]) -> std::result::Result<InMemoryWriteableCursor, std::io::Error> {
-    let mut cursor = InMemoryWriteableCursor::default();
-    cursor.write_all(bytes)?;
-    Ok(cursor)
-}
-
-fn new_underlying_writer(
-    cursor: InMemoryWriteableCursor,
-    arrow_schema: Arc<ArrowSchema>,
-    writer_properties: WriterProperties,
-) -> std::result::Result<ArrowWriter<InMemoryWriteableCursor>, ParquetError> {
-    ArrowWriter::try_new(cursor, arrow_schema, Some(writer_properties))
 }
 
 // very naive implementation for plucking the partition value from the first element of a column array.

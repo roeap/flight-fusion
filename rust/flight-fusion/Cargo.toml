@@ -13,7 +13,6 @@ flight-fusion-ipc = { path = "../flight-fusion-ipc" }
 observability_deps = { path = "../observability-deps" }
 
 # Crates.io dependencies
-arrow-flight = "13"
 async-trait = "0.1"
 bytes = "1"
 config = "0.13"

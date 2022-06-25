@@ -12,6 +12,7 @@ use arrow_deps::arrow::{datatypes::SchemaRef as ArrowSchemaRef, record_batch::Re
 use arrow_deps::datafusion::arrow::record_batch::RecordBatchReader;
 use arrow_deps::datafusion::parquet::arrow::{ArrowReader, ParquetFileArrowReader};
 use arrow_deps::datafusion::parquet::{
+    arrow::{arrow_to_parquet_schema, ProjectionMask},
     basic::LogicalType,
     file::serialized_reader::{SerializedFileReader, SliceableCursor},
 };
@@ -112,7 +113,13 @@ pub async fn open_file(
     let file_reader = Arc::new(SerializedFileReader::new(cursor)?);
     let mut arrow_reader = ParquetFileArrowReader::new(file_reader);
     let record_batch_reader = match column_indices {
-        Some(indices) => arrow_reader.get_record_reader_by_columns(indices, DEFAULT_BATCH_SIZE),
+        Some(indices) => {
+            let mask = ProjectionMask::roots(
+                &arrow_to_parquet_schema(&arrow_reader.get_schema()?)?,
+                indices,
+            );
+            arrow_reader.get_record_reader_by_columns(mask, DEFAULT_BATCH_SIZE)
+        }
         None => arrow_reader.get_record_reader(DEFAULT_BATCH_SIZE),
     }?;
 
