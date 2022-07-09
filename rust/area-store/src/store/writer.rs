@@ -17,7 +17,6 @@ use arrow_deps::datafusion::parquet::{
 use arrow_deps::deltalake::writer::utils::ShareableBuffer;
 use object_store::{path::Path, DynObjectStore};
 use std::collections::HashMap;
-use std::io::Write;
 use std::sync::Arc;
 use uuid::Uuid;
 
