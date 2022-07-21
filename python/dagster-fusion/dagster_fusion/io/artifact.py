@@ -106,7 +106,7 @@ class ModelArtifactIOManager(IOManager):
                 )
 
         if write_obj:
-            metadata = ArtifactMetaData(**(context.metadata or {}))
+            metadata = ArtifactMetaData(**(context.metadata or {}))  # type: ignore
             self._write_artifact(metadata=metadata, obj=obj)
             fusion_path = f"fusion:{run.info.experiment_id}/{run.info.run_id}/{metadata.path_rel}"
 

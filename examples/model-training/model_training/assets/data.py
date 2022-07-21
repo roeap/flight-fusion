@@ -1,4 +1,3 @@
-import polars as pl
 import pyarrow as pa
 import pyarrow.parquet as pq
 import requests
@@ -10,15 +9,17 @@ DATA_PARTITION = MonthlyPartitionsDefinition(start_date="2015-01-01")
 
 _TAXI_SCHEMA_RAW = pa.schema(
     [
-        pa.field("VendorID", pa.int64()),
+        pa.field("year", pa.int64()),
+        pa.field("month", pa.int64()),
+        pa.field("vendor_id", pa.int64()),
         pa.field("tpep_pickup_datetime", pa.timestamp("us")),
         pa.field("tpep_dropoff_datetime", pa.timestamp("us")),
         pa.field("passenger_count", pa.float64()),
         pa.field("trip_distance", pa.float64()),
         pa.field("RatecodeID", pa.float64()),
         pa.field("store_and_fwd_flag", pa.string()),
-        pa.field("PULocationID", pa.int64()),
-        pa.field("DOLocationID", pa.int64()),
+        pa.field("pu_location_id", pa.int64()),
+        pa.field("do_location_id", pa.int64()),
         pa.field("payment_type", pa.int64()),
         pa.field("fare_amount", pa.float64()),
         pa.field("extra", pa.float64()),
@@ -32,13 +33,16 @@ _TAXI_SCHEMA_RAW = pa.schema(
     ]
 )
 
+_RENAME_MAP = {"VendorID": "vendor_id", "PULocationID": "pu_location_id", "DOLocationID": "do_location_id"}
+
 
 @asset(
     key_prefix=_ASSET_PREFIX,
     io_manager_key="fusion_io",
     partitions_def=DATA_PARTITION,
     description="New York Taxi data loaded from authority.",
-    required_resource_keys={"fusion_client"},
+    metadata={"partition_by": ["year", "month"]},
+    # config_schema={"iterations": int}
 )
 def raw(context: OpExecutionContext) -> pa.Table:
     # asset_partition_key is encoded as YYYY-MM--DD
@@ -46,11 +50,12 @@ def raw(context: OpExecutionContext) -> pa.Table:
     url = _BASE_URL.format(partition_key[:-3])
     context.log.debug(url)
     response = requests.get(url)
-    return pq.read_table(pa.py_buffer(response.content))
-    # return pq.read_table(
-    #     "/home/robstar/github/flight-fusion/examples/model-training/tests/data/taxi/2015-01.parquet",
-    #     schema=_TAXI_SCHEMA_RAW,
-    # )
+    table = pq.read_table(pa.py_buffer(response.content), schema=_TAXI_SCHEMA_RAW)
+    columns = [_RENAME_MAP.get(col, col) for col in table.column_names]
+    table = table.rename_columns(columns)
+    table = table.add_column(0, pa.field("year", pa.int64()), [[int(partition_key[:4])] * table.shape[0]])
+    table = table.add_column(1, pa.field("month", pa.int64()), [[int(partition_key[5:-3])] * table.shape[0]])
+    return table
 
 
 @asset(
@@ -60,7 +65,7 @@ def raw(context: OpExecutionContext) -> pa.Table:
     partitions_def=DATA_PARTITION,
     description="Filter vector for selecting test samples from dataset.",
 )
-def refined(context: OpExecutionContext, raw: pl.DataFrame) -> pl.DataFrame:
+def refined(context: OpExecutionContext, raw: pa.Table) -> pa.Table:
     return raw
 
 
