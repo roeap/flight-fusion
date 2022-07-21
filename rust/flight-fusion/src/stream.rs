@@ -1,12 +1,15 @@
 use crate::error::{FusionServiceError, Result};
 use arrow_deps::arrow_flight::{
-    flight_descriptor::DescriptorType, utils::flight_data_to_arrow_batch, FlightData, SchemaAsIpc,
+    flight_descriptor::DescriptorType,
+    utils::{flight_data_from_arrow_batch, flight_data_to_arrow_batch},
+    FlightData, SchemaAsIpc,
 };
 use arrow_deps::datafusion::{
     arrow::datatypes::SchemaRef, physical_plan::SendableRecordBatchStream,
 };
 use arrow_deps::datafusion::{
     arrow::{
+        array::ArrayRef,
         datatypes::{Schema as ArrowSchema, SchemaRef as ArrowSchemaRef},
         error::{ArrowError, Result as ArrowResult},
         ipc::writer::IpcWriteOptions,
@@ -19,6 +22,7 @@ use futures::{channel::mpsc, stream::Stream, StreamExt};
 use observability_deps::tracing::info;
 use pin_project_lite::pin_project;
 use prost::Message;
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::task::Poll;
 use tokio::sync::mpsc::{Receiver, Sender};
@@ -106,7 +110,7 @@ pub async fn raw_stream_to_flight_data_stream(
 pub struct FlightDataStream {
     stream: Streaming<FlightData>,
     schema: SchemaRef,
-    // dictionaries_by_id: HashMap<i64, ArrayRef>,
+    dictionaries_by_id: HashMap<i64, ArrayRef>,
 }
 
 impl FlightDataStream {
@@ -114,7 +118,7 @@ impl FlightDataStream {
         Self {
             stream,
             schema,
-            // dictionaries_by_id: HashMap::new(),
+            dictionaries_by_id: HashMap::new(),
         }
     }
 }
@@ -134,8 +138,7 @@ impl Stream for FlightDataStream {
                         flight_data_to_arrow_batch(
                             &flight_data_chunk,
                             self.schema.clone(),
-                            &[],
-                            // &self.dictionaries_by_id,
+                            &self.dictionaries_by_id,
                         )
                     });
                 Some(converted_chunk)
@@ -157,8 +160,7 @@ fn create_flight_iter(
     batch: &RecordBatch,
     options: &IpcWriteOptions,
 ) -> Box<dyn Iterator<Item = std::result::Result<FlightData, Status>>> {
-    let (flight_dictionaries, flight_batch) =
-        arrow_flight::utils::flight_data_from_arrow_batch(batch, options);
+    let (flight_dictionaries, flight_batch) = flight_data_from_arrow_batch(batch, options);
     Box::new(
         flight_dictionaries
             .into_iter()

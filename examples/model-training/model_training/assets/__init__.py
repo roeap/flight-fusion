@@ -1,12 +1,9 @@
-from dagster import AssetGroup, in_process_executor
+from dagster import load_assets_from_modules, with_resources
 
 from model_training.resources import RESOURCES_LOCAL
 
-from .model_training import ml_model, model_performance
-from .training_data import dataset, test_data, test_filter, training_data
+from . import data
+from .data import DATA_PARTITION
 
-local_assets = AssetGroup(
-    assets=[dataset, test_data, training_data, test_filter, ml_model, model_performance],
-    resource_defs=RESOURCES_LOCAL,
-    executor_def=in_process_executor,  # type: ignore
-)
+data_assets = load_assets_from_modules([data], group_name="data_engineering")
+data_assets_with_resources = with_resources(data_assets, resource_defs=RESOURCES_LOCAL)

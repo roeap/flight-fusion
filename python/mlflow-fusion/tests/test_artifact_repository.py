@@ -3,6 +3,7 @@ import posixpath
 from pathlib import Path
 
 import pytest
+
 from mlflow.exceptions import MlflowException
 from mlflow.utils.file_utils import TempDir
 from mlflow_fusion.artifacts import FusionArtifactRepository

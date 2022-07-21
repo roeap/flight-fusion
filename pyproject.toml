@@ -55,6 +55,8 @@ ipython = ">=8.0.1"
 detect-secrets = "^1.2.0"
 pytest-mock = "^3.7"
 azure-identity = "^1.10.0"
+requests-mock = "^1.9.3"
+responses = ">=0.21"
 
 [tool.black]
 line-length = 120

@@ -6,14 +6,14 @@ from copy import deepcopy
 from typing import Any, Dict
 from unittest.mock import MagicMock, patch
 
-import mlflow
 import pandas as pd
 import pytest
 from dagster import ModeDefinition, execute_pipeline, pipeline, solid
-from flight_fusion.tags import MlFusionTags
 
+import mlflow
 from dagster_fusion.resources import mlfusion_configuration
 from dagster_fusion.resources.mlflow import MlFlow, mlflow_tracking
+from flight_fusion.tags import MlFusionTags
 
 
 @pytest.fixture

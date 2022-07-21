@@ -6,9 +6,9 @@ from threading import Thread
 from typing import Any, AsyncIterable, Callable, Coroutine, Iterable, TypeVar
 
 from grpclib.client import Channel
-from mlflow.entities import FileInfo
 from pydantic import BaseSettings
 
+from mlflow.entities import FileInfo
 from mlflow_fusion.auth import SendrequestAuth, TokenCredential
 from mlflow_fusion.ipc.artifacts import (
     DownloadArtifactResponse,

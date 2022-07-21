@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from flight_fusion import ClientOptions, FusionServiceClient
-
 from mlflow_fusion.client import ArtifactRepoOptions, MlflowArtifactsClient
 from mlflow_fusion.ipc.artifacts import UploadArtifact
 

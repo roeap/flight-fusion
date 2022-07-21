@@ -3,6 +3,11 @@ use crate::stream::{
 };
 use crate::{error::FusionServiceError, handlers::*};
 use area_store::store::{is_delta_location, AreaPath, AreaStore, DefaultAreaStore};
+use arrow_deps::arrow_flight::{
+    self, flight_descriptor::DescriptorType, flight_service_server::FlightService, Action,
+    ActionType, Criteria, Empty, FlightData, FlightDescriptor, FlightInfo, HandshakeRequest,
+    HandshakeResponse, IpcMessage, PutResult, SchemaAsIpc, SchemaResult, Ticket,
+};
 use arrow_deps::datafusion::{
     arrow::{datatypes::Schema, ipc::writer::IpcWriteOptions},
     catalog::{
@@ -12,11 +17,6 @@ use arrow_deps::datafusion::{
     datasource::MemTable,
     physical_plan::common::collect,
     prelude::SessionContext,
-};
-use arrow_flight::{
-    flight_descriptor::DescriptorType, flight_service_server::FlightService, Action, ActionType,
-    Criteria, Empty, FlightData, FlightDescriptor, FlightInfo, HandshakeRequest, HandshakeResponse,
-    IpcMessage, PutResult, SchemaAsIpc, SchemaResult, Ticket,
 };
 use flight_fusion_ipc::{
     area_source_reference::Table, flight_action_request::Action as FusionAction,
@@ -310,7 +310,7 @@ impl FlightService for FlightFusionService {
         // Arrow IPC reader does not implement Sync + Send so we need to use a channel to communicate
         tokio::task::spawn(async move {
             if let Err(e) = stream_flight_data(result, tx).await {
-                tracing::warn!("Error streaming results: {:?}", e);
+                tracing::error!("Error streaming results: {:?}", e);
             }
         });
 
@@ -356,11 +356,9 @@ impl FlightService for FlightFusionService {
         }
         .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
-        let result = vec![Ok(PutResult { app_metadata: body })];
-
-        Ok(Response::new(
-            Box::pin(futures::stream::iter(result)) as BoxedFlightStream<PutResult>
-        ))
+        Ok(Response::new(Box::pin(futures::stream::once(async {
+            Ok(PutResult { app_metadata: body })
+        })) as BoxedFlightStream<PutResult>))
     }
 
     #[instrument(skip(self, request))]
@@ -425,7 +423,6 @@ impl FlightService for FlightFusionService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use arrow_flight::Ticket;
     use flight_fusion_ipc::AreaTableLocation;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, delta_operation_request::Operation,

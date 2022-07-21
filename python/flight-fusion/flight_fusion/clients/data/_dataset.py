@@ -28,8 +28,9 @@ class BaseDatasetClient(BaseClient):
         asset_key: AssetKey,
         client: pa_flight.FlightClient | None = None,
         options: ClientOptions | None = None,
+        log=None,
     ):
-        super().__init__(client=client, options=options)
+        super().__init__(client=client, options=options, log=log)
 
         self._reference = asset_key_to_source(asset_key=asset_key)
         self._client = client

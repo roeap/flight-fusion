@@ -1,9 +1,11 @@
-from dagster import repository
+from dagster import define_asset_job, repository
 
-from .assets import local_assets
-from .jobs import model_training_local_job
+from model_training.assets import data_assets_with_resources
 
 
 @repository
 def model_training_local():
-    return [local_assets, model_training_local_job]
+    return [
+        *data_assets_with_resources,
+        define_asset_job("data_update", selection="*taxi/data/refined"),
+    ]

@@ -10,7 +10,7 @@ use area_store::{
     Path,
 };
 use arrow_deps::arrow::{
-    datatypes::{Field as ArrowField, SchemaRef as ArrowSchemaRef},
+    datatypes::{DataType, Field as ArrowField, SchemaRef as ArrowSchemaRef},
     error::{ArrowError, Result as ArrowResult},
     record_batch::RecordBatch,
 };
@@ -61,7 +61,6 @@ impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
                 }
                 _ => todo!(),
             };
-
             Ok(DeltaOperationResponse::default())
         } else {
             // TODO migrate errors and raise something more meaningful
@@ -70,8 +69,36 @@ impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
     }
 }
 
-fn to_scalar_value(_field: &ArrowField, serialized_value: &Option<String>) -> ScalarValue {
-    ScalarValue::Utf8(serialized_value.to_owned())
+fn to_scalar_value(field: &ArrowField, serialized_value: &Option<String>) -> Result<ScalarValue> {
+    let value = serialized_value.clone().unwrap();
+    match field.data_type() {
+        DataType::Utf8 => Ok(ScalarValue::Utf8(Some(value))),
+        DataType::Int16 => Ok(ScalarValue::Int16(Some(value.parse().map_err(|_| {
+            FusionServiceError::DataConversion("failed converting to ScalarValue".to_string())
+        })?))),
+        DataType::Int32 => Ok(ScalarValue::Int32(Some(value.parse().map_err(|_| {
+            FusionServiceError::DataConversion("failed converting to ScalarValue".to_string())
+        })?))),
+        DataType::Int64 => Ok(ScalarValue::Int64(Some(value.parse().map_err(|_| {
+            FusionServiceError::DataConversion("failed converting to ScalarValue".to_string())
+        })?))),
+        DataType::Float32 => Ok(ScalarValue::Float32(Some(value.parse().map_err(|_| {
+            FusionServiceError::DataConversion("failed converting to ScalarValue".to_string())
+        })?))),
+        DataType::Float64 => Ok(ScalarValue::Float64(Some(value.parse().map_err(|_| {
+            FusionServiceError::DataConversion("failed converting to ScalarValue".to_string())
+        })?))),
+        DataType::Date32 => Ok(ScalarValue::Date32(Some(value.parse().map_err(|_| {
+            FusionServiceError::DataConversion("failed converting to ScalarValue".to_string())
+        })?))),
+        DataType::Date64 => Ok(ScalarValue::Date64(Some(value.parse().map_err(|_| {
+            FusionServiceError::DataConversion("failed converting to ScalarValue".to_string())
+        })?))),
+        _ => todo!(
+            "Conversion for datatype not implemented: {:}",
+            field.data_type()
+        ),
+    }
 }
 
 #[async_trait]
@@ -183,7 +210,8 @@ pub(crate) fn spawn_execution(
             let mut partition_scalars = vec![];
             for (key, val) in partition_values.iter() {
                 let field = table_schema.field_with_name(key).unwrap();
-                let scalar = to_scalar_value(field, val);
+                // TODO remove panics
+                let scalar = to_scalar_value(field, val).unwrap();
                 partition_scalars.push(scalar);
             }
 
@@ -230,14 +258,14 @@ mod tests {
         // create table and write some data
         let _ = handler.handle_do_put(request.clone(), plan).await.unwrap();
         let mut dt = open_table(table_dir.to_str().unwrap()).await.unwrap();
-        assert_eq!(dt.version, 0);
+        assert_eq!(dt.version(), 0);
         assert_eq!(dt.get_file_uris().count(), 2);
 
         // Append data to table
         let plan = get_input_stream(None, false);
         let _ = handler.handle_do_put(request.clone(), plan).await.unwrap();
         dt.update().await.unwrap();
-        assert_eq!(dt.version, 1);
+        assert_eq!(dt.version(), 1);
         assert_eq!(dt.get_file_uris().count(), 4);
 
         // Overwrite table
@@ -252,7 +280,7 @@ mod tests {
         let plan = get_input_stream(None, false);
         let _ = handler.handle_do_put(request, plan).await.unwrap();
         dt.update().await.unwrap();
-        assert_eq!(dt.version, 2);
+        assert_eq!(dt.version(), 2);
         assert_eq!(dt.get_file_uris().count(), 2);
     }
 

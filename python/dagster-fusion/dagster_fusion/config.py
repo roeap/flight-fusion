@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dagster import Array, Enum, Field, String
+
 from flight_fusion.ipc.v1alpha1 import SaveMode
 
 FIELD_COLUMN_SELECTION = Field(

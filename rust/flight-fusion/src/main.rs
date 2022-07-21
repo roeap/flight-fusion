@@ -6,7 +6,7 @@ mod stream;
 #[cfg(test)]
 mod test_utils;
 
-use arrow_flight::flight_service_server::FlightServiceServer;
+use arrow_deps::arrow_flight::flight_service_server::FlightServiceServer;
 use artifact_store::{
     gen::mlflow_artifacts_service_server::MlflowArtifactsServiceServer, MlflowArtifacts,
 };
