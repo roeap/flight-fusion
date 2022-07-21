@@ -112,7 +112,7 @@ dependencies = [
  "comfy-table",
  "csv",
  "flatbuffers",
- "half",
+ "half 1.8.2",
  "hex",
  "indexmap",
  "lazy_static",
@@ -120,6 +120,30 @@ dependencies = [
  "multiversion",
  "num",
  "rand",
+ "regex",
+ "serde",
+ "serde_derive",
+ "serde_json",
+]
+
+[[package]]
+name = "arrow"
+version = "18.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a5f89d2bc04fa746ee395d20c4cbfa508e4cce5c00bae816f0fae434fcfb9853"
+dependencies = [
+ "ahash",
+ "bitflags",
+ "chrono",
+ "flatbuffers",
+ "half 2.1.0",
+ "hashbrown 0.12.3",
+ "hex",
+ "indexmap",
+ "lazy_static",
+ "lexical-core",
+ "multiversion",
+ "num",
  "regex",
  "serde",
  "serde_derive",
@@ -139,11 +163,11 @@ dependencies = [
 
 [[package]]
 name = "arrow-flight"
-version = "15.0.0"
+version = "18.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3683337e9a7a300ae42355c96a2e5d421cf9dbe16f09ce8a6475157fe69dc92d"
+checksum = "30421ea30c815daae635003d8a40875922a627d55bc098a581ab215f7b7f5d35"
 dependencies = [
- "arrow",
+ "arrow 18.0.0",
  "base64",
  "bytes",
  "futures",
@@ -737,6 +761,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "crunchy"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a81dae078cea95a014a339291cec439d2f232ebe854a9d672b796c6afafa9b7"
+
+[[package]]
 name = "crypto-common"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -797,7 +827,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f912a89e5ad2f716fcbbad090b1b1bc4b57c07604de1da60925a6652a4b8219"
 dependencies = [
  "ahash",
- "arrow",
+ "arrow 15.0.0",
  "async-trait",
  "chrono",
  "datafusion-common",
@@ -835,7 +865,7 @@ version = "9.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec26c175360423abaa97cf45f41c367d07d40f5b631f7772aba4948e1af19e5a"
 dependencies = [
- "arrow",
+ "arrow 15.0.0",
  "ordered-float 3.0.0",
  "parquet",
  "sqlparser",
@@ -862,7 +892,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c4967ba29f27354745154be8d5a03c5236333666b45f3c09e91283021dbb3cf"
 dependencies = [
  "ahash",
- "arrow",
+ "arrow 15.0.0",
  "datafusion-common",
  "sqlparser",
 ]
@@ -873,7 +903,7 @@ version = "9.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f5630b25a6473a58fb096fbbc0b1bf6d28b0b256e5c3d9142a07de270bd3e27b"
 dependencies = [
- "arrow",
+ "arrow 15.0.0",
  "async-trait",
  "chrono",
  "datafusion-common",
@@ -890,7 +920,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca0ed9091539791f406b3928e7802fe65163e4e78dd15d08ad7d67f19c6c6c7d"
 dependencies = [
  "ahash",
- "arrow",
+ "arrow 15.0.0",
  "blake2",
  "blake3",
  "chrono",
@@ -914,7 +944,7 @@ version = "9.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ad857586d0ffd7fbb12b7c9031dcf8801fdbe450b42bf049ef29bb7474c0d4ae"
 dependencies = [
- "arrow",
+ "arrow 15.0.0",
  "datafusion-common",
  "paste",
  "rand",
@@ -927,7 +957,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f7817f26fbfb3db3310905a83643a99b7518e7f672d1801247d653349268db7b"
 dependencies = [
  "ahash",
- "arrow",
+ "arrow 15.0.0",
  "datafusion-common",
  "datafusion-expr",
  "hashbrown 0.12.3",
@@ -940,7 +970,7 @@ name = "deltalake"
 version = "0.4.1"
 source = "git+https://github.com/delta-io/delta-rs?rev=27c0cbb6ad404a4176e0e13f8d30914430f9dc53#27c0cbb6ad404a4176e0e13f8d30914430f9dc53"
 dependencies = [
- "arrow",
+ "arrow 15.0.0",
  "async-trait",
  "bytes",
  "cfg-if",
@@ -1410,6 +1440,15 @@ name = "half"
 version = "1.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "eabb4a44450da02c90444cf74558da904edde8fb4e9035a9a6a4e15445af0bd7"
+
+[[package]]
+name = "half"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ad6a9459c9c30b177b925162351f97e7d967c7ea8bab3b8352805327daf45554"
+dependencies = [
+ "crunchy",
+]
 
 [[package]]
 name = "hashbrown"
@@ -2293,7 +2332,7 @@ version = "15.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94d31dde60b151ef88ec2c847e3a8f66d42d7dbdaeefd05d13d79db676b0b56f"
 dependencies = [
- "arrow",
+ "arrow 15.0.0",
  "base64",
  "brotli",
  "byteorder",
@@ -2913,7 +2952,7 @@ version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2bef2ebfde456fb76bbcf9f59315333decc4fda0b2b44b420243c11e0f5ec1f5"
 dependencies = [
- "half",
+ "half 1.8.2",
  "serde",
 ]
 

@@ -6,7 +6,7 @@ publish = false
 
 [dependencies]
 # Crates.io dependencies
-arrow-flight = "15"
+arrow-flight = "18"
 parquet = { version = "15", features = ["async"] }
 # Git dependencies
 datafusion = { version = "9" }
