@@ -56,3 +56,6 @@ docker-build:
 # run example app
 run-app:
     python -m app
+
+serve-docs:
+    mkdocs serve
