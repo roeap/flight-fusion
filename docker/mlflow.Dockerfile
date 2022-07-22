@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.10-slim
 
 # install libyaml for file store performance https://mlflow.org/docs/latest/tracking.html#id53
 # need to reinstall pyyaml after install libyaml
