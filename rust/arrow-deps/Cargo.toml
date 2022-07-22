@@ -10,7 +10,7 @@ arrow-flight = "15"
 parquet = { version = "15", features = ["async"] }
 # Git dependencies
 datafusion = { version = "9" }
-datafusion-data-access = { version = "9" }
+datafusion-data-access = { version = "10" }
 deltalake = { git = "https://github.com/delta-io/delta-rs", rev = "27c0cbb6ad404a4176e0e13f8d30914430f9dc53", features = [
   "datafusion-ext",
 ], optional = true }

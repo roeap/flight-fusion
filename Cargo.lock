@@ -132,7 +132,7 @@ version = "0.1.0"
 dependencies = [
  "arrow-flight",
  "datafusion",
- "datafusion-data-access",
+ "datafusion-data-access 10.0.0",
  "deltalake",
  "parquet",
 ]
@@ -801,7 +801,7 @@ dependencies = [
  "async-trait",
  "chrono",
  "datafusion-common",
- "datafusion-data-access",
+ "datafusion-data-access 9.0.0",
  "datafusion-expr",
  "datafusion-optimizer",
  "datafusion-physical-expr",
@@ -846,6 +846,20 @@ name = "datafusion-data-access"
 version = "9.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "35b28da52ca4e7eb160df15d6119780a7637f3added9e15844c884143d1c8bca"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "futures",
+ "parking_lot",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
+name = "datafusion-data-access"
+version = "10.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a84a9b029be8ff89fd1175b5f37e15fef121120b11639421c7e5609d6a44d2d"
 dependencies = [
  "async-trait",
  "chrono",
