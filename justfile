@@ -56,3 +56,6 @@ docker-build:
 # run example app
 run-app:
     python -m app
+
+run:
+    cargo run -p flight-fusion
