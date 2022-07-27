@@ -4,7 +4,7 @@ use crate::{
     service::FlightFusionService,
 };
 use area_store::store::{AreaPath, AreaStore};
-use flight_fusion_ipc::{ActionStatus, CommandDropSource, CommandSetMetadata, ResultActionStatus};
+use flight_fusion_ipc::{ActionStatus, CommandDropSource, ResultActionStatus};
 
 #[async_trait::async_trait]
 impl ActionHandler<CommandDropSource> for FlightFusionService {
@@ -18,23 +18,6 @@ impl ActionHandler<CommandDropSource> for FlightFusionService {
             })
         } else {
             Err(FusionServiceError::input("missing table reference"))
-        }
-    }
-}
-
-#[async_trait::async_trait]
-impl ActionHandler<CommandSetMetadata> for FlightFusionService {
-    async fn handle_do_action(&self, action: CommandSetMetadata) -> Result<ResultActionStatus> {
-        match action {
-            CommandSetMetadata {
-                source: Some(_source),
-                meta: Some(_meta),
-            } => {
-                todo!();
-            }
-            _ => Err(FusionServiceError::input(
-                "source and metadata must be specified",
-            )),
         }
     }
 }

@@ -11,20 +11,23 @@ enum SignalType {
   SIGNAL_TYPE_MODEL = 4;
 }
 
+enum DataType { DATA_TYPE_UNSPECIFIED = 0; }
+
 message ExpressionReference {
   string uid = 1;
   string expression = 2;
 }
 
-message ModelReference {
-  string uri = 1;
-}
+message ModelReference { string uri = 1; }
 
 message Signal {
   string uid = 1;
   string name = 2;
   string description = 3;
+  DataType data_type = 4;
+  bool nullable = 5;
   repeated SignalTrait traits = 10;
+  map<string, string> metadata = 11;
 }
 
 message SignalTrait {
@@ -35,17 +38,11 @@ message SignalTrait {
   }
 }
 
-message SensitiveDataTrait {
-  string level = 1;
-}
+message SensitiveDataTrait { string level = 1; }
 
-message TimeSeriesTrait {
-  string level = 1;
-}
+message TimeSeriesTrait { string level = 1; }
 
-message EntityReferenceTrait {
-  string level = 1;
-}
+message EntityReferenceTrait { string level = 1; }
 
 message SignalProvider {
   string uid = 1;

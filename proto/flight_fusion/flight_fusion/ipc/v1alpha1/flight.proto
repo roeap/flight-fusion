@@ -48,9 +48,6 @@ message FlightActionRequest {
   oneof action {
     // command to remove a dataset from the area store
     CommandDropSource drop = 2;
-
-    // Set the metadata for a data source
-    CommandSetMetadata set_meta = 3;
   }
 }
 

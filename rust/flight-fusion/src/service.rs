@@ -383,11 +383,6 @@ impl FlightService for FlightFusionService {
                             .await
                             .map_err(|e| tonic::Status::internal(e.to_string()))?,
                     ),
-                    FusionAction::SetMeta(meta) => serialize_message(
-                        self.handle_do_action(meta)
-                            .await
-                            .map_err(|e| tonic::Status::internal(e.to_string()))?,
-                    ),
                 };
 
                 Ok(result_body)
