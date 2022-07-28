@@ -1,3 +1,4 @@
+# Postgres DB migration job
 {{- if .Values.backendStore.postgres.enabled }}
 apiVersion: batch/v1
 kind: Job
