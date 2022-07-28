@@ -59,3 +59,6 @@ run-app:
 
 serve-docs:
     mkdocs serve
+
+run:
+    cargo run -p flight-fusion

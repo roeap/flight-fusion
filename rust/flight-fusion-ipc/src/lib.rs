@@ -20,10 +20,6 @@ impl RequestFor for CommandDropSource {
     type Reply = ResultActionStatus;
 }
 
-impl RequestFor for CommandSetMetadata {
-    type Reply = ResultActionStatus;
-}
-
 impl RequestFor for CommandWriteIntoDataset {
     type Reply = ResultDoPutUpdate;
 }

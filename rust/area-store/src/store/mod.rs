@@ -19,6 +19,7 @@ use arrow_deps::datafusion::parquet::{
 use arrow_deps::datafusion::physical_plan::{
     stream::RecordBatchStreamAdapter, SendableRecordBatchStream,
 };
+use arrow_deps::deltalake::open_table;
 use async_trait::async_trait;
 pub use basic::DefaultAreaStore;
 pub use cache::CachedAreaStore;
@@ -38,6 +39,8 @@ pub trait AreaStore: Send + Sync {
     fn object_store(&self) -> Arc<DynObjectStore>;
 
     fn get_path_from_raw(&self, raw: String) -> Path;
+
+    fn get_full_table_path(&self, source: &AreaPath) -> Result<String>;
 
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef>;
 
@@ -59,6 +62,14 @@ pub trait AreaStore: Send + Sync {
     }
 
     async fn get_location_files(&self, location: &AreaPath) -> Result<Vec<Path>> {
+        let is_delta = is_delta_location(self.object_store().clone(), location).await?;
+
+        if is_delta {
+            let full_path = self.get_full_table_path(&location)?;
+            let table = open_table(&full_path).await?;
+            return Ok(table.get_file_uris().map(|f| Path::from(f)).collect());
+        }
+
         Ok(self
             .object_store()
             .list(Some(&location.into()))
@@ -67,7 +78,7 @@ pub trait AreaStore: Send + Sync {
             .await?
             .into_iter()
             .map(|f| f.location)
-            .collect::<Vec<_>>())
+            .collect())
     }
 
     async fn delete_location(&self, _location: &AreaPath) -> Result<()> {
