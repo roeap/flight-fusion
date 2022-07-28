@@ -1,5 +1,6 @@
 use super::{stats, AreaStore};
 use crate::error::Result;
+use crate::store::AreaPath;
 use arrow_deps::{
     arrow::{
         datatypes::SchemaRef as ArrowSchemaRef,
@@ -78,6 +79,10 @@ impl AreaStore for CachedAreaStore {
 
     fn get_path_from_raw(&self, raw: String) -> Path {
         self.store.get_path_from_raw(raw)
+    }
+
+    fn get_full_table_path(&self, source: &AreaPath) -> Result<String> {
+        self.store.get_full_table_path(source)
     }
 
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {

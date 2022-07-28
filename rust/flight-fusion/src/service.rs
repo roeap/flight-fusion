@@ -303,7 +303,7 @@ impl FlightService for FlightFusionService {
                 "No operation data passed",
             )),
         }
-        .map_err(|_| Status::invalid_argument("No operation data passed"))?;
+        .map_err(|e| Status::invalid_argument(format!("Error executing operation - {:?}", e)))?;
 
         let (tx, rx): (FlightDataSender, FlightDataReceiver) = channel(2);
 

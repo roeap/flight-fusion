@@ -53,10 +53,6 @@ impl DefaultAreaStore {
         })
     }
 
-    pub fn get_full_table_path(&self, source: &AreaPath) -> Result<String> {
-        Ok(format!("{}/{}", self.root_path, source.as_ref()))
-    }
-
     pub async fn build_index(&self) -> Result<()> {
         // self.file_index.build_index().await
         Ok(())
@@ -75,6 +71,10 @@ impl AreaStore for DefaultAreaStore {
             .trim_start_matches('/');
         // TODO remove panic
         Path::parse(trimmed_raw).unwrap()
+    }
+
+    fn get_full_table_path(&self, source: &AreaPath) -> Result<String> {
+        Ok(format!("{}/{}", self.root_path, source.as_ref()))
     }
 
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {
