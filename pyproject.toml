@@ -33,6 +33,7 @@ flight-fusion = { path = "python/flight-fusion/", develop = true, extras = [
 ] }
 mlflow-fusion = { path = "python/mlflow-fusion/", develop = true }
 mlserver-fusion = { path = "python/mlserver-fusion/", develop = true }
+mlfusion-helm = { path = "k8s/schema/", develop = true }
 
 # example projects
 hacker-news = { path = "examples/hacker-news/", develop = true }

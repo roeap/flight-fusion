@@ -67,6 +67,7 @@
     "sklearn",
     "sqlparser",
     "structopt",
+    "subschema",
     "tempdir",
     "tempfile",
     "toposort",
