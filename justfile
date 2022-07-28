@@ -53,15 +53,17 @@ test-python:
 docker-build:
     docker build -f rust/flight-fusion/Dockerfile -t flight-fusion .
 
+# run flight fusion server
+run-fusion:
+    cargo run -p flight-fusion
+
 # run example app
 run-app:
     python -m app
 
-serve-docs:
+# run the documentation
+run-docs:
     mkdocs serve
-
-run:
-    cargo run -p flight-fusion
 
 run-mlflow:
     docker-compose --profile mlflow up

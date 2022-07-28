@@ -6,14 +6,14 @@ from copy import deepcopy
 from typing import Any, Dict
 from unittest.mock import MagicMock, patch
 
+import mlflow
 import pandas as pd
 import pytest
 from dagster import ModeDefinition, execute_pipeline, pipeline, solid
+from flight_fusion.tags import MlFusionTags
 
-import mlflow
 from dagster_fusion.resources import mlfusion_configuration
 from dagster_fusion.resources.mlflow import MlFlow, mlflow_tracking
-from flight_fusion.tags import MlFusionTags
 
 
 @pytest.fixture
@@ -160,9 +160,7 @@ def test_mlflow_meta_overloading():
     # Given an MlFlow
     # And: a list of inherited mlflow methods
     # TODO: find a way to get this list
-    inherited_list = [
-        method for method in dir(mlflow) if method not in ["log_params", "__name__", "__doc__", "__init__"]
-    ]
+    inherited_list = [method for method in dir(mlflow) if method not in ["log_params", "__name__", "__doc__"]]
 
     for methods in inherited_list:
         assert getattr(MlFlow, methods) == getattr(mlflow, methods)

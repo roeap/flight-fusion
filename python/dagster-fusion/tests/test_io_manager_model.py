@@ -2,16 +2,16 @@ import json
 from pathlib import Path
 from uuid import uuid4
 
-from dagster import AssetGroup, AssetIn, AssetKey, asset
-
 import mlflow
+from dagster import AssetGroup, AssetIn, AssetKey, asset
+from flight_fusion.tags import MlFusionTags
+
 from dagster_fusion import (
     mlflow_tracking,
     mlfusion_configuration,
     model_artifact_io_manager,
 )
 from dagster_fusion.hooks import end_mlflow_on_run_finished
-from flight_fusion.tags import MlFusionTags
 
 
 def test_artifacts_io_manager(mocker, datadir: Path):
@@ -48,7 +48,7 @@ def test_artifacts_io_manager(mocker, datadir: Path):
             "model_artifact_io": model_artifact_io_manager,
         },
     )
-    asset_job = end_mlflow_on_run_finished(asset_group.build_job(name="my_asset_job"))
+    asset_job = end_mlflow_on_run_finished(asset_group.build_job(name="my_asset_job"))  # type: ignore
 
     run_config = {"resources": {"mlflow": {"config": {"experiment_name": "testing"}}}}
 
@@ -106,7 +106,7 @@ def test_artifacts_io_manager_multiple_tags(datadir: Path):
             "model_artifact_io": model_artifact_io_manager,
         },
     )
-    asset_job = end_mlflow_on_run_finished(asset_group.build_job(name="my_asset_job"))
+    asset_job = end_mlflow_on_run_finished(asset_group.build_job(name="my_asset_job"))  # type: ignore
 
     run_config = {"resources": {"mlflow": {"config": {"experiment_name": "testing"}}}}
 
