@@ -7,8 +7,8 @@ service_name = "flight-fusion"
 storage = "file"
 
 [service.local]
-area_root = "./.flight-fusion/.fusion"
-artifacts_root = "./.flight-fusion/.mlflow/mlruns"
+area_root = "./.mlfusion/.fusion"
+artifacts_root = "./.mlfusion/.mlflow/mlruns"
 
 [service.azure]
 account = ""

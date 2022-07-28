@@ -303,7 +303,7 @@ impl FlightService for FlightFusionService {
                 "No operation data passed",
             )),
         }
-        .map_err(|_| Status::invalid_argument("No operation data passed"))?;
+        .map_err(|e| Status::invalid_argument(format!("Error executing operation - {:?}", e)))?;
 
         let (tx, rx): (FlightDataSender, FlightDataReceiver) = channel(2);
 
@@ -380,11 +380,6 @@ impl FlightService for FlightFusionService {
                 let result_body = match action {
                     FusionAction::Drop(drop) => serialize_message(
                         self.handle_do_action(drop)
-                            .await
-                            .map_err(|e| tonic::Status::internal(e.to_string()))?,
-                    ),
-                    FusionAction::SetMeta(meta) => serialize_message(
-                        self.handle_do_action(meta)
                             .await
                             .map_err(|e| tonic::Status::internal(e.to_string()))?,
                     ),

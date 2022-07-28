@@ -66,6 +66,12 @@ include = '\.pyi?$'
 [tool.isort]
 profile = "black"
 src_paths = ["python/**/*", "examples/**/*"]
+known_first_party = [
+  "flight_fusion",
+  "dagster_fusion",
+  "mlflow_fusion",
+  "mlserver_fusion",
+]
 
 [tool.pyright]
 exclude = [

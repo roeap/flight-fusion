@@ -1,0 +1,77 @@
+syntax = "proto3";
+package flight_fusion.ipc.v1alpha1;
+
+import "flight_fusion/ipc/v1alpha1/common.proto";
+
+// Metadata associated with an area source
+message AreaSourceMetadata {
+  // globally unique idetifier for the source
+  string id = 1;
+
+  // A human readable name for the source
+  string name = 2;
+
+  // A short descrptive text that describes the content
+  // and purpose of the data source
+  string description = 3;
+
+  // wether the table supports versioning
+  bool is_versioned = 4;
+
+  // source identifier
+  AreaSourceReference source = 5;
+
+  // tags associated with source
+  repeated Tag tags = 9;
+
+  // user defined properties
+  map<string, string> properties = 10;
+}
+
+// Detialed metadata and statistics about a source
+message AreaSourceDetails {
+  // globally unique idetifier for the source
+  string id = 1;
+
+  // Metadata associated with the source
+  AreaSourceMetadata metadata = 2;
+}
+
+/*
+ * Statistics for a physical plan node
+ * Fields are optional and can be inexact because the sources
+ * sometimes provide approximate estimates for performance reasons
+ * and the transformations output are not always predictable.
+ */
+message BatchStatistics {
+  // The number of table rows
+  int64 record_count = 1;
+
+  // total byte of the table rows
+  int64 total_byte_size = 2;
+
+  // Statistics on a column level
+  repeated ColumnStatistics column_statistics = 3;
+
+  // If true, any field that is defined is the actual value in the data provided
+  // by the operator (it is not an estimate). Any or all other fields might
+  // still be None, in which case no information is known. if false, any field
+  // that is has a value may contain an inexact estimate and may not be the
+  // actual value.
+  bool is_exact = 4;
+}
+
+// This table statistics are estimates about column properties
+message ColumnStatistics {
+  // Number of null values on column
+  int64 null_count = 1;
+
+  // Maximum value of column
+  string max_value = 2;
+
+  // Minimum value of column
+  string min_value = 3;
+
+  // Number of distinct values
+  int64 distinct_count = 4;
+}
