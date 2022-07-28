@@ -62,3 +62,6 @@ serve-docs:
 
 run:
     cargo run -p flight-fusion
+
+run-mlflow:
+    docker-compose --profile mlflow up

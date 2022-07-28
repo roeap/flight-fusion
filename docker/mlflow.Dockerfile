@@ -11,9 +11,9 @@ RUN apt-get update && \
 
 RUN pip install psycopg2-binary azure-storage-blob mlflow
 
-# RUN groupadd --gid 2000 mlflow \
-#   && useradd -ms /bin/bash -d /home/mlflow mlflow --uid 2000 --gid 2000
-# USER 2000
+RUN groupadd --gid 2000 mlflow \
+  && useradd -ms /bin/bash -d /opt/mlflow mlflow --uid 2000 --gid 2000
+USER 2000
 
 WORKDIR /opt/mlflow
 
