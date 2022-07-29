@@ -56,9 +56,6 @@ spec:
           {{- if .Values.serviceMonitor.enabled }}
             - --expose-prometheus=/mlflow/metrics
           {{- end }}
-          {{- range $key, $value := .Values.extraArgs }}
-            - --{{ kebabcase $key }}={{ $value }}
-          {{- end }}
           ports:
             - name: http
               containerPort: 5000
@@ -85,30 +82,29 @@ spec:
                 name: {{ template "mlflow.fullname" . }}-env-configmap
             - secretRef:
                 name: {{ template "mlflow.fullname" . }}-env-secret
-          {{- range .Values.extraSecretNamesForEnvFrom }}
-            - secretRef:
-                name: {{ . }}
+          {{- range $envConfigMap := .Values.dagit.envConfigMaps }}
+            - configMapRef: {{- $envConfigMap | toYaml | nindent 16 }}
           {{- end }}
-          {{- with .Values.extraVolumeMounts }}
+          {{- range $envSecret := .Values.dagit.envSecrets }}
+            - secretRef: {{- $envSecret | toYaml | nindent 16 }}
+          {{- end }}
+        {{- with .Values.extraVolumeMounts }}
           volumeMounts:
             {{ toYaml . | nindent 12 }}
-          {{- end }}
-      {{- with .Values.extraContainers }}
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.nodeSelector }}
+        {{- end }}
+    {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
+    {{- end }}
+    {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
+    {{- end }}
+    {{- with .Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.extraVolumes }}
+    {{- end }}
+    {{- with .Values.extraVolumes }}
       volumes:
         {{ toYaml . | nindent 8 }}
-      {{- end }}
+    {{- end }}

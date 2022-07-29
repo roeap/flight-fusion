@@ -1,5 +1,16 @@
-# (int) Numbers of replicas
+---
+global:
+  postgresqlSecretName: "mlfusion-postgresql-secret"
+  # A service account name to use for this chart and all subcharts. If this is set, then
+  # mlfusion subcharts will not create their own service accounts.
+  serviceAccountName: ""
+
 replicaCount: 1
+nameOverride: ""
+fullnameOverride: ""
+# Specify secrets to run containers based on images in private registries. See:
+# https://kubernetes.io/docs/concepts/containers/images/#referring-to-an-imagepullsecrets-on-a-pod
+imagePullSecrets: []
 
 # Image of mlflow
 image:
@@ -9,15 +20,6 @@ image:
   pullPolicy: IfNotPresent
   # The docker image tag to use. Default app version
   tag: ""
-
-# Image pull secrets for private docker registry usages
-imagePullSecrets: []
-
-# String to override the default generated name
-nameOverride: ""
-
-# String to override the default generated fullname
-fullnameOverride: ""
 
 serviceAccount:
   # Specifies whether a ServiceAccount should be created
@@ -107,13 +109,34 @@ artifactRoot:
       # Google Cloud Storage bucket folder. If you want to use root level, please don't set anything.
     path: "" # optional
 
-# Extra environment variables
-extraEnvVars:
-  {}
+# Additional environment variables to set.
+  # A Kubernetes ConfigMap will be created with these environment variables. See:
+  # https://kubernetes.io/docs/concepts/configuration/configmap/
+  #
+  # Example:
+  #
+  # env:
+  #   ENV_ONE: one
+  #   ENV_TWO: two
+  env: {}
 
-# Extra secrets for environment variables
-extraSecretNamesForEnvFrom: []
-# - my-mlflow-secrets
+  # Additional environment variables can be retrieved and set from ConfigMaps. See:
+  # https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#configure-all-key-value-pairs-in-a-configmap-as-container-environment-variables
+  #
+  # Example:
+  #
+  # envConfigMaps:
+  #   - name: config-map
+  envConfigMaps: []
+
+  # Additional environment variables can be retrieved and set from Secrets. See:
+  # https://kubernetes.io/docs/concepts/configuration/secret/#use-case-as-container-environment-variables
+  #
+  # Example:
+  #
+  # envSecrets:
+  #   - name: secret
+  envSecrets: []
 
 ingress:
   # Specifies if you want to create an ingress access
