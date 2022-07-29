@@ -3,11 +3,11 @@ version: "3.9"
 services:
   # flight fusion service is the core data access and query engine
   fusion:
+    container_name: fusion
     profiles: ["fusion", "full"]
     build:
       context: .
       dockerfile: docker/fusion.Dockerfile
-    container_name: fusion
     depends_on:
       - tracing
     ports:
@@ -22,10 +22,11 @@ services:
     networks:
       - fusion
 
+    # distributed tracing via jaeger / open-telemetry
   tracing:
     profiles: ["full"]
-    image: jaegertracing/all-in-one:latest
     container_name: tracing
+    image: jaegertracing/all-in-one:latest
     ports:
       - 6831:6831/udp
       - 6832:6832/udp
@@ -35,10 +36,10 @@ services:
 
   postgres:
     profiles: ["full"]
-    restart: always
-    image: postgres:latest
     container_name: postgres
+    image: postgres:latest
     hostname: postgres
+    restart: always
     healthcheck:
       test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "root"]
       timeout: 45s
