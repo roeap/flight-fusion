@@ -38,6 +38,9 @@ generate-proto:
 generate-test-data:
     python scripts/generate_test_data.py
 
+generate-helm:
+    mlfusion-helm schema apply
+
 check-rust:
     cargo fmt -- --check
     cargo clippy
@@ -53,9 +56,17 @@ test-python:
 docker-build:
     docker build -f rust/flight-fusion/Dockerfile -t flight-fusion .
 
+# run flight fusion server
+run-fusion:
+    cargo run -p flight-fusion
+
 # run example app
 run-app:
     python -m app
 
-run:
-    cargo run -p flight-fusion
+# run the documentation
+run-docs:
+    mkdocs serve
+
+run-mlflow:
+    docker-compose --profile mlflow up

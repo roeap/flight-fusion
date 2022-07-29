@@ -3,6 +3,7 @@ version: "3.9"
 services:
   # flight fusion service is the core data access and query engine
   fusion:
+    profiles: ["fusion", "full"]
     build:
       context: .
       dockerfile: rust/flight-fusion/Dockerfile
@@ -22,6 +23,7 @@ services:
       - fusion
 
   tracing:
+    profiles: ["full"]
     image: jaegertracing/all-in-one:latest
     container_name: tracing
     ports:
@@ -32,6 +34,7 @@ services:
       - fusion
 
   postgres:
+    profiles: ["full"]
     restart: always
     image: postgres:latest
     container_name: postgres
@@ -51,6 +54,7 @@ services:
       - fusion
 
   azurite:
+    profiles: ["full"]
     image: mcr.microsoft.com/azure-storage/azurite
     container_name: blob
     hostname: azurite
@@ -83,6 +87,7 @@ services:
   #     - postgres
 
   mlflow:
+    profiles: ["mlflow", "full"]
     restart: always
     build:
       # context: .
@@ -114,8 +119,8 @@ services:
       - "sqlite:///mlruns.sqlite"
       # - "postgresql://postgres:postgres@postgres:5432/postgres"
     volumes:
-      - ./.flight-fusion/.mlflow:/opt/mlflow
-      # - ./.flight-fusion/.mlflow/mlruns:/opt/mlflow/mlruns
+      - ./.mlfusion/.mlflow:/opt/mlflow
+      # - ./.mlfusion/.mlflow/mlruns:/opt/mlflow/mlruns
     # environment:
     #   - BACKEND_URI=sqlite:///mlruns.sqlite
     #   - ARTIFACT_ROOT=mlruns

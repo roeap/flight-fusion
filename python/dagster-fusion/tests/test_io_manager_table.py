@@ -1,9 +1,21 @@
 import pyarrow as pa
 import pytest
-from dagster import AssetKey, In, Out, ResourceDefinition, graph, op
+from dagster import (
+    AssetKey,
+    In,
+    Out,
+    ResourceDefinition,
+    build_input_context,
+    build_output_context,
+    graph,
+    op,
+)
+
+# from dagster._core.utils import make_new_run_id
+from flight_fusion import FusionServiceClient
 
 from dagster_fusion import flight_fusion_io_manager
-from flight_fusion import FusionServiceClient
+from dagster_fusion.io.table import TableIOManager
 
 
 @pytest.fixture
@@ -104,3 +116,32 @@ def test_column_selection(test_graph_columns, test_data: pa.Table, fusion_client
 
     out = result.output_for_node("solid_load", "out_c")
     assert out.equals(test_data.select(["b"]))
+
+
+def test_asset_output_input(fusion_client: FusionServiceClient, test_data: pa.Table):
+    io_manager = TableIOManager(client=fusion_client)
+    asset_key = AssetKey(("some", "asset"))
+
+    output_context = build_output_context(step_key="step_one", name="result", asset_key=asset_key, config={})
+    # our output manager yields metadata and therefore is a generator. thus we have to liFst the return
+    list(io_manager.handle_output(context=output_context, obj=test_data))
+
+    input_context = build_input_context(upstream_output=output_context)
+    data = io_manager.load_input(context=input_context)
+
+    assert isinstance(data, pa.Table)
+    assert test_data.equals(data)
+
+
+# def test_upstream_partitioned(fusion_client: FusionServiceClient, test_data: pa.Table):
+#     io_manager = TableIOManager(client=fusion_client)
+#
+#     run_id = make_new_run_id()
+#
+#     context = build_input_context(
+#         upstream_output=build_output_context(
+#             step_key="return_one",
+#             name="result",
+#             run_id=run_id,
+#         )
+#     )

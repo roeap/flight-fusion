@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Iterable
 
 import pandas as pd
@@ -7,6 +8,7 @@ import polars as pl
 import pyarrow as pa
 from dagster import (
     AssetKey,
+    DagsterInvariantViolationError,
     InitResourceContext,
     InputContext,
     IOManager,
@@ -18,15 +20,20 @@ from dagster import (
     io_manager,
     root_input_manager,
 )
-from dagster.core.errors import DagsterInvariantViolationError
+from flight_fusion import BaseDatasetClient, FusionServiceClient
+from flight_fusion.ipc.v1alpha1 import SaveMode
+from pydantic import BaseSettings
 
 from dagster_fusion.config import FIELD_COLUMN_SELECTION, FIELD_SAVE_MODE
 from dagster_fusion.errors import MissingConfiguration
-from flight_fusion import BaseDatasetClient, FusionServiceClient
-from flight_fusion.ipc.v1alpha1 import SaveMode
 
 _INPUT_CONFIG_SCHEMA = {"columns": FIELD_COLUMN_SELECTION}
-_OUTPUT_CONFIG_SCHEMA = {"save_mode": FIELD_SAVE_MODE}
+_OUTPUT_CONFIG_SCHEMA = {"save_mode": FIELD_SAVE_MODE, "partition_by": FIELD_COLUMN_SELECTION}
+
+
+class TableAssetMetaData(BaseSettings):
+    save_mode: SaveMode | None
+    partition_by: list[str] | None
 
 
 class TableIOManager(IOManager):
@@ -47,6 +54,7 @@ class TableIOManager(IOManager):
         client = self._get_dataset_client(asset_key=context.asset_key)
         # TODO get save_mode from metadata
         save_mode = context.config.get("save_mode") or SaveMode.SAVE_MODE_APPEND
+        metadata = TableAssetMetaData(**(context.metadata or {}))  # type: ignore
 
         data = obj
         if isinstance(obj, pd.DataFrame):
@@ -57,14 +65,20 @@ class TableIOManager(IOManager):
 
         if data.num_rows > 0:
             context.log.warn(f"Shape of written data: {data.shape}, asset_key: {context.asset_key}")
-            client.write_into(data, SaveMode.SAVE_MODE_OVERWRITE)
+            client.write_into(data, save_mode=metadata.save_mode or save_mode, partition_by=metadata.partition_by)
         else:
             context.log.warning(f"Tried writing empty data for asset: {context.asset_key}")
             return
 
+        # if context.has_partition_key:
+        #     partition_key = context.partition_key
+
         yield MetadataEntry("size (bytes)", value=MetadataValue.int(data.nbytes))
         yield MetadataEntry("row count", value=MetadataValue.int(data.num_rows))
-        yield MetadataEntry("save mode", value=MetadataValue.text(save_mode.name))
+        if sve_mde := metadata.save_mode or save_mode:
+            yield MetadataEntry("save mode", value=MetadataValue.text(sve_mde.name))
+        if part_clos := metadata.partition_by:
+            yield MetadataEntry("partition_by", value=MetadataValue.text(json.dumps(part_clos)))
 
         schema = TableSchema(columns=[TableColumn(name=col.name, type=str(col.type)) for col in data.schema])
         yield MetadataEntry("table_schema", value=MetadataValue.table_schema(schema))
@@ -109,15 +123,21 @@ class TableIOManager(IOManager):
         if asset_key is None:
             raise MissingConfiguration("'asset_key' must be provided")
 
+        # if context.upstream_output:
+        #     upstream_meta = TableAssetMetaData(**(context.upstream_output.metadata or {}))
+
         client = self._get_dataset_client(asset_key=asset_key)
         data = client.load(columns=(context.metadata or {}).get("columns"))
 
         # determine supported return types based on the type of the downstream input
-        if context.dagster_type.typing_type == pl.DataFrame:
-            return pl.from_arrow(data)  # type: ignore
+        try:
+            if context.dagster_type.typing_type == pl.DataFrame:
+                return pl.from_arrow(data)  # type: ignore
 
-        if context.dagster_type.typing_type == pd.DataFrame:
-            return data.to_pandas()
+            if context.dagster_type.typing_type == pd.DataFrame:
+                return data.to_pandas()
+        except DagsterInvariantViolationError:
+            return data
 
         return data
 
