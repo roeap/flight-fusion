@@ -9,7 +9,7 @@ from . import subschema
 class MlfusionHelmValues(BaseModel):
     __doc__ = "@" + "generated"
 
-    # mpostgresql: subschema.PostgreSQL
+    # postgresql: subschema.PostgreSQL
     generatePostgresqlPasswordSecret: bool
     imagePullSecrets: List[k8s.SecretRef]
     serviceAccount: subschema.ServiceAccount

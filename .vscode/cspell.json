@@ -70,6 +70,7 @@
     "subschema",
     "tempdir",
     "tempfile",
+    "tolerations",
     "toposort",
     "typer",
     "unpartitioned",

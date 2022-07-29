@@ -38,6 +38,9 @@ generate-proto:
 generate-test-data:
     python scripts/generate_test_data.py
 
+generate-helm:
+    mlfusion-helm schema apply
+
 check-rust:
     cargo fmt -- --check
     cargo clippy
