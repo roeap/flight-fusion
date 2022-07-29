@@ -107,18 +107,6 @@ artifactRoot:
       # Google Cloud Storage bucket folder. If you want to use root level, please don't set anything.
     path: "" # optional
 
-# -- A map of arguments and values to pass to the `mlflow server` command
-# Keys must be camelCase. Helm will turn them to kebab-case style.
-extraArgs: {}
-# Number of gunicorn worker processes to handle requests (default: 4).
-# workers: TEXT
-# A prefix which will be prepended to the path of all static paths.
-# staticPrefix: TEXT
-# Additional command line options forwarded to gunicorn processes.
-# gunicornOpts: TEXT
-# Additional command line options for waitress-serve.
-# waitressOpts: TEXT
-
 # Extra environment variables
 extraEnvVars:
   {}
@@ -149,7 +137,7 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
-# -- Set the resources requests and limits
+# Set the resources requests and limits
 resources:
   {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -201,3 +189,8 @@ tolerations: []
 
 # Set the affinity for the pod.
 affinity: {}
+
+####################################################################################################
+# Extra Manifests: (Optional) Create additional k8s resources within this chart
+####################################################################################################
+extraManifests: []
