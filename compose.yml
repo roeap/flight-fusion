@@ -6,7 +6,7 @@ services:
     profiles: ["fusion", "full"]
     build:
       context: .
-      dockerfile: rust/flight-fusion/Dockerfile
+      dockerfile: docker/fusion.Dockerfile
     container_name: fusion
     depends_on:
       - tracing
@@ -18,7 +18,7 @@ services:
       - .env
     volumes:
       - "./config:/opt/fusion/config"
-      - "./.flight-fusion/.fusion:/opt/fusion/.flight-fusion/.fusion"
+      - "./.mlfusion/.fusion:/opt/fusion/.mlfusion/.fusion"
     networks:
       - fusion
 

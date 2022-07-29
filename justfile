@@ -53,12 +53,12 @@ check-python:
 test-python:
     pytest python/
 
-docker-build:
-    docker build -f rust/flight-fusion/Dockerfile -t flight-fusion .
+build-docker:
+    docker build -f docker/fusion.Dockerfile -t flight-fusion .
 
 # run flight fusion server
 run-fusion:
-    cargo run -p flight-fusion
+    docker-compose --profile fusion up
 
 # run example app
 run-app:
