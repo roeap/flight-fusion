@@ -14,6 +14,7 @@ python = "^3.8,<3.11"
 dagster = "^0.15"
 polars = "^0.13.20"
 pyarrow = "*"
+pywin32 = { version = ">=301", markers = "platform_system == \"Windows\"" }
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
