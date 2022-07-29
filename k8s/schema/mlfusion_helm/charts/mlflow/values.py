@@ -1,5 +1,6 @@
 from typing import List
 
+from mlfusion_helm.charts.global_ import Global
 from mlfusion_helm.utils import k8s
 from pydantic import BaseModel, Extra, Field
 
@@ -29,7 +30,7 @@ class MlflowHelmValues(BaseModel):
     livenessProbe: k8s.LivenessProbe
     startupProbe: k8s.StartupProbe
     annotations: k8s.Annotations
-    global_: subschema.Global = Field(..., alias="global")
+    global_: Global = Field(..., alias="global")
 
     class Config:
         extra = Extra.forbid

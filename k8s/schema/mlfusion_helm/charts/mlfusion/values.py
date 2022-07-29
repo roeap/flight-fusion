@@ -1,5 +1,6 @@
 from typing import List
 
+from mlfusion_helm.charts.global_ import Global
 from mlfusion_helm.utils import k8s
 from pydantic import BaseModel, Field
 
@@ -13,4 +14,4 @@ class MlfusionHelmValues(BaseModel):
     generatePostgresqlPasswordSecret: bool
     imagePullSecrets: List[k8s.SecretRef]
     serviceAccount: subschema.ServiceAccount
-    global_: subschema.Global = Field(..., alias="global")
+    global_: Global = Field(..., alias="global")
