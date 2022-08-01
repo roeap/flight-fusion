@@ -5,14 +5,14 @@ use arrow_deps::arrow_flight::{
     FlightData, SchemaAsIpc,
 };
 use arrow_deps::datafusion::{
-    arrow::datatypes::SchemaRef, physical_plan::SendableRecordBatchStream,
+    arrow::datatypes::SchemaRef, arrow::ipc::writer::IpcWriteOptions,
+    physical_plan::SendableRecordBatchStream,
 };
 use arrow_deps::datafusion::{
     arrow::{
         array::ArrayRef,
         datatypes::{Schema as ArrowSchema, SchemaRef as ArrowSchemaRef},
         error::{ArrowError, Result as ArrowResult},
-        ipc::writer::IpcWriteOptions,
         record_batch::RecordBatch,
     },
     physical_plan::{common::AbortOnDropMany, RecordBatchStream},

@@ -5,7 +5,7 @@ use crate::{
     stream::MergeStream,
 };
 use area_store::store::{AreaPath, AreaStore};
-use area_store::{store::DefaultAreaStore, Path};
+use area_store::Path;
 use arrow_deps::arrow::{
     error::{ArrowError, Result as ArrowResult},
     record_batch::RecordBatch,
@@ -106,7 +106,7 @@ impl DoGetHandler<CommandReadDataset> for FlightFusionService {
 
 pub(crate) fn spawn_execution(
     mut output: mpsc::Sender<ArrowResult<RecordBatch>>,
-    area_store: Arc<DefaultAreaStore>,
+    area_store: Arc<AreaStore>,
     path: Path,
     column_indices: Option<Vec<usize>>,
 ) -> JoinHandle<()> {
@@ -133,7 +133,6 @@ mod tests {
     use crate::handlers::DoPutHandler;
     use crate::test_utils::{get_fusion_handler, get_input_stream};
     use area_store::store::AreaPath;
-    use area_store::store::AreaStore;
     use arrow_deps::datafusion::physical_plan::common::collect;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,

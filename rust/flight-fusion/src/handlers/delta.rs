@@ -6,7 +6,7 @@ use crate::{
 };
 use area_store::{
     projection::{PartitionColumnProjector, SchemaAdapter},
-    store::{AreaStore, DefaultAreaStore},
+    store::AreaStore,
     Path,
 };
 use arrow_deps::arrow::{
@@ -171,7 +171,7 @@ impl DoGetHandler<DeltaOperationRequest> for FlightFusionService {
 
 pub(crate) fn spawn_execution(
     mut output: mpsc::Sender<ArrowResult<RecordBatch>>,
-    area_store: Arc<DefaultAreaStore>,
+    area_store: Arc<AreaStore>,
     path: Path,
     table_schema: ArrowSchemaRef,
     partition_values: HashMap<String, Option<String>>,

@@ -14,8 +14,6 @@ use std::sync::Arc;
 pub struct DefaultAreaStore {
     object_store: Arc<DynObjectStore>,
     root_path: String,
-    // only visible for testing purposes
-    // pub(crate) file_index: Arc<FileIndex>,
 }
 
 impl DefaultAreaStore {
