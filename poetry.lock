@@ -1275,7 +1275,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "jsonschema"
-version = "4.8.0"
+version = "4.9.0"
 description = "An implementation of JSON Schema validation for Python"
 category = "main"
 optional = false
@@ -1284,6 +1284,7 @@ python-versions = ">=3.7"
 [package.dependencies]
 attrs = ">=17.4.0"
 importlib-resources = {version = ">=1.4.0", markers = "python_version < \"3.9\""}
+pkgutil-resolve-name = {version = ">=1.3.10", markers = "python_version < \"3.9\""}
 pyrsistent = ">=0.14.0,<0.17.0 || >0.17.0,<0.17.1 || >0.17.1,<0.17.2 || >0.17.2"
 
 [package.extras]
@@ -1993,6 +1994,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "pkgutil-resolve-name"
+version = "1.3.10"
+description = "Resolve a name to an object."
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[[package]]
 name = "plantuml"
 version = "0.3.0"
 description = ""
@@ -2053,7 +2062,7 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "polars"
-version = "0.13.58"
+version = "0.13.59"
 description = "Blazingly fast DataFrame library"
 category = "main"
 optional = false
@@ -2066,9 +2075,9 @@ typing_extensions = {version = ">=4.0.0", markers = "python_version < \"3.10\""}
 connectorx = ["connectorx"]
 numpy = ["numpy (>=1.16.0)"]
 fsspec = ["fsspec"]
+pandas = ["pyarrow (>=4.0)", "pandas"]
 xlsx2csv = ["xlsx2csv (>=0.8.0)"]
 pyarrow = ["pyarrow (>=4.0)"]
-pandas = ["pyarrow (>=4.0)", "pandas"]
 
 [[package]]
 name = "portalocker"
@@ -3911,6 +3920,7 @@ pickleshare = [
     {file = "pickleshare-0.7.5-py2.py3-none-any.whl", hash = "sha256:9649af414d74d4df115d5d718f82acb59c9d418196b7b4290ed47a12ce62df56"},
     {file = "pickleshare-0.7.5.tar.gz", hash = "sha256:87683d47965c1da65cdacaf31c8441d12b8044cdec9aca500cd78fc2c683afca"},
 ]
+pkgutil-resolve-name = []
 plantuml = [
     {file = "plantuml-0.3.0-py3-none-any.whl", hash = "sha256:f21789bc4abc3e8888d23a8fa010e942989f1a73d6e50e10a54688cbee52aa1c"},
 ]

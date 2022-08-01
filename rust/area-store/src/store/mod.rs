@@ -65,9 +65,9 @@ pub trait AreaStore: Send + Sync {
         let is_delta = is_delta_location(self.object_store().clone(), location).await?;
 
         if is_delta {
-            let full_path = self.get_full_table_path(&location)?;
+            let full_path = self.get_full_table_path(location)?;
             let table = open_table(&full_path).await?;
-            return Ok(table.get_file_uris().map(|f| Path::from(f)).collect());
+            return Ok(table.get_file_uris().map(Path::from).collect());
         }
 
         Ok(self

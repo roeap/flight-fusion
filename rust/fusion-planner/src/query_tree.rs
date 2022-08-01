@@ -1,23 +1,18 @@
 use crate::error::{FusionPlannerError, Result};
-use arrow_deps::{
-    datafusion::{
-        datasource::{
-            file_format::parquet::ParquetFormat,
-            listing::{ListingOptions, ListingTable, ListingTableConfig, ListingTableUrl},
-            TableProvider,
-        },
-        logical_plan::{
-            plan::TableSource, DFSchema, DFSchemaRef, Expr, JoinType, LogicalPlan,
-            LogicalPlanBuilder,
-        },
-        physical_plan::ExecutionPlan,
-        prelude::SessionContext,
-        sql::{
-            parser::{DFParser, Statement},
-            planner::SqlToRel,
-        },
+use arrow_deps::datafusion::{
+    datasource::{
+        file_format::parquet::ParquetFormat,
+        listing::{ListingOptions, ListingTable, ListingTableConfig, ListingTableUrl},
     },
-    datafusion_data_access::object_store::local::LocalFileSystem,
+    logical_plan::{
+        plan::TableSource, DFSchema, DFSchemaRef, Expr, LogicalPlan, LogicalPlanBuilder,
+    },
+    physical_plan::ExecutionPlan,
+    prelude::SessionContext,
+    sql::{
+        parser::{DFParser, Statement},
+        planner::SqlToRel,
+    },
 };
 use flight_fusion_ipc::{
     signal_provider::Source as ProviderSource, table_reference::Table as TableRef, SignalProvider,
@@ -74,7 +69,7 @@ impl FrameQueryPlanner {
 
     pub async fn register_signal_provider(&mut self, provider: &SignalProvider) -> Result<()> {
         match self.parse_provider(provider).await? {
-            ProviderNode::Table(tbl) => {
+            ProviderNode::Table(_) => {
                 todo!()
             }
             ProviderNode::Expression(expr) => {
@@ -225,7 +220,7 @@ mod tests {
                 uid: "expr-id".to_string(),
                 name: "S4".to_string(),
                 description: "description".to_string(),
-                traits: vec![],
+                ..Signal::default()
             }],
             inputs: vec![],
             source: Some(ProviderSource::Expression(ExpressionReference {
@@ -270,7 +265,7 @@ mod tests {
                 uid: "expr-id".to_string(),
                 name: "S4".to_string(),
                 description: "description".to_string(),
-                traits: vec![],
+                ..Signal::default()
             }],
             inputs: vec![],
             source: Some(ProviderSource::Expression(ExpressionReference {

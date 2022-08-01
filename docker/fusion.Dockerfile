@@ -1,4 +1,4 @@
-FROM rust:1.60.0 as build-env
+FROM rust:1.62 as build-env
 
 RUN apt-get update && apt-get install -y cmake
 

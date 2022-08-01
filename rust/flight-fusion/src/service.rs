@@ -110,6 +110,7 @@ impl FlightFusionService {
         source: &AreaSourceReference,
     ) -> crate::error::Result<()> {
         let location: AreaPath = source.clone().into();
+        // TODO rather then fetching location files, we should get a table provider
         let files = self.area_store.get_location_files(&location).await.unwrap();
         let mut batches = Vec::new();
         for file in files {

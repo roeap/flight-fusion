@@ -34,19 +34,19 @@ pub fn get_provider_1() -> SignalProvider {
                 uid: "id-S2".to_string(),
                 name: "S2".to_string(),
                 description: "S2".to_string(),
-                traits: vec![],
+                ..Signal::default()
             },
             Signal {
                 uid: "id-S3".to_string(),
                 name: "S3".to_string(),
                 description: "S3".to_string(),
-                traits: vec![],
+                ..Signal::default()
             },
             Signal {
                 uid: "id-S5".to_string(),
                 name: "S5".to_string(),
                 description: "S5".to_string(),
-                traits: vec![],
+                ..Signal::default()
             },
         ],
         inputs: vec![],
@@ -72,12 +72,13 @@ pub fn get_provider_2() -> SignalProvider {
                 name: "S6".to_string(),
                 description: "S6".to_string(),
                 traits: vec![],
+                ..Signal::default()
             },
             Signal {
                 uid: "id-S7".to_string(),
                 name: "S7".to_string(),
                 description: "S7".to_string(),
-                traits: vec![],
+                ..Signal::default()
             },
         ],
         inputs: vec![],
@@ -103,19 +104,20 @@ pub fn get_signal_frame() -> SignalFrame {
             name: "S4".to_string(),
             description: "description".to_string(),
             traits: vec![],
+            ..Signal::default()
         }],
         inputs: vec![
             Signal {
                 uid: "id-S5".to_string(),
                 name: "S5".to_string(),
                 description: "S5".to_string(),
-                traits: vec![],
+                ..Signal::default()
             },
             Signal {
                 uid: "id-S6".to_string(),
                 name: "S6".to_string(),
                 description: "S6".to_string(),
-                traits: vec![],
+                ..Signal::default()
             },
         ],
         source: Some(ProviderSource::Expression(ExpressionReference {
