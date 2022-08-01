@@ -2062,7 +2062,7 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "polars"
-version = "0.13.58"
+version = "0.13.59"
 description = "Blazingly fast DataFrame library"
 category = "main"
 optional = false
@@ -2075,9 +2075,9 @@ typing_extensions = {version = ">=4.0.0", markers = "python_version < \"3.10\""}
 connectorx = ["connectorx"]
 numpy = ["numpy (>=1.16.0)"]
 fsspec = ["fsspec"]
+pandas = ["pyarrow (>=4.0)", "pandas"]
 xlsx2csv = ["xlsx2csv (>=0.8.0)"]
 pyarrow = ["pyarrow (>=4.0)"]
-pandas = ["pyarrow (>=4.0)", "pandas"]
 
 [[package]]
 name = "portalocker"
