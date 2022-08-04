@@ -99,6 +99,9 @@ pub enum AreaStoreError {
         #[from]
         source: Box<dyn std::error::Error + Send + Sync + 'static>,
     },
+
+    #[error("External: {0}")]
+    External(Box<dyn std::error::Error + Send + Sync + 'static>),
 }
 
 pub type Result<T> = std::result::Result<T, AreaStoreError>;

@@ -77,6 +77,8 @@ dependencies = [
  "file-cache",
  "flight-fusion-ipc",
  "futures",
+ "glob",
+ "itertools",
  "lazy_static",
  "object_store",
  "observability_deps",

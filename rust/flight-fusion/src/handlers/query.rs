@@ -109,7 +109,6 @@ mod tests {
         let plan2 = get_input_stream(None, false);
         let ref_schema = plan.schema().clone();
         let handler = get_fusion_handler(root.path());
-        // let table_dir = root.path().join("_ff_data/new_table");
 
         let table_ref_1 = AreaSourceReference {
             table: Some(TableReference::Location(AreaTableLocation {

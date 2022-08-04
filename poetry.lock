@@ -568,6 +568,17 @@ six = ">=1.10.0"
 tabulate = ">=0.7.7"
 
 [[package]]
+name = "datafusion"
+version = "0.6.0"
+description = "Build and run queries against data"
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+pyarrow = ">=1"
+
+[[package]]
 name = "debugpy"
 version = "1.6.2"
 description = "An implementation of the Debug Adapter Protocol for Python"
@@ -602,6 +613,22 @@ python-versions = ">=3.6"
 [package.dependencies]
 importlib-metadata = ">=1.0.0"
 pyspark = ">=3.2.0,<3.3.0"
+
+[[package]]
+name = "deltalake"
+version = "0.5.8"
+description = "Native Delta Lake Python binding based on delta-rs with Pandas integration"
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+pyarrow = ">=4"
+
+[package.extras]
+pandas = ["types-dataclasses", "pandas"]
+pyspark = ["pyspark", "delta-spark"]
+devel = ["mypy", "black", "isort", "pytest", "pytest-mock", "pytest-cov", "pytest-timeout", "sphinx (<=4.5)", "sphinx-rtd-theme", "toml", "typing-extensions"]
 
 [[package]]
 name = "detect-secrets"
@@ -3109,7 +3136,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8,<3.11"
-content-hash = "b5f0ae7e57868449a4dab4622ca1578ed9a92b16c51d4c4106b26249b267f3e6"
+content-hash = "182cc3fb79f3d9be8968180b6b150217a826edf1e298785d8106e1436e8e39ac"
 
 [metadata.files]
 aiokafka = [
@@ -3313,6 +3340,7 @@ databricks-cli = [
     {file = "databricks-cli-0.17.0.tar.gz", hash = "sha256:4afa17da73c6e93ca09c5fdf24fa3552965854bbbc3f1428cf4d27edb751b72c"},
     {file = "databricks_cli-0.17.0-py2-none-any.whl", hash = "sha256:66c0ecb315041c28ba4ab3576c6c367b6933dc7c3b7d3130c4b8dc1f4f9140a1"},
 ]
+datafusion = []
 debugpy = []
 decorator = [
     {file = "decorator-5.1.1-py3-none-any.whl", hash = "sha256:b8c3f85900b9dc423225913c5aace94729fe1fa9763b38939a95226f02d37186"},
@@ -3326,6 +3354,7 @@ delta-spark = [
     {file = "delta-spark-1.2.1.tar.gz", hash = "sha256:1c218acbd9a6d1aa0c8637735d6b69593f3ff38123c6123afd268d76ac74ef8e"},
     {file = "delta_spark-1.2.1-py3-none-any.whl", hash = "sha256:96369c352c6a7468ed8074acf5af86c94eaf4f5065529284c74cc98fa0ae6761"},
 ]
+deltalake = []
 detect-secrets = []
 distlib = []
 docker = []

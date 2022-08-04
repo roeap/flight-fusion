@@ -365,14 +365,6 @@ mod tests {
         SaveMode,
     };
 
-    #[test]
-    fn location() {
-        let location = StorageLocation::try_from("s3://bucket/path").unwrap();
-        println!("{:?}", location);
-        let location = StorageLocation::try_from("adls2://container/path").unwrap();
-        println!("{:?}", location)
-    }
-
     #[tokio::test]
     async fn is_delta() {
         let root = tempfile::tempdir().unwrap();
