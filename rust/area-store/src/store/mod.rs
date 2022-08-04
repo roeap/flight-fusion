@@ -4,10 +4,11 @@ mod stats;
 pub mod writer;
 
 use crate::error::{AreaStoreError, Result};
+use crate::storage_location::StorageLocation;
 pub use area_path::*;
 use arrow_deps::arrow::{datatypes::SchemaRef as ArrowSchemaRef, record_batch::RecordBatch};
 use arrow_deps::datafusion::arrow::record_batch::RecordBatchReader;
-use arrow_deps::datafusion::datasource::TableProvider;
+use arrow_deps::datafusion::datasource::{object_store::ObjectStoreRegistry, TableProvider};
 use arrow_deps::datafusion::parquet::arrow::{ArrowReader, ParquetFileArrowReader};
 use arrow_deps::datafusion::parquet::{
     arrow::{arrow_to_parquet_schema, ProjectionMask},
@@ -26,77 +27,11 @@ use futures::TryStreamExt;
 use object_store::{path::Path, DynObjectStore, Error as ObjectStoreError};
 use std::collections::HashMap;
 use std::sync::Arc;
-use url::Url;
 pub use writer::*;
 
 const DATA_FOLDER_NAME: &str = "_ff_data";
 const DELTA_LOG_FOLDER_NAME: &str = "_delta_log";
 const DEFAULT_BATCH_SIZE: usize = 2048;
-
-#[derive(Debug, Clone)]
-pub struct Location {
-    pub scheme: String,
-    pub host: Option<String>,
-}
-
-#[derive(Debug, Clone)]
-pub enum StorageLocation {
-    Local(Box<std::path::PathBuf>),
-    Azure(Location),
-    S3(Location),
-    Google(Location),
-    Unknown(Location),
-}
-
-impl TryFrom<&str> for StorageLocation {
-    type Error = AreaStoreError;
-
-    fn try_from(uri: &str) -> Result<Self> {
-        match Url::parse(&uri) {
-            Ok(parsed) => {
-                match parsed.scheme().to_lowercase().as_ref() {
-                    "az" | "abfs" | "adls2" | "azure" => Ok(Self::Azure(Location {
-                        scheme: parsed.scheme().to_owned(),
-                        host: parsed.host_str().map(|f| f.into()),
-                    })),
-                    "s3" | "s3a" => Ok(Self::S3(Location {
-                        scheme: parsed.scheme().to_owned(),
-                        host: parsed.host_str().map(|f| f.into()),
-                    })),
-                    "gs" => Ok(Self::Google(Location {
-                        scheme: parsed.scheme().to_owned(),
-                        host: parsed.host_str().map(|f| f.into()),
-                    })),
-                    _ => {
-                        // Since we did find some base / scheme, but don't recognize it, it
-                        // may be a local path (i.e. c:/.. on windows). We need to pipe it through path though
-                        // to get consistent path separators.
-                        let local_path = std::path::Path::new(&uri);
-                        let _ = Path::from_filesystem_path(local_path)
-                            .map_err(|err| AreaStoreError::Parsing(err.to_string()))?;
-                        Ok(Self::Local(Box::new(local_path.into())))
-                    }
-                }
-            }
-            Err(url::ParseError::RelativeUrlWithoutBase) => {
-                let local_path = std::path::Path::new(&uri);
-                let _ = Path::from_filesystem_path(local_path)
-                    .map_err(|err| AreaStoreError::Parsing(err.to_string()))?;
-                Ok(Self::Local(Box::new(local_path.into())))
-            }
-            Err(err) => Err(err),
-        }
-        .map_err(|err| AreaStoreError::Parsing(err.to_string()))
-    }
-}
-
-impl TryFrom<String> for StorageLocation {
-    type Error = AreaStoreError;
-
-    fn try_from(uri: String) -> Result<Self> {
-        Self::try_from(uri.as_ref())
-    }
-}
 
 #[derive(Debug, Clone)]
 pub struct AreaStore {

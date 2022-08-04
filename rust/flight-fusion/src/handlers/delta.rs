@@ -6,7 +6,8 @@ use crate::{
 };
 use area_store::{
     projection::{PartitionColumnProjector, SchemaAdapter},
-    store::{AreaPath, AreaStore, StorageLocation},
+    storage_location::StorageLocation,
+    store::{AreaPath, AreaStore},
     Path,
 };
 use arrow_deps::arrow::{
