@@ -17,6 +17,7 @@
     "addinivalue",
     "antd",
     "betterproto",
+    "canonicalize",
     "chrono",
     "classmethod",
     "clippy",

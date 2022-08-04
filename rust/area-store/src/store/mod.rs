@@ -1,6 +1,6 @@
 //! Abstractions and implementations for writing data to delta tables
 mod area_path;
-mod stats;
+// mod stats;
 pub mod writer;
 
 use crate::error::{AreaStoreError, Result};
@@ -12,7 +12,6 @@ use arrow_deps::datafusion::datasource::{object_store::ObjectStoreRegistry, Tabl
 use arrow_deps::datafusion::parquet::arrow::{ArrowReader, ParquetFileArrowReader};
 use arrow_deps::datafusion::parquet::{
     arrow::{arrow_to_parquet_schema, ProjectionMask},
-    basic::LogicalType,
     file::serialized_reader::SerializedFileReader,
 };
 use arrow_deps::datafusion::physical_plan::{
@@ -36,6 +35,7 @@ const DEFAULT_BATCH_SIZE: usize = 2048;
 #[derive(Debug, Clone)]
 pub struct AreaStore {
     object_store: Arc<DynObjectStore>,
+    object_store_registry: Arc<ObjectStoreRegistry>,
     root_path: String,
     pub root: StorageLocation,
     pub(crate) storage_options: Option<HashMap<String, String>>,
@@ -54,6 +54,7 @@ impl AreaStore {
 
         Ok(Self {
             object_store,
+            object_store_registry: Arc::new(ObjectStoreRegistry::new()),
             root_path: buf.to_str().unwrap().to_string(),
             root,
             storage_options: None,
@@ -76,6 +77,7 @@ impl AreaStore {
 
         Ok(Self {
             object_store,
+            object_store_registry: Arc::new(ObjectStoreRegistry::new()),
             root_path: format!("adls2://{}", container),
             root,
             storage_options: None,
@@ -120,7 +122,7 @@ impl AreaStore {
         batches: Vec<RecordBatch>,
         location: &Path,
         save_mode: SaveMode,
-    ) -> Result<Vec<stats::Add>> {
+    ) -> Result<Vec<String>> {
         let schema = batches[0].schema();
         let partition_cols = vec![];
         let mut writer = DeltaWriter::new(self.object_store(), schema, Some(partition_cols));

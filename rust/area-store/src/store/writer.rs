@@ -1,8 +1,5 @@
 //! Main writer API to write record batches to delta table
-use super::{
-    stats::{apply_null_counts, create_add, Add, NullCounts},
-    *,
-};
+use super::*;
 use crate::error::{AreaStoreError, Result};
 use arrow_deps::arrow::{
     self,
@@ -88,7 +85,7 @@ impl DeltaWriter {
     }
 
     /// Writes the existing parquet bytes to storage and resets internal state to handle another file.
-    pub async fn flush(&mut self, location: &Path) -> Result<Vec<Add>> {
+    pub async fn flush(&mut self, location: &Path) -> Result<Vec<String>> {
         let writers = std::mem::take(&mut self.arrow_writers);
         let mut actions = Vec::new();
 
@@ -101,15 +98,9 @@ impl DeltaWriter {
             self.storage.put(&file_loc, obj_bytes).await.unwrap();
 
             // Replace self null_counts with an empty map. Use the other for stats.
-            let null_counts = std::mem::take(&mut writer.null_counts);
+            // let null_counts = std::mem::take(&mut writer.null_counts);
 
-            actions.push(create_add(
-                &writer.partition_values,
-                null_counts,
-                location.as_ref().to_string(),
-                file_size,
-                &metadata,
-            )?);
+            actions.push(location.as_ref().to_string());
         }
 
         Ok(actions)
@@ -237,7 +228,6 @@ pub struct PartitionWriter {
     pub(super) buffer: ShareableBuffer,
     pub(super) arrow_writer: ArrowWriter<ShareableBuffer>,
     pub(super) partition_values: HashMap<String, Option<String>>,
-    pub(super) null_counts: NullCounts,
     pub(super) buffered_record_batch_count: usize,
 }
 
@@ -253,7 +243,6 @@ impl PartitionWriter {
             arrow_schema.clone(),
             Some(writer_properties.clone()),
         )?;
-        let null_counts = NullCounts::new();
         let buffered_record_batch_count = 0;
 
         Ok(Self {
@@ -262,7 +251,6 @@ impl PartitionWriter {
             buffer,
             arrow_writer,
             partition_values,
-            null_counts,
             buffered_record_batch_count,
         })
     }
@@ -284,7 +272,6 @@ impl PartitionWriter {
         match self.arrow_writer.write(record_batch) {
             Ok(_) => {
                 self.buffered_record_batch_count += 1;
-                apply_null_counts(&record_batch.clone().into(), &mut self.null_counts, 0);
                 Ok(())
             }
             // If a write fails we need to reset the state of the PartitionWriter
