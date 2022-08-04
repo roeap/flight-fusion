@@ -1,7 +1,4 @@
 //! Abstractions and implementations for writing data to delta tables
-// mod basic;
-// mod cache;
-// mod file_index;
 mod area_path;
 mod stats;
 pub mod writer;
@@ -10,6 +7,7 @@ use crate::error::{AreaStoreError, Result};
 pub use area_path::*;
 use arrow_deps::arrow::{datatypes::SchemaRef as ArrowSchemaRef, record_batch::RecordBatch};
 use arrow_deps::datafusion::arrow::record_batch::RecordBatchReader;
+use arrow_deps::datafusion::datasource::TableProvider;
 use arrow_deps::datafusion::parquet::arrow::{ArrowReader, ParquetFileArrowReader};
 use arrow_deps::datafusion::parquet::{
     arrow::{arrow_to_parquet_schema, ProjectionMask},
@@ -19,11 +17,16 @@ use arrow_deps::datafusion::parquet::{
 use arrow_deps::datafusion::physical_plan::{
     stream::RecordBatchStreamAdapter, SendableRecordBatchStream,
 };
-use arrow_deps::deltalake::open_table;
+use arrow_deps::deltalake::{
+    get_backend_for_uri, get_backend_for_uri_with_options, DeltaTable, DeltaTableBuilder,
+    DeltaTableConfig, DeltaTableError,
+};
 use flight_fusion_ipc::{AreaSourceReference, SaveMode};
 use futures::TryStreamExt;
 use object_store::{path::Path, DynObjectStore, Error as ObjectStoreError};
+use std::collections::HashMap;
 use std::sync::Arc;
+use url::Url;
 pub use writer::*;
 
 const DATA_FOLDER_NAME: &str = "_ff_data";
@@ -31,22 +34,94 @@ const DELTA_LOG_FOLDER_NAME: &str = "_delta_log";
 const DEFAULT_BATCH_SIZE: usize = 2048;
 
 #[derive(Debug, Clone)]
+pub struct Location {
+    pub scheme: String,
+    pub host: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+pub enum StorageLocation {
+    Local(Box<std::path::PathBuf>),
+    Azure(Location),
+    S3(Location),
+    Google(Location),
+    Unknown(Location),
+}
+
+impl TryFrom<&str> for StorageLocation {
+    type Error = AreaStoreError;
+
+    fn try_from(uri: &str) -> Result<Self> {
+        match Url::parse(&uri) {
+            Ok(parsed) => {
+                match parsed.scheme().to_lowercase().as_ref() {
+                    "az" | "abfs" | "adls2" | "azure" => Ok(Self::Azure(Location {
+                        scheme: parsed.scheme().to_owned(),
+                        host: parsed.host_str().map(|f| f.into()),
+                    })),
+                    "s3" | "s3a" => Ok(Self::S3(Location {
+                        scheme: parsed.scheme().to_owned(),
+                        host: parsed.host_str().map(|f| f.into()),
+                    })),
+                    "gs" => Ok(Self::Google(Location {
+                        scheme: parsed.scheme().to_owned(),
+                        host: parsed.host_str().map(|f| f.into()),
+                    })),
+                    _ => {
+                        // Since we did find some base / scheme, but don't recognize it, it
+                        // may be a local path (i.e. c:/.. on windows). We need to pipe it through path though
+                        // to get consistent path separators.
+                        let local_path = std::path::Path::new(&uri);
+                        let _ = Path::from_filesystem_path(local_path)
+                            .map_err(|err| AreaStoreError::Parsing(err.to_string()))?;
+                        Ok(Self::Local(Box::new(local_path.into())))
+                    }
+                }
+            }
+            Err(url::ParseError::RelativeUrlWithoutBase) => {
+                let local_path = std::path::Path::new(&uri);
+                let _ = Path::from_filesystem_path(local_path)
+                    .map_err(|err| AreaStoreError::Parsing(err.to_string()))?;
+                Ok(Self::Local(Box::new(local_path.into())))
+            }
+            Err(err) => Err(err),
+        }
+        .map_err(|err| AreaStoreError::Parsing(err.to_string()))
+    }
+}
+
+impl TryFrom<String> for StorageLocation {
+    type Error = AreaStoreError;
+
+    fn try_from(uri: String) -> Result<Self> {
+        Self::try_from(uri.as_ref())
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct AreaStore {
     object_store: Arc<DynObjectStore>,
     root_path: String,
+    pub root: StorageLocation,
+    pub(crate) storage_options: Option<HashMap<String, String>>,
 }
 
 impl AreaStore {
     pub fn try_new(root: impl Into<std::path::PathBuf>) -> Result<Self> {
         let buf: std::path::PathBuf = root.into();
+        std::fs::create_dir_all(&buf).map_err(|err| AreaStoreError::Generic {
+            source: Box::new(err),
+        })?;
         let object_store =
             Arc::new(object_store::local::LocalFileSystem::new_with_prefix(buf.clone()).unwrap());
-        // let file_index = Arc::new(FileIndex::new(object_store.clone()));
+        let buf = buf.canonicalize().unwrap();
+        let root = StorageLocation::try_from(buf.to_str().unwrap())?;
 
         Ok(Self {
             object_store,
             root_path: buf.to_str().unwrap().to_string(),
-            // file_index,
+            root,
+            storage_options: None,
         })
     }
 
@@ -62,12 +137,13 @@ impl AreaStore {
             container.clone(),
             false,
         )?);
-        // let file_index = Arc::new(FileIndex::new(object_store.clone()));
+        let root = StorageLocation::try_from(format!("azure://{}", &container))?;
 
         Ok(Self {
             object_store,
             root_path: format!("adls2://{}", container),
-            // file_index,
+            root,
+            storage_options: None,
         })
     }
 
@@ -83,17 +159,13 @@ impl AreaStore {
         Path::parse(trimmed_raw).unwrap()
     }
 
-    pub fn get_full_table_path(&self, source: &AreaPath) -> Result<String> {
-        Ok(format!("{}/{}", self.root_path, source.as_ref()))
-    }
-
     pub async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {
         let area_path = AreaPath::from(source);
         let is_delta = is_delta_location(self.object_store().clone(), &area_path).await?;
 
         if is_delta {
-            let full_path = self.get_full_table_path(&area_path)?;
-            let table = open_table(&full_path).await?;
+            let mut table = self.open_delta(&area_path).await?;
+            table.load().await?;
             return Ok(Arc::new(table.get_schema()?.try_into()?));
         }
 
@@ -154,8 +226,7 @@ impl AreaStore {
         let is_delta = is_delta_location(self.object_store().clone(), location).await?;
 
         if is_delta {
-            let full_path = self.get_full_table_path(location)?;
-            let table = open_table(&full_path).await?;
+            let table = self.open_delta(location).await?;
             return Ok(table.get_file_uris().map(Path::from).collect());
         }
 
@@ -183,8 +254,66 @@ impl AreaStore {
             .map_err(|err| AreaStoreError::from(err))
             .map_ok(|meta| AreaPath::from(meta.location))
             .try_collect::<Vec<_>>()
-            .await?;
+            .await?
+            .into_iter()
+            .filter(|area| area.is_table_root())
+            .collect();
+
+        println!("{:?}", areas);
+
         Ok(areas)
+    }
+
+    pub async fn table_provider(&self, location: &AreaPath) -> Result<Arc<dyn TableProvider>> {
+        Ok(Arc::new(self.open_delta(location).await?))
+    }
+
+    pub async fn open_delta_uninitialized(&self, location: &AreaPath) -> Result<DeltaTable> {
+        let full_path = format!("{}/{}", self.root_path, location.as_ref());
+        let storage = if let Some(options) = &self.storage_options {
+            get_backend_for_uri_with_options(&full_path, options.clone())?
+        } else {
+            get_backend_for_uri(&full_path)?
+        };
+        Ok(DeltaTable::new(
+            &full_path,
+            storage,
+            DeltaTableConfig::default(),
+        )?)
+    }
+
+    pub async fn open_delta(&self, location: &AreaPath) -> Result<DeltaTable> {
+        let full_path = format!("{}/{}", self.root_path, location.as_ref());
+        if let StorageLocation::Local(store_loc) = StorageLocation::try_from(full_path.as_ref())? {
+            std::fs::create_dir_all(store_loc.as_path()).map_err(|err| {
+                AreaStoreError::Generic {
+                    source: Box::new(err),
+                }
+            })?;
+        }
+        let mut builder = DeltaTableBuilder::from_uri(&full_path)?;
+        if let Some(options) = &self.storage_options {
+            let storage = get_backend_for_uri_with_options(&full_path, options.clone())?;
+            builder = builder.with_storage_backend(storage);
+        };
+        match builder.load().await {
+            Ok(table) => Ok(table),
+            Err(DeltaTableError::NotATable(_)) => {
+                let storage = if let Some(options) = &self.storage_options {
+                    get_backend_for_uri_with_options(&full_path, options.clone())?
+                } else {
+                    get_backend_for_uri(&full_path)?
+                };
+                Ok(DeltaTable::new(
+                    full_path,
+                    storage,
+                    DeltaTableConfig::default(),
+                )?)
+            }
+            Err(err) => Err(AreaStoreError::Generic {
+                source: Box::new(err),
+            }),
+        }
     }
 }
 
@@ -235,6 +364,14 @@ mod tests {
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
         SaveMode,
     };
+
+    #[test]
+    fn location() {
+        let location = StorageLocation::try_from("s3://bucket/path").unwrap();
+        println!("{:?}", location);
+        let location = StorageLocation::try_from("adls2://container/path").unwrap();
+        println!("{:?}", location)
+    }
 
     #[tokio::test]
     async fn is_delta() {

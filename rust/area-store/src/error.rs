@@ -1,7 +1,7 @@
 use arrow_deps::{
     arrow::{datatypes::SchemaRef, error::ArrowError},
     datafusion::{error::DataFusionError, parquet::errors::ParquetError},
-    deltalake::DeltaTableError,
+    deltalake::{storage::StorageError as DeltaStorageError, DeltaTableError},
 };
 use file_cache::DiskCacheError;
 use std::sync::Arc;
@@ -20,6 +20,10 @@ pub enum AreaStoreError {
     /// Partition column is missing in a record written to delta.
     #[error("Missing partition column: {0}")]
     MissingPartitionColumn(String),
+
+    /// Partition column is missing in a record written to delta.
+    #[error("Error parsing data: {0}")]
+    Parsing(String),
 
     /// The Arrow RecordBatch schema does not match the expected schema.
     #[error("Arrow RecordBatch schema does not match: RecordBatch schema: {record_batch_schema}, {expected_schema}")]
@@ -80,6 +84,20 @@ pub enum AreaStoreError {
         /// The wrapped [`DeltaTableError`]
         #[from]
         source: DeltaTableError,
+    },
+
+    #[error("Error in Delta storage: {source}")]
+    DeltaStorage {
+        /// The wrapped [`DeltaStorageError`]
+        #[from]
+        source: DeltaStorageError,
+    },
+
+    #[error("Generic: {source}")]
+    Generic {
+        /// A generic error
+        #[from]
+        source: Box<dyn std::error::Error + Send + Sync + 'static>,
     },
 }
 

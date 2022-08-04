@@ -17,7 +17,12 @@ impl AreaPath {
         if parts.len() < 2 {
             return false;
         }
-        parts[parts.len() - 2] == data_part
+        let idx = self
+            .0
+            .parts()
+            .position(|part| part == data_part)
+            .unwrap_or_default();
+        idx == parts.len() - 2
     }
 }
 

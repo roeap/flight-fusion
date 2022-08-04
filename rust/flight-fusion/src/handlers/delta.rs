@@ -6,7 +6,7 @@ use crate::{
 };
 use area_store::{
     projection::{PartitionColumnProjector, SchemaAdapter},
-    store::AreaStore,
+    store::{AreaPath, AreaStore, StorageLocation},
     Path,
 };
 use arrow_deps::arrow::{
@@ -21,9 +21,7 @@ use arrow_deps::datafusion::{
     },
     scalar::ScalarValue,
 };
-use arrow_deps::deltalake::{
-    action::SaveMode as DeltaSaveMode, open_table, operations::DeltaCommands,
-};
+use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, operations::DeltaCommands};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
     delta_operation_request::Operation as DeltaOperation, DeltaOperationRequest,
@@ -43,8 +41,22 @@ impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
         input: SendableRecordBatchStream,
     ) -> Result<DeltaOperationResponse> {
         if let Some(source) = ticket.source {
-            let full_path = self.area_store.get_full_table_path(&source.into())?;
-            let mut delta_cmd = DeltaCommands::try_from_uri(full_path).await?;
+            let area_path = AreaPath::from(&source);
+            if let StorageLocation::Local(path) = &self.area_store.root {
+                let table_path = path.as_path().join(area_path.as_ref());
+                std::fs::create_dir_all(&table_path)
+                    .map_err(|err| FusionServiceError::Generic(err.to_string()))?;
+            };
+            let mut commands: DeltaCommands =
+                match self.area_store.open_delta(&source.clone().into()).await {
+                    Ok(table) => table.into(),
+                    Err(_) => self
+                        .area_store
+                        .open_delta_uninitialized(&source.into())
+                        .await?
+                        .into(),
+                };
+
             let batches = collect(input).await?;
 
             match ticket.operation {
@@ -55,7 +67,7 @@ impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
                         Some(SaveMode::ErrorIfExists) => DeltaSaveMode::ErrorIfExists,
                         _ => todo!(),
                     };
-                    delta_cmd
+                    commands
                         .write(batches, mode, Some(req.partition_by))
                         .await?;
                 }
@@ -108,8 +120,7 @@ impl DoGetHandler<DeltaOperationRequest> for FlightFusionService {
         ticket: DeltaOperationRequest,
     ) -> Result<SendableRecordBatchStream> {
         if let Some(source) = ticket.source {
-            let full_path = self.area_store.get_full_table_path(&source.into())?;
-            let table = open_table(&full_path).await?;
+            let table = self.area_store.open_delta(&source.into()).await?;
             let files = table
                 .get_file_uris()
                 .zip(table.get_partition_values())
@@ -287,9 +298,10 @@ mod tests {
     #[tokio::test]
     async fn test_read_table() {
         let root = tempfile::tempdir().unwrap();
+        let path = root.path();
         let plan = get_input_stream(None, false);
         let ref_schema = plan.schema().clone();
-        let handler = get_fusion_handler(root.path());
+        let handler = get_fusion_handler(path);
 
         let table = TableReference::Location(AreaTableLocation {
             name: "new_table".to_string(),

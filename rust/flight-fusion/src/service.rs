@@ -2,7 +2,7 @@ use crate::stream::{
     raw_stream_to_flight_data_stream, stream_flight_data, FlightDataReceiver, FlightDataSender,
 };
 use crate::{error::FusionServiceError, handlers::*};
-use area_store::store::{is_delta_location, AreaPath, AreaStore};
+use area_store::store::{is_delta_location, AreaStore};
 use arrow_deps::arrow_flight::{
     self, flight_descriptor::DescriptorType, flight_service_server::FlightService, Action,
     ActionType, Criteria, Empty, FlightData, FlightDescriptor, FlightInfo, HandshakeRequest,
@@ -14,15 +14,11 @@ use arrow_deps::datafusion::{
         catalog::{CatalogProvider, MemoryCatalogProvider},
         schema::MemorySchemaProvider,
     },
-    datasource::MemTable,
-    physical_plan::common::collect,
-    prelude::SessionContext,
 };
 use flight_fusion_ipc::{
-    area_source_reference::Table, flight_action_request::Action as FusionAction,
-    flight_do_get_request::Command as DoGetCommand, flight_do_put_request::Command as DoPutCommand,
-    serialize_message, AreaSourceMetadata, AreaSourceReference, CommandListSources,
-    FlightActionRequest, FlightDoGetRequest,
+    flight_action_request::Action as FusionAction, flight_do_get_request::Command as DoGetCommand,
+    flight_do_put_request::Command as DoPutCommand, serialize_message, AreaSourceMetadata,
+    AreaSourceReference, CommandListSources, FlightActionRequest, FlightDoGetRequest,
 };
 use futures::Stream;
 use observability_deps::opentelemetry::{global, propagation::Extractor};
@@ -102,30 +98,6 @@ impl FlightFusionService {
             catalog,
             area_store,
         })
-    }
-
-    pub async fn register_source(
-        &self,
-        ctx: &mut SessionContext,
-        source: &AreaSourceReference,
-    ) -> crate::error::Result<()> {
-        let location: AreaPath = source.clone().into();
-        // TODO rather then fetching location files, we should get a table provider
-        let files = self.area_store.get_location_files(&location).await.unwrap();
-        let mut batches = Vec::new();
-        for file in files {
-            let curr = collect(self.area_store.open_file(&file.into(), None).await?).await?;
-            batches.extend(curr)
-        }
-        let table_provider = Arc::new(MemTable::try_new(batches[0].schema(), vec![batches])?);
-        let name = match &source {
-            AreaSourceReference {
-                table: Some(Table::Location(tbl)),
-            } => tbl.name.clone(),
-            _ => todo!(),
-        };
-        ctx.register_table(&*name, table_provider)?;
-        Ok(())
     }
 }
 

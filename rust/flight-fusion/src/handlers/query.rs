@@ -1,8 +1,31 @@
 use super::DoGetHandler;
 use crate::{error::Result, service::FlightFusionService};
+use area_store::store::AreaPath;
 use arrow_deps::datafusion::{physical_plan::SendableRecordBatchStream, prelude::SessionContext};
 use async_trait::async_trait;
-use flight_fusion_ipc::{command_execute_query::Context as QueryContext, CommandExecuteQuery};
+use flight_fusion_ipc::{
+    area_source_reference::Table, command_execute_query::Context as QueryContext,
+    AreaSourceReference, CommandExecuteQuery,
+};
+
+impl FlightFusionService {
+    pub async fn register_source(
+        &self,
+        ctx: &mut SessionContext,
+        source: &AreaSourceReference,
+    ) -> crate::error::Result<()> {
+        let location: AreaPath = source.clone().into();
+        let table_provider = self.area_store.table_provider(&location).await?;
+        let name = match &source {
+            AreaSourceReference {
+                table: Some(Table::Location(tbl)),
+            } => tbl.name.clone(),
+            _ => todo!(),
+        };
+        ctx.register_table(&*name, table_provider)?;
+        Ok(())
+    }
+}
 
 #[async_trait]
 impl DoGetHandler<CommandExecuteQuery> for FlightFusionService {
