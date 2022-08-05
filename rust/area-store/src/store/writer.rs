@@ -89,12 +89,12 @@ impl DeltaWriter {
         let writers = std::mem::take(&mut self.arrow_writers);
         let mut actions = Vec::new();
 
-        for (_, mut writer) in writers {
-            let metadata = writer.arrow_writer.close()?;
+        for (_, writer) in writers {
+            // let metadata = writer.arrow_writer.close()?;
             let file_loc = self.next_data_path(location, &writer.partition_values, None)?;
 
             let obj_bytes = bytes::Bytes::from(writer.buffer.to_vec());
-            let file_size = obj_bytes.len() as i64;
+            // let file_size = obj_bytes.len() as i64;
             self.storage.put(&file_loc, obj_bytes).await.unwrap();
 
             // Replace self null_counts with an empty map. Use the other for stats.

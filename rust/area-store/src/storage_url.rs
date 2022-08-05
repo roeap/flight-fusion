@@ -1,10 +1,5 @@
 use crate::error::{AreaStoreError, Result};
-use futures::stream::BoxStream;
-use futures::{StreamExt, TryStreamExt};
-use glob::Pattern;
-use itertools::Itertools;
 use object_store::path::Path;
-use object_store::{ObjectMeta, ObjectStore};
 use url::Url;
 
 /// A parsed URL identifying a particular [`ObjectStore`]
@@ -69,8 +64,6 @@ pub struct StorageUrl {
     pub(crate) url: Url,
     /// The path prefix
     prefix: Path,
-    /// An optional glob expression used to filter files
-    glob: Option<Pattern>,
 }
 
 impl StorageUrl {
@@ -82,9 +75,6 @@ impl StorageUrl {
     /// as determined [`std::path::Path::is_absolute`], the string will be
     /// interpreted as a path on the local filesystem using the operating
     /// system's standard path delimiter, i.e. `\` on Windows, `/` on Unix.
-    ///
-    /// If the path contains any of `'?', '*', '['`, it will be considered
-    /// a glob expression and resolved as described in the section below.
     ///
     /// Otherwise, the path will be resolved to an absolute path, returning
     /// an error if it does not exist, and converted to a [file URI]
@@ -116,7 +106,7 @@ impl StorageUrl {
         }
 
         match Url::parse(s) {
-            Ok(url) => Ok(Self::new(url, None)),
+            Ok(url) => Ok(Self::new(url)),
             Err(url::ParseError::RelativeUrlWithoutBase) => Self::parse_path(s),
             Err(e) => Err(AreaStoreError::External(Box::new(e))),
         }
@@ -124,27 +114,19 @@ impl StorageUrl {
 
     /// Creates a new [`StorageUrl`] interpreting `s` as a filesystem path
     fn parse_path(s: &str) -> Result<Self> {
-        let (prefix, glob) = match split_glob_expression(s) {
-            Some((prefix, glob)) => {
-                let glob = Pattern::new(glob).map_err(|e| AreaStoreError::External(Box::new(e)))?;
-                (prefix, Some(glob))
-            }
-            None => (s, None),
-        };
-
-        let path = std::path::Path::new(prefix).canonicalize()?;
+        let path = std::path::Path::new(s).canonicalize()?;
         let url = match path.is_file() {
             true => Url::from_file_path(path).unwrap(),
             false => Url::from_directory_path(path).unwrap(),
         };
 
-        Ok(Self::new(url, glob))
+        Ok(Self::new(url))
     }
 
     /// Creates a new [`StorageUrl`] from a url and optional glob expression
-    fn new(url: Url, glob: Option<Pattern>) -> Self {
+    fn new(url: Url) -> Self {
         let prefix = Path::parse(url.path()).expect("should be URL safe");
-        Self { url, prefix, glob }
+        Self { url, prefix }
     }
 
     /// Returns the URL scheme
@@ -165,41 +147,6 @@ impl StorageUrl {
             p => path.strip_prefix(p)?.strip_prefix(DELIMITER)?,
         };
         Some(stripped.split(DELIMITER))
-    }
-
-    /// List all files identified by this [`StorageUrl`] for the provided `file_extension`
-    pub fn list_all_files<'a>(
-        &'a self,
-        store: &'a dyn ObjectStore,
-        file_extension: &'a str,
-    ) -> BoxStream<'a, Result<ObjectMeta>> {
-        // If the prefix is a file, use a head request, otherwise list
-        let is_dir = self.url.as_str().ends_with('/');
-        let list = match is_dir {
-            true => futures::stream::once(store.list(Some(&self.prefix)))
-                .try_flatten()
-                .boxed(),
-            false => futures::stream::once(store.head(&self.prefix)).boxed(),
-        };
-
-        list.map_err(Into::into)
-            .try_filter(move |meta| {
-                let path = &meta.location;
-                let extension_match = path.as_ref().ends_with(file_extension);
-                let glob_match = match &self.glob {
-                    Some(glob) => match self.strip_prefix(path) {
-                        Some(mut segments) => {
-                            let stripped = segments.join("/");
-                            glob.matches(&stripped)
-                        }
-                        None => false,
-                    },
-                    None => true,
-                };
-
-                futures::future::ready(extension_match && glob_match)
-            })
-            .boxed()
     }
 
     /// Returns this [`StorageUrl`] as a string
@@ -230,32 +177,6 @@ impl std::fmt::Display for StorageUrl {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.as_str().fmt(f)
     }
-}
-
-const GLOB_START_CHARS: [char; 3] = ['?', '*', '['];
-
-/// Splits `path` at the first path segment containing a glob expression, returning
-/// `None` if no glob expression found.
-///
-/// Path delimiters are determined using [`std::path::is_separator`] which
-/// permits `/` as a path delimiter even on Windows platforms.
-///
-fn split_glob_expression(path: &str) -> Option<(&str, &str)> {
-    let mut last_separator = 0;
-
-    for (byte_idx, char) in path.char_indices() {
-        if GLOB_START_CHARS.contains(&char) {
-            if last_separator == 0 {
-                return Some((".", path));
-            }
-            return Some(path.split_at(last_separator));
-        }
-
-        if std::path::is_separator(char) {
-            last_separator = byte_idx + char.len_utf8();
-        }
-    }
-    None
 }
 
 #[cfg(test)]
@@ -294,41 +215,5 @@ mod tests {
 
         let path = Path::from("other/bar/partition/foo.parquet");
         assert!(url.strip_prefix(&path).is_none());
-    }
-
-    #[test]
-    fn test_split_glob() {
-        fn test(input: &str, expected: Option<(&str, &str)>) {
-            assert_eq!(
-                split_glob_expression(input),
-                expected,
-                "testing split_glob_expression with {}",
-                input
-            );
-        }
-
-        // no glob patterns
-        test("/", None);
-        test("/a.txt", None);
-        test("/a", None);
-        test("/a/", None);
-        test("/a/b", None);
-        test("/a/b/", None);
-        test("/a/b.txt", None);
-        test("/a/b/c.txt", None);
-        // glob patterns, thus we build the longest path (os-specific)
-        test("*.txt", Some((".", "*.txt")));
-        test("/*.txt", Some(("/", "*.txt")));
-        test("/a/*b.txt", Some(("/a/", "*b.txt")));
-        test("/a/*/b.txt", Some(("/a/", "*/b.txt")));
-        test("/a/b/[123]/file*.txt", Some(("/a/b/", "[123]/file*.txt")));
-        test("/a/b*.txt", Some(("/a/", "b*.txt")));
-        test("/a/b/**/c*.txt", Some(("/a/b/", "**/c*.txt")));
-
-        // https://github.com/apache/arrow-datafusion/issues/2465
-        test(
-            "/a/b/c//alltypes_plain*.parquet",
-            Some(("/a/b/c//", "alltypes_plain*.parquet")),
-        );
     }
 }
