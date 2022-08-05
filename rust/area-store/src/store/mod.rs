@@ -1,17 +1,16 @@
 //! Abstractions and implementations for writing data to delta tables
 mod area_path;
-// mod stats;
 pub mod writer;
-
 use crate::error::{AreaStoreError, Result};
 use crate::storage_location::StorageLocation;
 pub use area_path::*;
-use arrow_deps::arrow::{datatypes::SchemaRef as ArrowSchemaRef, record_batch::RecordBatch};
-use arrow_deps::datafusion::arrow::record_batch::RecordBatchReader;
+use arrow_deps::arrow::{
+    datatypes::SchemaRef as ArrowSchemaRef,
+    record_batch::{RecordBatch, RecordBatchReader},
+};
 use arrow_deps::datafusion::datasource::{object_store::ObjectStoreRegistry, TableProvider};
-use arrow_deps::datafusion::parquet::arrow::{ArrowReader, ParquetFileArrowReader};
 use arrow_deps::datafusion::parquet::{
-    arrow::{arrow_to_parquet_schema, ProjectionMask},
+    arrow::{arrow_to_parquet_schema, ArrowReader, ParquetFileArrowReader, ProjectionMask},
     file::serialized_reader::SerializedFileReader,
 };
 use arrow_deps::datafusion::physical_plan::{
@@ -22,6 +21,7 @@ use arrow_deps::deltalake::{
     DeltaTableConfig, DeltaTableError,
 };
 use flight_fusion_ipc::{AreaSourceReference, SaveMode};
+use futures::StreamExt;
 use futures::TryStreamExt;
 use object_store::{path::Path, DynObjectStore, Error as ObjectStoreError};
 use std::collections::HashMap;
@@ -116,38 +116,52 @@ impl AreaStore {
         Ok(reader.schema())
     }
 
-    // TODO use SendableRecordBatchStream as input
+    #[allow(clippy::manual_async_fn)]
+    #[fix_hidden_lifetime_bug::fix_hidden_lifetime_bug]
     pub async fn put_batches(
         &self,
-        batches: Vec<RecordBatch>,
+        #[allow(unused_mut)] mut input: SendableRecordBatchStream,
         location: &Path,
         save_mode: SaveMode,
-    ) -> Result<Vec<String>> {
-        let schema = batches[0].schema();
-        let partition_cols = vec![];
-        let mut writer = DeltaWriter::new(self.object_store(), schema, Some(partition_cols));
-        for batch in batches.iter() {
-            writer.write(batch)?
-        }
-        match save_mode {
-            SaveMode::Overwrite => {
-                let files = &self
-                    .object_store()
+    ) -> Result<()> {
+        let files = match save_mode {
+            SaveMode::Overwrite | SaveMode::ErrorIfExists => {
+                self.object_store()
                     .list(Some(location))
                     .await?
                     .try_collect::<Vec<_>>()
-                    .await?;
+                    .await?
+            }
+            _ => vec![],
+        };
+
+        match save_mode {
+            SaveMode::Overwrite => {
                 for file in files {
                     self.object_store().delete(&file.location).await?;
                 }
-                writer.flush(location).await
+                Ok(())
             }
-            // TODO actually check if exists
-            SaveMode::ErrorIfExists => Err(AreaStoreError::TableAlreadyExists(
+            SaveMode::ErrorIfExists if files.len() > 0 => Err(AreaStoreError::TableAlreadyExists(
                 location.as_ref().to_string(),
             )),
-            _ => writer.flush(location).await,
+            _ => Ok(()),
+        }?;
+
+        let schema = input.schema();
+        let mut writer = DeltaWriter::new(
+            self.object_store(),
+            schema,
+            // TODO partition cols
+            None,
+        );
+        while let Some(maybe_batch) = input.next().await {
+            let batch = maybe_batch?;
+            writer.write(&batch)?;
         }
+        let _adds = writer.flush(location).await?;
+
+        Ok(())
     }
 
     /// Stream RecordBatches from a parquet file
@@ -293,7 +307,7 @@ pub async fn open_file(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{get_record_batch, workspace_test_data_folder};
+    use crate::test_utils::{get_input_stream, get_record_batch, workspace_test_data_folder};
     use arrow_deps::arrow::datatypes::{DataType, Field, Schema, TimeUnit};
     use arrow_deps::datafusion::physical_plan::common::collect;
     use bytes::Bytes;
@@ -352,14 +366,9 @@ mod tests {
         let root = tempfile::tempdir().unwrap();
         let area_store = AreaStore::try_new(root.path()).unwrap();
         let location: AreaPath = Path::from("_ff_data/test").into();
-
-        let batch = crate::test_utils::get_record_batch(None, false);
+        let stream = get_input_stream(None, false);
         area_store
-            .put_batches(
-                vec![batch.clone()],
-                &location.clone().into(),
-                SaveMode::Append,
-            )
+            .put_batches(stream, &location.clone().into(), SaveMode::Append)
             .await
             .unwrap();
 
@@ -374,7 +383,7 @@ mod tests {
         .await
         .unwrap();
 
-        assert_eq!(batch, read_batch[0])
+        assert!(read_batch[0].num_rows() > 0)
     }
 
     #[tokio::test]
@@ -386,8 +395,9 @@ mod tests {
         let path = Path::parse("_ff_data/asd").unwrap();
 
         let batch = get_record_batch(None, false);
+        let stream = get_input_stream(None, false);
         area_store
-            .put_batches(vec![batch.clone()], &path, SaveMode::Overwrite)
+            .put_batches(stream, &path, SaveMode::Overwrite)
             .await
             .unwrap();
 

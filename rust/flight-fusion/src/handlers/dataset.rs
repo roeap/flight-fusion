@@ -10,15 +10,13 @@ use arrow_deps::arrow::{
     error::{ArrowError, Result as ArrowResult},
     record_batch::RecordBatch,
 };
-use arrow_deps::datafusion::physical_plan::{
-    common::{collect, AbortOnDropMany},
-    SendableRecordBatchStream,
-};
+use arrow_deps::datafusion::physical_plan::{common::AbortOnDropMany, SendableRecordBatchStream};
 use async_trait::async_trait;
 use flight_fusion_ipc::{CommandReadDataset, CommandWriteIntoDataset, ResultDoPutUpdate, SaveMode};
 use futures::channel::mpsc;
+use futures::stream::StreamExt;
 use futures::SinkExt;
-use futures::StreamExt;
+// use futures::StreamExt;
 use std::sync::Arc;
 use tokio::task::JoinHandle;
 
@@ -31,15 +29,15 @@ impl DoPutHandler<CommandWriteIntoDataset> for FlightFusionService {
     ) -> Result<ResultDoPutUpdate> {
         if let Some(source) = ticket.source {
             let location: AreaPath = source.into();
-            let batches = collect(input).await?;
             let _adds = self
                 .area_store
                 .put_batches(
-                    batches,
+                    input,
                     &location.into(),
                     SaveMode::from_i32(ticket.save_mode).unwrap_or(SaveMode::Overwrite),
                 )
                 .await?;
+
             Ok(ResultDoPutUpdate { statistics: None })
         } else {
             // TODO migrate errors and raise something more meaningful

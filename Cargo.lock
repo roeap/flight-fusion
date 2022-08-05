@@ -75,6 +75,7 @@ dependencies = [
  "chrono",
  "dashmap",
  "file-cache",
+ "fix-hidden-lifetime-bug",
  "flight-fusion-ipc",
  "futures",
  "lazy_static",

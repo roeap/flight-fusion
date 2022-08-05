@@ -55,12 +55,34 @@ mod tests {
     use crate::handlers::DoGetHandler;
     use crate::handlers::DoPutHandler;
     use crate::test_utils::{get_fusion_handler, get_input_stream};
-    use arrow_deps::datafusion::physical_plan::common::collect;
+    use arrow_deps::datafusion::{
+        datasource::{
+            listing::{ListingTable, ListingTableConfig, ListingTableUrl},
+            TableProvider,
+        },
+        physical_plan::common::collect,
+        prelude::SessionContext,
+    };
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, command_execute_query::Context,
         AreaSourceReference, AreaTableLocation, CommandWriteIntoDataset, SaveMode,
         SourceCollection,
     };
+
+    #[tokio::test]
+    async fn test_asd() {
+        let data_path = "/home/robstar/github/flight-fusion/test/data";
+        let table_path = ListingTableUrl::parse(data_path).unwrap();
+        let ctx = SessionContext::default();
+        let config = ListingTableConfig::new(table_path)
+            .infer(&ctx.state())
+            .await
+            .unwrap();
+        let table = ListingTable::try_new(config).unwrap();
+        let state = ctx.state();
+        let exec = table.scan(&state, &None, &[], None).await.unwrap();
+        println!("{:?}", exec.statistics());
+    }
 
     #[tokio::test]
     async fn test_execute_query() {
