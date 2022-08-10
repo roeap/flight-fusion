@@ -7,11 +7,11 @@ publish = false
 [dependencies]
 # Crates.io dependencies
 arrow-flight = "18"
-parquet = { version = "18", features = ["async"] }
+# parquet = { version = "18", features = ["async"] }
 # Git dependencies
 datafusion = { version = "10" }
 datafusion-data-access = { version = "10" }
-deltalake = { git = "https://github.com/roeap/delta-rs", rev = "91821f255b1e5e4a6321b91a2a3502743fde146e", features = [
+deltalake = { git = "https://github.com/delta-io/delta-rs", rev = "b885b7daa778184c02fc9aacb916fd3f1188ffdc", features = [
   "datafusion-ext",
   "azure",
 ], optional = true }
