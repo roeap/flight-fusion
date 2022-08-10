@@ -1044,7 +1044,7 @@ dependencies = [
 [[package]]
 name = "deltalake"
 version = "0.4.1"
-source = "git+https://github.com/roeap/delta-rs?rev=a0d5eed77eab44b3b827f10bcdb031aa1a0caa9b#a0d5eed77eab44b3b827f10bcdb031aa1a0caa9b"
+source = "git+https://github.com/roeap/delta-rs?rev=91821f255b1e5e4a6321b91a2a3502743fde146e#91821f255b1e5e4a6321b91a2a3502743fde146e"
 dependencies = [
  "arrow",
  "async-trait",
@@ -1276,6 +1276,7 @@ dependencies = [
  "artifact-store",
  "async-trait",
  "bytes",
+ "chrono",
  "config",
  "dotenv",
  "file-cache",

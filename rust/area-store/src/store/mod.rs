@@ -2,23 +2,29 @@
 mod area_path;
 pub mod writer;
 use crate::error::{AreaStoreError, Result};
-use crate::storage_location::StorageLocation;
+use crate::storage_url::{StorageService, StorageUrl};
 pub use area_path::*;
 use arrow_deps::arrow::{
     datatypes::SchemaRef as ArrowSchemaRef,
     record_batch::{RecordBatch, RecordBatchReader},
 };
-use arrow_deps::datafusion::datasource::{object_store::ObjectStoreRegistry, TableProvider};
-use arrow_deps::datafusion::parquet::{
-    arrow::{arrow_to_parquet_schema, ArrowReader, ParquetFileArrowReader, ProjectionMask},
-    file::serialized_reader::SerializedFileReader,
-};
-use arrow_deps::datafusion::physical_plan::{
-    stream::RecordBatchStreamAdapter, SendableRecordBatchStream,
+use arrow_deps::datafusion::{
+    datasource::{
+        file_format::parquet::ParquetFormat,
+        listing::{ListingOptions, ListingTable, ListingTableConfig, ListingTableUrl},
+        TableProvider,
+    },
+    parquet::{
+        arrow::{arrow_to_parquet_schema, ArrowReader, ParquetFileArrowReader, ProjectionMask},
+        file::serialized_reader::SerializedFileReader,
+    },
+    physical_plan::{stream::RecordBatchStreamAdapter, SendableRecordBatchStream},
+    prelude::SessionContext,
 };
 use arrow_deps::deltalake::{
-    get_backend_for_uri, get_backend_for_uri_with_options, DeltaTable, DeltaTableBuilder,
-    DeltaTableConfig, DeltaTableError,
+    get_backend_for_uri, get_backend_for_uri_with_options,
+    writer::{DeltaWriter, RecordBatchWriter},
+    DeltaTable, DeltaTableBuilder, DeltaTableConfig, DeltaTableError,
 };
 use flight_fusion_ipc::{AreaSourceReference, SaveMode};
 use futures::StreamExt;
@@ -35,9 +41,8 @@ const DEFAULT_BATCH_SIZE: usize = 2048;
 #[derive(Debug, Clone)]
 pub struct AreaStore {
     object_store: Arc<DynObjectStore>,
-    object_store_registry: Arc<ObjectStoreRegistry>,
     root_path: String,
-    pub root: StorageLocation,
+    pub root: StorageUrl,
     pub(crate) storage_options: Option<HashMap<String, String>>,
 }
 
@@ -47,14 +52,16 @@ impl AreaStore {
         std::fs::create_dir_all(&buf).map_err(|err| AreaStoreError::Generic {
             source: Box::new(err),
         })?;
+
+        let root = StorageUrl::parse(buf.to_str().ok_or(AreaStoreError::Parsing(
+            "failed to convert path".to_string(),
+        ))?)?;
+
         let object_store =
             Arc::new(object_store::local::LocalFileSystem::new_with_prefix(buf.clone()).unwrap());
-        let buf = buf.canonicalize().unwrap();
-        let root = StorageLocation::try_from(buf.to_str().unwrap())?;
 
         Ok(Self {
             object_store,
-            object_store_registry: Arc::new(ObjectStoreRegistry::new()),
             root_path: buf.to_str().unwrap().to_string(),
             root,
             storage_options: None,
@@ -67,17 +74,17 @@ impl AreaStore {
         container_name: impl Into<String>,
     ) -> Result<Self> {
         let container: String = container_name.into();
+
+        let root = StorageUrl::parse(format!("azure://{}", &container))?;
         let object_store = Arc::new(object_store::azure::new_azure(
             account,
             access_key,
             container.clone(),
             false,
         )?);
-        let root = StorageLocation::try_from(format!("azure://{}", &container))?;
 
         Ok(Self {
             object_store,
-            object_store_registry: Arc::new(ObjectStoreRegistry::new()),
             root_path: format!("adls2://{}", container),
             root,
             storage_options: None,
@@ -88,32 +95,9 @@ impl AreaStore {
         self.object_store.clone()
     }
 
-    pub fn get_path_from_raw(&self, raw: String) -> Path {
-        let trimmed_raw = raw
-            .trim_start_matches(&self.root_path)
-            .trim_start_matches('/');
-        // TODO remove panic
-        Path::parse(trimmed_raw).unwrap()
-    }
-
     pub async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {
-        let area_path = AreaPath::from(source);
-        let is_delta = is_delta_location(self.object_store().clone(), &area_path).await?;
-
-        if is_delta {
-            let mut table = self.open_delta(&area_path).await?;
-            table.load().await?;
-            return Ok(Arc::new(table.get_schema()?.try_into()?));
-        }
-
-        let files = self.get_location_files(&area_path).await?;
-        if files.is_empty() {
-            return Err(AreaStoreError::TableDoesNotExists(
-                "does not exist".to_string(),
-            ));
-        }
-        let reader = self.open_file(&files[0].clone().into(), None).await?;
-        Ok(reader.schema())
+        let table = self.table_provider(&source.into()).await?;
+        Ok(table.schema())
     }
 
     #[allow(clippy::manual_async_fn)]
@@ -149,17 +133,14 @@ impl AreaStore {
         }?;
 
         let schema = input.schema();
-        let mut writer = DeltaWriter::new(
-            self.object_store(),
-            schema,
-            // TODO partition cols
-            None,
-        );
+        let full_path = self.full_path_delta(&location)?;
+        let mut writer = RecordBatchWriter::try_new(full_path, schema.clone(), None, None).unwrap();
+
         while let Some(maybe_batch) = input.next().await {
-            let batch = maybe_batch?;
-            writer.write(&batch)?;
+            let batch = maybe_batch.unwrap();
+            writer.write(batch).await.unwrap();
         }
-        let _adds = writer.flush(location).await?;
+        let _adds = writer.flush().await.unwrap();
 
         Ok(())
     }
@@ -174,9 +155,7 @@ impl AreaStore {
     }
 
     pub async fn get_location_files(&self, location: &AreaPath) -> Result<Vec<Path>> {
-        let is_delta = is_delta_location(self.object_store().clone(), location).await?;
-
-        if is_delta {
+        if is_delta_location(self.object_store(), location).await? {
             let table = self.open_delta(location).await?;
             return Ok(table.get_file_uris().map(Path::from).collect());
         }
@@ -216,7 +195,35 @@ impl AreaStore {
     }
 
     pub async fn table_provider(&self, location: &AreaPath) -> Result<Arc<dyn TableProvider>> {
-        Ok(Arc::new(self.open_delta(location).await?))
+        if is_delta_location(self.object_store().clone(), &location).await? {
+            Ok(Arc::new(self.open_delta(location).await?))
+        } else {
+            Ok(Arc::new(self.open_listing_table(location).await?))
+        }
+    }
+
+    pub async fn open_listing_table(&self, location: &AreaPath) -> Result<ListingTable> {
+        let files = self
+            .get_location_files(location)
+            .await?
+            .into_iter()
+            .map(|p| Ok(ListingTableUrl::parse(format!("file:///{}", p.as_ref()))?))
+            .collect::<std::result::Result<Vec<_>, AreaStoreError>>()?;
+        let root_url = url::Url::parse(self.root.as_str()).unwrap();
+
+        let ctx = SessionContext::new();
+        ctx.runtime_env().register_object_store(
+            root_url.scheme(),
+            root_url.host_str().unwrap_or(""),
+            self.object_store(),
+        );
+        let opt = ListingOptions::new(Arc::new(ParquetFormat::default()));
+        let schema = opt.infer_schema(&ctx.state(), &files[0]).await?;
+        let config = ListingTableConfig::new_with_multi_paths(files)
+            .with_listing_options(opt)
+            .with_schema(schema);
+
+        Ok(ListingTable::try_new(config)?)
     }
 
     pub async fn open_delta_uninitialized(&self, location: &AreaPath) -> Result<DeltaTable> {
@@ -234,14 +241,8 @@ impl AreaStore {
     }
 
     pub async fn open_delta(&self, location: &AreaPath) -> Result<DeltaTable> {
-        let full_path = format!("{}/{}", self.root_path, location.as_ref());
-        if let StorageLocation::Local(store_loc) = StorageLocation::try_from(full_path.as_ref())? {
-            std::fs::create_dir_all(store_loc.as_path()).map_err(|err| {
-                AreaStoreError::Generic {
-                    source: Box::new(err),
-                }
-            })?;
-        }
+        let full_path = self.full_path_delta(&location.into())?;
+
         let mut builder = DeltaTableBuilder::from_uri(&full_path)?;
         if let Some(options) = &self.storage_options {
             let storage = get_backend_for_uri_with_options(&full_path, options.clone())?;
@@ -264,6 +265,45 @@ impl AreaStore {
             Err(err) => Err(AreaStoreError::Generic {
                 source: Box::new(err),
             }),
+        }
+    }
+
+    fn full_path(&self, location: &Path) -> Result<String> {
+        match StorageService::from(&self.root) {
+            StorageService::Local(path) => {
+                std::fs::create_dir_all(path.as_path()).map_err(|err| AreaStoreError::Generic {
+                    source: Box::new(err),
+                })?;
+
+                Ok(format!("{}{}", self.root.as_str(), location.as_ref()))
+            }
+            StorageService::Azure(config) => {
+                let full = self.root.add_prefix(location);
+                Ok(format!(
+                    "{}://{}/{}",
+                    config.scheme,
+                    config.container,
+                    full.as_ref()
+                ))
+            }
+            _ => todo!(),
+        }
+    }
+
+    fn full_path_delta(&self, location: &Path) -> Result<String> {
+        match StorageService::from(&self.root) {
+            StorageService::Local(path) => {
+                std::fs::create_dir_all(path.as_path()).map_err(|err| AreaStoreError::Generic {
+                    source: Box::new(err),
+                })?;
+
+                Ok(format!("{}{}", self.root.as_str(), location.as_ref()))
+            }
+            StorageService::Azure(config) => {
+                let full = self.root.add_prefix(location);
+                Ok(format!("adls2://{}/{}", config.container, full.as_ref()))
+            }
+            _ => todo!(),
         }
     }
 }
@@ -307,9 +347,8 @@ pub async fn open_file(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{get_input_stream, get_record_batch, workspace_test_data_folder};
+    use crate::test_utils::{get_input_stream, workspace_test_data_folder};
     use arrow_deps::arrow::datatypes::{DataType, Field, Schema, TimeUnit};
-    use arrow_deps::datafusion::physical_plan::common::collect;
     use bytes::Bytes;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
@@ -366,49 +405,43 @@ mod tests {
         let root = tempfile::tempdir().unwrap();
         let area_store = AreaStore::try_new(root.path()).unwrap();
         let location: AreaPath = Path::from("_ff_data/test").into();
+
         let stream = get_input_stream(None, false);
+        let schema = stream.schema();
         area_store
             .put_batches(stream, &location.clone().into(), SaveMode::Append)
             .await
             .unwrap();
 
-        let files = area_store.get_location_files(&location).await.unwrap();
+        let table = area_store.table_provider(&location).await.unwrap();
 
-        let read_batch = collect(
-            area_store
-                .open_file(&files[0].clone().into(), None)
-                .await
-                .unwrap(),
-        )
-        .await
-        .unwrap();
-
-        assert!(read_batch[0].num_rows() > 0)
+        assert_eq!(table.schema(), schema)
     }
 
     #[tokio::test]
     async fn read_schema() {
-        let root = tempfile::tempdir().unwrap();
-        let area_root = root.path();
+        let area_root = workspace_test_data_folder();
         let area_store = Arc::new(AreaStore::try_new(area_root).unwrap());
 
-        let path = Path::parse("_ff_data/asd").unwrap();
+        let ref_schema = Arc::new(Schema::new(vec![
+            Field::new(
+                "timestamp",
+                DataType::Timestamp(TimeUnit::Microsecond, None),
+                true,
+            ),
+            Field::new("S2", DataType::Float64, true),
+            Field::new("S3", DataType::Float64, true),
+            Field::new("S5", DataType::Float64, true),
+        ]));
 
-        let batch = get_record_batch(None, false);
-        let stream = get_input_stream(None, false);
-        area_store
-            .put_batches(stream, &path, SaveMode::Overwrite)
-            .await
-            .unwrap();
-
-        let table = TableReference::Location(AreaTableLocation {
-            name: "asd".to_string(),
-            areas: vec![],
-        });
-        let source = AreaSourceReference { table: Some(table) };
-
+        let source = AreaSourceReference {
+            table: Some(TableReference::Location(AreaTableLocation {
+                name: "simple".to_string(),
+                areas: vec!["listing".to_string()],
+            })),
+        };
         let schema = area_store.get_schema(&source).await.unwrap();
-        assert_eq!(schema, batch.schema());
+        assert_eq!(schema, ref_schema);
     }
 
     #[tokio::test]

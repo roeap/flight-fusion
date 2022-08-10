@@ -2,6 +2,9 @@ use crate::error::{AreaStoreError, Result};
 use object_store::path::Path;
 use url::Url;
 
+const AZURE_ADLS_HOST: &str = "dfs.core.windows.net";
+const AZURE_BLOB_HOST: &str = "blob.core.windows.net";
+
 /// A parsed URL identifying a particular [`ObjectStore`]
 #[derive(Debug, Clone, PartialEq)]
 pub struct ObjectStoreUrl {
@@ -149,6 +152,16 @@ impl StorageUrl {
         Some(stripped.split(DELIMITER))
     }
 
+    /// Adds the prefix of this [`StorageUrl`] to the provided path,
+    /// returning a Path containing all segments
+    pub fn add_prefix(&self, path: &Path) -> Path {
+        let mut root = self.prefix.clone();
+        path.parts().for_each(|part| {
+            root = root.child(part);
+        });
+        root
+    }
+
     /// Returns this [`StorageUrl`] as a string
     pub fn as_str(&self) -> &str {
         self.as_ref()
@@ -176,6 +189,103 @@ impl AsRef<Url> for StorageUrl {
 impl std::fmt::Display for StorageUrl {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.as_str().fmt(f)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AzureAccount {
+    pub scheme: String,
+    pub account: Option<String>,
+    pub container: String,
+    /// Denotes if the parsed uri is referencing a gen2 account.
+    /// The service might still support request against gen2 endpoints, since
+    /// the blob APIs are supported on all accounts.
+    pub is_gen2: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct S3Account {
+    pub scheme: String,
+    pub bucket: String,
+    pub region: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GoogleAccount {
+    pub scheme: String,
+    pub bucket: String,
+    pub region: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum StorageService {
+    Local(Box<std::path::PathBuf>),
+    Azure(AzureAccount),
+    S3(S3Account),
+    Google(GoogleAccount),
+    Unknown(StorageUrl),
+}
+
+impl From<StorageUrl> for StorageService {
+    fn from(value: StorageUrl) -> Self {
+        // if we already passed through storage url, we know its valid.
+        process_uri(value).expect("should be URL safe")
+    }
+}
+
+impl From<&StorageUrl> for StorageService {
+    fn from(value: &StorageUrl) -> Self {
+        // if we already passed through storage url, we know its valid.
+        process_uri(value).expect("should be URL safe")
+    }
+}
+
+fn process_uri(url: impl AsRef<Url>) -> Result<StorageService> {
+    let uri = url.as_ref();
+    match uri.scheme().to_lowercase().as_ref() {
+        "file" => Ok(StorageService::Local(Box::new(
+            std::path::Path::new(uri.path()).to_owned(),
+        ))),
+        "az" | "abfs" | "abfss" | "adls2" | "azure" | "wasb" => {
+            let host_str = uri
+                .host_str()
+                .ok_or(AreaStoreError::Parsing("host required".into()))?;
+            let (account, container, is_gen2) =
+                if let Some((account, host_suffix)) = host_str.split_once('.') {
+                    let container = if uri.username().is_empty() {
+                        Err(AreaStoreError::Parsing("unexpected host".into()))
+                    } else {
+                        Ok(uri.username())
+                    }?;
+                    match host_suffix {
+                        AZURE_ADLS_HOST => Ok((Some(account.into()), container.into(), true)),
+                        AZURE_BLOB_HOST => Ok((Some(account.into()), container.into(), false)),
+                        _ => Err(AreaStoreError::Parsing("unexpected host".into())),
+                    }
+                } else {
+                    Ok((None, host_str.into(), false))
+                }?;
+
+            Ok(StorageService::Azure(AzureAccount {
+                scheme: uri.scheme().to_owned(),
+                account,
+                container,
+                is_gen2,
+            }))
+        }
+        "s3" | "s3a" => Ok(StorageService::S3(S3Account {
+            scheme: uri.scheme().to_owned(),
+            bucket: uri.host_str().unwrap().to_owned(),
+            region: None,
+        })),
+        "gs" => Ok(StorageService::Google(GoogleAccount {
+            scheme: uri.scheme().to_owned(),
+            bucket: uri.host_str().unwrap().to_owned(),
+            region: None,
+        })),
+        _ => Ok(StorageService::Unknown(
+            StorageUrl::parse(uri.as_ref()).expect("should be URL safe"),
+        )),
     }
 }
 
@@ -215,5 +325,78 @@ mod tests {
 
         let path = Path::from("other/bar/partition/foo.parquet");
         assert!(url.strip_prefix(&path).is_none());
+    }
+
+    #[test]
+    fn test_prefix_asd() {
+        let url = StorageUrl::parse("/home/robstar/github/flight-fusion/test/db").unwrap();
+        let refurl: &str = url.as_ref();
+        println!("{:?}", refurl)
+    }
+
+    #[test]
+    fn test_parse_services() {
+        let expected_pairs = &[
+            (
+                "abfs://container@account.dfs.core.windows.net/path/file",
+                StorageService::Azure(AzureAccount {
+                    scheme: "abfs".into(),
+                    account: Some("account".into()),
+                    container: "container".into(),
+                    is_gen2: true,
+                }),
+            ),
+            (
+                "az://container@account.blob.core.windows.net/path/file",
+                StorageService::Azure(AzureAccount {
+                    scheme: "az".into(),
+                    account: Some("account".into()),
+                    container: "container".into(),
+                    is_gen2: false,
+                }),
+            ),
+            (
+                "abfs://container/path/file",
+                StorageService::Azure(AzureAccount {
+                    scheme: "abfs".into(),
+                    account: None,
+                    container: "container".into(),
+                    is_gen2: false,
+                }),
+            ),
+            (
+                "abfss://container/path/file",
+                StorageService::Azure(AzureAccount {
+                    scheme: "abfss".into(),
+                    account: None,
+                    container: "container".into(),
+                    is_gen2: false,
+                }),
+            ),
+            (
+                "wasb://container/path/file",
+                StorageService::Azure(AzureAccount {
+                    scheme: "wasb".into(),
+                    account: None,
+                    container: "container".into(),
+                    is_gen2: false,
+                }),
+            ),
+            (
+                "az://container/path/file",
+                StorageService::Azure(AzureAccount {
+                    scheme: "az".into(),
+                    account: None,
+                    container: "container".into(),
+                    is_gen2: false,
+                }),
+            ),
+        ];
+
+        for (raw, expected) in expected_pairs.into_iter() {
+            let parsed = StorageUrl::parse(raw).unwrap();
+            let location = parsed.into();
+            assert_eq!(*expected, location);
+        }
     }
 }
