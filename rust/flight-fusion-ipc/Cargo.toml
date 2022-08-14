@@ -11,7 +11,7 @@ base64 = "0.13"
 prost = "0.10"
 ring = "0.16"
 thiserror = "1"
-tonic = "0.7"
+tonic = "0.8"
 
 [dev-dependencies]
 pretty_assertions = "1.1.0"
