@@ -73,9 +73,9 @@ impl DoGetHandler<DeltaOperationRequest> for FlightFusionService {
         if let Some(source) = ticket.source {
             let mut ctx = SessionContext::new();
             self.register_source(&mut ctx, &source).await?;
-            let tbl_loc = source.table.ok_or(FusionServiceError::Generic(
-                "missing table name".to_string(),
-            ))?;
+            let tbl_loc = source
+                .table
+                .ok_or_else(|| FusionServiceError::Generic("missing table name".to_string()))?;
             let columns = if let Some(DeltaOperation::Read(op)) = ticket.operation {
                 if op.column_names.is_empty() {
                     "*".into()

@@ -6,7 +6,7 @@ const AZURE_ADLS_HOST: &str = "dfs.core.windows.net";
 const AZURE_BLOB_HOST: &str = "blob.core.windows.net";
 
 /// A parsed URL identifying a particular [`ObjectStore`]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ObjectStoreUrl {
     url: Url,
 }
@@ -249,7 +249,7 @@ fn process_uri(url: impl AsRef<Url>) -> Result<StorageService> {
         "az" | "abfs" | "abfss" | "adls2" | "azure" | "wasb" => {
             let host_str = uri
                 .host_str()
-                .ok_or(AreaStoreError::Parsing("host required".into()))?;
+                .ok_or_else(|| AreaStoreError::Parsing("host required".into()))?;
             let (account, container, is_gen2) =
                 if let Some((account, host_suffix)) = host_str.split_once('.') {
                     let container = if uri.username().is_empty() {

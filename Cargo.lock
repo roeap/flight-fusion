@@ -145,7 +145,6 @@ version = "0.1.0"
 dependencies = [
  "arrow-flight",
  "datafusion",
- "datafusion-data-access",
  "deltalake",
 ]
 
@@ -954,20 +953,6 @@ dependencies = [
  "ordered-float 3.0.0",
  "parquet",
  "sqlparser",
-]
-
-[[package]]
-name = "datafusion-data-access"
-version = "10.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a84a9b029be8ff89fd1175b5f37e15fef121120b11639421c7e5609d6a44d2d"
-dependencies = [
- "async-trait",
- "chrono",
- "futures",
- "parking_lot",
- "tempfile",
- "tokio",
 ]
 
 [[package]]

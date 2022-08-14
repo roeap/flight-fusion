@@ -53,9 +53,10 @@ impl AreaStore {
             source: Box::new(err),
         })?;
 
-        let root = StorageUrl::parse(buf.to_str().ok_or(AreaStoreError::Parsing(
-            "failed to convert path".to_string(),
-        ))?)?;
+        let root = StorageUrl::parse(
+            buf.to_str()
+                .ok_or_else(|| AreaStoreError::Parsing("failed to convert path".to_string()))?,
+        )?;
 
         let object_store =
             Arc::new(object_store::local::LocalFileSystem::new_with_prefix(buf.clone()).unwrap());
@@ -126,9 +127,9 @@ impl AreaStore {
                 }
                 Ok(())
             }
-            SaveMode::ErrorIfExists if files.len() > 0 => Err(AreaStoreError::TableAlreadyExists(
-                location.as_ref().to_string(),
-            )),
+            SaveMode::ErrorIfExists if !files.is_empty() => Err(
+                AreaStoreError::TableAlreadyExists(location.as_ref().to_string()),
+            ),
             _ => Ok(()),
         }?;
 
@@ -181,7 +182,7 @@ impl AreaStore {
             .object_store()
             .list(prefix)
             .await?
-            .map_err(|err| AreaStoreError::from(err))
+            .map_err(AreaStoreError::from)
             .map_ok(|meta| AreaPath::from(meta.location))
             .try_collect::<Vec<_>>()
             .await?
@@ -195,7 +196,7 @@ impl AreaStore {
     }
 
     pub async fn table_provider(&self, location: &AreaPath) -> Result<Arc<dyn TableProvider>> {
-        if is_delta_location(self.object_store().clone(), &location).await? {
+        if is_delta_location(self.object_store().clone(), location).await? {
             Ok(Arc::new(self.open_delta(location).await?))
         } else {
             Ok(Arc::new(self.open_listing_table(location).await?))
