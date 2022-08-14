@@ -47,7 +47,7 @@ def test_asset_load(raw_assets_job: JobDefinition):
     # so we don't have to test it as a job
     result = raw_assets_job.execute_in_process(partition_key="2015-01-01", run_config={})
     table = result.output_for_node("taxi__data__raw")
-    assert table.shape == (100, 19)
+    assert table.shape == (100, 23)
 
 
 def test_data_prep(data_prep_job: JobDefinition):

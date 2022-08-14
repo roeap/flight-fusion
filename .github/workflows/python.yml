@@ -90,4 +90,4 @@ jobs:
         run: |
           poetry run pytest -v .
         env:
-          RUST_BACKTRACE: !
+          RUST_BACKTRACE: "1"

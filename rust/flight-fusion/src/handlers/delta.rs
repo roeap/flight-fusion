@@ -15,9 +15,14 @@ use flight_fusion_ipc::{
     area_source_reference::Table, delta_operation_request::Operation as DeltaOperation,
     DeltaOperationRequest, DeltaOperationResponse, SaveMode,
 };
+use observability_deps::{
+    instrument,
+    tracing::{self, debug},
+};
 
 #[async_trait]
 impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
+    #[instrument(skip(self, input))]
     async fn handle_do_put(
         &self,
         ticket: DeltaOperationRequest,
@@ -66,6 +71,7 @@ impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
 
 #[async_trait]
 impl DoGetHandler<DeltaOperationRequest> for FlightFusionService {
+    #[instrument(skip(self, ticket))]
     async fn execute_do_get(
         &self,
         ticket: DeltaOperationRequest,
@@ -86,11 +92,11 @@ impl DoGetHandler<DeltaOperationRequest> for FlightFusionService {
                 "*".into()
             };
             match tbl_loc {
-                Table::Location(tbl) => Ok(ctx
-                    .sql(&format!("select {} from {}", columns, tbl.name))
-                    .await?
-                    .execute_stream()
-                    .await?),
+                Table::Location(tbl) => {
+                    let query = format!("SELECT {} FROM {}", columns, tbl.name);
+                    debug!("Executing query: {}", query);
+                    Ok(ctx.sql(&query).await?.execute_stream().await?)
+                }
                 _ => todo!(),
             }
         } else {

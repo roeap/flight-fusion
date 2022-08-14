@@ -23,7 +23,10 @@ use flight_fusion_ipc::{
 use futures::Stream;
 use observability_deps::opentelemetry::{global, propagation::Extractor};
 use observability_deps::tracing_opentelemetry::OpenTelemetrySpanExt;
-use observability_deps::{instrument, tracing};
+use observability_deps::{
+    instrument,
+    tracing::{self, error, span},
+};
 use prost::Message;
 use std::path::PathBuf;
 use std::pin::Pin;
@@ -262,7 +265,14 @@ impl FlightService for FlightFusionService {
         tracing::Span::current().set_parent(parent_cx);
 
         let request = FlightDoGetRequest::decode(&mut request.into_inner().ticket.as_ref())
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+            .map_err(|e| {
+                error!("{}", e.to_string());
+                tonic::Status::internal(e.to_string())
+            })?;
+
+        let request_span =
+            span!(tracing::Level::INFO, "process request", command = ?request.command);
+        let _span_handle = request_span.enter();
 
         let result = match request.command {
             Some(op) => match op {
@@ -277,13 +287,17 @@ impl FlightService for FlightFusionService {
                 "No operation data passed",
             )),
         }
-        .map_err(|e| Status::invalid_argument(format!("Error executing operation - {:?}", e)))?;
+        .map_err(|e| {
+            error!("{}", e.to_string());
+            Status::invalid_argument(format!("Error executing operation - {:?}", e))
+        })?;
 
         let (tx, rx): (FlightDataSender, FlightDataReceiver) = channel(2);
 
         // Arrow IPC reader does not implement Sync + Send so we need to use a channel to communicate
         tokio::task::spawn(async move {
             if let Err(e) = stream_flight_data(result, tx).await {
+                error!("{}", e.to_string());
                 tracing::error!("Error streaming results: {:?}", e);
             }
         });
