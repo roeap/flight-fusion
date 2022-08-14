@@ -418,7 +418,7 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(flights.len(), 3)
+        assert_eq!(flights.len(), 4)
     }
 
     #[tokio::test]

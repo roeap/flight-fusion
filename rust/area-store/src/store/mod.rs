@@ -172,22 +172,21 @@ impl AreaStore {
     }
 
     pub async fn list_areas(&self, prefix: Option<&Path>) -> Result<Vec<AreaPath>> {
-        let areas = self
+        Ok(self
             .clone()
             .object_store()
             .list(prefix)
             .await?
-            .map_err(AreaStoreError::from)
-            .map_ok(|meta| AreaPath::from(meta.location))
-            .try_collect::<Vec<_>>()
-            .await?
+            .filter_map(|maybe_path| async {
+                match maybe_path {
+                    Err(_) => None,
+                    Ok(meta) => AreaPath::from(meta.location).table_root(),
+                }
+            })
+            .collect::<std::collections::HashSet<_>>()
+            .await
             .into_iter()
-            .filter(|area| area.is_table_root())
-            .collect();
-
-        println!("{:?}", areas);
-
-        Ok(areas)
+            .collect())
     }
 
     pub async fn table_provider(&self, location: &AreaPath) -> Result<Arc<dyn TableProvider>> {
@@ -262,28 +261,6 @@ impl AreaStore {
             Err(err) => Err(AreaStoreError::Generic {
                 source: Box::new(err),
             }),
-        }
-    }
-
-    fn full_path(&self, location: &Path) -> Result<String> {
-        match StorageService::from(&self.root) {
-            StorageService::Local(path) => {
-                std::fs::create_dir_all(path.as_path()).map_err(|err| AreaStoreError::Generic {
-                    source: Box::new(err),
-                })?;
-
-                Ok(format!("{}{}", self.root.as_str(), location.as_ref()))
-            }
-            StorageService::Azure(config) => {
-                let full = self.root.add_prefix(location);
-                Ok(format!(
-                    "{}://{}/{}",
-                    config.scheme,
-                    config.container,
-                    full.as_ref()
-                ))
-            }
-            _ => todo!(),
         }
     }
 

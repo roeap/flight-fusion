@@ -2,7 +2,7 @@ use super::DATA_FOLDER_NAME;
 use flight_fusion_ipc::{area_source_reference::Table, AreaSourceReference, AreaTableLocation};
 use object_store::path::{Path, PathPart};
 
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Hash)]
 pub struct AreaPath(Path);
 
 impl AreaPath {
@@ -23,6 +23,23 @@ impl AreaPath {
             .position(|part| part == data_part)
             .unwrap_or_default();
         idx == parts.len() - 2
+    }
+
+    pub fn table_root(&self) -> Option<Self> {
+        let data_part = PathPart::from(DATA_FOLDER_NAME);
+        let parts = self.0.parts().collect::<Vec<_>>();
+        if parts.len() < 2 {
+            return None;
+        }
+        let idx = self.0.parts().position(|part| part == data_part);
+        if let Some(pos) = idx {
+            if parts.len() > pos + 1 {
+                let parts = parts[..pos + 2].iter().map(|p| p.as_ref());
+                let path = Path::from_iter(parts);
+                return Some(path.into());
+            }
+        };
+        None
     }
 }
 
