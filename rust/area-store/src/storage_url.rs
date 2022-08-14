@@ -328,13 +328,6 @@ mod tests {
     }
 
     #[test]
-    fn test_prefix_asd() {
-        let url = StorageUrl::parse("/home/robstar/github/flight-fusion/test/db").unwrap();
-        let refurl: &str = url.as_ref();
-        println!("{:?}", refurl)
-    }
-
-    #[test]
     fn test_parse_services() {
         let expected_pairs = &[
             (
