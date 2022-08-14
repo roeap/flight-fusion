@@ -15,7 +15,7 @@ async-trait = "0.1"
 bytes = "1"
 futures = "0.3"
 object_store = { version = "*", features = ["azure"] }
-prost = "0.10"
+prost = "0.11"
 thiserror = "1"
 tonic = "0.7"
 
