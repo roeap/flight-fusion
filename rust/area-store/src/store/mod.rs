@@ -1,13 +1,9 @@
 //! Abstractions and implementations for writing data to delta tables
 mod area_path;
-pub mod writer;
 use crate::error::{AreaStoreError, Result};
 use crate::storage_url::{StorageService, StorageUrl};
 pub use area_path::*;
-use arrow_deps::arrow::{
-    datatypes::SchemaRef as ArrowSchemaRef,
-    record_batch::{RecordBatch, RecordBatchReader},
-};
+use arrow_deps::arrow::{datatypes::SchemaRef as ArrowSchemaRef, record_batch::RecordBatchReader};
 use arrow_deps::datafusion::{
     datasource::{
         file_format::parquet::ParquetFormat,
@@ -32,7 +28,6 @@ use futures::TryStreamExt;
 use object_store::{path::Path, DynObjectStore, Error as ObjectStoreError};
 use std::collections::HashMap;
 use std::sync::Arc;
-pub use writer::*;
 
 const DATA_FOLDER_NAME: &str = "_ff_data";
 const DELTA_LOG_FOLDER_NAME: &str = "_delta_log";
