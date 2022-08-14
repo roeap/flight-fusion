@@ -3,11 +3,18 @@
 // use crate::{
 //     action::Protocol, DeltaTable, DeltaTableConfig, DeltaTableMetaData, SchemaDataType, SchemaField,
 // };
-use arrow_deps::datafusion::arrow::{
-    array::{Int32Array, StringArray, UInt32Array},
-    compute::take,
-    datatypes::{DataType, Field, Schema as ArrowSchema},
-    record_batch::RecordBatch,
+use arrow_deps::datafusion::{
+    arrow::{
+        array::{Int32Array, StringArray, UInt32Array},
+        compute::take,
+        datatypes::{DataType, Field, Schema as ArrowSchema},
+        record_batch::RecordBatch,
+    },
+    physical_plan::{
+        common::SizedRecordBatchStream,
+        metrics::{ExecutionPlanMetricsSet, MemTrackingMetrics},
+        SendableRecordBatchStream,
+    },
 };
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -35,6 +42,18 @@ pub fn workspace_root() -> Result<String, Box<dyn std::error::Error>> {
         .find('"')
         .ok_or_else(|| "workspace_root value was malformed".to_string())?;
     Ok(value[..end].into())
+}
+
+pub fn get_input_stream(part: Option<String>, with_null: bool) -> SendableRecordBatchStream {
+    let batch = Arc::new(get_record_batch(part, with_null));
+    let schema = batch.schema();
+    let metrics = ExecutionPlanMetricsSet::new();
+    let tracking_metrics = MemTrackingMetrics::new(&metrics, 0);
+    Box::pin(SizedRecordBatchStream::new(
+        schema,
+        vec![batch],
+        tracking_metrics,
+    ))
 }
 
 pub fn get_record_batch(part: Option<String>, with_null: bool) -> RecordBatch {

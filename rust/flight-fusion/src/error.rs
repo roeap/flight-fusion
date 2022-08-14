@@ -42,9 +42,6 @@ pub enum FusionServiceError {
 
     #[error(transparent)]
     Arrow(#[from] ArrowError),
-
-    #[error("Error converting data: {0}")]
-    DataConversion(String),
 }
 
 impl FusionServiceError {

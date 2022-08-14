@@ -31,7 +31,7 @@ python = "^3.8,<3.11"
 betterproto = "2.0.0b4"
 loguru = ">=0.5"
 pandas = ">=1"
-pyarrow = ">=4"
+pyarrow = ">=9"
 pydantic = { version = ">=1", extras = ["dotenv"] }
 pyyaml = "^6"
 SQLAlchemy = ">=1.4"

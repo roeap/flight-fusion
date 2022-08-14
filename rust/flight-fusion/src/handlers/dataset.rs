@@ -2,25 +2,14 @@ use super::{DoGetHandler, DoPutHandler};
 use crate::{
     error::{FusionServiceError, Result},
     service::FlightFusionService,
-    stream::MergeStream,
 };
-use area_store::store::{AreaPath, AreaStore};
-use area_store::{store::DefaultAreaStore, Path};
-use arrow_deps::arrow::{
-    error::{ArrowError, Result as ArrowResult},
-    record_batch::RecordBatch,
-};
-use arrow_deps::datafusion::physical_plan::{
-    common::{collect, AbortOnDropMany},
-    SendableRecordBatchStream,
-};
+use area_store::store::AreaPath;
+use arrow_deps::datafusion::{physical_plan::SendableRecordBatchStream, prelude::SessionContext};
 use async_trait::async_trait;
-use flight_fusion_ipc::{CommandReadDataset, CommandWriteIntoDataset, ResultDoPutUpdate, SaveMode};
-use futures::channel::mpsc;
-use futures::SinkExt;
-use futures::StreamExt;
-use std::sync::Arc;
-use tokio::task::JoinHandle;
+use flight_fusion_ipc::{
+    area_source_reference::Table, CommandReadDataset, CommandWriteIntoDataset, ResultDoPutUpdate,
+    SaveMode,
+};
 
 #[async_trait]
 impl DoPutHandler<CommandWriteIntoDataset> for FlightFusionService {
@@ -31,15 +20,15 @@ impl DoPutHandler<CommandWriteIntoDataset> for FlightFusionService {
     ) -> Result<ResultDoPutUpdate> {
         if let Some(source) = ticket.source {
             let location: AreaPath = source.into();
-            let batches = collect(input).await?;
             let _adds = self
                 .area_store
                 .put_batches(
-                    batches,
+                    input,
                     &location.into(),
                     SaveMode::from_i32(ticket.save_mode).unwrap_or(SaveMode::Overwrite),
                 )
                 .await?;
+
             Ok(ResultDoPutUpdate { statistics: None })
         } else {
             // TODO migrate errors and raise something more meaningful
@@ -55,47 +44,24 @@ impl DoGetHandler<CommandReadDataset> for FlightFusionService {
         ticket: CommandReadDataset,
     ) -> Result<SendableRecordBatchStream> {
         if let Some(table) = ticket.source {
-            let location: AreaPath = table.into();
-            let files = self
-                .area_store
-                .get_location_files(&location.clone())
-                .await?;
-            let schema = self.area_store.get_schema(&location.into()).await?;
-
-            let column_indices = if ticket.column_names.is_empty() {
-                None
+            let mut ctx = SessionContext::new();
+            self.register_source(&mut ctx, &table).await?;
+            let tbl_loc = table
+                .table
+                .ok_or_else(|| FusionServiceError::Generic("missing table name".to_string()))?;
+            let columns = if ticket.column_names.is_empty() {
+                "*".into()
             } else {
-                Some(
-                    ticket
-                        .column_names
-                        .iter()
-                        .map(|c| schema.index_of(c))
-                        .collect::<std::result::Result<Vec<_>, _>>()?,
-                )
+                ticket.column_names.join(", ")
             };
-
-            let (sender, receiver) = mpsc::channel::<ArrowResult<RecordBatch>>(files.len());
-            let mut join_handles = Vec::with_capacity(files.len());
-
-            for file_path in files {
-                join_handles.push(spawn_execution(
-                    sender.clone(),
-                    self.area_store.clone(),
-                    file_path,
-                    column_indices.clone(),
-                ));
+            match tbl_loc {
+                Table::Location(tbl) => Ok(ctx
+                    .sql(&format!("select {} from {}", columns, tbl.name))
+                    .await?
+                    .execute_stream()
+                    .await?),
+                _ => todo!(),
             }
-
-            let projected_schema = match column_indices {
-                Some(indices) => Arc::new(schema.project(&indices)?),
-                None => schema,
-            };
-
-            Ok(Box::pin(MergeStream::new(
-                projected_schema,
-                receiver,
-                AbortOnDropMany(join_handles),
-            )))
         } else {
             Err(FusionServiceError::InputError(
                 "missing table reference".to_string(),
@@ -104,36 +70,11 @@ impl DoGetHandler<CommandReadDataset> for FlightFusionService {
     }
 }
 
-pub(crate) fn spawn_execution(
-    mut output: mpsc::Sender<ArrowResult<RecordBatch>>,
-    area_store: Arc<DefaultAreaStore>,
-    path: Path,
-    column_indices: Option<Vec<usize>>,
-) -> JoinHandle<()> {
-    tokio::spawn(async move {
-        let mut stream = match area_store.open_file(&path.into(), column_indices).await {
-            Err(e) => {
-                // If send fails, plan being torn
-                // down, no place to send the error
-                let arrow_error = ArrowError::ExternalError(Box::new(e));
-                output.send(Err(arrow_error)).await.ok();
-                return;
-            }
-            Ok(stream) => stream,
-        };
-        while let Some(item) = stream.next().await {
-            output.send(item).await.ok();
-        }
-    })
-}
-
 #[cfg(test)]
 mod tests {
     use crate::handlers::DoGetHandler;
     use crate::handlers::DoPutHandler;
     use crate::test_utils::{get_fusion_handler, get_input_stream};
-    use area_store::store::AreaPath;
-    use area_store::store::AreaStore;
     use arrow_deps::datafusion::physical_plan::common::collect;
     use flight_fusion_ipc::{
         area_source_reference::Table as TableReference, AreaSourceReference, AreaTableLocation,
@@ -187,22 +128,19 @@ mod tests {
 
         assert!(table_dir.is_dir());
 
-        let table_location: AreaPath = table_ref.clone().into();
-        let files = handler
-            .area_store
-            .get_location_files(&table_location.clone())
-            .await
+        let paths = std::fs::read_dir(&table_dir)
+            .unwrap()
+            .collect::<Result<Vec<_>, _>>()
             .unwrap();
-        assert!(files.len() == 1);
+        assert_eq!(paths.len(), 1);
 
         let plan = get_input_stream(None, false);
         let _response = handler.handle_do_put(request.clone(), plan).await.unwrap();
-        let files = handler
-            .area_store
-            .get_location_files(&table_location.clone())
-            .await
+        let paths = std::fs::read_dir(&table_dir)
+            .unwrap()
+            .collect::<Result<Vec<_>, _>>()
             .unwrap();
-        assert!(files.len() == 2);
+        assert_eq!(paths.len(), 2);
 
         let request = CommandWriteIntoDataset {
             source: Some(table_ref.clone()),
@@ -211,12 +149,11 @@ mod tests {
 
         let plan = get_input_stream(None, false);
         let _response = handler.handle_do_put(request.clone(), plan).await.unwrap();
-        let files = handler
-            .area_store
-            .get_location_files(&table_location.clone())
-            .await
+        let paths = std::fs::read_dir(&table_dir)
+            .unwrap()
+            .collect::<Result<Vec<_>, _>>()
             .unwrap();
-        assert!(files.len() == 1)
+        assert!(paths.len() == 1)
     }
 
     #[tokio::test]

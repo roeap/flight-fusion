@@ -3,7 +3,7 @@
 <p align="center">
 <a href="https://github.com/roeap/flight-fusion/actions/workflows/python.yml"><img alt="Actions Status" src="https://github.com/roeap/flight-fusion/actions/workflows/python.yml/badge.svg"></a>
 <a href="https://github.com/roeap/flight-fusion/actions/workflows/rust.yml"><img alt="Actions Status" src="https://github.com/roeap/flight-fusion/actions/workflows/rust.yml/badge.svg"></a>
-<a href="https://github.com/roeap/flight-fusion/actions/workflows/rust.yml"><img alt="Rustc Version 1.58+" src="https://img.shields.io/badge/rustc-1.58+-lightgray.svg"></a>
+<a href="https://github.com/roeap/flight-fusion/actions/workflows/rust.yml"><img alt="Rustc Version 1.62+" src="https://img.shields.io/badge/rustc-1.58+-lightgray.svg"></a>
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 <a href="https://codecov.io/gh/roeap/flight-fusion"><img src="https://codecov.io/gh/roeap/flight-fusion/branch/main/graph/badge.svg?token=QI8UWIJ8KY"/></a>
 </p>

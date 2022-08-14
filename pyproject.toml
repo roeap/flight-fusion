@@ -11,7 +11,7 @@ python = "^3.8,<3.11"
 # pypi dependencies
 grpcio-tools = "^1.42.0"
 betterproto = { version = "2.0.0b4", extras = ["compiler"] }
-dagit = "^0.15"
+dagit = "^1"
 delta-spark = "^1.1.0"
 mkdocs-protobuf = "^0.1"
 mkdocs-techdocs-core = "^1"
@@ -36,7 +36,6 @@ mlserver-fusion = { path = "python/mlserver-fusion/", develop = true }
 mlfusion-helm = { path = "k8s/schema/", develop = true }
 
 # example projects
-hacker-news = { path = "examples/hacker-news/", develop = true }
 model-training = { path = "examples/model-training/", develop = true }
 app = { path = "examples/app/", develop = true }
 azure-storage-blob = "^12.11.0"
@@ -58,6 +57,8 @@ pytest-mock = "^3.7"
 azure-identity = "^1.10.0"
 requests-mock = "^1.9.3"
 responses = ">=0.21"
+datafusion = "^0.6.0"
+deltalake = "^0.5.8"
 
 [tool.black]
 line-length = 120

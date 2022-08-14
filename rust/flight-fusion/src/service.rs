@@ -2,7 +2,7 @@ use crate::stream::{
     raw_stream_to_flight_data_stream, stream_flight_data, FlightDataReceiver, FlightDataSender,
 };
 use crate::{error::FusionServiceError, handlers::*};
-use area_store::store::{is_delta_location, AreaPath, AreaStore, DefaultAreaStore};
+use area_store::store::{is_delta_location, AreaStore};
 use arrow_deps::arrow_flight::{
     self, flight_descriptor::DescriptorType, flight_service_server::FlightService, Action,
     ActionType, Criteria, Empty, FlightData, FlightDescriptor, FlightInfo, HandshakeRequest,
@@ -14,15 +14,11 @@ use arrow_deps::datafusion::{
         catalog::{CatalogProvider, MemoryCatalogProvider},
         schema::MemorySchemaProvider,
     },
-    datasource::MemTable,
-    physical_plan::common::collect,
-    prelude::SessionContext,
 };
 use flight_fusion_ipc::{
-    area_source_reference::Table, flight_action_request::Action as FusionAction,
-    flight_do_get_request::Command as DoGetCommand, flight_do_put_request::Command as DoPutCommand,
-    serialize_message, AreaSourceMetadata, AreaSourceReference, CommandListSources,
-    FlightActionRequest, FlightDoGetRequest,
+    flight_action_request::Action as FusionAction, flight_do_get_request::Command as DoGetCommand,
+    flight_do_put_request::Command as DoPutCommand, serialize_message, AreaSourceMetadata,
+    AreaSourceReference, CommandListSources, FlightActionRequest, FlightDoGetRequest,
 };
 use futures::Stream;
 use observability_deps::opentelemetry::{global, propagation::Extractor};
@@ -64,7 +60,7 @@ pub struct FlightFusionService {
     #[allow(unused)]
     pub(crate) catalog: Arc<MemoryCatalogProvider>,
     /// the area store provides high level access to registered datasets.
-    pub(crate) area_store: Arc<DefaultAreaStore>,
+    pub(crate) area_store: Arc<AreaStore>,
 }
 
 impl FlightFusionService {
@@ -75,7 +71,7 @@ impl FlightFusionService {
         let catalog = Arc::new(MemoryCatalogProvider::new());
         catalog.register_schema("schema", Arc::new(schema_provider))?;
 
-        let area_store = Arc::new(DefaultAreaStore::try_new(root)?);
+        let area_store = Arc::new(AreaStore::try_new(root)?);
 
         Ok(Self {
             catalog,
@@ -92,7 +88,7 @@ impl FlightFusionService {
         let catalog = Arc::new(MemoryCatalogProvider::new());
         catalog.register_schema("schema", Arc::new(schema_provider))?;
 
-        let area_store = Arc::new(DefaultAreaStore::try_new_azure(
+        let area_store = Arc::new(AreaStore::try_new_azure(
             account,
             access_key,
             container_name,
@@ -102,30 +98,6 @@ impl FlightFusionService {
             catalog,
             area_store,
         })
-    }
-
-    pub async fn register_source(
-        &self,
-        ctx: &mut SessionContext,
-        source: &AreaSourceReference,
-    ) -> crate::error::Result<()> {
-        let location: AreaPath = source.clone().into();
-        // TODO rather then fetching location files, we should get a table provider
-        let files = self.area_store.get_location_files(&location).await.unwrap();
-        let mut batches = Vec::new();
-        for file in files {
-            let curr = collect(self.area_store.open_file(&file.into(), None).await?).await?;
-            batches.extend(curr)
-        }
-        let table_provider = Arc::new(MemTable::try_new(batches[0].schema(), vec![batches])?);
-        let name = match &source {
-            AreaSourceReference {
-                table: Some(Table::Location(tbl)),
-            } => tbl.name.clone(),
-            _ => todo!(),
-        };
-        ctx.register_table(&*name, table_provider)?;
-        Ok(())
     }
 }
 
@@ -166,33 +138,34 @@ impl FlightService for FlightFusionService {
         let _command = CommandListSources::decode(&mut criteria.expression.as_ref())
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
-        let files = self
+        let infos = self
             .area_store
             .list_areas(None)
             .await
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+            .map_err(|e| tonic::Status::internal(e.to_string()))?
+            .into_iter()
+            .map(|a| {
+                let source: AreaSourceReference = a.into();
+                let descriptor = FlightDescriptor {
+                    r#type: DescriptorType::Cmd.into(),
+                    cmd: source.encode_to_vec(),
+                    ..FlightDescriptor::default()
+                };
 
-        let infos = files.into_iter().map(|a| {
-            let source: AreaSourceReference = a.into();
-            let descriptor = FlightDescriptor {
-                r#type: DescriptorType::Cmd.into(),
-                cmd: source.encode_to_vec(),
-                ..FlightDescriptor::default()
-            };
+                let options = IpcWriteOptions::default();
+                let schema = Schema::new(vec![]);
+                let schema_result = SchemaAsIpc::new(&schema, &options);
 
-            let options = IpcWriteOptions::default();
-            let schema = Schema::new(vec![]);
-            let schema_result = SchemaAsIpc::new(&schema, &options);
-
-            Ok(FlightInfo::new(
-                IpcMessage::try_from(schema_result)
-                    .map_err(|e| tonic::Status::internal(e.to_string()))?,
-                Some(descriptor),
-                vec![],
-                -1,
-                -1,
-            ))
-        });
+                Ok(FlightInfo::new(
+                    IpcMessage::try_from(schema_result)
+                        .map_err(|e| tonic::Status::internal(e.to_string()))?,
+                    Some(descriptor),
+                    vec![],
+                    -1,
+                    -1,
+                ))
+            })
+            .collect::<Vec<_>>();
 
         Ok(Response::new(
             Box::pin(futures::stream::iter(infos)) as BoxedFlightStream<FlightInfo>
@@ -445,7 +418,7 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(flights.len(), 3)
+        assert_eq!(flights.len(), 4)
     }
 
     #[tokio::test]
@@ -513,6 +486,6 @@ mod tests {
 
         let schema = Arc::new(Schema::try_from(&response).unwrap());
 
-        assert_eq!(ref_schema, schema)
+        assert_eq!(ref_schema.fields().len(), schema.fields().len())
     }
 }

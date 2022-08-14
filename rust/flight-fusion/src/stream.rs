@@ -5,22 +5,21 @@ use arrow_deps::arrow_flight::{
     FlightData, SchemaAsIpc,
 };
 use arrow_deps::datafusion::{
-    arrow::datatypes::SchemaRef, physical_plan::SendableRecordBatchStream,
+    arrow::datatypes::SchemaRef, arrow::ipc::writer::IpcWriteOptions,
+    physical_plan::SendableRecordBatchStream,
 };
 use arrow_deps::datafusion::{
     arrow::{
         array::ArrayRef,
-        datatypes::{Schema as ArrowSchema, SchemaRef as ArrowSchemaRef},
+        datatypes::Schema as ArrowSchema,
         error::{ArrowError, Result as ArrowResult},
-        ipc::writer::IpcWriteOptions,
         record_batch::RecordBatch,
     },
-    physical_plan::{common::AbortOnDropMany, RecordBatchStream},
+    physical_plan::RecordBatchStream,
 };
 use flight_fusion_ipc::FlightDoPutRequest;
-use futures::{channel::mpsc, stream::Stream, StreamExt};
+use futures::{stream::Stream, StreamExt};
 use observability_deps::tracing::info;
-use pin_project_lite::pin_project;
 use prost::Message;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -30,47 +29,6 @@ use tonic::{Status, Streaming};
 
 pub type FlightDataSender = Sender<std::result::Result<FlightData, Status>>;
 pub type FlightDataReceiver = Receiver<std::result::Result<FlightData, Status>>;
-
-pin_project! {
-    pub struct MergeStream {
-        schema: ArrowSchemaRef,
-        #[pin]
-        input: mpsc::Receiver<ArrowResult<RecordBatch>>,
-        drop_helper: AbortOnDropMany<()>,
-    }
-}
-
-impl MergeStream {
-    pub fn new(
-        schema: ArrowSchemaRef,
-        input: mpsc::Receiver<ArrowResult<RecordBatch>>,
-        drop_helper: AbortOnDropMany<()>,
-    ) -> Self {
-        Self {
-            schema,
-            input,
-            drop_helper,
-        }
-    }
-}
-
-impl Stream for MergeStream {
-    type Item = ArrowResult<RecordBatch>;
-
-    fn poll_next(
-        self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-    ) -> Poll<Option<Self::Item>> {
-        let this = self.project();
-        this.input.poll_next(cx)
-    }
-}
-
-impl RecordBatchStream for MergeStream {
-    fn schema(&self) -> ArrowSchemaRef {
-        self.schema.clone()
-    }
-}
 
 pub async fn raw_stream_to_flight_data_stream(
     mut stream: Streaming<FlightData>,

@@ -23,7 +23,6 @@ classifier = [
   "Programming Language :: Python",
   "Programming Language :: Rust",
 ]
-dependencies = ["pyarrow>=4"]
 
 [project.urls]
 repository = "https://github.com/roeap/flight-fusion"

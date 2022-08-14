@@ -131,13 +131,12 @@ impl FileIndex {
 mod tests {
     use super::*;
     use crate::store::AreaStore;
-    use crate::store::DefaultAreaStore;
     use flight_fusion_ipc::SaveMode;
 
     #[tokio::test]
     async fn create_index() {
         let root = tempfile::tempdir().unwrap();
         let area_root = root.path();
-        let area_store = Arc::new(DefaultAreaStore::try_new(area_root).unwrap());
+        let area_store = Arc::new(AreaStore::try_new(area_root).unwrap());
     }
 }

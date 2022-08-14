@@ -2,6 +2,6 @@
 pub use arrow_flight;
 pub use datafusion;
 pub use datafusion::arrow;
-pub use datafusion_data_access;
+pub use datafusion::parquet;
 #[cfg(feature = "delta")]
 pub use deltalake;

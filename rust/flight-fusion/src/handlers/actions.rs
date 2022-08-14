@@ -3,7 +3,7 @@ use crate::{
     error::{FusionServiceError, Result},
     service::FlightFusionService,
 };
-use area_store::store::{AreaPath, AreaStore};
+use area_store::store::AreaPath;
 use flight_fusion_ipc::{ActionStatus, CommandDropSource, ResultActionStatus};
 
 #[async_trait::async_trait]

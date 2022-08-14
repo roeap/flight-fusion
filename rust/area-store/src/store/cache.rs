@@ -77,14 +77,6 @@ impl AreaStore for CachedAreaStore {
         self.store.object_store()
     }
 
-    fn get_path_from_raw(&self, raw: String) -> Path {
-        self.store.get_path_from_raw(raw)
-    }
-
-    fn get_full_table_path(&self, source: &AreaPath) -> Result<String> {
-        self.store.get_full_table_path(source)
-    }
-
     async fn get_schema(&self, source: &AreaSourceReference) -> Result<ArrowSchemaRef> {
         self.store.get_schema(source).await
     }

@@ -1,8 +1,38 @@
 use super::DoGetHandler;
 use crate::{error::Result, service::FlightFusionService};
+use area_store::store::AreaPath;
 use arrow_deps::datafusion::{physical_plan::SendableRecordBatchStream, prelude::SessionContext};
 use async_trait::async_trait;
-use flight_fusion_ipc::{command_execute_query::Context as QueryContext, CommandExecuteQuery};
+use flight_fusion_ipc::{
+    area_source_reference::Table, command_execute_query::Context as QueryContext,
+    AreaSourceReference, CommandExecuteQuery,
+};
+
+impl FlightFusionService {
+    pub async fn register_source(
+        &self,
+        ctx: &mut SessionContext,
+        source: &AreaSourceReference,
+    ) -> crate::error::Result<()> {
+        let location: AreaPath = source.clone().into();
+        let table_provider = self.area_store.table_provider(&location).await?;
+        let name = match &source {
+            AreaSourceReference {
+                table: Some(Table::Location(tbl)),
+            } => tbl.name.clone(),
+            _ => todo!(),
+        };
+        let store_url = self.area_store.root.object_store();
+        let url: &url::Url = store_url.as_ref();
+        ctx.runtime_env().register_object_store(
+            url.scheme(),
+            url.host_str().unwrap_or(""),
+            self.area_store.object_store(),
+        );
+        ctx.register_table(name.as_str(), table_provider)?;
+        Ok(())
+    }
+}
 
 #[async_trait]
 impl DoGetHandler<CommandExecuteQuery> for FlightFusionService {
@@ -45,7 +75,6 @@ mod tests {
         let plan = get_input_stream(None, false);
         let ref_schema = plan.schema().clone();
         let handler = get_fusion_handler(root.path());
-        // let table_dir = root.path().join("_ff_data/new_table");
 
         let table_ref = AreaSourceReference {
             table: Some(TableReference::Location(AreaTableLocation {
@@ -86,7 +115,6 @@ mod tests {
         let plan2 = get_input_stream(None, false);
         let ref_schema = plan.schema().clone();
         let handler = get_fusion_handler(root.path());
-        // let table_dir = root.path().join("_ff_data/new_table");
 
         let table_ref_1 = AreaSourceReference {
             table: Some(TableReference::Location(AreaTableLocation {

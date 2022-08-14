@@ -190,7 +190,7 @@ impl AzureAuth {
     where
         for<'de> T: Serialize + Deserialize<'de>,
     {
-        let decoded: Token<T> = self.validate_token_authenticity(token, &validator)?;
+        let decoded: Token<T> = self.validate_token_authenticity(token, validator)?;
         Ok(decoded)
     }
 
@@ -240,7 +240,7 @@ impl AzureAuth {
         };
 
         let key = DecodingKey::from_rsa_components(auth_key.modulus(), auth_key.exponent())?;
-        let valid: Token<T> = jwt::decode(token, &key, &validator)?;
+        let valid: Token<T> = jwt::decode(token, &key, validator)?;
 
         Ok(valid)
     }

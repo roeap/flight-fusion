@@ -32,6 +32,9 @@ tokio = { version = "1", features = [
 tokio-util = { version = "0.7", features = ["compat"] }
 dashmap = "^5.2.0"
 lazy_static = "*"
+url = "2"
+# work around https://github.com/rust-lang/rust/issues/63033
+fix-hidden-lifetime-bug = "0.2"
 
 [dev-dependencies]
 tempfile = "3"
