@@ -88,7 +88,7 @@ dependencies = [
  "flight-fusion-ipc",
  "futures",
  "lazy_static",
- "object_store",
+ "object_store 0.4.0",
  "observability_deps",
  "parquet-format",
  "serde_json",
@@ -174,7 +174,7 @@ dependencies = [
  "bytes",
  "flight-fusion-ipc",
  "futures",
- "object_store",
+ "object_store 0.4.0",
  "observability_deps",
  "prost",
  "tempfile",
@@ -926,7 +926,7 @@ dependencies = [
  "lazy_static",
  "log",
  "num_cpus",
- "object_store",
+ "object_store 0.3.0",
  "ordered-float 3.0.0",
  "parking_lot",
  "parquet",
@@ -949,7 +949,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "794ca54d3b144038c36b7a31d64c9545abb2edbdda6da055e481fb8a13e4e33b"
 dependencies = [
  "arrow",
- "object_store",
+ "object_store 0.3.0",
  "ordered-float 3.0.0",
  "parquet",
  "sqlparser",
@@ -1058,7 +1058,7 @@ dependencies = [
  "log",
  "num-bigint",
  "num-traits",
- "object_store",
+ "object_store 0.3.0",
  "parquet",
  "parquet-format",
  "percent-encoding",
@@ -2204,6 +2204,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "857af043f5d9f36ed4f71815857f79b841412dda1cf0ca5a29608874f6f038e2"
 dependencies = [
  "async-trait",
+ "bytes",
+ "chrono",
+ "futures",
+ "itertools",
+ "percent-encoding",
+ "snafu",
+ "tokio",
+ "tracing",
+ "url",
+ "walkdir",
+]
+
+[[package]]
+name = "object_store"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cf3845781c5ecf37b3e3610df73fff11487591eba423a987e1b21bb4d389c326"
+dependencies = [
+ "async-trait",
  "azure_core 0.2.2",
  "azure_storage 0.2.0",
  "azure_storage_blobs",
@@ -2211,6 +2230,7 @@ dependencies = [
  "chrono",
  "futures",
  "itertools",
+ "parking_lot",
  "percent-encoding",
  "reqwest",
  "snafu",
