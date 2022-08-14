@@ -150,23 +150,6 @@ impl AreaStore {
         open_file(self.object_store(), file, column_indices).await
     }
 
-    pub async fn get_location_files(&self, location: &AreaPath) -> Result<Vec<Path>> {
-        if is_delta_location(self.object_store(), location).await? {
-            let table = self.open_delta(location).await?;
-            return Ok(table.get_file_uris().map(Path::from).collect());
-        }
-
-        Ok(self
-            .object_store()
-            .list(Some(&location.into()))
-            .await?
-            .try_collect::<Vec<_>>()
-            .await?
-            .into_iter()
-            .map(|f| f.location)
-            .collect())
-    }
-
     pub async fn delete_location(&self, _location: &AreaPath) -> Result<()> {
         todo!()
     }
@@ -199,11 +182,14 @@ impl AreaStore {
 
     pub async fn open_listing_table(&self, location: &AreaPath) -> Result<ListingTable> {
         let files = self
-            .get_location_files(location)
+            .object_store()
+            .list(Some(&location.into()))
             .await?
-            .into_iter()
-            .map(|p| Ok(ListingTableUrl::parse(format!("file:///{}", p.as_ref()))?))
-            .collect::<std::result::Result<Vec<_>, AreaStoreError>>()?;
+            .try_filter_map(|meta| async move {
+                Ok(ListingTableUrl::parse(format!("file:///{}", meta.location.as_ref())).ok())
+            })
+            .try_collect::<Vec<_>>()
+            .await?;
         // TODO handle session context more formally
         let ctx = SessionContext::new();
         let store_url = self.root.object_store();
