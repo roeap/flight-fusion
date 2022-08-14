@@ -210,12 +210,13 @@ impl AreaStore {
             .into_iter()
             .map(|p| Ok(ListingTableUrl::parse(format!("file:///{}", p.as_ref()))?))
             .collect::<std::result::Result<Vec<_>, AreaStoreError>>()?;
-        let root_url = url::Url::parse(self.root.as_str()).unwrap();
-
+        // TODO handle session context more formally
         let ctx = SessionContext::new();
+        let store_url = self.root.object_store();
+        let url: &url::Url = store_url.as_ref();
         ctx.runtime_env().register_object_store(
-            root_url.scheme(),
-            root_url.host_str().unwrap_or(""),
+            url.scheme(),
+            url.host_str().unwrap_or(""),
             self.object_store(),
         );
         let opt = ListingOptions::new(Arc::new(ParquetFormat::default()));

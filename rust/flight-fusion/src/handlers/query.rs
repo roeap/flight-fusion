@@ -22,7 +22,14 @@ impl FlightFusionService {
             } => tbl.name.clone(),
             _ => todo!(),
         };
-        ctx.register_table(&*name, table_provider)?;
+        let store_url = self.area_store.root.object_store();
+        let url: &url::Url = store_url.as_ref();
+        ctx.runtime_env().register_object_store(
+            url.scheme(),
+            url.host_str().unwrap_or(""),
+            self.area_store.object_store(),
+        );
+        ctx.register_table(name.as_str(), table_provider)?;
         Ok(())
     }
 }
@@ -68,7 +75,6 @@ mod tests {
         let plan = get_input_stream(None, false);
         let ref_schema = plan.schema().clone();
         let handler = get_fusion_handler(root.path());
-        // let table_dir = root.path().join("_ff_data/new_table");
 
         let table_ref = AreaSourceReference {
             table: Some(TableReference::Location(AreaTableLocation {

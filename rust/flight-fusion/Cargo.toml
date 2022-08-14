@@ -38,6 +38,7 @@ tonic-health = "0.6"
 uuid = "*"
 thiserror = "1"
 chrono = "0.4"
+url = "2"
 
 [dev-dependencies]
 utime = "0.3"
