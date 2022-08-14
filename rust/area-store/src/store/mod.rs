@@ -129,7 +129,7 @@ impl AreaStore {
         }?;
 
         let schema = input.schema();
-        let full_path = self.full_path_delta(&location)?;
+        let full_path = self.full_path_delta(location)?;
         let mut writer = RecordBatchWriter::try_new(full_path, schema.clone(), None, None).unwrap();
 
         while let Some(maybe_batch) = input.next().await {
