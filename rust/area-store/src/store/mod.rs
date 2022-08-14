@@ -181,19 +181,25 @@ impl AreaStore {
     }
 
     pub async fn open_listing_table(&self, location: &AreaPath) -> Result<ListingTable> {
+        let store_url = self.root.object_store();
+        let url: &url::Url = store_url.as_ref();
         let files = self
             .object_store()
             .list(Some(&location.into()))
             .await?
             .try_filter_map(|meta| async move {
-                Ok(ListingTableUrl::parse(format!("file:///{}", meta.location.as_ref())).ok())
+                Ok(ListingTableUrl::parse(format!(
+                    "{}://{}/{}",
+                    url.scheme(),
+                    url.host_str().unwrap_or(""),
+                    meta.location.as_ref()
+                ))
+                .ok())
             })
             .try_collect::<Vec<_>>()
             .await?;
         // TODO handle session context more formally
         let ctx = SessionContext::new();
-        let store_url = self.root.object_store();
-        let url: &url::Url = store_url.as_ref();
         ctx.runtime_env().register_object_store(
             url.scheme(),
             url.host_str().unwrap_or(""),
