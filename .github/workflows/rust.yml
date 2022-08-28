@@ -30,14 +30,21 @@ jobs:
         with:
           python-version: 3.9
 
+      - name: Install protobuf compiler in /protoc
+        run: |
+          sudo mkdir /protoc
+          sudo chmod a+rwx /protoc
+          cd /protoc
+          curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v21.4/protoc-21.4-linux-x86_64.zip
+          unzip protoc-21.4-linux-x86_64.zip
+
       - uses: mbrobbel/rustfmt-check@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
+      - name: Run clippy
+        run: |
+          cargo clippy -- -D warnings
 
       - name: Run tests
         shell: bash
@@ -46,7 +53,7 @@ jobs:
           export RUSTFLAGS="-C debuginfo=0"
           cargo test
 
-      - name: Publish Unit Test Results
+      - name: Publish unit test results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
 
