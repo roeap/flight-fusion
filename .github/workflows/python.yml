@@ -72,8 +72,7 @@ jobs:
       - name: Run linters
         run: |
           poetry run black --check .
-          poetry run pyright python/
-
+      # poetry run pyright python/
       - name: Run python tests
         run: |
           poetry run pytest -v .
