@@ -44,12 +44,14 @@ jobs:
 
       - name: Run clippy
         run: |
+          export PATH=$PATH:/protoc/bin
           cargo clippy -- -D warnings
 
       - name: Run tests
         shell: bash
         run: |
           # do not produce debug symbols to keep memory usage down
+          export PATH=$PATH:/protoc/bin
           export RUSTFLAGS="-C debuginfo=0"
           cargo test
 
@@ -60,8 +62,6 @@ jobs:
       - name: Run coverage
         run: |
           export PATH=$PATH:/protoc/bin
-          rustup toolchain install stable
-          rustup default stable
           cargo install --version 0.18.2 cargo-tarpaulin
           cargo tarpaulin --all --out Xml
 
