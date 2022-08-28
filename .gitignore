@@ -54,3 +54,4 @@ site/
 **/dist/
 
 .coverage
+cobertura.xml
