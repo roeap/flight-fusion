@@ -271,7 +271,7 @@ impl FlightService for FlightFusionService {
             })?;
 
         let request_span =
-            span!(tracing::Level::INFO, "process request", command = ?request.command);
+            span!(tracing::Level::INFO, "process do_get request", command = ?request.command);
         let _span_handle = request_span.enter();
 
         let result = match request.command {
@@ -319,9 +319,17 @@ impl FlightService for FlightFusionService {
         let stream = request.into_inner();
 
         // the schema should be the first message returned, else client should error
-        let (data_stream, request_data) = raw_stream_to_flight_data_stream(stream)
-            .await
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let (data_stream, request_data) =
+            raw_stream_to_flight_data_stream(stream)
+                .await
+                .map_err(|e| {
+                    error!("{}", e.to_string());
+                    tonic::Status::internal(e.to_string())
+                })?;
+
+        let request_span =
+            span!(tracing::Level::INFO, "process do_put request", command = ?request_data.command);
+        let _span_handle = request_span.enter();
 
         let body = match &request_data.command {
             Some(action) => {
@@ -329,12 +337,18 @@ impl FlightService for FlightFusionService {
                     DoPutCommand::Storage(storage) => serialize_message(
                         self.handle_do_put(storage.clone(), data_stream)
                             .await
-                            .map_err(|e| tonic::Status::internal(e.to_string()))?,
+                            .map_err(|e| {
+                                error!("{}", e.to_string());
+                                tonic::Status::internal(e.to_string())
+                            })?,
                     ),
                     DoPutCommand::Delta(delta) => serialize_message(
                         self.handle_do_put(delta.clone(), data_stream)
                             .await
-                            .map_err(|e| tonic::Status::internal(e.to_string()))?,
+                            .map_err(|e| {
+                                error!("{}", e.to_string());
+                                tonic::Status::internal(e.to_string())
+                            })?,
                     ),
                 };
 
@@ -342,7 +356,10 @@ impl FlightService for FlightFusionService {
             }
             None => Err(FusionServiceError::unknown_action("No action data passed")),
         }
-        .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        .map_err(|e| {
+            error!("{}", e.to_string());
+            tonic::Status::internal(e.to_string())
+        })?;
 
         Ok(Response::new(Box::pin(futures::stream::once(async {
             Ok(PutResult { app_metadata: body })

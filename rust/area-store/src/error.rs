@@ -1,7 +1,7 @@
 use arrow_deps::{
     arrow::{datatypes::SchemaRef, error::ArrowError},
     datafusion::{error::DataFusionError, parquet::errors::ParquetError},
-    deltalake::{storage::StorageError as DeltaStorageError, DeltaTableError},
+    deltalake::DeltaTableError,
 };
 use file_cache::DiskCacheError;
 use std::sync::Arc;
@@ -84,13 +84,6 @@ pub enum AreaStoreError {
         /// The wrapped [`DeltaTableError`]
         #[from]
         source: DeltaTableError,
-    },
-
-    #[error("Error in Delta storage: {source}")]
-    DeltaStorage {
-        /// The wrapped [`DeltaStorageError`]
-        #[from]
-        source: DeltaStorageError,
     },
 
     #[error("Generic: {source}")]

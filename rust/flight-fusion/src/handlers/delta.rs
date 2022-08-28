@@ -17,12 +17,12 @@ use flight_fusion_ipc::{
 };
 use observability_deps::{
     instrument,
-    tracing::{self, debug},
+    tracing::{self, debug, error},
 };
 
 #[async_trait]
 impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
-    #[instrument(skip(self, input))]
+    #[instrument(skip(self, input, ticket))]
     async fn handle_do_put(
         &self,
         ticket: DeltaOperationRequest,
@@ -46,6 +46,7 @@ impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
                 };
 
             let batches = collect(input).await?;
+            debug!("writing {} record batches to delta.", batches.len());
 
             match ticket.operation {
                 Some(DeltaOperation::Write(req)) => {
@@ -55,9 +56,13 @@ impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
                         Some(SaveMode::ErrorIfExists) => DeltaSaveMode::ErrorIfExists,
                         _ => todo!(),
                     };
-                    commands
-                        .write(batches, mode, Some(req.partition_by))
-                        .await?;
+                    match commands.write(batches, mode, Some(req.partition_by)).await {
+                        Err(err) => {
+                            error!("{}", err.to_string());
+                            Err(err)
+                        }
+                        other => other,
+                    }?;
                 }
                 _ => todo!(),
             };

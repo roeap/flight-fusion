@@ -46,21 +46,6 @@ pub mod mlflow_artifacts_service_client {
         {
             MlflowArtifactsServiceClient::new(InterceptedService::new(inner, interceptor))
         }
-        /// Compress requests with `gzip`.
-        ///
-        /// This requires the server to support it otherwise it might respond with an
-        /// error.
-        #[must_use]
-        pub fn send_gzip(mut self) -> Self {
-            self.inner = self.inner.send_gzip();
-            self
-        }
-        /// Enable decompressing responses with `gzip`.
-        #[must_use]
-        pub fn accept_gzip(mut self) -> Self {
-            self.inner = self.inner.accept_gzip();
-            self
-        }
         pub async fn download_artifact(
             &mut self,
             request: impl tonic::IntoRequest<super::DownloadArtifact>,
@@ -145,8 +130,8 @@ pub mod mlflow_artifacts_service_server {
     #[derive(Debug)]
     pub struct MlflowArtifactsServiceServer<T: MlflowArtifactsService> {
         inner: _Inner<T>,
-        accept_compression_encodings: (),
-        send_compression_encodings: (),
+        accept_compression_encodings: EnabledCompressionEncodings,
+        send_compression_encodings: EnabledCompressionEncodings,
     }
     struct _Inner<T>(Arc<T>);
     impl<T: MlflowArtifactsService> MlflowArtifactsServiceServer<T> {

@@ -17,7 +17,7 @@ use observability_deps::{
 
 #[async_trait]
 impl DoPutHandler<CommandWriteIntoDataset> for FlightFusionService {
-    #[instrument(skip(self, input))]
+    #[instrument(skip(self, input, ticket))]
     async fn handle_do_put(
         &self,
         ticket: CommandWriteIntoDataset,

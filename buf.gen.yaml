@@ -8,7 +8,9 @@ managed:
 plugins:
   - remote: buf.build/mlfusion/plugins/python-betterproto:v2.0.0-2
     out: ./tmp-proto/
-  - remote: buf.build/prost/plugins/prost:v0.1.3-2
+  - remote: buf.build/prost/plugins/prost:v0.2.0-2
     out: rust/flight-fusion-ipc/src/gen
-  - remote: buf.build/prost/plugins/tonic:v0.1.0-2
+  - remote: buf.build/prost/plugins/tonic:v0.2.0-2
     out: rust/flight-fusion-ipc/src/gen
+    opt:
+      - no_client=true

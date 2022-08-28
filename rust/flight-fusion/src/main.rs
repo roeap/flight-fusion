@@ -41,7 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .install_batch(Tokio)?;
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(format!(
-            "{},h2=off,sqlparser=off",
+            "{},h2=off,sqlparser=off,datafusion_optimizer=off,datafusion::physical_plan::planner=off",
             CONFIG.log.level.clone()
         )))
         .with(tracing_opentelemetry::layer().with_tracer(tracer))

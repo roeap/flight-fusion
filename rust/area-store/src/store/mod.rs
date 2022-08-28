@@ -18,14 +18,16 @@ use arrow_deps::datafusion::{
     prelude::SessionContext,
 };
 use arrow_deps::deltalake::{
-    get_backend_for_uri, get_backend_for_uri_with_options,
     writer::{DeltaWriter, RecordBatchWriter},
-    DeltaTable, DeltaTableBuilder, DeltaTableConfig, DeltaTableError,
+    DeltaTable, DeltaTableBuilder, DeltaTableError,
 };
 use flight_fusion_ipc::{AreaSourceReference, SaveMode};
 use futures::StreamExt;
 use futures::TryStreamExt;
-use object_store::{path::Path, DynObjectStore, Error as ObjectStoreError};
+use object_store::{
+    azure::MicrosoftAzureBuilder, path::Path, DynObjectStore, Error as ObjectStoreError,
+};
+use observability_deps::tracing::debug;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -72,15 +74,14 @@ impl AreaStore {
         let container: String = container_name.into();
 
         let root = StorageUrl::parse(format!("azure://{}", &container))?;
-        let object_store = Arc::new(object_store::azure::new_azure(
-            account,
-            access_key,
-            container.clone(),
-            false,
-        )?);
+        let object_store = MicrosoftAzureBuilder::new()
+            .with_account(account)
+            .with_access_key(access_key)
+            .with_container_name(container.clone())
+            .build()?;
 
         Ok(Self {
-            object_store,
+            object_store: Arc::new(object_store),
             root_path: format!("adls2://{}", container),
             root,
             storage_options: None,
@@ -181,6 +182,7 @@ impl AreaStore {
     }
 
     pub async fn open_listing_table(&self, location: &AreaPath) -> Result<ListingTable> {
+        debug!("open listing table from: {:?}", location);
         let store_url = self.root.object_store();
         let url: &url::Url = store_url.as_ref();
         let files = self
@@ -188,6 +190,12 @@ impl AreaStore {
             .list(Some(&location.into()))
             .await?
             .try_filter_map(|meta| async move {
+                debug!(
+                    "listing url: {}://{}/{}",
+                    url.scheme(),
+                    url.host_str().unwrap_or(""),
+                    meta.location.as_ref()
+                );
                 Ok(ListingTableUrl::parse(format!(
                     "{}://{}/{}",
                     url.scheme(),
@@ -216,40 +224,24 @@ impl AreaStore {
 
     pub async fn open_delta_uninitialized(&self, location: &AreaPath) -> Result<DeltaTable> {
         let full_path = format!("{}/{}", self.root_path, location.as_ref());
-        let storage = if let Some(options) = &self.storage_options {
-            get_backend_for_uri_with_options(&full_path, options.clone())?
-        } else {
-            get_backend_for_uri(&full_path)?
+        let mut builder = DeltaTableBuilder::from_uri(&full_path);
+        if let Some(options) = self.storage_options.clone() {
+            builder = builder.with_storage_options(options);
         };
-        Ok(DeltaTable::new(
-            &full_path,
-            storage,
-            DeltaTableConfig::default(),
-        )?)
+        Ok(builder.build()?)
     }
 
     pub async fn open_delta(&self, location: &AreaPath) -> Result<DeltaTable> {
         let full_path = self.full_path_delta(&location.into())?;
 
-        let mut builder = DeltaTableBuilder::from_uri(&full_path)?;
-        if let Some(options) = &self.storage_options {
-            let storage = get_backend_for_uri_with_options(&full_path, options.clone())?;
-            builder = builder.with_storage_backend(storage);
+        let mut builder = DeltaTableBuilder::from_uri(&full_path);
+        if let Some(options) = self.storage_options.clone() {
+            builder = builder.with_storage_options(options);
         };
-        match builder.load().await {
-            Ok(table) => Ok(table),
-            Err(DeltaTableError::NotATable(_)) => {
-                let storage = if let Some(options) = &self.storage_options {
-                    get_backend_for_uri_with_options(&full_path, options.clone())?
-                } else {
-                    get_backend_for_uri(&full_path)?
-                };
-                Ok(DeltaTable::new(
-                    full_path,
-                    storage,
-                    DeltaTableConfig::default(),
-                )?)
-            }
+        let mut table = builder.build()?;
+        match table.load().await {
+            Ok(_) => Ok(table),
+            Err(DeltaTableError::NotATable(_)) => Ok(table),
             Err(err) => Err(AreaStoreError::Generic {
                 source: Box::new(err),
             }),
