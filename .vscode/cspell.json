@@ -35,6 +35,7 @@
     "datasource",
     "debuginfo",
     "deps",
+    "devel",
     "dotenv",
     "filetime",
     "getfixturevalue",
@@ -83,6 +84,7 @@
     "toposort",
     "typer",
     "unpartitioned",
+    "venv",
     "virtualenvs",
     "walkdir"
   ],

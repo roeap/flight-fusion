@@ -1,8 +1,6 @@
 name: Python
 
 on:
-  #   push:
-  #     tags: ["python-v*"]
   push:
     branches: [main]
   pull_request:
@@ -18,7 +16,6 @@ jobs:
           - "3.10"
         toolchain:
           - "stable"
-          # - "beta"
 
     steps:
       - uses: actions/checkout@v3
@@ -36,25 +33,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Cache Cargo
-        uses: actions/cache@v2
-        with:
-          path: ~/.cargo
-          key: cargo-cache-${{ steps.rust-toolchain.outputs.rustc_hash }}-${{ hashFiles('Cargo.lock') }}
+      - name: Install protobuf compiler in /protoc
+        run: |
+          sudo mkdir /protoc
+          sudo chmod a+rwx /protoc
+          cd /protoc
+          curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v21.4/protoc-21.4-linux-x86_64.zip
+          unzip protoc-21.4-linux-x86_64.zip
 
-      - name: Check Formatting
-        uses: actions-rs/cargo@v1
-        if: ${{ matrix.python-version == '3.10' && matrix.toolchain == 'stable' }}
-        with:
-          command: fmt
-          args: -- --check
-
-      - name: Run Clippy
-        uses: actions-rs/cargo@v1
-        if: ${{ matrix.python-version == '3.10' && matrix.toolchain == 'stable' }}
-        with:
-          command: clippy
-          args: --all-targets -- -D clippy::all
+      - uses: Swatinem/rust-cache@v1
 
       - name: Load cached venv
         id: cached-poetry-dependencies
@@ -76,6 +63,7 @@ jobs:
 
       - name: Install native dependencies
         run: |
+          export PATH=$PATH:/protoc/bin
           poetry run maturin develop -m python/flight-fusion-server/Cargo.toml --extras=devel $(MATURIN_EXTRA_ARGS)
 
       - name: Install pyright
