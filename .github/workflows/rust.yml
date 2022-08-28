@@ -47,18 +47,6 @@ jobs:
           export PATH=$PATH:/protoc/bin
           cargo clippy -- -D warnings
 
-      - name: Run tests
-        shell: bash
-        run: |
-          # do not produce debug symbols to keep memory usage down
-          export PATH=$PATH:/protoc/bin
-          export RUSTFLAGS="-C debuginfo=0"
-          cargo test
-
-      - name: Publish unit test results
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        if: always()
-
       - name: Run coverage
         run: |
           export PATH=$PATH:/protoc/bin
