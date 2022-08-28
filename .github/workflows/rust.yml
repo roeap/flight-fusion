@@ -62,7 +62,7 @@ jobs:
       - name: Run coverage
         run: |
           export PATH=$PATH:/protoc/bin
-          cargo install --version 0.18.2 cargo-tarpaulin
+          cargo install --version 0.20.1 cargo-tarpaulin
           cargo tarpaulin --all --out Xml
 
       - name: Report coverage
