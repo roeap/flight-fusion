@@ -80,10 +80,10 @@ class MlFlow(metaclass=MlflowMeta):
         if context.log is None:
             raise MissingConfiguration("Missing logger on context")
         self.log = context.log
-        if context.pipeline_run is None:
+        if context.dagster_run is None:
             raise MissingConfiguration("Mlfow resource requires active run")
 
-        self.run_name = context.pipeline_run.pipeline_name
+        self.run_name = context.dagster_run.pipeline_name
         self.dagster_run_id = context.run_id
 
         # resource config attributes

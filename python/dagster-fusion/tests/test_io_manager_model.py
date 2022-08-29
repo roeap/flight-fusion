@@ -2,16 +2,16 @@ import json
 from pathlib import Path
 from uuid import uuid4
 
-import mlflow
-from dagster import AssetGroup, AssetIn, AssetKey, asset
-from flight_fusion.tags import MlFusionTags
+from dagster import AssetIn, AssetKey, asset, define_asset_job, with_resources
 
+import mlflow
 from dagster_fusion import (
     mlflow_tracking,
     mlfusion_configuration,
     model_artifact_io_manager,
 )
 from dagster_fusion.hooks import end_mlflow_on_run_finished
+from flight_fusion.tags import MlFusionTags
 
 
 def test_artifacts_io_manager(mocker, datadir: Path):
@@ -40,18 +40,17 @@ def test_artifacts_io_manager(mocker, datadir: Path):
         assert upstream == 2
         return 1 + upstream
 
-    asset_group = AssetGroup(
+    assets = with_resources(
         [upstream, downstream],
-        resource_defs={  # type: ignore
+        resource_defs={
             "mlfusion_config": mlfusion_configuration,
             "mlflow": mlflow_tracking,
             "model_artifact_io": model_artifact_io_manager,
         },
     )
-    asset_job = end_mlflow_on_run_finished(asset_group.build_job(name="my_asset_job"))  # type: ignore
 
+    asset_job = end_mlflow_on_run_finished(define_asset_job("test_job").resolve(assets, []))
     run_config = {"resources": {"mlflow": {"config": {"experiment_name": "testing"}}}}
-
     result = asset_job.execute_in_process(run_config=run_config)
     assert result.success
 
@@ -98,7 +97,7 @@ def test_artifacts_io_manager_multiple_tags(datadir: Path):
         assert downstream == 3
         return 1 + downstream
 
-    asset_group = AssetGroup(
+    assets = with_resources(
         [upstream, downstream, downstream2],
         resource_defs={  # type: ignore
             "mlfusion_config": mlfusion_configuration,
@@ -106,10 +105,9 @@ def test_artifacts_io_manager_multiple_tags(datadir: Path):
             "model_artifact_io": model_artifact_io_manager,
         },
     )
-    asset_job = end_mlflow_on_run_finished(asset_group.build_job(name="my_asset_job"))  # type: ignore
 
+    asset_job = end_mlflow_on_run_finished(define_asset_job("test_job").resolve(assets, []))
     run_config = {"resources": {"mlflow": {"config": {"experiment_name": "testing"}}}}
-
     result = asset_job.execute_in_process(run_config=run_config)
     assert result.success
 

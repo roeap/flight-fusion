@@ -14,8 +14,8 @@ flight-fusion-ipc = { path = "../flight-fusion-ipc" }
 async-trait = "0.1"
 hashbrown = { version = "0.12", features = ["raw"] }
 petgraph = "0.6"
-prost = "0.10"
-sqlparser = "0.18"
+prost = "0.11"
+sqlparser = "0.20"
 thiserror = "1"
 
 [dev-dependencies]

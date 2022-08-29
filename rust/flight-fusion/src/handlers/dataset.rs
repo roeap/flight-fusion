@@ -10,9 +10,14 @@ use flight_fusion_ipc::{
     area_source_reference::Table, CommandReadDataset, CommandWriteIntoDataset, ResultDoPutUpdate,
     SaveMode,
 };
+use observability_deps::{
+    instrument,
+    tracing::{self, debug},
+};
 
 #[async_trait]
 impl DoPutHandler<CommandWriteIntoDataset> for FlightFusionService {
+    #[instrument(skip(self, input, ticket))]
     async fn handle_do_put(
         &self,
         ticket: CommandWriteIntoDataset,
@@ -39,6 +44,7 @@ impl DoPutHandler<CommandWriteIntoDataset> for FlightFusionService {
 
 #[async_trait]
 impl DoGetHandler<CommandReadDataset> for FlightFusionService {
+    #[instrument(skip(self, ticket))]
     async fn execute_do_get(
         &self,
         ticket: CommandReadDataset,
@@ -55,11 +61,11 @@ impl DoGetHandler<CommandReadDataset> for FlightFusionService {
                 ticket.column_names.join(", ")
             };
             match tbl_loc {
-                Table::Location(tbl) => Ok(ctx
-                    .sql(&format!("select {} from {}", columns, tbl.name))
-                    .await?
-                    .execute_stream()
-                    .await?),
+                Table::Location(tbl) => {
+                    let query = format!("SELECT {} FROM {}", columns, tbl.name);
+                    debug!("Executing query: {}", query);
+                    Ok(ctx.sql(&query).await?.execute_stream().await?)
+                }
                 _ => todo!(),
             }
         } else {
@@ -183,6 +189,7 @@ mod tests {
 
         let get_request = CommandReadDataset {
             source: Some(table_ref.clone()),
+            column_names: vec![],
             ..CommandReadDataset::default()
         };
 

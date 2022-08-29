@@ -23,7 +23,10 @@ use flight_fusion_ipc::{
 use futures::Stream;
 use observability_deps::opentelemetry::{global, propagation::Extractor};
 use observability_deps::tracing_opentelemetry::OpenTelemetrySpanExt;
-use observability_deps::{instrument, tracing};
+use observability_deps::{
+    instrument,
+    tracing::{self, error, span},
+};
 use prost::Message;
 use std::path::PathBuf;
 use std::pin::Pin;
@@ -262,7 +265,14 @@ impl FlightService for FlightFusionService {
         tracing::Span::current().set_parent(parent_cx);
 
         let request = FlightDoGetRequest::decode(&mut request.into_inner().ticket.as_ref())
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+            .map_err(|e| {
+                error!("{}", e.to_string());
+                tonic::Status::internal(e.to_string())
+            })?;
+
+        let request_span =
+            span!(tracing::Level::INFO, "process do_get request", command = ?request.command);
+        let _span_handle = request_span.enter();
 
         let result = match request.command {
             Some(op) => match op {
@@ -277,13 +287,17 @@ impl FlightService for FlightFusionService {
                 "No operation data passed",
             )),
         }
-        .map_err(|e| Status::invalid_argument(format!("Error executing operation - {:?}", e)))?;
+        .map_err(|e| {
+            error!("{}", e.to_string());
+            Status::invalid_argument(format!("Error executing operation - {:?}", e))
+        })?;
 
         let (tx, rx): (FlightDataSender, FlightDataReceiver) = channel(2);
 
         // Arrow IPC reader does not implement Sync + Send so we need to use a channel to communicate
         tokio::task::spawn(async move {
             if let Err(e) = stream_flight_data(result, tx).await {
+                error!("{}", e.to_string());
                 tracing::error!("Error streaming results: {:?}", e);
             }
         });
@@ -305,9 +319,17 @@ impl FlightService for FlightFusionService {
         let stream = request.into_inner();
 
         // the schema should be the first message returned, else client should error
-        let (data_stream, request_data) = raw_stream_to_flight_data_stream(stream)
-            .await
-            .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        let (data_stream, request_data) =
+            raw_stream_to_flight_data_stream(stream)
+                .await
+                .map_err(|e| {
+                    error!("{}", e.to_string());
+                    tonic::Status::internal(e.to_string())
+                })?;
+
+        let request_span =
+            span!(tracing::Level::INFO, "process do_put request", command = ?request_data.command);
+        let _span_handle = request_span.enter();
 
         let body = match &request_data.command {
             Some(action) => {
@@ -315,12 +337,18 @@ impl FlightService for FlightFusionService {
                     DoPutCommand::Storage(storage) => serialize_message(
                         self.handle_do_put(storage.clone(), data_stream)
                             .await
-                            .map_err(|e| tonic::Status::internal(e.to_string()))?,
+                            .map_err(|e| {
+                                error!("{}", e.to_string());
+                                tonic::Status::internal(e.to_string())
+                            })?,
                     ),
                     DoPutCommand::Delta(delta) => serialize_message(
                         self.handle_do_put(delta.clone(), data_stream)
                             .await
-                            .map_err(|e| tonic::Status::internal(e.to_string()))?,
+                            .map_err(|e| {
+                                error!("{}", e.to_string());
+                                tonic::Status::internal(e.to_string())
+                            })?,
                     ),
                 };
 
@@ -328,7 +356,10 @@ impl FlightService for FlightFusionService {
             }
             None => Err(FusionServiceError::unknown_action("No action data passed")),
         }
-        .map_err(|e| tonic::Status::internal(e.to_string()))?;
+        .map_err(|e| {
+            error!("{}", e.to_string());
+            tonic::Status::internal(e.to_string())
+        })?;
 
         Ok(Response::new(Box::pin(futures::stream::once(async {
             Ok(PutResult { app_metadata: body })

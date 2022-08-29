@@ -1,3 +1,5 @@
+#![allow(unknown_lints)]
+
 use async_trait::async_trait;
 use bytes::Bytes;
 use futures::Stream;
@@ -18,9 +20,9 @@ pub type BoxedFileStream<T> =
     Pin<Box<dyn Stream<Item = Result<T, Status>> + Send + Sync + 'static>>;
 
 #[rustfmt::skip]
-#[allow(dead_code)]
-#[allow(non_camel_case_types)]
 pub mod gen {
+    #![allow(clippy::all)]
+    #![allow(non_camel_case_types)]
     include!("gen/mlflow.artifacts.rs");
 }
 

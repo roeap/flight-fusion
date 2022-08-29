@@ -148,7 +148,7 @@ impl FrameQueryPlanner {
             Statement::Statement(stmt) => match *stmt {
                 SQLStatement::Query(query) => {
                     let Query { body, .. } = *query;
-                    match body {
+                    match *body {
                         SetExpr::Select(select) => {
                             let Select { projection, .. } = *select;
                             projection

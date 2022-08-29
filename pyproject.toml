@@ -59,6 +59,7 @@ requests-mock = "^1.9.3"
 responses = ">=0.21"
 datafusion = "^0.6.0"
 deltalake = "^0.5.8"
+azure-storage-blob = "^12.13.1"
 
 [tool.black]
 line-length = 120

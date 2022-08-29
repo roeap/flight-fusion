@@ -1,7 +1,11 @@
+#![allow(unknown_lints)]
+
 pub mod error;
 mod macros;
 #[rustfmt::skip]
 pub mod gen {
+    #![allow(clippy::all)]
+    #![allow(non_camel_case_types)]
     include!("gen/flight_fusion.ipc.v1alpha1.rs");
 }
 pub mod utils;

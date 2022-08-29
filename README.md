@@ -70,12 +70,8 @@ fusion server start --host 127.0.0.1 --port 50051 --log-level info
 ```
 
 An example Dagster repository using most of the features from the `dagster-fusion` package is
-provided within `scripts/dagster_example.py`. To inspect it and play with the configurations,
+provided within `examples/model-training`. To inspect it and play with the configurations,
 run a local instance of dagster.
-
-```sh
-DAGSTER_HOME=$(pwd)/.dagster dagit -f scripts/dagster_example.py
-```
 
 ## Build Docker
 

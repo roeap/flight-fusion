@@ -15,9 +15,14 @@ use flight_fusion_ipc::{
     area_source_reference::Table, delta_operation_request::Operation as DeltaOperation,
     DeltaOperationRequest, DeltaOperationResponse, SaveMode,
 };
+use observability_deps::{
+    instrument,
+    tracing::{self, debug, error},
+};
 
 #[async_trait]
 impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
+    #[instrument(skip(self, input, ticket))]
     async fn handle_do_put(
         &self,
         ticket: DeltaOperationRequest,
@@ -41,6 +46,7 @@ impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
                 };
 
             let batches = collect(input).await?;
+            debug!("writing {} record batches to delta.", batches.len());
 
             match ticket.operation {
                 Some(DeltaOperation::Write(req)) => {
@@ -50,9 +56,13 @@ impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
                         Some(SaveMode::ErrorIfExists) => DeltaSaveMode::ErrorIfExists,
                         _ => todo!(),
                     };
-                    commands
-                        .write(batches, mode, Some(req.partition_by))
-                        .await?;
+                    match commands.write(batches, mode, Some(req.partition_by)).await {
+                        Err(err) => {
+                            error!("{}", err.to_string());
+                            Err(err)
+                        }
+                        other => other,
+                    }?;
                 }
                 _ => todo!(),
             };
@@ -66,6 +76,7 @@ impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
 
 #[async_trait]
 impl DoGetHandler<DeltaOperationRequest> for FlightFusionService {
+    #[instrument(skip(self, ticket))]
     async fn execute_do_get(
         &self,
         ticket: DeltaOperationRequest,
@@ -86,11 +97,11 @@ impl DoGetHandler<DeltaOperationRequest> for FlightFusionService {
                 "*".into()
             };
             match tbl_loc {
-                Table::Location(tbl) => Ok(ctx
-                    .sql(&format!("select {} from {}", columns, tbl.name))
-                    .await?
-                    .execute_stream()
-                    .await?),
+                Table::Location(tbl) => {
+                    let query = format!("SELECT {} FROM {}", columns, tbl.name);
+                    debug!("Executing query: {}", query);
+                    Ok(ctx.sql(&query).await?.execute_stream().await?)
+                }
                 _ => todo!(),
             }
         } else {
