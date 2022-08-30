@@ -2,11 +2,14 @@
 init:
     poetry install --no-root
 
+build-py-object-store:
+    maturin develop -m python/fusion-object-store/Cargo.toml --extras=devel $(MATURIN_EXTRA_ARGS)
+
 # build python bindings in development mode
-python-develop:
+build-py-server:
     maturin develop -m python/flight-fusion-server/Cargo.toml --extras=devel $(MATURIN_EXTRA_ARGS)
 
-python-build:
+release-py-server:
     maturin build -m python/flight-fusion-server/Cargo.toml --release --no-sdist --strip
 
 # compile proto files
