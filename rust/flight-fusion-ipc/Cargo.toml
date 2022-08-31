@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-arrow-flight = "20"
+arrow-flight = "21"
 async-trait = "0.1"
 base64 = "0.13"
 prost = "0.11"
