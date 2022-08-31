@@ -824,7 +824,7 @@ dependencies = [
 [[package]]
 name = "deltalake"
 version = "0.4.1"
-source = "git+https://github.com/roeap/delta-rs?rev=535d8b5823d4ec86d6134bb3144ece97b2b29dd6#535d8b5823d4ec86d6134bb3144ece97b2b29dd6"
+source = "git+https://github.com/delta-io/delta-rs?rev=729d18be46b72e0247b4512df476759156f5192d#729d18be46b72e0247b4512df476759156f5192d"
 dependencies = [
  "arrow",
  "async-trait",
@@ -1115,6 +1115,7 @@ dependencies = [
 name = "fusion-object-store"
 version = "0.1.0"
 dependencies = [
+ "futures",
  "object_store",
  "pyo3",
  "pyo3-asyncio",

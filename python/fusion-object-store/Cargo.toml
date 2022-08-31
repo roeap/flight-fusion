@@ -8,6 +8,7 @@ authors = ["Robert Pack <robstar.pack@gmail.com>"]
 
 [dependencies]
 # crates.io dependencies
+futures = "0.3"
 object_store = "0.4"
 pyo3 = { version = "~0.16.5", features = [
   "extension-module",

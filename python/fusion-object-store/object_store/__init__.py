@@ -3,6 +3,8 @@ from __future__ import annotations
 from io import BytesIO
 from pathlib import Path as PythonPath
 
+from ._internal import ListResult as ListResult
+from ._internal import ObjectMeta as ObjectMeta
 from ._internal import ObjectStore as _RawObjectStore
 from ._internal import Path as Path
 
@@ -48,3 +50,14 @@ class ObjectStore:
 
     def put(self, location: PathLike, bytes: BytesLike) -> None:
         return self._store.put(_as_path(location), _as_bytes(bytes))
+
+    def list(self, prefix: PathLike | None = None) -> list[ObjectMeta]:
+        prefix_ = _as_path(prefix) if prefix else None
+        return self._store.list(prefix_)
+
+    def list_with_delimiter(self, prefix: PathLike | None = None) -> ListResult:
+        prefix_ = _as_path(prefix) if prefix else None
+        return self._store.list_with_delimiter(prefix_)
+
+    def head(self, location: PathLike) -> ObjectMeta:
+        return self._store.head(_as_path(location))

@@ -10,7 +10,7 @@ arrow-flight = "20"
 
 # Git dependencies
 datafusion = { version = "11" }
-deltalake = { git = "https://github.com/roeap/delta-rs", rev = "535d8b5823d4ec86d6134bb3144ece97b2b29dd6", features = [
+deltalake = { git = "https://github.com/delta-io/delta-rs", rev = "729d18be46b72e0247b4512df476759156f5192d", features = [
   "datafusion-ext",
   "azure",
 ], optional = true }

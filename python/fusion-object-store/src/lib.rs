@@ -1,9 +1,13 @@
+use futures::TryStreamExt;
 use object_store::local::LocalFileSystem;
 use object_store::path::{Error as PathError, Path};
-use object_store::{DynObjectStore, Error as InnerObjectStoreError, ObjectMeta};
+use object_store::{
+    DynObjectStore, Error as InnerObjectStoreError, ListResult, ObjectMeta,
+    Result as ObjectStoreResult,
+};
 use pyo3::prelude::*;
 use pyo3::{
-    exceptions::{PyException, PyFileExistsError, PyFileNotFoundError},
+    exceptions::{PyException, PyFileExistsError, PyFileNotFoundError, PyNotImplementedError},
     types::PyBytes,
     PyErr,
 };
@@ -77,6 +81,12 @@ impl From<PyPath> for Path {
     }
 }
 
+impl From<Path> for PyPath {
+    fn from(path: Path) -> Self {
+        Self(path)
+    }
+}
+
 #[pymethods]
 impl PyPath {
     #[new]
@@ -92,12 +102,94 @@ impl PyPath {
     fn __str__(&self) -> String {
         self.0.to_string()
     }
+
+    fn __richcmp__(&self, other: PyPath, cmp: pyo3::basic::CompareOp) -> PyResult<bool> {
+        match cmp {
+            pyo3::basic::CompareOp::Eq => Ok(self.0 == other.0),
+            pyo3::basic::CompareOp::Ne => Ok(self.0 != other.0),
+            _ => Err(PyNotImplementedError::new_err(
+                "Only == and != are supported.",
+            )),
+        }
+    }
 }
 
 #[pyclass(name = "ObjectMeta", module = "object_store", subclass)]
 #[derive(Clone)]
-struct PyObjectMeta {
-    inner: ObjectMeta,
+struct PyObjectMeta(ObjectMeta);
+
+impl From<ObjectMeta> for PyObjectMeta {
+    fn from(meta: ObjectMeta) -> Self {
+        Self(meta)
+    }
+}
+
+#[pymethods]
+impl PyObjectMeta {
+    #[getter]
+    fn location(&self) -> PyPath {
+        self.0.location.clone().into()
+    }
+
+    #[getter]
+    fn size(&self) -> usize {
+        self.0.size
+    }
+
+    #[getter]
+    fn last_modified(&self) -> i64 {
+        self.0.last_modified.timestamp()
+    }
+
+    fn __str__(&self) -> String {
+        format!("{:?}", self.0)
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.0)
+    }
+
+    fn __richcmp__(&self, other: PyObjectMeta, cmp: pyo3::basic::CompareOp) -> PyResult<bool> {
+        match cmp {
+            pyo3::basic::CompareOp::Eq => Ok(self.0 == other.0),
+            pyo3::basic::CompareOp::Ne => Ok(self.0 != other.0),
+            _ => Err(PyNotImplementedError::new_err(
+                "Only == and != are supported.",
+            )),
+        }
+    }
+}
+
+#[pyclass(name = "ListResult", module = "object_store", subclass)]
+struct PyListResult(ListResult);
+
+#[pymethods]
+impl PyListResult {
+    #[getter]
+    fn common_prefixes(&self) -> Vec<PyPath> {
+        self.0
+            .common_prefixes
+            .iter()
+            .cloned()
+            .map(PyPath::from)
+            .collect()
+    }
+
+    #[getter]
+    fn objects(&self) -> Vec<PyObjectMeta> {
+        self.0
+            .objects
+            .iter()
+            .cloned()
+            .map(PyObjectMeta::from)
+            .collect()
+    }
+}
+
+impl From<ListResult> for PyListResult {
+    fn from(result: ListResult) -> Self {
+        Self(result)
+    }
 }
 
 #[pyclass(name = "ObjectStore", module = "object_store", subclass)]
@@ -147,6 +239,50 @@ impl PyObjectStore {
         let obj = wait_for_future(py, self.get_inner(&location.into()))?;
         Ok(PyBytes::new(py, &obj))
     }
+
+    /// Return the metadata for the specified location
+    fn head(&self, location: PyPath, py: Python) -> PyResult<PyObjectMeta> {
+        let meta = wait_for_future(py, self.inner.head(&location.into()))
+            .map_err(ObjectStoreError::from)?;
+        Ok(meta.into())
+    }
+
+    /// Delete the object at the specified location.
+    fn delete(&self, location: PyPath, py: Python) -> PyResult<()> {
+        wait_for_future(py, self.inner.delete(&location.into())).map_err(ObjectStoreError::from)?;
+        Ok(())
+    }
+
+    /// List all the objects with the given prefix.
+    ///
+    /// Prefixes are evaluated on a path segment basis, i.e. `foo/bar/` is a prefix
+    /// of `foo/bar/x` but not of `foo/bar_baz/x`.
+    fn list(&self, prefix: Option<PyPath>, py: Python) -> PyResult<Vec<PyObjectMeta>> {
+        Ok(wait_for_future(
+            py,
+            flatten_list_stream(self.inner.as_ref(), prefix.map(Path::from).as_ref()),
+        )
+        .map_err(ObjectStoreError::from)?
+        .into_iter()
+        .map(PyObjectMeta::from)
+        .collect())
+    }
+
+    /// List objects with the given prefix and an implementation specific
+    /// delimiter. Returns common prefixes (directories) in addition to object
+    /// metadata.
+    ///
+    /// Prefixes are evaluated on a path segment basis, i.e. `foo/bar/` is a prefix
+    /// of `foo/bar/x` but not of `foo/bar_baz/x`.
+    fn list_with_delimiter(&self, prefix: Option<PyPath>, py: Python) -> PyResult<PyListResult> {
+        let list = wait_for_future(
+            py,
+            self.inner
+                .list_with_delimiter(prefix.map(Path::from).as_ref()),
+        )
+        .map_err(ObjectStoreError::from)?;
+        Ok(list.into())
+    }
 }
 
 /// Utility to collect rust futures with GIL released
@@ -159,11 +295,24 @@ where
     py.allow_threads(|| rt.block_on(f))
 }
 
+async fn flatten_list_stream(
+    storage: &DynObjectStore,
+    prefix: Option<&Path>,
+) -> ObjectStoreResult<Vec<ObjectMeta>> {
+    storage
+        .list(prefix)
+        .await?
+        .try_collect::<Vec<ObjectMeta>>()
+        .await
+}
+
 #[pymodule]
 fn _internal(_py: Python, m: &PyModule) -> PyResult<()> {
     // Register the python classes
     m.add_class::<PyObjectStore>()?;
     m.add_class::<PyPath>()?;
+    m.add_class::<PyObjectMeta>()?;
+    m.add_class::<PyListResult>()?;
 
     Ok(())
 }
