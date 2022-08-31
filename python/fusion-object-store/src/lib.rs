@@ -240,6 +240,24 @@ impl PyObjectStore {
         Ok(PyBytes::new(py, &obj))
     }
 
+    /// Return the bytes that are stored at the specified location in the given byte range
+    fn get_range<'py>(
+        &self,
+        location: PyPath,
+        start: usize,
+        length: usize,
+        py: Python<'py>,
+    ) -> PyResult<&'py PyBytes> {
+        let range = std::ops::Range {
+            start,
+            end: start + length,
+        };
+        let obj = wait_for_future(py, self.inner.get_range(&location.into(), range))
+            .map_err(ObjectStoreError::from)?
+            .to_vec();
+        Ok(PyBytes::new(py, &obj))
+    }
+
     /// Return the metadata for the specified location
     fn head(&self, location: PyPath, py: Python) -> PyResult<PyObjectMeta> {
         let meta = wait_for_future(py, self.inner.head(&location.into()))
@@ -282,6 +300,48 @@ impl PyObjectStore {
         )
         .map_err(ObjectStoreError::from)?;
         Ok(list.into())
+    }
+
+    /// Copy an object from one path to another in the same object store.
+    ///
+    /// If there exists an object at the destination, it will be overwritten.
+    fn copy(&self, from: PyPath, to: PyPath, py: Python) -> PyResult<()> {
+        wait_for_future(py, self.inner.copy(&from.into(), &to.into()))
+            .map_err(ObjectStoreError::from)?;
+        Ok(())
+    }
+
+    /// Copy an object from one path to another, only if destination is empty.
+    ///
+    /// Will return an error if the destination already has an object.
+    fn copy_if_not_exists(&self, from: PyPath, to: PyPath, py: Python) -> PyResult<()> {
+        wait_for_future(py, self.inner.copy_if_not_exists(&from.into(), &to.into()))
+            .map_err(ObjectStoreError::from)?;
+        Ok(())
+    }
+
+    /// Move an object from one path to another in the same object store.
+    ///
+    /// By default, this is implemented as a copy and then delete source. It may not
+    /// check when deleting source that it was the same object that was originally copied.
+    ///
+    /// If there exists an object at the destination, it will be overwritten.
+    fn rename(&self, from: PyPath, to: PyPath, py: Python) -> PyResult<()> {
+        wait_for_future(py, self.inner.rename(&from.into(), &to.into()))
+            .map_err(ObjectStoreError::from)?;
+        Ok(())
+    }
+
+    /// Move an object from one path to another in the same object store.
+    ///
+    /// Will return an error if the destination already has an object.
+    fn rename_if_not_exists(&self, from: PyPath, to: PyPath, py: Python) -> PyResult<()> {
+        wait_for_future(
+            py,
+            self.inner.rename_if_not_exists(&from.into(), &to.into()),
+        )
+        .map_err(ObjectStoreError::from)?;
+        Ok(())
     }
 }
 
