@@ -1,5 +1,9 @@
 [workspace]
-members = ["rust/*", "python/flight-fusion-server/"]
+members = [
+  "rust/*",
+  "python/flight-fusion-server/",
+  "python/fusion-object-store/",
+]
 
 [patch.crates-io]
 object_store = { git = "https://github.com/apache/arrow-rs", rev = "86446ea88b6fc3e11b47aeedb9eb24f4d69b2f13" }
