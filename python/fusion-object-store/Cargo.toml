@@ -18,7 +18,7 @@ pyo3 = { version = "~0.16.5", features = [
 # reqwest is pulled in by object store, but not used by python binding itself
 # for binary wheel best practice, statically link openssl
 reqwest = { version = "*", features = ["native-tls-vendored"] }
-tokio = { version = "1.0", features = [
+tokio = { version = "1.21", features = [
   "macros",
   "rt",
   "rt-multi-thread",
