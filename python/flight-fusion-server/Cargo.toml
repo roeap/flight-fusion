@@ -13,7 +13,7 @@ flight-fusion = { path = "../../rust/flight-fusion" }
 observability_deps = { path = "../../rust/observability-deps" }
 
 # crates.io dependencies
-clap = { version = "3.1.8", features = ["derive"] }
+clap = { version = "3.2.22", features = ["derive"] }
 dotenv = "0.15"
 tokio = { version = "1", features = ["full"] }
 # reqwest is pulled in by azure sdk, but not used by python binding itself
