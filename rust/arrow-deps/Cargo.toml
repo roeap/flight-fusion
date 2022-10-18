@@ -6,7 +6,7 @@ publish = false
 
 [dependencies]
 # Crates.io dependencies
-arrow-flight = "20"
+arrow-flight = "25"
 
 # Git dependencies
 datafusion = { version = "11" }
