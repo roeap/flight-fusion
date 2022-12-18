@@ -28,7 +28,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.8,<3.11"
-betterproto = "2.0.0b4"
+betterproto = "2.0.0b5"
 loguru = ">=0.5"
 pandas = ">=1"
 pyarrow = ">=9"
@@ -37,15 +37,8 @@ pyyaml = "^6"
 SQLAlchemy = ">=1.4"
 typer = ">=0.4"
 
-pytest = { version = "^6", optional = true }
-pytest-datadir = { version = "^1.3.1", optional = true }
-
-[tool.poetry.dev-dependencies]
-pytest = "^6.2.5"
-pytest-azurepipelines = "^1"
-pytest-datadir = "^1.3.1"
-pytest-cov = "^3"
-pytest-mock = "^3.7"
+pytest = { version = "^7", optional = true }
+pytest-datadir = { version = "^1.3", optional = true }
 
 [tool.poetry.extras]
 dev = ["pytest", "pytest-datadir"]
@@ -55,14 +48,3 @@ fusion = "flight_fusion.cli:app"
 
 [tool.poetry.plugins.pytest11]
 pytest_fusion = "flight_fusion.testing"
-
-[tool.isort]
-profile = "black"
-
-[tool.pytest.ini_options]
-addopts = "--cov=flight_fusion -v -m 'not integration'"
-testpaths = ["tests"]
-markers = [
-  "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
-  "azure: marks tests as integration tests with Azure (deselect with '-m \"not azure\"')",
-]

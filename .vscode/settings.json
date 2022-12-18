@@ -1,9 +1,12 @@
 {
+  "black-formatter.args": [
+    "--config",
+    "pyproject.toml"
+  ],
   "editor.formatOnSave": true,
-  "python.formatting.provider": "black",
-  "python.linting.flake8Enabled": true,
-  "python.formatting.blackArgs": ["--line-length=120"],
+  "python.formatting.provider": "none",
   "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.codeActionsOnSave": {
       "source.organizeImports": true
     }
@@ -12,7 +15,5 @@
   "python.analysis.diagnosticSeverityOverrides": {
     "reportPrivateImportUsage": "none"
   },
-  "python.linting.banditEnabled": true,
-  "python.linting.banditArgs": ["--configfile", ".bandit"],
   "python.testing.pytestEnabled": true
 }

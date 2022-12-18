@@ -24,13 +24,12 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.8,<3.11"
-betterproto = "2.0.0b4"
+betterproto = "2.0.0b5"
 fastapi = ">=0.75"
 mlserver = "^1.1"
 mlserver-mlflow = "^1.1"
 typer = ">=0.4"
 httpx = "^0.23"
-
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
@@ -38,14 +37,3 @@ pytest-azurepipelines = "^1"
 pytest-datadir = "^1.3.1"
 pytest-cov = "^3"
 pytest-mock = "^3.7"
-
-[tool.isort]
-profile = "black"
-
-[tool.pytest.ini_options]
-addopts = "--cov=mlserver_fusion -v -m 'not integration'"
-testpaths = ["tests"]
-markers = [
-  "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
-  "azure: marks tests as integration tests with Azure (deselect with '-m \"not azure\"')",
-]

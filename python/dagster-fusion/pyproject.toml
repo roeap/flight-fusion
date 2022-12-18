@@ -12,37 +12,6 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.8,<3.11"
 dagster = "^1"
-polars = "^0.13.20"
+polars = ">=0.15.6"
 pyarrow = ">=9"
 pywin32 = { version = ">=301", markers = "platform_system == \"Windows\"" }
-
-[tool.poetry.dev-dependencies]
-pytest = "^6.2.5"
-pytest-azurepipelines = "^1"
-pytest-cov = "^3"
-pytest-datadir = "^1.3.1"
-pytest-mock = "^3.7"
-
-[tool.black]
-line-length = 120
-target-version = ['py37']
-include = '\.pyi?$'
-
-[tool.isort]
-profile = "black"
-
-[tool.pyright]
-exclude = [
-  "**/node_modules",
-  "**/__pycache__",
-  "src/experimental",
-  "src/typestubs",
-]
-
-[tool.pytest.ini_options]
-addopts = "--cov=dagster_fusion -v"
-testpaths = ["tests"]
-markers = [
-  "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
-  "azure: marks tests as integration tests with Azure (deselect with '-m \"not azure\"')",
-]
