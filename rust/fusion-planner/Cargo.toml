@@ -12,12 +12,14 @@ flight-fusion-ipc = { path = "../flight-fusion-ipc" }
 
 # Creates.io dependencies
 async-trait = "0.1"
-hashbrown = { version = "0.12", features = ["raw"] }
+datafusion-common = "15"
+datafusion-expr = "15"
+hashbrown = { version = "0.13", features = ["raw"] }
 petgraph = "0.6"
 prost = "0.11"
-sqlparser = "0.20"
+sqlparser = "0.27"
 thiserror = "1"
 
 [dev-dependencies]
-env_logger = "0.9"
+env_logger = "0.10"
 tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }

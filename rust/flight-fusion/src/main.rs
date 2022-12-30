@@ -36,7 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stdout_log = tracing_subscriber::fmt::layer().pretty();
 
     global::set_text_map_propagator(TraceContextPropagator::new());
-    let tracer = opentelemetry_jaeger::new_pipeline()
+    let tracer = opentelemetry_jaeger::new_agent_pipeline()
         .with_service_name("grpc-server")
         .install_batch(Tokio)?;
     tracing_subscriber::registry()

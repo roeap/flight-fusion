@@ -213,7 +213,7 @@ impl AreaStore {
             url.host_str().unwrap_or(""),
             self.object_store(),
         );
-        let opt = ListingOptions::new(Arc::new(ParquetFormat::default()));
+        let opt = ListingOptions::new(Arc::new(ParquetFormat::new(Default::default())));
         let schema = opt.infer_schema(&ctx.state(), &files[0]).await?;
         let config = ListingTableConfig::new_with_multi_paths(files)
             .with_listing_options(opt)
@@ -224,7 +224,7 @@ impl AreaStore {
 
     pub async fn open_delta_uninitialized(&self, location: &AreaPath) -> Result<DeltaTable> {
         let full_path = format!("{}/{}", self.root_path, location.as_ref());
-        let mut builder = DeltaTableBuilder::from_uri(&full_path);
+        let mut builder = DeltaTableBuilder::from_uri(full_path);
         if let Some(options) = self.storage_options.clone() {
             builder = builder.with_storage_options(options);
         };

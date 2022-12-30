@@ -4,9 +4,6 @@ use arrow_deps::datafusion::{
         file_format::parquet::ParquetFormat,
         listing::{ListingOptions, ListingTable, ListingTableConfig, ListingTableUrl},
     },
-    logical_plan::{
-        plan::TableSource, DFSchema, DFSchemaRef, Expr, LogicalPlan, LogicalPlanBuilder,
-    },
     physical_plan::ExecutionPlan,
     prelude::SessionContext,
     sql::{
@@ -14,10 +11,14 @@ use arrow_deps::datafusion::{
         planner::SqlToRel,
     },
 };
+use datafusion_common::{DFSchema, DFSchemaRef};
+use datafusion_expr::logical_plan::{LogicalPlan, LogicalPlanBuilder};
+use datafusion_expr::{Expr, TableSource};
 use flight_fusion_ipc::{
     signal_provider::Source as ProviderSource, table_reference::Table as TableRef, SignalProvider,
 };
 use sqlparser::ast::{Query, Select, SelectItem, SetExpr, Statement as SQLStatement};
+use std::collections::HashMap;
 use std::sync::Arc;
 
 pub enum ProviderNode {
@@ -95,10 +96,11 @@ impl FrameQueryPlanner {
                 Some(TableRef::File(file)) => {
                     let opt = ListingOptions {
                         file_extension: "parquet".to_owned(),
-                        format: Arc::new(ParquetFormat::default()),
+                        format: Arc::new(ParquetFormat::new(Default::default())),
                         table_partition_cols: vec![],
                         target_partitions: 1,
                         collect_stat: true,
+                        file_sort_order: None,
                     };
                     let table_url = ListingTableUrl::parse(&file.path)?;
                     // here we resolve the schema locally
@@ -169,7 +171,7 @@ impl FrameQueryPlanner {
 
         let state = self.ctx.state.read().clone();
         let query_planner = SqlToRel::new(&state);
-        let mut ctes = hashbrown::HashMap::new();
+        let mut ctes = HashMap::new();
         let expression = match &select_items[0] {
             SelectItem::UnnamedExpr(expr) => {
                 Ok(query_planner.sql_to_rex(expr.clone(), schema, &mut ctes)?)

@@ -9,7 +9,7 @@ use arrow_deps::datafusion::{
     physical_plan::{common::collect, SendableRecordBatchStream},
     prelude::SessionContext,
 };
-use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, operations::DeltaCommands};
+use arrow_deps::deltalake::{action::SaveMode as DeltaSaveMode, operations::DeltaOps};
 use async_trait::async_trait;
 use flight_fusion_ipc::{
     area_source_reference::Table, delta_operation_request::Operation as DeltaOperation,
@@ -32,21 +32,22 @@ impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
             let area_path = AreaPath::from(&source);
             if let StorageService::Local(path) = self.area_store.root.clone().into() {
                 let table_path = path.as_path().join(area_path.as_ref());
-                std::fs::create_dir_all(&table_path)
+                std::fs::create_dir_all(table_path)
                     .map_err(|err| FusionServiceError::Generic(err.to_string()))?;
             };
-            let mut commands: DeltaCommands =
-                match self.area_store.open_delta(&source.clone().into()).await {
-                    Ok(table) => table.into(),
-                    Err(_) => self
-                        .area_store
-                        .open_delta_uninitialized(&source.into())
-                        .await?
-                        .into(),
-                };
 
             let batches = collect(input).await?;
             debug!("writing {} record batches to delta.", batches.len());
+
+            let commands: DeltaOps = match self.area_store.open_delta(&source.clone().into()).await
+            {
+                Ok(table) => table.into(),
+                Err(_) => self
+                    .area_store
+                    .open_delta_uninitialized(&source.into())
+                    .await?
+                    .into(),
+            };
 
             match ticket.operation {
                 Some(DeltaOperation::Write(req)) => {
@@ -56,7 +57,12 @@ impl DoPutHandler<DeltaOperationRequest> for FlightFusionService {
                         Some(SaveMode::ErrorIfExists) => DeltaSaveMode::ErrorIfExists,
                         _ => todo!(),
                     };
-                    match commands.write(batches, mode, Some(req.partition_by)).await {
+                    match commands
+                        .write(batches)
+                        .with_save_mode(mode)
+                        .with_partition_columns(req.partition_by)
+                        .await
+                    {
                         Err(err) => {
                             error!("{}", err.to_string());
                             Err(err)

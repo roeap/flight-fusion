@@ -32,7 +32,7 @@ pub struct MlflowArtifacts {
 
 impl From<ListArtifacts> for Path {
     fn from(req: ListArtifacts) -> Self {
-        Self::from(req.path.unwrap_or_else(|| "".to_string()))
+        Self::from(req.path.unwrap_or_default())
     }
 }
 
