@@ -17,7 +17,7 @@ datafusion-expr = "15"
 hashbrown = { version = "0.13", features = ["raw"] }
 petgraph = "0.6"
 prost = "0.11"
-sqlparser = "0.27"
+sqlparser = "0.29"
 thiserror = "1"
 
 [dev-dependencies]
