@@ -11,7 +11,7 @@ publish = false
 observability_deps = { path = "../observability-deps" }
 
 # Crates.io dependencies
-async-trait = "0.1.52"
+async-trait = "0.1.61"
 filetime = "0.2.15"
 ritelinked = { version = "0.3.2", default-features = false, features = [
   "ahash",
