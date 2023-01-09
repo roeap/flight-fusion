@@ -7,7 +7,7 @@ publish = false
 [dependencies]
 arrow-flight = "28"
 async-trait = "0.1"
-base64 = "0.20"
+base64 = "0.21"
 prost = "0.11"
 ring = "0.16"
 thiserror = "1"
