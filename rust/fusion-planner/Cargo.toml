@@ -13,7 +13,7 @@ flight-fusion-ipc = { path = "../flight-fusion-ipc" }
 # Creates.io dependencies
 async-trait = "0.1"
 datafusion-common = "15"
-datafusion-expr = "15"
+datafusion-expr = "23"
 hashbrown = { version = "0.13", features = ["raw"] }
 petgraph = "0.6"
 prost = "0.11"
