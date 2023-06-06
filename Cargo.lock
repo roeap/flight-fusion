@@ -57,6 +57,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "allocator-api2"
+version = "0.2.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c4f263788a35611fba42eb41ff811c5d0360c58b97402570312a350736e2542e"
+
+[[package]]
 name = "android_system_properties"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -135,7 +141,7 @@ dependencies = [
  "chrono",
  "comfy-table",
  "half 2.1.0",
- "hashbrown 0.13.1",
+ "hashbrown 0.13.2",
  "multiversion",
  "num",
  "regex",
@@ -154,7 +160,7 @@ dependencies = [
  "arrow-schema",
  "chrono",
  "half 2.1.0",
- "hashbrown 0.13.1",
+ "hashbrown 0.13.2",
  "num",
 ]
 
@@ -1020,7 +1026,7 @@ dependencies = [
  "flate2",
  "futures",
  "glob",
- "hashbrown 0.13.1",
+ "hashbrown 0.13.2",
  "itertools",
  "lazy_static",
  "log",
@@ -1082,7 +1088,7 @@ dependencies = [
  "datafusion-common",
  "datafusion-expr",
  "datafusion-physical-expr",
- "hashbrown 0.13.1",
+ "hashbrown 0.13.2",
  "log",
 ]
 
@@ -1103,7 +1109,7 @@ dependencies = [
  "datafusion-expr",
  "datafusion-row",
  "half 2.1.0",
- "hashbrown 0.13.1",
+ "hashbrown 0.13.2",
  "itertools",
  "lazy_static",
  "md-5",
@@ -1466,7 +1472,7 @@ dependencies = [
  "datafusion-expr",
  "env_logger",
  "flight-fusion-ipc",
- "hashbrown 0.13.1",
+ "hashbrown 0.14.0",
  "observability_deps",
  "petgraph",
  "prost",
@@ -1666,11 +1672,21 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.13.1"
+version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "33ff8ae62cd3a9102e5637afc8452c55acf3844001bd5374e0b0bd7b6616c038"
+checksum = "43a3c133739dddd0d2990f9a4bdf8eb4b21ef50e4851ca85ab661199821d510e"
 dependencies = [
  "ahash 0.8.2",
+]
+
+[[package]]
+name = "hashbrown"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c6201b9ff9fd90a5a3bac2e56a830d0caa509576f0e503818ee82c181b3437a"
+dependencies = [
+ "ahash 0.8.2",
+ "allocator-api2",
 ]
 
 [[package]]
@@ -2622,7 +2638,7 @@ dependencies = [
  "chrono",
  "flate2",
  "futures",
- "hashbrown 0.13.1",
+ "hashbrown 0.13.2",
  "lz4",
  "num",
  "num-bigint",
