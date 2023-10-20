@@ -14,7 +14,7 @@ flight-fusion-ipc = { path = "../flight-fusion-ipc" }
 async-trait = "0.1"
 datafusion-common = "15"
 datafusion-expr = "15"
-hashbrown = { version = "0.13", features = ["raw"] }
+hashbrown = { version = "0.14", features = ["raw"] }
 petgraph = "0.6"
 prost = "0.11"
 sqlparser = "0.27"
